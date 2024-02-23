@@ -1,0 +1,5 @@
+**/.backup
+**/.recycle_bin
+**/.clientid
+/properties/*
+!/properties/properties

@@ -1,0 +1,13 @@
+{
+  "name": "proxy",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "whistle run -p 8899 -t 30000 -M \"keepXFF|prod|capture\" -D . --no-global-plugins"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "devDependencies": {
+    "whistle": "^2.9.61"
+  }
+}
