@@ -62,6 +62,7 @@ pub enum Downloads {
     CurrSize,
     AllSize,
     Mime,
+    Url,
 }
 
 #[async_trait::async_trait]

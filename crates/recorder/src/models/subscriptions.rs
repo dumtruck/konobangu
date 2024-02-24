@@ -48,32 +48,4 @@ impl Model {
             .await?;
         Ok(())
     }
-
-    // pub async fn pull_rss (
-    //     db: &DatabaseConnection,
-    //     item: &Self,
-    // ) -> eyre::Result<()> {
-    //     match &item.category {
-    //         SubscriptionCategory::Mikan => {
-    //             let items =
-    // MikanSubscriptionEngine::subscription_items_from_rss_url(&item.source_url).
-    // await?;             let items = items.collect::<Vec<_>>();
-    //             let torrent_urls = items.iter().map(|item| item.torrent_url());
-    //
-    //             let new_torrents = Entity::find()
-    //                 .filter(
-    //                     Column::SourceUrl
-    //                 )
-    //                 .all(db).await?;
-    //
-    //             for item in items {
-    //                 println!("{:?}", item);
-    //             }
-    //         }
-    //         _ => {
-    //             todo!("other subscription categories")
-    //         }
-    //     }
-    //     Ok(())
-    // }
 }

@@ -2814,6 +2814,7 @@ dependencies = [
  "futures",
  "include_dir",
  "insta",
+ "itertools",
  "loco-rs",
  "reqwest",
  "rss",

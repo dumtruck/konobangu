@@ -51,6 +51,10 @@ impl MigrationTrait for Migration {
                     ))
                     .col(big_unsigned(Downloads::AllSize))
                     .col(big_unsigned(Downloads::CurrSize))
+                    .col(text(Downloads::Url))
+                    .index(
+                        Index::create().table(Downloads::Table).col(Downloads::Url).name("idx_download_url")
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_download_subscription_id")
