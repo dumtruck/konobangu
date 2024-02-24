@@ -43,7 +43,6 @@ impl MigrationTrait for Migration {
                 &[
                     subscriptions::SubscriptionCategory::Mikan,
                     subscriptions::SubscriptionCategory::Manual,
-                    subscriptions::SubscriptionCategory::Bangumi,
                 ],
             )
             .await?;

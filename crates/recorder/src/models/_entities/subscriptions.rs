@@ -4,12 +4,12 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(
-    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize, DeriveDisplay,
+Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize, DeriveDisplay,
 )]
 #[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "subscription_category"
+rs_type = "String",
+db_type = "Enum",
+enum_name = "subscription_category"
 )]
 #[serde(rename_all = "snake_case")]
 pub enum SubscriptionCategory {
@@ -17,8 +17,6 @@ pub enum SubscriptionCategory {
     Mikan,
     #[sea_orm(string_value = "manual")]
     Manual,
-    #[sea_orm(string_value = "bangumi")]
-    Bangumi,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
@@ -41,9 +39,9 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::subscribers::Entity",
-        from = "Column::SubscriberId",
-        to = "super::subscribers::Column::Id"
+    belongs_to = "super::subscribers::Entity",
+    from = "Column::SubscriberId",
+    to = "super::subscribers::Column::Id"
     )]
     Subscriber,
     #[sea_orm(has_many = "super::bangumi::Entity")]
