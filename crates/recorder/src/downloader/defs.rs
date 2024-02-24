@@ -1,0 +1,1 @@
+pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";

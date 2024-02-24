@@ -3,7 +3,6 @@ pub mod controllers;
 pub mod downloader;
 pub mod migrations;
 pub mod models;
-pub mod rss;
 pub mod subscriptions;
 pub mod tasks;
 pub mod views;

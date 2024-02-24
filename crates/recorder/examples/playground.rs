@@ -1,7 +1,6 @@
 use eyre::Context;
 #[allow(unused_imports)]
 use loco_rs::{cli::playground, prelude::*};
-use recorder::app::App;
 
 async fn fetch_and_parse_rss_demo () -> eyre::Result<()> {
     let url =
@@ -15,7 +14,6 @@ async fn fetch_and_parse_rss_demo () -> eyre::Result<()> {
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
-
     fetch_and_parse_rss_demo().await?;
 
     // let active_model: articles::ActiveModel = ActiveModel {

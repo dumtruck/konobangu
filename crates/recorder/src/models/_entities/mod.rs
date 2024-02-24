@@ -3,6 +3,7 @@
 pub mod prelude;
 
 pub mod bangumi;
+pub mod downloads;
 pub mod episodes;
 pub mod subscribers;
 pub mod subscriptions;

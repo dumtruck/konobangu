@@ -3,7 +3,9 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize, DeriveDisplay,
+)]
 #[sea_orm(
     rs_type = "String",
     db_type = "Enum",
@@ -22,7 +24,9 @@ pub enum SubscriptionCategory {
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscriptions")]
 pub struct Model {
+    #[sea_orm(column_type = "Timestamp")]
     pub created_at: DateTime,
+    #[sea_orm(column_type = "Timestamp")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,

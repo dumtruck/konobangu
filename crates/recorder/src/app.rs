@@ -19,6 +19,7 @@ use crate::{
 };
 
 pub struct App;
+
 #[async_trait]
 impl Hooks for App {
     fn app_name() -> &'static str {

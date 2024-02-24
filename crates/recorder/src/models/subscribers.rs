@@ -12,7 +12,7 @@ pub struct SubscriberIdParams {
 }
 
 #[async_trait::async_trait]
-impl ActiveModelBehavior for super::_entities::subscribers::ActiveModel {
+impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait,
@@ -27,7 +27,7 @@ impl ActiveModelBehavior for super::_entities::subscribers::ActiveModel {
     }
 }
 
-impl super::_entities::subscribers::Model {
+impl Model {
     /// finds a user by the provided pid
     ///
     /// # Errors
@@ -35,7 +35,7 @@ impl super::_entities::subscribers::Model {
     /// When could not find user  or DB query error
     pub async fn find_by_pid(db: &DatabaseConnection, pid: &str) -> ModelResult<Self> {
         let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
-        let subscriber = subscribers::Entity::find()
+        let subscriber = Entity::find()
             .filter(subscribers::Column::Pid.eq(parse_uuid))
             .one(db)
             .await?;
@@ -55,7 +55,7 @@ impl super::_entities::subscribers::Model {
     pub async fn create_root(db: &DatabaseConnection) -> ModelResult<Self> {
         let txn = db.begin().await?;
 
-        let user = subscribers::ActiveModel {
+        let user = ActiveModel {
             display_name: ActiveValue::set(ROOT_SUBSCRIBER.to_string()),
             pid: ActiveValue::set(ROOT_SUBSCRIBER.to_string()),
             ..Default::default()

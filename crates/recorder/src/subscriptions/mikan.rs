@@ -1,23 +1,49 @@
-use crate::rss::engine::RssEngine;
+use crate::downloader::bytes::download_bytes;
+use crate::downloader::defs::BITTORRENT_MIME_TYPE;
 
-pub struct MikanRssCreateDto {
-    pub rss_link: String,
-    pub display_name: String,
-    pub aggregate: bool,
-    pub enabled: Option<bool>,
+#[derive(Debug, Clone)]
+pub struct MikanSubscriptionItem {
+    pub item: rss::Item,
 }
 
-pub struct MikanSubscriptionEngine {
-}
-
-impl MikanSubscriptionEngine {
-    pub async fn add_rss(create_dto: MikanRssCreateDto) -> eyre::Result<()> {
-        let content = reqwest::get(&create_dto.rss_link).await?.bytes().await?;
-        let channel = rss::Channel::read_from(&content[..])?;
-
-        Ok(())
+impl From<rss::Item> for MikanSubscriptionItem {
+    fn from(item: rss::Item) -> Self {
+        MikanSubscriptionItem {
+            item
+        }
     }
 }
 
-pub struct MikanSubscriptionItem {
+impl MikanSubscriptionItem {
+    pub fn title(&self) -> &str {
+        self.item.title().unwrap_or_default()
+    }
+
+    pub fn homepage(&self) -> Option<&str> {
+        self.item.link()
+    }
+
+    pub fn torrent_url (&self) -> Option<&str> {
+        self.item.enclosure().and_then(|en| {
+            if en.mime_type == BITTORRENT_MIME_TYPE {
+                Some(en.url.as_str())
+            } else {
+                None
+            }
+        })
+    }
+}
+
+pub struct MikanSubscriptionEngine;
+
+impl MikanSubscriptionEngine {
+    pub async fn subscription_items_from_rss_url (
+        url: &str
+    ) -> eyre::Result<impl Iterator<Item = MikanSubscriptionItem>> {
+        let bytes = download_bytes(url).await?;
+
+        let channel = rss::Channel::read_from(&bytes[..])?;
+
+        Ok(channel.items.into_iter().map(MikanSubscriptionItem::from))
+    }
 }
