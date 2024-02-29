@@ -1,10 +1,10 @@
+#![allow(unused_imports)]
 use eyre::Context;
-#[allow(unused_imports)]
 use loco_rs::{cli::playground, prelude::*};
 
-async fn fetch_and_parse_rss_demo () -> eyre::Result<()> {
+async fn fetch_and_parse_rss_demo() -> eyre::Result<()> {
     let url =
-    "https://mikanani.me/RSS/MyBangumi?token=FE9tccsML2nBPUUqpCuJW2uJZydAXCntHJ7RpD9LDP8%3d";
+        "https://mikanani.me/RSS/MyBangumi?token=FE9tccsML2nBPUUqpCuJW2uJZydAXCntHJ7RpD9LDP8%3d";
 
     let res = reqwest::get(url).await?.bytes().await?;
     let channel = rss::Channel::read_from(&res[..])?;

@@ -16,8 +16,7 @@
 use std::collections::BTreeMap;
 
 use loco_rs::{db, prelude::*};
-use migration::Migrator;
-use recorder::app::App;
+use recorder::{app::App, migrations::Migrator};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct SeedData;

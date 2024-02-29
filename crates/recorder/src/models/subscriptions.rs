@@ -1,6 +1,6 @@
 use sea_orm::{entity::prelude::*, ActiveValue};
 
-pub use super::_entities::subscriptions::{self, *};
+pub use super::entities::subscriptions::{self, *};
 use crate::subscriptions::defs::RssCreateDto;
 
 #[async_trait::async_trait]
@@ -27,7 +27,7 @@ impl Model {
 
     pub async fn toggle_iters(
         db: &DatabaseConnection,
-        ids: impl Iterator<Item=i32>,
+        ids: impl Iterator<Item = i32>,
         enabled: bool,
     ) -> eyre::Result<()> {
         Entity::update_many()
@@ -40,7 +40,7 @@ impl Model {
 
     pub async fn delete_iters(
         db: &DatabaseConnection,
-        ids: impl Iterator<Item=i32>,
+        ids: impl Iterator<Item = i32>,
     ) -> eyre::Result<()> {
         Entity::delete_many()
             .filter(Column::Id.is_in(ids))

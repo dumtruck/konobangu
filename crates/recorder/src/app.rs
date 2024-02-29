@@ -14,7 +14,7 @@ use loco_rs::{
 use sea_orm::DatabaseConnection;
 
 use crate::{
-    controllers, migrations::Migrator, models::_entities::subscribers,
+    controllers, migrations::Migrator, models::entities::subscribers,
     workers::downloader::DownloadWorker,
 };
 

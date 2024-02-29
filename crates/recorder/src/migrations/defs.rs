@@ -1,9 +1,7 @@
-use std::{collections::HashSet};
-use std::fmt::Display;
+use std::{collections::HashSet, fmt::Display};
 
 use sea_orm::{DeriveIden, Statement};
-use sea_orm_migration::prelude::*;
-use sea_orm_migration::prelude::extension::postgres::IntoTypeRef;
+use sea_orm_migration::prelude::{extension::postgres::IntoTypeRef, *};
 
 use crate::migrations::extension::postgres::Type;
 
@@ -19,6 +17,7 @@ pub enum Subscribers {
     Id,
     Pid,
     DisplayName,
+    DownloaderId,
 }
 
 #[derive(DeriveIden)]
@@ -65,6 +64,18 @@ pub enum Downloads {
     Url,
 }
 
+#[derive(DeriveIden)]
+pub enum Downloaders {
+    Table,
+    Id,
+    Category,
+    Endpoint,
+    Password,
+    Username,
+    SubscriberId,
+    DownloadPath,
+}
+
 #[async_trait::async_trait]
 pub trait CustomSchemaManagerExt {
     async fn create_postgres_auto_update_ts_fn(&self, col_name: &str) -> Result<(), DbErr>;
@@ -98,7 +109,7 @@ pub trait CustomSchemaManagerExt {
             &table_ident.to_string(),
             &column_ident.to_string(),
         )
-            .await?;
+        .await?;
         Ok(())
     }
 
@@ -134,14 +145,14 @@ pub trait CustomSchemaManagerExt {
             &table_ident.to_string(),
             &column_ident.to_string(),
         )
-            .await?;
+        .await?;
         Ok(())
     }
 
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
         T: Display + Send,
-        I: IntoIterator<Item=T> + Send,
+        I: IntoIterator<Item = T> + Send,
     >(
         &self,
         enum_name: E,
@@ -151,7 +162,7 @@ pub trait CustomSchemaManagerExt {
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
         T: Display + Send,
-        I: IntoIterator<Item=T> + Send,
+        I: IntoIterator<Item = T> + Send,
     >(
         &self,
         enum_name: E,
@@ -229,7 +240,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
         T: Display + Send,
-        I: IntoIterator<Item=T> + Send,
+        I: IntoIterator<Item = T> + Send,
     >(
         &self,
         enum_name: E,
@@ -241,12 +252,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
                 .into_iter()
                 .map(|v| Alias::new(v.to_string()))
                 .collect::<Vec<_>>();
-            self.create_type(
-                Type::create()
-                    .as_enum(enum_name)
-                    .values(idents)
-                    .to_owned(),
-            )
+            self.create_type(Type::create().as_enum(enum_name).values(idents).to_owned())
                 .await?;
         } else {
             self.add_postgres_enum_values_for_active_enum(enum_name, values)
@@ -258,7 +264,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
         T: Display + Send,
-        I: IntoIterator<Item=T> + Send,
+        I: IntoIterator<Item = T> + Send,
     >(
         &self,
         enum_name: E,

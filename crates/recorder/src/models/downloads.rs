@@ -1,9 +1,10 @@
-use sea_orm::{prelude::*, ActiveValue, Condition, QuerySelect, QueryOrder};
-use sea_orm::sea_query::OnConflict;
+use sea_orm::{prelude::*, sea_query::OnConflict, ActiveValue, Condition, QueryOrder, QuerySelect};
 
-use crate::models::_entities::downloads::*;
-use crate::models::prelude::{SubscriptionCategory, subscriptions};
-use crate::subscriptions::mikan::{MikanSubscriptionEngine, MikanSubscriptionItem};
+pub use crate::models::entities::downloads::*;
+use crate::{
+    models::subscriptions::{self, SubscriptionCategory},
+    subscriptions::mikan::{MikanSubscriptionEngine, MikanSubscriptionItem},
+};
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}
@@ -17,8 +18,9 @@ impl ActiveModel {
             status: ActiveValue::Set(DownloadStatus::Pending),
             mime: ActiveValue::Set(DownloadMime::BitTorrent),
             url: ActiveValue::Set(m.url),
-            all_size: ActiveValue::Set(m.content_length.unwrap_or_default()),
-            curr_size: ActiveValue::Set(0),
+            curr_size: ActiveValue::Set(m.content_length.as_ref().map(|_| 0)),
+            all_size: ActiveValue::Set(m.content_length),
+            homepage: ActiveValue::Set(m.homepage),
             ..Default::default()
         }
     }
@@ -32,8 +34,8 @@ impl Model {
         match &item.category {
             SubscriptionCategory::Mikan => {
                 let items =
-                    MikanSubscriptionEngine::subscription_items_from_rss_url(&item.source_url).
-                        await?;
+                    MikanSubscriptionEngine::subscription_items_from_rss_url(&item.source_url)
+                        .await?;
                 let all_items = items.collect::<Vec<_>>();
 
                 let last_old_id = {
@@ -42,23 +44,21 @@ impl Model {
                         .column(Column::Id)
                         .order_by_desc(Column::Id)
                         .filter(Column::SubscriptionId.eq(item.id))
-                        .one(db).await?
-                }.map(|i| i.id);
+                        .one(db)
+                        .await?
+                }
+                .map(|i| i.id);
 
                 if all_items.is_empty() {
                     return Ok(vec![]);
                 }
 
-                let new_items = all_items.into_iter().map(|i| {
-                    ActiveModel::from_mikan_subscription_item(i, item.id)
-                });
+                let new_items = all_items
+                    .into_iter()
+                    .map(|i| ActiveModel::from_mikan_subscription_item(i, item.id));
 
                 let insert_result = Entity::insert_many(new_items)
-                    .on_conflict(
-                        OnConflict::column(Column::Url)
-                            .do_nothing()
-                            .to_owned()
-                    )
+                    .on_conflict(OnConflict::column(Column::Url).do_nothing().to_owned())
                     .exec(db)
                     .await?;
 
@@ -71,9 +71,7 @@ impl Model {
                             .add(Column::Id.lte(insert_result.last_insert_id));
 
                         if let Some(last_old_id) = last_old_id {
-                            cond = cond.add(
-                                Column::Id.gt(last_old_id)
-                            )
+                            cond = cond.add(Column::Id.gt(last_old_id))
                         }
 
                         cond

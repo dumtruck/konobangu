@@ -2,7 +2,7 @@ use loco_rs::model::{ModelError, ModelResult};
 use sea_orm::{entity::prelude::*, ActiveValue, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
-pub use super::_entities::subscribers::{self, ActiveModel, Entity, Model};
+pub use super::entities::subscribers::*;
 
 pub const ROOT_SUBSCRIBER: &str = "konobangu";
 
@@ -36,7 +36,7 @@ impl Model {
     pub async fn find_by_pid(db: &DatabaseConnection, pid: &str) -> ModelResult<Self> {
         let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
         let subscriber = Entity::find()
-            .filter(subscribers::Column::Pid.eq(parse_uuid))
+            .filter(Column::Pid.eq(parse_uuid))
             .one(db)
             .await?;
         subscriber.ok_or_else(|| ModelError::EntityNotFound)

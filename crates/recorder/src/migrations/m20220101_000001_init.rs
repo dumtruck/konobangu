@@ -65,7 +65,9 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name("fk_subscription_subscriber_id")
                             .from(Subscriptions::Table, Subscriptions::SubscriberId)
-                            .to(Subscribers::Table, Subscribers::Id),
+                            .to(Subscribers::Table, Subscribers::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )
@@ -88,7 +90,9 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name("fk_bangumi_subscription_id")
                             .from(Bangumi::Table, Bangumi::SubscriptionId)
-                            .to(Subscriptions::Table, Subscriptions::Id),
+                            .to(Subscriptions::Table, Subscriptions::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )
@@ -109,7 +113,9 @@ impl MigrationTrait for Migration {
                         ForeignKey::create()
                             .name("fk_episode_bangumi_id")
                             .from(Episodes::Table, Episodes::BangumiId)
-                            .to(Bangumi::Table, Bangumi::Id),
+                            .to(Bangumi::Table, Bangumi::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )

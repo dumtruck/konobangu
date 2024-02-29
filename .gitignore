@@ -214,9 +214,11 @@ index.d.ts.map
 # Added by cargo
 
 /target
-/examples/*
 !/examples/.gitkeep
 /.env
 /.env.bk
 /.angular
 /*.session.sql
+
+/temp
+/rustc-ice-*

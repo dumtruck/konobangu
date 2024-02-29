@@ -1,6 +1,6 @@
 use loco_rs::prelude::*;
 
-use crate::{models::_entities::subscribers, views::subscribers::CurrentResponse};
+use crate::{models::entities::subscribers, views::subscribers::CurrentResponse};
 
 async fn current(State(ctx): State<AppContext>) -> Result<Json<CurrentResponse>> {
     let subscriber = subscribers::Model::find_root(&ctx.db).await?;

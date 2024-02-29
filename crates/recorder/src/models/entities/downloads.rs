@@ -2,7 +2,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(
-Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
+    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
 )]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "download_status")]
 #[serde(rename_all = "snake_case")]
@@ -22,7 +22,7 @@ pub enum DownloadStatus {
 }
 
 #[derive(
-Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
+    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
 )]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "download_mime")]
 pub enum DownloadMime {
@@ -47,16 +47,17 @@ pub struct Model {
     pub status: DownloadStatus,
     pub mime: DownloadMime,
     pub url: String,
-    pub all_size: u64,
-    pub curr_size: u64,
+    pub all_size: Option<u64>,
+    pub curr_size: Option<u64>,
+    pub homepage: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-    belongs_to = "super::subscriptions::Entity",
-    from = "Column::SubscriptionId",
-    to = "super::subscriptions::Column::Id"
+        belongs_to = "super::subscriptions::Entity",
+        from = "Column::SubscriptionId",
+        to = "super::subscriptions::Column::Id"
     )]
     Subscription,
     #[sea_orm(has_many = "super::episodes::Entity")]

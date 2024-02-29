@@ -1,6 +1,6 @@
 use sea_orm::entity::prelude::*;
 
-pub use super::_entities::episodes::{self, ActiveModel, Entity, Model};
+pub use super::entities::episodes::*;
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}

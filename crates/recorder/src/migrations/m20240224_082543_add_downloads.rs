@@ -2,8 +2,10 @@ use loco_rs::schema::table_auto;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::*;
-use crate::models::prelude::{DownloadMime, DownloadStatus};
-use crate::models::prelude::downloads::{DownloadMimeEnum, DownloadStatusEnum};
+use crate::models::prelude::{
+    downloads::{DownloadMimeEnum, DownloadStatusEnum},
+    DownloadMime, DownloadStatus,
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -53,13 +55,18 @@ impl MigrationTrait for Migration {
                     .col(big_unsigned(Downloads::CurrSize))
                     .col(text(Downloads::Url))
                     .index(
-                        Index::create().table(Downloads::Table).col(Downloads::Url).name("idx_download_url")
+                        Index::create()
+                            .table(Downloads::Table)
+                            .col(Downloads::Url)
+                            .name("idx_download_url"),
                     )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_download_subscription_id")
                             .from(Downloads::Table, Downloads::SubscriptionId)
-                            .to(Subscriptions::Table, Subscriptions::Id),
+                            .to(Subscriptions::Table, Subscriptions::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )
@@ -73,14 +80,16 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Episodes::Table)
-                    .add_column_if_not_exists(integer(Episodes::DownloadId))
+                    .add_column_if_not_exists(integer_null(Episodes::DownloadId))
                     .add_foreign_key(
                         TableForeignKey::new()
                             .name("fk_episode_download_id")
                             .from_tbl(Episodes::Table)
                             .from_col(Episodes::DownloadId)
                             .to_tbl(Downloads::Table)
-                            .to_col(Downloads::Id),
+                            .to_col(Downloads::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::SetNull),
                     )
                     .to_owned(),
             )

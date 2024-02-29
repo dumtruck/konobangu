@@ -36,6 +36,16 @@ rss = "2.0.7"
 bytes = "1.5.0"
 futures = "0.3.30"
 itertools = "0.12.1"
+qbit-rs = "0.4.1"
+url = "2.5.0"
+fancy-regex = "0.13.0"
+regex = "1.10.3"
+lazy_static = "1.4.0"
+maplit = "1.0.2"
+uni-path = "1.51.1"
+tl = { version = "0.7.8", features = ["simd"] }
+lightningcss = "1.0.0-alpha.54"
+html-escape = "0.2.13"
 
 [lib]
 name = "recorder"
