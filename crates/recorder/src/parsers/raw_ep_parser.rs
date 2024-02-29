@@ -7,29 +7,37 @@ use serde::{Deserialize, Serialize};
 
 use super::defs::{DIGIT_1PLUS_REG, ZH_NUM_MAP, ZH_NUM_RE};
 
+const NAME_EXTRACT_REPLACE_ADHOC1_REPLACED: &str = "$1/$2";
+
 lazy_static! {
     static ref TITLE_RE: Regex = Regex::new(
         r#"(.*|\[.*])( -? \d+|\[\d+]|\[\d+.?[vV]\d]|第\d+[话話集]|\[第?\d+[话話集]]|\[\d+.?END]|[Ee][Pp]?\d+)(.*)"#
     ).unwrap();
+    static ref MOVIE_TITLE_RE:Regex = Regex::new(r#"(.*|\[.*])(剧场版|[Mm]ovie|电影)(.*?)$"#).unwrap();
     static ref RESOLUTION_RE: Regex = Regex::new(r"1080|720|2160|4K|2K").unwrap();
-    static ref SOURCE_RE: Regex = Regex::new(r"B-Global|[Bb]aha|[Bb]ilibili|AT-X|Web|WebRip").unwrap();
+    static ref SOURCE_L1_RE: Regex = Regex::new(r"B-Global|[Bb]aha|[Bb]ilibili|AT-X|W[Ee][Bb][Rr][Ii][Pp]|Sentai|B[Dd][Rr][Ii][Pp]|UHD[Rr][Ii][Pp]|NETFLIX").unwrap();
+    static ref SOURCE_L2_RE: Regex = Regex::new(r"AMZ|CR|W[Ee][Bb]|B[Dd]").unwrap();
     static ref SUB_RE: Regex = Regex::new(r"[简繁日字幕]|CH|BIG5|GB").unwrap();
     static ref PREFIX_RE: Regex =
         Regex::new(r"[^\w\s\p{Unified_Ideograph}\p{scx=Han}\p{scx=Hira}\p{scx=Kana}-]").unwrap();
     static ref EN_BRACKET_SPLIT_RE: Regex = Regex::new(r"[\[\]]").unwrap();
+    static ref MOVIE_SEASON_EXTRACT_RE: Regex = Regex::new(r"剧场版|Movie|电影").unwrap();
     static ref MAIN_TITLE_PREFIX_PROCESS_RE1: Regex = Regex::new(r"新番|月?番").unwrap();
     static ref MAIN_TITLE_PREFIX_PROCESS_RE2: Regex = Regex::new(r"[港澳台]{1,3}地区").unwrap();
+    static ref MAIN_TITLE_PRE_PROCESS_BACKETS_RE: Regex = Regex::new(r"\[.+\]").unwrap();
+    static ref MAIN_TITLE_PRE_PROCESS_BACKETS_RE_SUB1: Regex = Regex::new(r"^.*?\[").unwrap();
     static ref SEASON_EXTRACT_SEASON_ALL_RE: Regex = Regex::new(r"S\d{1,2}|Season \d{1,2}|[第].[季期]|1st|2nd|3rd|\d{1,2}th").unwrap();
     static ref SEASON_EXTRACT_SEASON_EN_PREFIX_RE: Regex = Regex::new(r"Season|S").unwrap();
     static ref SEASON_EXTRACT_SEASON_EN_NTH_RE: Regex = Regex::new(r"1st|2nd|3rd|\d{1,2}th").unwrap();
     static ref SEASON_EXTRACT_SEASON_ZH_PREFIX_RE: Regex = Regex::new(r"[第 ].*[季期(部分)]|部分").unwrap();
     static ref SEASON_EXTRACT_SEASON_ZH_PREFIX_SUB_RE: Regex = Regex::new(r"[第季期 ]").unwrap();
     static ref NAME_EXTRACT_REMOVE_RE: Regex = Regex::new(r"[(（]仅限[港澳台]{1,3}地区[）)]").unwrap();
-    static ref NAME_EXTRACT_SPLIT_RE: Regex = Regex::new(r"/|\s{2}|-\s{2}").unwrap();
+    static ref NAME_EXTRACT_SPLIT_RE: Regex = Regex::new(r"/|\s{2}|-\s{2}|\]\[").unwrap();
+    static ref NAME_EXTRACT_REPLACE_ADHOC1_RE: Regex = Regex::new(r"([\p{scx=Han}\s\(\)]{5,})_([a-zA-Z]{2,})").unwrap();
     static ref NAME_JP_TEST: Regex = Regex::new(r"[\p{scx=Hira}\p{scx=Kana}]{2,}").unwrap();
     static ref NAME_ZH_TEST: Regex = Regex::new(r"[\p{scx=Han}]{2,}").unwrap();
     static ref NAME_EN_TEST: Regex = Regex::new(r"[a-zA-Z]{3,}").unwrap();
-    static ref TAGS_EXTRACT_SPLIT_RE: Regex = Regex::new(r"[\[\]()（）]").unwrap();
+    static ref TAGS_EXTRACT_SPLIT_RE: Regex = Regex::new(r"[\[\]()（）_]").unwrap();
     static ref CLEAR_SUB_RE: Regex = Regex::new(r"_MP4|_MKV").unwrap();
 }
 
@@ -59,7 +67,7 @@ fn replace_ch_bracket_to_en(raw_name: &str) -> String {
     raw_name.replace('【', "[").replace('】', "]")
 }
 
-fn title_body_prefix_process(title_body: &str, fansub: Option<&str>) -> eyre::Result<String> {
+fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> eyre::Result<String> {
     let raw_without_fansub = if let Some(fansub) = fansub {
         let fan_sub_re = Regex::new(&format!(".{fansub}."))?;
         fan_sub_re.replace_all(title_body, "")
@@ -70,6 +78,7 @@ fn title_body_prefix_process(title_body: &str, fansub: Option<&str>) -> eyre::Re
     let mut arg_group = raw_with_prefix_replaced
         .split('/')
         .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
         .collect::<Vec<_>>();
 
     if arg_group.len() == 1 {
@@ -82,6 +91,17 @@ fn title_body_prefix_process(title_body: &str, fansub: Option<&str>) -> eyre::Re
         {
             let sub = Regex::new(&format!(".{arg}."))?;
             raw = sub.replace_all(&raw, "").to_string();
+        }
+    }
+    if let Some(m) = MAIN_TITLE_PRE_PROCESS_BACKETS_RE.find(&raw) {
+        if m.len() as f32 > (raw.len() as f32) * 0.5 {
+            let mut raw1 = MAIN_TITLE_PRE_PROCESS_BACKETS_RE_SUB1.replace(&raw, "").chars().collect_vec();
+            while let Some(ch) = raw1.pop() {
+                if ch == ']' {
+                    break;
+                }
+            }
+            raw = raw1.into_iter().collect();
         }
     }
     Ok(raw.to_string())
@@ -147,10 +167,11 @@ fn extract_name_from_title_body_name_section(
     let mut name_en = None;
     let mut name_zh = None;
     let mut name_jp = None;
-    let replaced = NAME_EXTRACT_REMOVE_RE.replace_all(title_body_name_section, "");
-    let trimed = replaced.trim();
+    let replaced1 = NAME_EXTRACT_REMOVE_RE.replace_all(title_body_name_section, "");
+    let replaced2 = NAME_EXTRACT_REPLACE_ADHOC1_RE.replace_all(&replaced1, NAME_EXTRACT_REPLACE_ADHOC1_REPLACED);
+    let trimmed = replaced2.trim();
     let mut split = NAME_EXTRACT_SPLIT_RE
-        .split(trimed)
+        .split(trimmed)
         .map(|s| s.trim())
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
@@ -201,33 +222,46 @@ fn extract_tags_from_title_extra(
     let elements = replaced
         .split(' ')
         .map(|s| s.trim())
-        .filter(|s| !s.is_empty());
+        .filter(|s| !s.is_empty())
+        .collect_vec();
 
     let mut sub = None;
     let mut resolution = None;
     let mut source = None;
-    for element in elements {
+    for element in elements.iter() {
         if SUB_RE.is_match(element) {
             sub = Some(element.to_string())
         } else if RESOLUTION_RE.is_match(element) {
             resolution = Some(element.to_string())
-        } else if SOURCE_RE.is_match(element) {
+        } else if SOURCE_L1_RE.is_match(element) {
             source = Some(element.to_string())
         }
     }
+    if source.is_none() {
+        for element in elements {
+            if SOURCE_L2_RE.is_match(element) {
+                source = Some(element.to_string())
+            }
+        }
+    }
     (clear_sub(sub), resolution, source)
+}
+
+pub fn check_is_movie(title: &str) -> bool {
+    MOVIE_SEASON_EXTRACT_RE.is_match(title)
 }
 
 pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta> {
     let raw_title = s.trim();
     let raw_title_without_ch_brackets = replace_ch_bracket_to_en(raw_title);
     let fansub = extract_fansub(&raw_title_without_ch_brackets);
-    if let Some(title_re_match_obj) = TITLE_RE.captures(&raw_title_without_ch_brackets) {
-        let title_body = title_re_match_obj
+    let is_movie = check_is_movie(&raw_title_without_ch_brackets);
+    if let Some(title_re_match_obj) = MOVIE_TITLE_RE.captures(&raw_title_without_ch_brackets).or(TITLE_RE.captures(&raw_title_without_ch_brackets)) {
+        let mut title_body = title_re_match_obj
             .get(1)
             .map(|s| s.as_str().trim())
-            .unwrap_or_else(|| unreachable!("TITLE_RE has at least 3 capture groups"));
-        let title_episode = title_re_match_obj
+            .unwrap_or_else(|| unreachable!("TITLE_RE has at least 3 capture groups")).to_string();
+        let mut title_episode = title_re_match_obj
             .get(2)
             .map(|s| s.as_str().trim())
             .unwrap_or_else(|| unreachable!("TITLE_RE has at least 3 capture groups"));
@@ -235,7 +269,13 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
             .get(3)
             .map(|s| s.as_str().trim())
             .unwrap_or_else(|| unreachable!("TITLE_RE has at least 3 capture groups"));
-        let title_body = title_body_prefix_process(title_body, fansub)?;
+
+        if is_movie {
+            title_body += title_episode;
+            title_episode = "";
+        }
+
+        let title_body = title_body_pre_process(&title_body, fansub)?;
         let (name_without_season, season_raw, season) = extract_season_from_title_body(&title_body);
         let (name_en, name_zh, name_jp) = extract_name_from_title_body_name_section(&title_body);
         let (name_en_no_season, name_zh_no_season, name_jp_no_season) =
@@ -274,6 +314,38 @@ mod tests {
     #[test]
     fn test_parse_episode_meta_from_raw_name() {
         let test_cases = vec![
+            // all field wrapped by []
+            TestCase {
+                source: r#"[新Sub][1月新番][我心里危险的东西 第二季][05][HEVC][10Bit][1080P][简日双语][招募翻译]"#,
+                expected: r#"{
+                  "name_zh": "我心里危险的东西",
+                  "name_zh_no_season": "我心里危险的东西",
+                  "season": 2,
+                  "season_raw": "第二季",
+                  "episode_index": 5,
+                  "sub": "简日双语",
+                  "source": null,
+                  "fansub": "新Sub",
+                  "resolution": "1080P"
+                }"#,
+            },
+            // title wrap with []
+            TestCase {
+                source: r#"【喵萌奶茶屋】★01月新番★[我内心的糟糕念头 / Boku no Kokoro no Yabai Yatsu][18][1080p][简日双语][招募翻译]"#,
+                expected: r#"{
+                  "name_en": "Boku no Kokoro no Yabai Yatsu",
+                  "name_en_no_season": "Boku no Kokoro no Yabai Yatsu",
+                  "name_zh": "我内心的糟糕念头",
+                  "name_zh_no_season": "我内心的糟糕念头",
+                  "season": 1,
+                  "season_raw": null,
+                  "episode_index": 18,
+                  "sub": "简日双语",
+                  "source": null,
+                  "fansub": "喵萌奶茶屋",
+                  "resolution": "1080p"
+                }"#,
+            },
             TestCase {
                 // ep+version case
                 source: r#"[LoliHouse] 因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生 2nd / Shin no Nakama 2nd - 08v2 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕]"#,
@@ -373,6 +445,120 @@ mod tests {
                     "source": "WebRip",
                     "fansub": "豌豆字幕组&LoliHouse",
                     "resolution": "1080p"
+                }"#,
+            },
+            // ad-hoc cases for 千夏字幕组 _sep style
+            TestCase {
+                source: r#"【千夏字幕组】【爱丽丝与特蕾丝的虚幻工厂_Alice to Therese no Maboroshi Koujou】[剧场版][WebRip_1080p_HEVC][简繁内封][招募新人]"#,
+                expected: r#"{
+                  "name_en": "Alice to Therese no Maboroshi Koujou",
+                  "name_en_no_season": "Alice to Therese no Maboroshi Koujou",
+                  "name_zh": "爱丽丝与特蕾丝的虚幻工厂",
+                  "name_zh_no_season": "爱丽丝与特蕾丝的虚幻工厂",
+                  "season": 1,
+                  "episode_index": 0,
+                  "sub": "简繁内封",
+                  "source": "WebRip",
+                  "fansub": "千夏字幕组",
+                  "resolution": "1080p"
+                }"#,
+            },
+            // ad-hoc cases for 千夏字幕组 _sep style starting with ") "
+            TestCase {
+                source: r#"[千夏字幕组&喵萌奶茶屋][电影 轻旅轻营 (摇曳露营) _Yuru Camp Movie][剧场版][UHDRip_2160p_HEVC][繁体][千夏15周年]"#,
+                expected: r#"{
+                      "name_en": "Yuru Camp Movie",
+                      "name_en_no_season": "Yuru Camp Movie",
+                      "name_jp": null,
+                      "name_jp_no_season": null,
+                      "name_zh": "电影 轻旅轻营 (摇曳露营)",
+                      "name_zh_no_season": "电影 轻旅轻营 (摇曳露营)",
+                      "season": 1,
+                      "season_raw": null,
+                      "episode_index": 0,
+                      "sub": "繁体",
+                      "source": "UHDRip",
+                      "fansub": "千夏字幕组&喵萌奶茶屋",
+                      "resolution": "2160p"
+                }"#,
+            },
+            // title split by ][
+            TestCase {
+                source: r#"【MCE汉化组】[剧场版-摇曳露营][Yuru Camp][Movie][简日双语][1080P][x264 AAC]"#,
+                expected: r#"{
+                  "name_en": "Yuru Camp",
+                  "name_en_no_season": "Yuru Camp",
+                  "name_zh": "剧场版-摇曳露营",
+                  "name_zh_no_season": "剧场版-摇曳露营",
+                  "season": 1,
+                  "episode_index": 0,
+                  "sub": "简日双语",
+                  "fansub": "MCE汉化组",
+                  "resolution": "1080P"
+                }"#,
+            },
+            // single title block split by space + netflex
+            TestCase {
+                source: r#"[天月搬运组][迷宫饭 Delicious in Dungeon][03][日语中字][MKV][1080P][NETFLIX][高画质版]"#,
+                expected: r#"
+                {
+                  "name_en": "Delicious in Dungeon",
+                  "name_en_no_season": "Delicious in Dungeon",
+                  "name_zh": "迷宫饭",
+                  "name_zh_no_season": "迷宫饭",
+                  "season": 1,
+                  "episode_index": 3,
+                  "sub": "日语中字",
+                  "source": "NETFLIX",
+                  "fansub": "天月搬运组",
+                  "resolution": "1080P"
+                }
+                "#,
+            },
+            // start with season like 1月新番
+            TestCase {
+                source: r#"[爱恋字幕社][1月新番][迷宫饭][Dungeon Meshi][01][1080P][MP4][简日双语] "#,
+                expected: r#"{
+                  "name_en": "Dungeon Meshi",
+                  "name_en_no_season": "Dungeon Meshi",
+                  "name_zh": "迷宫饭",
+                  "name_zh_no_season": "迷宫饭",
+                  "season": 1,
+                  "episode_index": 1,
+                  "sub": "简日双语",
+                  "fansub": "爱恋字幕社",
+                  "resolution": "1080P"
+                }"#,
+            },
+            // prevent [ ] pair to small, chars size in biggest [ ] in title should greater than len(title_body) * 0.5
+            TestCase {
+                source: r#"[ANi] Mahou Shoujo ni Akogarete / 梦想成为魔法少女 [年龄限制版] - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]"#,
+                expected: r#"{
+                  "name_en": "Mahou Shoujo ni Akogarete",
+                  "name_en_no_season": "Mahou Shoujo ni Akogarete",
+                  "name_zh": "梦想成为魔法少女 [年龄限制版]",
+                  "name_zh_no_season": "梦想成为魔法少女 [年龄限制版]",
+                  "season": 1,
+                  "episode_index": 9,
+                  "sub": "CHT",
+                  "source": "Baha",
+                  "fansub": "ANi",
+                  "resolution": "1080P"
+                }"#,
+            },
+            // TODO: failed case, can not find capture point
+            TestCase {
+                source: r#"[7³ACG x 桜都字幕组] 摇曳露营△ 剧场版/映画 ゆるキャン△/Eiga Yuru Camp△ [简繁字幕] BDrip 1080p x265 FLAC 2.0"#,
+                expected: r#"{
+                  "name_zh": "摇曳露营△剧场版",
+                  "name_zh_no_season": "摇曳露营△剧场版",
+                  "season": 1,
+                  "season_raw": null,
+                  "episode_index": 0,
+                  "sub": "简繁字幕",
+                  "source": "BDrip",
+                  "fansub": "7³ACG x 桜都字幕组",
+                  "resolution": "1080p"
                 }"#,
             },
         ];
