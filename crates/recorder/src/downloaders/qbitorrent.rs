@@ -26,7 +26,7 @@ pub struct QBittorrentDownloader {
 }
 
 impl QBittorrentDownloader {
-    pub fn from_downloader_model(model: downloaders::Model) -> Result<Self, DownloaderError> {
+    pub async fn from_downloader_model(model: downloaders::Model) -> Result<Self, DownloaderError> {
         if model.category != DownloaderCategory::QBittorrent {
             return Err(DownloaderError::InvalidMime {
                 expected: DownloaderCategory::QBittorrent.to_string(),
@@ -40,16 +40,21 @@ impl QBittorrentDownloader {
         let credential = Credential::new(model.username, model.password);
         let client = Qbit::new(endpoint_url.clone(), credential);
 
+        client
+            .login(false)
+            .await
+            .map_err(DownloaderError::QBitAPIError)?;
+
         Ok(Self {
             client,
             endpoint_url,
             subscriber_id: model.subscriber_id,
-            save_path: model.download_path,
+            save_path: model.save_path,
         })
     }
 
     async fn api_version(&self) -> eyre::Result<String> {
-        let result = self.client.get_webapi_version().await?;
+        let result = self.client.get_version().await?;
         Ok(result)
     }
 }
@@ -177,5 +182,40 @@ impl Debug for QBittorrentDownloader {
             .field("subscriber_id", &self.subscriber_id)
             .field("client", &self.endpoint_url.as_str())
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn get_tmp_qbit_test_folder() -> &'static str {
+        if cfg!(windows) {
+            "~/AppData/Local/Temp/konobangu/qbit"
+        } else {
+            "/tmp/konobangu/qbit"
+        }
+    }
+
+    #[tokio::test]
+    async fn test_add_torrents() {
+        let downloader = QBittorrentDownloader::from_downloader_model(downloaders::Model {
+            created_at: Default::default(),
+            updated_at: Default::default(),
+            id: 0,
+            category: DownloaderCategory::QBittorrent,
+            endpoint: "http://127.0.0.1:8080".to_string(),
+            password: "".to_string(),
+            username: "".to_string(),
+            subscriber_id: 0,
+            save_path: get_tmp_qbit_test_folder().to_string(),
+        })
+        .await
+        .expect("should create downloader success");
+
+        downloader
+            .check_connection()
+            .await
+            .expect("should check connection success");
     }
 }

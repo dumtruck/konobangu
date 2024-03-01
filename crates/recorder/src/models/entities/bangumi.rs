@@ -19,15 +19,14 @@ pub struct Model {
     pub official_title: String,
     pub season: i32,
     pub season_raw: Option<String>,
-    pub group_name: Option<String>,
+    pub fansub: Option<String>,
     pub resolution: Option<String>,
     pub source: Option<String>,
     pub filter: Option<BangumiFilter>,
     pub subtitle: Option<String>,
     pub rss_link: Option<String>,
     pub poster_link: Option<String>,
-    pub rule_name: Option<String>,
-    pub sub_path: Option<String>,
+    pub save_path: Option<String>,
     pub deleted: bool,
 }
 

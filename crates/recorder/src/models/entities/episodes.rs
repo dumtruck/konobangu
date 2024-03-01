@@ -27,10 +27,11 @@ pub struct Model {
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
+    pub raw_name: String,
     pub display_name: String,
     pub bangumi_id: i32,
-    pub output_name: String,
     pub download_id: i32,
+    pub save_path: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

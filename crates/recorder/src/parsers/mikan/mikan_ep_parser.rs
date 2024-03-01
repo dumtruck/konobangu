@@ -7,18 +7,18 @@ use url::Url;
 
 use crate::{
     downloaders::{html::download_html, image::download_image},
-    parsers::html_parser::{get_tag_style, query_selector_first_tag},
+    parsers::html::{get_tag_style, query_selector_first_tag},
 };
 
 pub struct MikanEpisodeMeta {
     pub homepage: Url,
-    pub poster_src: Option<Url>,
     pub poster_data: Option<Bytes>,
+    pub origin_poster_src: Option<Url>,
     pub official_title: String,
 }
 
 lazy_static! {
-    pub static ref MIKAN_TITLE_SEASON: Regex = Regex::new("第.*季").unwrap();
+    static ref MIKAN_TITLE_SEASON: Regex = Regex::new("第.*季").unwrap();
 }
 
 pub async fn parse_episode_meta_from_mikan_homepage(
@@ -30,7 +30,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
     let parser = dom.parser();
     let poster_node = query_selector_first_tag(&dom, r"div.bangumi-poster", parser);
     let official_title_node = query_selector_first_tag(&dom, r"p.bangumi-title", parser);
-    let mut poster_src = None;
+    let mut origin_poster_src = None;
     if let Some(style) = poster_node.and_then(get_tag_style) {
         for (prop, _) in style.iter() {
             match prop {
@@ -38,7 +38,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
                     if let Some(Image::Url(path)) = images.first() {
                         if let Ok(url) = Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
                         {
-                            poster_src = Some(url);
+                            origin_poster_src = Some(url);
                         }
                     }
                 }
@@ -48,7 +48,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
                             if let Ok(url) =
                                 Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
                             {
-                                poster_src = Some(url);
+                                origin_poster_src = Some(url);
                             }
                         }
                     }
@@ -57,12 +57,12 @@ pub async fn parse_episode_meta_from_mikan_homepage(
             }
         }
     };
-    poster_src = poster_src.map(|mut p| {
+    origin_poster_src = origin_poster_src.map(|mut p| {
         p.set_query(None);
         p
     });
-    let poster_data = if let Some(p) = poster_src.as_ref() {
-        download_image(p.as_str()).await.ok()
+    let poster_data = if let Some(p) = origin_poster_src.as_ref() {
+        download_image(p.clone()).await.ok()
     } else {
         None
     };
@@ -81,9 +81,9 @@ pub async fn parse_episode_meta_from_mikan_homepage(
         })
         .map(|title| MikanEpisodeMeta {
             homepage: url,
-            poster_src,
-            official_title: title,
             poster_data,
+            official_title: title,
+            origin_poster_src,
         });
     Ok(meta)
 }
@@ -92,7 +92,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
 mod test {
     use url::Url;
 
-    use crate::parsers::mikan_ep_parser::parse_episode_meta_from_mikan_homepage;
+    use super::parse_episode_meta_from_mikan_homepage;
 
     #[tokio::test]
     async fn test_parse_mikan() {
@@ -103,13 +103,13 @@ mod test {
 
             if let Some(ep_meta) = parse_episode_meta_from_mikan_homepage(url.clone()).await? {
                 assert_eq!(ep_meta.homepage, url);
+                assert_eq!(ep_meta.official_title, "葬送的芙莉莲");
                 assert_eq!(
-                    ep_meta.poster_src,
+                    ep_meta.origin_poster_src,
                     Some(Url::parse(
                         "https://mikanani.me/images/Bangumi/202309/5ce9fed1.jpg"
                     )?)
                 );
-                assert_eq!(ep_meta.official_title, "葬送的芙莉莲");
                 let u8_data = ep_meta.poster_data.expect("should have poster data");
                 assert!(
                     u8_data.starts_with(&[255, 216, 255, 224]),

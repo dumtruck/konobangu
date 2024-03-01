@@ -1,10 +1,14 @@
 use chrono::DateTime;
+use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
 
-use crate::downloaders::{bytes::download_bytes, defs::BITTORRENT_MIME_TYPE};
+use crate::{
+    downloaders::{bytes::download_bytes, defs::BITTORRENT_MIME_TYPE},
+    parsers::errors::ParseError,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MikanSubscriptionItem {
+pub struct MikanRssItem {
     pub title: String,
     pub homepage: Option<String>,
     pub url: String,
@@ -13,16 +17,18 @@ pub struct MikanSubscriptionItem {
     pub pub_date: Option<i64>,
 }
 
-impl MikanSubscriptionItem {
-    pub fn from_rss_item(item: rss::Item) -> Option<Self> {
-        let mime_match = item
+impl TryFrom<rss::Item> for MikanRssItem {
+    type Error = ParseError;
+
+    fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
+        let mime_type = item
             .enclosure()
-            .map(|x| x.mime_type == BITTORRENT_MIME_TYPE)
+            .map(|x| x.mime_type.to_string())
             .unwrap_or_default();
-        if mime_match {
+        if mime_type == BITTORRENT_MIME_TYPE {
             let enclosure = item.enclosure.unwrap();
 
-            Some(MikanSubscriptionItem {
+            Ok(MikanRssItem {
                 title: item.title.unwrap_or_default(),
                 homepage: item.link,
                 url: enclosure.url,
@@ -34,36 +40,36 @@ impl MikanSubscriptionItem {
                     .map(|s| s.timestamp_millis()),
             })
         } else {
-            None
+            Err(ParseError::MimeError {
+                expected: String::from(BITTORRENT_MIME_TYPE),
+                found: mime_type,
+                desc: String::from("MikanRssItem"),
+            })
         }
     }
 }
 
-pub struct MikanSubscriptionEngine;
+pub async fn parse_mikan_rss_items_from_rss_link(
+    url: impl IntoUrl,
+) -> eyre::Result<impl Iterator<Item = MikanRssItem>> {
+    let bytes = download_bytes(url).await?;
 
-impl MikanSubscriptionEngine {
-    pub async fn subscription_items_from_rss_url(
-        url: &str,
-    ) -> eyre::Result<impl Iterator<Item = MikanSubscriptionItem>> {
-        let bytes = download_bytes(url).await?;
+    let channel = rss::Channel::read_from(&bytes[..])?;
 
-        let channel = rss::Channel::read_from(&bytes[..])?;
-
-        Ok(channel
-            .items
-            .into_iter()
-            .flat_map(MikanSubscriptionItem::from_rss_item))
-    }
+    Ok(channel.items.into_iter().flat_map(MikanRssItem::try_from))
 }
 
 #[cfg(test)]
 mod tests {
+    use url::Url;
+
+    use super::parse_mikan_rss_items_from_rss_link;
     use crate::downloaders::defs::BITTORRENT_MIME_TYPE;
 
     #[tokio::test]
     pub async fn test_mikan_subscription_items_from_rss_url() {
         let url = "https://mikanani.me/RSS/Bangumi?bangumiId=3141&subgroupid=370";
-        let items = super::MikanSubscriptionEngine::subscription_items_from_rss_url(url)
+        let items = parse_mikan_rss_items_from_rss_link(url)
             .await
             .expect("should get subscription items from rss url")
             .collect::<Vec<_>>();

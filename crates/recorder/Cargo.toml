@@ -46,6 +46,7 @@ uni-path = "1.51.1"
 tl = { version = "0.7.8", features = ["simd"] }
 lightningcss = "1.0.0-alpha.54"
 html-escape = "0.2.13"
+opendal = "0.45.0"
 
 [lib]
 name = "recorder"

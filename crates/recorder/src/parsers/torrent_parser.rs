@@ -7,7 +7,7 @@ pub fn get_path_basename<'a>(path: &'a VFSPath) -> &'a str {
     path.basename()
 }
 
-pub fn get_group(group_and_title: &str) -> (Option<&str>, &str) {
+pub fn get_fansub(group_and_title: &str) -> (Option<&str>, &str) {
     let n = BRACKETS_REG
         .split(group_and_title)
         .map(|s| s.trim())
@@ -72,7 +72,7 @@ pub fn parse_torrent<'a>(
                 .get(1)
                 .unwrap_or_else(|| unreachable!("should have 1 group"))
                 .as_str();
-            let (group, title) = get_group(group_and_title);
+            let (group, title) = get_fansub(group_and_title);
             let season_and_title = get_season_and_title(title);
             let season = season.unwrap_or(season_and_title.1);
             let title = season_and_title.0;

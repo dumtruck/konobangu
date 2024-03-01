@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::{
     downloaders::defs::Torrent,
     models::{bangumi, subscribers},
-    parsers::{bangumi_parser::parse_bangumi_season, defs::SEASON_REGEX},
+    parsers::defs::SEASON_REGEX,
     path::{VFSPath, VFSSubPathBuf},
 };
 
@@ -40,13 +40,12 @@ pub fn path_to_bangumi<'a>(
     for part in save_path.components().map(|s| s.as_str()) {
         if let Some(match_result) = SEASON_REGEX.captures(part) {
             season = Some(
-                parse_bangumi_season(
-                    match_result
-                        .get(2)
-                        .unwrap_or_else(|| unreachable!("must have a season"))
-                        .as_str(),
-                )
-                .unwrap_or_else(|e| unreachable!("{}", e.to_string())),
+                match_result
+                    .get(2)
+                    .unwrap_or_else(|| unreachable!("must have a season"))
+                    .as_str()
+                    .parse::<i32>()
+                    .unwrap_or_else(|e| unreachable!("{}", e.to_string())),
             );
         } else if !downloader_parts.contains(part) {
             bangumi_name = Some(part);
@@ -71,7 +70,7 @@ pub fn gen_bangumi_sub_path(data: &bangumi::Model) -> VFSSubPathBuf {
 }
 
 pub fn rule_name(bgm: &bangumi::Model, conf: &subscribers::SubscriberBangumiConfig) -> String {
-    if let (Some(true), Some(group_name)) = (conf.leading_group_tag, &bgm.group_name) {
+    if let (Some(true), Some(group_name)) = (conf.leading_group_tag, &bgm.fansub) {
         format!("[{}] {} S{}", group_name, bgm.official_title, bgm.season)
     } else {
         format!("{} S{}", bgm.official_title, bgm.season)

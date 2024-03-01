@@ -25,7 +25,7 @@ pub struct Model {
     pub password: String,
     pub username: String,
     pub subscriber_id: i32,
-    pub download_path: String,
+    pub save_path: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

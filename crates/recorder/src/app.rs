@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use async_trait::async_trait;
+use axum::Router;
 use loco_rs::{
     app::{AppContext, Hooks},
     boot::{create_app, BootResult, StartMode},
@@ -15,7 +16,7 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
     controllers, migrations::Migrator, models::entities::subscribers,
-    workers::downloader::DownloadWorker,
+    workers::subscription_worker::SubscriptionWorker,
 };
 
 pub struct App;
@@ -47,7 +48,7 @@ impl Hooks for App {
     }
 
     fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
-        p.register(DownloadWorker::build(ctx));
+        p.register(SubscriptionWorker::build(ctx));
     }
 
     fn register_tasks(_tasks: &mut Tasks) {}

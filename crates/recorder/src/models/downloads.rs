@@ -1,17 +1,18 @@
+use loco_rs::app::AppContext;
 use sea_orm::{prelude::*, sea_query::OnConflict, ActiveValue, Condition, QueryOrder, QuerySelect};
 
 pub use crate::models::entities::downloads::*;
 use crate::{
     models::subscriptions::{self, SubscriptionCategory},
-    subscriptions::mikan::{MikanSubscriptionEngine, MikanSubscriptionItem},
+    parsers::mikan::{parse_mikan_rss_items_from_rss_link, MikanRssItem},
 };
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {
-    pub fn from_mikan_subscription_item(m: MikanSubscriptionItem, subscription_id: i32) -> Self {
-        Self {
+    pub fn from_mikan_rss_item(m: MikanRssItem, subscription_id: i32) -> Self {
+        let _ = Self {
             origin_name: ActiveValue::Set(m.title.clone()),
             display_name: ActiveValue::Set(m.title),
             subscription_id: ActiveValue::Set(subscription_id),
@@ -22,20 +23,20 @@ impl ActiveModel {
             all_size: ActiveValue::Set(m.content_length),
             homepage: ActiveValue::Set(m.homepage),
             ..Default::default()
-        }
+        };
+        todo!()
     }
 }
 
 impl Model {
     pub async fn pull_subscription(
-        db: &DatabaseConnection,
+        ctx: AppContext,
         item: &subscriptions::Model,
     ) -> eyre::Result<Vec<i32>> {
+        let db = &ctx.db;
         match &item.category {
             SubscriptionCategory::Mikan => {
-                let items =
-                    MikanSubscriptionEngine::subscription_items_from_rss_url(&item.source_url)
-                        .await?;
+                let items = parse_mikan_rss_items_from_rss_link(&item.source_url).await?;
                 let all_items = items.collect::<Vec<_>>();
 
                 let last_old_id = {
@@ -55,7 +56,7 @@ impl Model {
 
                 let new_items = all_items
                     .into_iter()
-                    .map(|i| ActiveModel::from_mikan_subscription_item(i, item.id));
+                    .map(|i| ActiveModel::from_mikan_rss_item(i, item.id));
 
                 let insert_result = Entity::insert_many(new_items)
                     .on_conflict(OnConflict::column(Column::Url).do_nothing().to_owned())

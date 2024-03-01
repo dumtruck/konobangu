@@ -55,15 +55,15 @@ pub trait TorrentDownloader {
         downloads: &[&downloads::Model],
         mut bangumi: bangumi::Model,
     ) -> eyre::Result<bangumi::Model> {
-        if bangumi.sub_path.is_none() {
+        if bangumi.save_path.is_none() {
             let gen_sub_path = gen_bangumi_sub_path(&bangumi);
             let mut bangumi_active = bangumi.into_active_model();
-            bangumi_active.sub_path = ActiveValue::Set(Some(gen_sub_path.to_string()));
+            bangumi_active.save_path = ActiveValue::Set(Some(gen_sub_path.to_string()));
             bangumi = bangumi_active.update(db).await?;
         }
 
         let sub_path = bangumi
-            .sub_path
+            .save_path
             .as_ref()
             .unwrap_or_else(|| unreachable!("must have a sub path"));
 
@@ -81,11 +81,13 @@ pub trait TorrentDownloader {
     }
 }
 
-pub fn build_torrent_downloader_from_downloader_model(
+pub async fn build_torrent_downloader_from_downloader_model(
     model: downloaders::Model,
 ) -> eyre::Result<Box<dyn TorrentDownloader>> {
     Ok(Box::new(match &model.category {
-        DownloaderCategory::QBittorrent => QBittorrentDownloader::from_downloader_model(model)?,
+        DownloaderCategory::QBittorrent => {
+            QBittorrentDownloader::from_downloader_model(model).await?
+        }
     }))
 }
 

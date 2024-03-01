@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use bytes::Buf;
 use lazy_static::lazy_static;
 pub use uni_path::{Path as VFSSubPath, PathBuf as VFSSubPathBuf};
 

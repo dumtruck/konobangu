@@ -6,4 +6,6 @@ pub enum DownloaderError {
     InvalidMime { expected: String, found: String },
     #[error("Invalid url format")]
     InvalidUrlFormat(#[from] url::ParseError),
+    #[error("QBit api error: {0:?}")]
+    QBitAPIError(#[from] qbit_rs::Error),
 }
