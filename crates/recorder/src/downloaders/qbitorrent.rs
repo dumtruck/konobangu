@@ -118,9 +118,9 @@ impl QBittorrentDownloader {
         Ok(())
     }
 
-    pub async fn wait_some_torrents_until<F>(
+    pub async fn wait_torrents_until<F>(
         &self,
-        hashes: Vec<String>,
+        arg: GetTorrentListArg,
         stop_wait_fn: F,
         timeout: Option<Duration>,
     ) -> eyre::Result<()>
@@ -128,11 +128,7 @@ impl QBittorrentDownloader {
         F: FnMut(Vec<QbitTorrent>) -> bool,
     {
         self.wait_until(
-            || {
-                GetTorrentListArg::builder()
-                    .hashes(hashes.join("|"))
-                    .build()
-            },
+            || arg,
             async move |client: Arc<Qbit>,
                         arg: GetTorrentListArg|
                         -> eyre::Result<Vec<QbitTorrent>> {
@@ -251,28 +247,17 @@ impl TorrentDownloader for QBittorrentDownloader {
     }
 
     async fn delete_torrents(&self, hashes: Vec<String>) -> eyre::Result<()> {
-        let existed_list = self
-            .client
-            .get_torrent_list(
-                GetTorrentListArg::builder()
-                    .hashes(hashes.clone().join("|"))
-                    .build(),
-            )
+        self.client
+            .delete_torrents(hashes.clone(), Some(true))
             .await?;
-        if !existed_list.is_empty() {
-            self.client
-                .delete_torrents(hashes.clone(), Some(true))
-                .await?;
-            self.wait_sync_until(
-                |sync_data| -> bool {
-                    sync_data
-                        .torrents
-                        .map_or(true, |t| hashes.iter().all(|h| !t.contains_key(h)))
-                },
-                None,
-            )
-            .await?;
-        }
+        self.wait_torrents_until(
+            GetTorrentListArg::builder()
+                .hashes(hashes.join("|"))
+                .build(),
+            |torrents| -> bool { torrents.is_empty() },
+            None,
+        )
+        .await?;
         Ok(())
     }
 
@@ -300,16 +285,15 @@ impl TorrentDownloader for QBittorrentDownloader {
         self.client
             .set_torrent_location(hashes.clone(), new_path)
             .await?;
-        self.wait_sync_until(
-            |sync_data| -> bool {
-                hashes.iter().all(|hash| {
-                    sync_data.torrents.as_ref().map_or(false, |t| {
-                        t.get(hash).map_or(false, |t| {
-                            t.save_path
-                                .as_ref()
-                                .map_or(false, |p| path_str_equals(p, new_path).unwrap_or(false))
-                        })
-                    })
+        self.wait_torrents_until(
+            GetTorrentListArg::builder()
+                .hashes(hashes.join("|"))
+                .build(),
+            |torrents| -> bool {
+                torrents.iter().all(|t| {
+                    t.save_path
+                        .as_ref()
+                        .map_or(false, |p| path_str_equals(p, new_path).unwrap_or(false))
                 })
             },
             None,
@@ -348,15 +332,14 @@ impl TorrentDownloader for QBittorrentDownloader {
         } else {
             result?;
         }
-        self.wait_sync_until(
-            |sync_data| {
-                sync_data.torrents.map_or(false, |ts| {
-                    hashes.iter().all(|h| {
-                        ts.get(h).map_or(false, |t| {
-                            t.category.as_ref().map_or(false, |c| c == category)
-                        })
-                    })
-                })
+        self.wait_torrents_until(
+            GetTorrentListArg::builder()
+                .hashes(hashes.join("|"))
+                .build(),
+            |torrents| {
+                torrents
+                    .iter()
+                    .all(|t| t.category.as_ref().map_or(false, |c| c == category))
             },
             None,
         )
@@ -372,19 +355,18 @@ impl TorrentDownloader for QBittorrentDownloader {
             .add_torrent_tags(hashes.clone(), tags.clone())
             .await?;
         let tag_sets = tags.iter().map(|s| s.as_str()).collect::<HashSet<&str>>();
-        self.wait_sync_until(
-            |sync_data| {
-                sync_data.torrents.map_or(false, |ts| {
-                    hashes.iter().all(|h| {
-                        ts.get(h).map_or(false, |t| {
-                            t.tags.as_ref().map_or(false, |t| {
-                                t.split(',')
-                                    .map(|s| s.trim())
-                                    .filter(|s| !s.is_empty())
-                                    .collect::<HashSet<&str>>()
-                                    .is_superset(&tag_sets)
-                            })
-                        })
+        self.wait_torrents_until(
+            GetTorrentListArg::builder()
+                .hashes(hashes.join("|"))
+                .build(),
+            |torrents| {
+                torrents.iter().all(|t| {
+                    t.tags.as_ref().map_or(false, |t| {
+                        t.split(',')
+                            .map(|s| s.trim())
+                            .filter(|s| !s.is_empty())
+                            .collect::<HashSet<&str>>()
+                            .is_superset(&tag_sets)
                     })
                 })
             },
