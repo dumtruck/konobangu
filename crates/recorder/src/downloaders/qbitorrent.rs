@@ -162,7 +162,7 @@ impl QBittorrentDownloader {
         .await
     }
 
-    async fn wait_torrent_contents_until<F: FnMut(Vec<qbit_rs::model::TorrentContent>) -> bool>(
+    async fn wait_torrent_contents_until<F: FnMut(Vec<QbitTorrentContent>) -> bool>(
         &self,
         hash: &str,
         stop_wait_fn: F,
