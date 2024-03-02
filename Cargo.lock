@@ -847,6 +847,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "commoncrypto"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d056a8586ba25a1e4d61cb090900e495952c7886786fc55f909ab2f819b69007"
+dependencies = [
+ "commoncrypto-sys",
+]
+
+[[package]]
+name = "commoncrypto-sys"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fed34f46747aa73dfaa578069fd8279d2818ade2b55f38f22a9401c7f4083e2"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "console"
 version = "0.15.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1058,6 +1076,18 @@ checksum = "1bfb12502f3fc46cca1bb51ac28df9d618d813cdc3d2f25b9fe775a34af26bb3"
 dependencies = [
  "generic-array",
  "typenum",
+]
+
+[[package]]
+name = "crypto-hash"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a77162240fd97248d19a564a565eb563a3f592b386e4136fb300909e67dddca"
+dependencies = [
+ "commoncrypto",
+ "hex 0.3.2",
+ "openssl",
+ "winapi",
 ]
 
 [[package]]
@@ -1287,6 +1317,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "directories"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a49173b84e034382284f27f1af4dcbbd231ffa358c0fe316541a7337f376a35"
+dependencies = [
+ "dirs-sys",
+]
+
+[[package]]
 name = "dirs-next"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1294,6 +1333,18 @@ checksum = "b98cf8ebf19c3d1b223e151f99a4f9f0690dca41414773390fc824184ac833e1"
 dependencies = [
  "cfg-if",
  "dirs-sys-next",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -1797,6 +1848,12 @@ name = "hermit-abi"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd5256b483761cd23699d0da46cc6fd2ee3be420bbe6d020ae4a091e70b7e9fd"
+
+[[package]]
+name = "hex"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "hex"
@@ -2315,6 +2372,66 @@ dependencies = [
 ]
 
 [[package]]
+name = "librqbit-bencode"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25214563468dda753fbae62f5ed3b1def14219f2faa416f76f7a449efb8a8092"
+dependencies = [
+ "anyhow",
+ "librqbit-buffers",
+ "librqbit-clone-to-owned",
+ "librqbit-sha1-wrapper",
+ "serde",
+]
+
+[[package]]
+name = "librqbit-buffers"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "378dc12b4994dec9edf0558e39144972167569458f837dc0c67ddeb044ff9a00"
+dependencies = [
+ "librqbit-clone-to-owned",
+ "serde",
+]
+
+[[package]]
+name = "librqbit-clone-to-owned"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c33f149bc6cef41a9f24ad43ece20c87e0617fc88affa01d95850eb68210daac"
+
+[[package]]
+name = "librqbit-core"
+version = "3.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d055eac3cd062d4b7728feccb45495682b834305bf234f275440b32814276a65"
+dependencies = [
+ "anyhow",
+ "directories",
+ "hex 0.4.3",
+ "itertools 0.12.1",
+ "librqbit-bencode",
+ "librqbit-buffers",
+ "librqbit-clone-to-owned",
+ "parking_lot",
+ "serde",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "librqbit-sha1-wrapper"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45016d84e0f1751ad9b645378117adf648dd6649e1b371a398862cd6a10356fe"
+dependencies = [
+ "crypto-hash",
+]
+
+[[package]]
 name = "libsqlite3-sys"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2767,6 +2884,12 @@ dependencies = [
  "pkg-config",
  "vcpkg",
 ]
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "ordered-float"
@@ -3275,8 +3398,7 @@ dependencies = [
 [[package]]
 name = "qbit-rs"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "167a5e28adf918639d3b180cfe5c919ed38200d5517c88f9b132a2e54a995468"
+source = "git+https://github.com/George-Miao/qbit.git?rev=ad5af6a#ad5af6a55b93b2c91b17d12d1b2ce54537df2355"
 dependencies = [
  "mod_use",
  "reqwest",
@@ -3400,6 +3522,7 @@ dependencies = [
  "insta",
  "itertools 0.12.1",
  "lazy_static",
+ "librqbit-core",
  "lightningcss",
  "loco-rs",
  "maplit",
@@ -3536,7 +3659,7 @@ dependencies = [
  "chrono",
  "form_urlencoded",
  "getrandom",
- "hex",
+ "hex 0.4.3",
  "hmac",
  "home",
  "http 0.2.11",
@@ -3934,7 +4057,7 @@ dependencies = [
  "cron_clock",
  "gethostname",
  "heck",
- "hex",
+ "hex 0.4.3",
  "num_cpus",
  "rand",
  "redis",
@@ -4306,7 +4429,7 @@ checksum = "07ff71d2c147a7b57362cead5e22f772cd52f6ab31cfcd9edcd7f6aeb2a0afbe"
 dependencies = [
  "base64 0.13.1",
  "chrono",
- "hex",
+ "hex 0.4.3",
  "indexmap 1.9.3",
  "serde",
  "serde_json",
@@ -4650,7 +4773,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "hashlink",
- "hex",
+ "hex 0.4.3",
  "indexmap 2.2.3",
  "log",
  "memchr",
@@ -4698,7 +4821,7 @@ dependencies = [
  "dotenvy",
  "either",
  "heck",
- "hex",
+ "hex 0.4.3",
  "once_cell",
  "proc-macro2",
  "quote",
@@ -4737,7 +4860,7 @@ dependencies = [
  "futures-io",
  "futures-util",
  "generic-array",
- "hex",
+ "hex 0.4.3",
  "hkdf",
  "hmac",
  "itoa",
@@ -4781,7 +4904,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "futures-util",
- "hex",
+ "hex 0.4.3",
  "hkdf",
  "hmac",
  "home",

@@ -1,4 +1,5 @@
-#![feature(async_closure)]
+#![feature(async_closure, duration_constructors)]
+
 pub mod app;
 pub mod config;
 pub mod controllers;

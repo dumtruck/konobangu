@@ -2,10 +2,22 @@ use std::path::PathBuf;
 
 use lazy_static::lazy_static;
 pub use uni_path::{Path as VFSSubPath, PathBuf as VFSSubPathBuf};
+use url::Url;
 
 use crate::parsers::errors::ParseError;
 
+pub fn path_str_to_file_url(path: &str) -> eyre::Result<Url> {
+    Url::parse(&format!("file:///{path}")).map_err(|e| e.into())
+}
+
+pub fn path_str_equals(p1: &str, p2: &str) -> eyre::Result<bool> {
+    let p1 = path_str_to_file_url(p1)?;
+    let p2 = path_str_to_file_url(p2)?;
+    Ok(p1.as_str() == p2.as_str())
+}
+
 const VFS_EMPTY_STR: &str = "";
+
 lazy_static! {
     pub static ref VFS_SUB_ROOT_BUF: VFSSubPathBuf = VFSSubPathBuf::from("/");
     pub static ref VFS_SUB_ROOT: &'static VFSSubPath = &VFS_SUB_ROOT_BUF.as_path();
@@ -14,6 +26,7 @@ lazy_static! {
 pub type VFSComponents<'a> = uni_path::Components<'a>;
 pub type VFSComponent<'a> = uni_path::Component<'a>;
 
+#[derive(Debug, Clone)]
 pub struct VFSPath<'a> {
     pub root: &'a str,
     pub sub: &'a VFSSubPath,
@@ -62,7 +75,7 @@ impl<'a> VFSPath<'a> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub struct VFSPathBuf {
     pub root: String,
     pub sub: VFSSubPathBuf,

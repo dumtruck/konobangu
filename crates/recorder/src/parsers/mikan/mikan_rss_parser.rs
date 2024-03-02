@@ -61,8 +61,6 @@ pub async fn parse_mikan_rss_items_from_rss_link(
 
 #[cfg(test)]
 mod tests {
-    use url::Url;
-
     use super::parse_mikan_rss_items_from_rss_link;
     use crate::downloaders::defs::BITTORRENT_MIME_TYPE;
 

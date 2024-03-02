@@ -3,8 +3,7 @@ use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection, IntoActiveModel
 use url::Url;
 
 use super::{
-    bytes::download_bytes,
-    defs::{Torrent, TorrentFilter, TorrentSources},
+    defs::{Torrent, TorrentFilter, TorrentSource},
     qbitorrent::QBittorrentDownloader,
 };
 use crate::{
@@ -17,15 +16,15 @@ pub trait TorrentDownloader {
     async fn get_torrents_info(
         &self,
         status_filter: TorrentFilter,
-        category: String,
+        category: Option<String>,
         tag: Option<String>,
     ) -> eyre::Result<Vec<Torrent>>;
 
     async fn add_torrents(
         &self,
-        source: TorrentSources,
+        source: TorrentSource,
         save_path: String,
-        category: Option<String>,
+        category: Option<&str>,
     ) -> eyre::Result<()>;
 
     async fn delete_torrents(&self, hashes: Vec<String>) -> eyre::Result<()>;
@@ -47,9 +46,11 @@ pub trait TorrentDownloader {
 
     async fn add_torrent_tags(&self, hashes: Vec<String>, tags: Vec<String>) -> eyre::Result<()>;
 
+    async fn add_category(&self, category: &str) -> eyre::Result<()>;
+
     fn get_save_path(&self, sub_path: &VFSSubPath) -> VFSPathBuf;
 
-    async fn add_downlods_for_bangumi<'a, 'b>(
+    async fn add_downloads_for_bangumi<'a, 'b>(
         &self,
         db: &'a DatabaseConnection,
         downloads: &[&downloads::Model],
@@ -72,10 +73,12 @@ pub trait TorrentDownloader {
             torrent_urls.push(Url::parse(&m.url as &str)?);
         }
 
-        let source = build_torrent_source_from_urls(torrent_urls.into_iter()).await?;
-
-        self.add_torrents(source, sub_path.to_string(), Some("bangumi".to_string()))
-            .await?;
+        // make sequence to prevent too fast to be banned
+        for d in downloads.iter() {
+            let source = TorrentSource::parse(&d.url).await?;
+            self.add_torrents(source, sub_path.clone(), Some("bangumi"))
+                .await?;
+        }
 
         Ok(bangumi)
     }
@@ -89,23 +92,4 @@ pub async fn build_torrent_downloader_from_downloader_model(
             QBittorrentDownloader::from_downloader_model(model).await?
         }
     }))
-}
-
-pub async fn build_torrent_source_from_url(url: Url) -> eyre::Result<TorrentSources> {
-    let source = if url.scheme() == "magnet" {
-        TorrentSources::Urls { urls: vec![url] }
-    } else {
-        let bytes = download_bytes(url).await?;
-        TorrentSources::TorrentFiles {
-            torrents: bytes.into(),
-        }
-    };
-    Ok(source)
-}
-
-pub async fn build_torrent_source_from_urls<IU: Iterator<Item = Url>>(
-    urls: IU,
-) -> eyre::Result<TorrentSources> {
-    let urls = urls.collect::<Vec<_>>();
-    Ok(TorrentSources::Urls { urls })
 }

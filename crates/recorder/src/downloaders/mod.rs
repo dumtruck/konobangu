@@ -1,4 +1,3 @@
-pub mod aria;
 pub mod bytes;
 pub mod defs;
 pub mod error;
