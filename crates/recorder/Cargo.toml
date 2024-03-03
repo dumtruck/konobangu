@@ -4,9 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "recorder"
+path = "src/lib.rs"
+
+[[bin]]
+name = "recorder_cli"
+path = "src/bin/main.rs"
+required-features = []
+
+[features]
+default = []
+testcontainers = []
 
 [dependencies]
-
 loco-rs = { version = "0.3.1" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -49,17 +60,10 @@ html-escape = "0.2.13"
 opendal = "0.45.0"
 librqbit-core = "3.5.0"
 
-[lib]
-name = "recorder"
-path = "src/lib.rs"
-
-[[bin]]
-name = "recorder_cli"
-path = "src/bin/main.rs"
-required-features = []
-
 [dev-dependencies]
 serial_test = "2.0.0"
 rstest = "0.18.2"
 loco-rs = { version = "0.3.1", features = ["testing"] }
 insta = { version = "1.34.0", features = ["redactions", "yaml", "filters"] }
+testcontainers = { version = "0.15.0" }
+testcontainers-modules = { version = "0.3.5" }

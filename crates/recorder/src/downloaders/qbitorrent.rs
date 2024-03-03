@@ -411,8 +411,9 @@ impl Debug for QBittorrentDownloader {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use itertools::Itertools;
+    use testcontainers::core::ExecCommand;
 
     use super::*;
 
@@ -424,8 +425,48 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "testcontainers")]
+    pub fn create_qbit_testcontainer() -> testcontainers::RunnableImage<testcontainers::GenericImage>
+    {
+        let image = testcontainers::RunnableImage::from(
+            testcontainers::GenericImage::new("linuxserver/qbittorrent", "latest")
+                .with_wait_for(testcontainers::core::WaitFor::message_on_stderr(
+                    "Connection to localhost",
+                ))
+                .with_env_var("WEBUI_PORT", "8080")
+                .with_env_var("TZ", "Asia/Singapore")
+                .with_env_var("TORRENTING_PORT", "6881")
+                .with_exposed_port(8080)
+                .with_exposed_port(6881),
+        );
+
+        image
+    }
+
+    #[cfg(not(feature = "testcontainers"))]
     #[tokio::test]
-    async fn test_add_torrents_and_get_info() {
+    async fn test_qbittorrent_downloader() {
+        test_qbittorrent_downloader_impl().await;
+    }
+
+    // @TODO: not support now, testcontainers crate not support to read logs to get
+    // password
+    #[cfg(feature = "testcontainers")]
+    #[tokio::test]
+    async fn test_qbittorrent_downloader() {
+        let docker = testcontainers::clients::Cli::default();
+        let image = create_qbit_testcontainer();
+
+        let container = docker.run(image);
+
+        let mut exec = ExecCommand::default();
+
+        container.exec(exec);
+
+        test_qbittorrent_downloader_impl().await;
+    }
+
+    async fn test_qbittorrent_downloader_impl() {
         let base_save_path = VFSSubPath::new(get_tmp_qbit_test_folder());
 
         let downloader = QBittorrentDownloader::from_downloader_model(downloaders::Model {
@@ -433,7 +474,7 @@ mod tests {
             updated_at: Default::default(),
             id: 0,
             category: DownloaderCategory::QBittorrent,
-            endpoint: "http://127.0.0.1:8080".to_string(),
+            endpoint: "http://localhost:8080".to_string(),
             password: "".to_string(),
             username: "".to_string(),
             subscriber_id: 0,
@@ -453,7 +494,7 @@ mod tests {
             "https://mikanani.me/Download/20240301/47ee2d69e7f19af783ad896541a07b012676f858.torrent"
         ).await.unwrap();
 
-        let mut save_path = base_save_path.join(format!(
+        let save_path = base_save_path.join(format!(
             "test_add_torrents_{}",
             chrono::Utc::now().timestamp()
         ));
