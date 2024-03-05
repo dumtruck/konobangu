@@ -1,3 +1,3 @@
 [workspace]
-members = ["crates/recorder"]
+members = ["crates/quirks_path", "crates/recorder"]
 resolver = "2"

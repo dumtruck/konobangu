@@ -457,11 +457,7 @@ pub mod tests {
         let docker = testcontainers::clients::Cli::default();
         let image = create_qbit_testcontainer();
 
-        let container = docker.run(image);
-
-        let mut exec = ExecCommand::default();
-
-        container.exec(exec);
+        let _container = docker.run(image);
 
         test_qbittorrent_downloader_impl().await;
     }

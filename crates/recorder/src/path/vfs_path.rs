@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{borrow::Cow, collections::VecDeque, path::PathBuf};
 
 use lazy_static::lazy_static;
 pub use uni_path::{Path as VFSSubPath, PathBuf as VFSSubPathBuf};
@@ -77,8 +77,8 @@ impl<'a> VFSPath<'a> {
 
 #[derive(Clone, Debug)]
 pub struct VFSPathBuf {
-    pub root: String,
-    pub sub: VFSSubPathBuf,
+    root: String,
+    sub: VFSSubPathBuf,
 }
 
 impl VFSPathBuf {
