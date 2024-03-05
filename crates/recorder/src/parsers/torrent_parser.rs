@@ -1,10 +1,11 @@
+use quirks_path::Path;
+
 use super::defs::{
     BRACKETS_REG, DIGIT_1PLUS_REG, SEASON_REGEX, SUBTITLE_LANG, TORRENT_PRASE_RULE_REGS,
 };
-use crate::path::VFSPath;
 
-pub fn get_path_basename<'a>(path: &'a VFSPath) -> &'a str {
-    path.basename()
+pub fn get_path_basename(path: &Path) -> &str {
+    path.parent().map_or("", |s| s.as_str())
 }
 
 pub fn get_fansub(group_and_title: &str) -> (Option<&str>, &str) {
@@ -53,8 +54,8 @@ pub fn get_subtitle_lang(subtitle_name: &str) -> Option<&'static str> {
     None
 }
 
-pub fn parse_torrent<'a>(
-    torrent_path: &'a VFSPath<'a>,
+pub fn parse_torrent(
+    torrent_path: &Path,
     torrent_name: Option<&str>,
     season: Option<i32>,
     file_type: Option<&str>,

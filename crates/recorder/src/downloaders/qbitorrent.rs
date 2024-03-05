@@ -13,6 +13,7 @@ use qbit_rs::{
     model::{AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, SyncData},
     Qbit,
 };
+use quirks_path::{path_equals_as_file_url, Path, PathBuf};
 use tokio::time::sleep;
 use url::Url;
 
@@ -24,7 +25,6 @@ use super::{
 use crate::{
     downloaders::defs::{QbitTorrent, QbitTorrentContent, TorrentContent},
     models::{entities::downloaders, prelude::DownloaderCategory},
-    path::{path_str_equals, VFSPathBuf, VFSSubPath},
 };
 
 pub struct SyncDataCache {
@@ -35,7 +35,7 @@ pub struct QBittorrentDownloader {
     pub subscriber_id: i32,
     pub endpoint_url: Url,
     pub client: Arc<Qbit>,
-    pub save_path: String,
+    pub save_path: PathBuf,
     pub wait_sync_timeout: Duration,
 }
 
@@ -65,7 +65,7 @@ impl QBittorrentDownloader {
             client: Arc::new(client),
             endpoint_url,
             subscriber_id: model.subscriber_id,
-            save_path: model.save_path,
+            save_path: model.save_path.into(),
             wait_sync_timeout: Duration::from_millis(10000),
         })
     }
@@ -268,12 +268,15 @@ impl TorrentDownloader for QBittorrentDownloader {
         new_path: &str,
     ) -> eyre::Result<()> {
         self.client.rename_file(hash, old_path, new_path).await?;
+        let new_path = self.save_path.join(new_path);
+        let save_path = self.save_path.as_path();
         self.wait_torrent_contents_until(
             hash,
             |contents| -> bool {
-                contents
-                    .iter()
-                    .any(|c| path_str_equals(c.get_name(), new_path).unwrap_or(false))
+                contents.iter().any(|c| {
+                    path_equals_as_file_url(save_path.join(c.get_name()), &new_path)
+                        .unwrap_or(false)
+                })
             },
             None,
         )
@@ -291,9 +294,9 @@ impl TorrentDownloader for QBittorrentDownloader {
                 .build(),
             |torrents| -> bool {
                 torrents.iter().all(|t| {
-                    t.save_path
-                        .as_ref()
-                        .map_or(false, |p| path_str_equals(p, new_path).unwrap_or(false))
+                    t.save_path.as_ref().map_or(false, |p| {
+                        path_equals_as_file_url(p, new_path).unwrap_or(false)
+                    })
                 })
             },
             None,
@@ -396,8 +399,8 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
-    fn get_save_path(&self, sub_path: &VFSSubPath) -> VFSPathBuf {
-        VFSPathBuf::new(self.save_path.clone(), sub_path.to_path_buf())
+    fn get_save_path(&self, sub_path: &Path) -> PathBuf {
+        self.save_path.join(sub_path)
     }
 }
 
@@ -463,7 +466,7 @@ pub mod tests {
     }
 
     async fn test_qbittorrent_downloader_impl() {
-        let base_save_path = VFSSubPath::new(get_tmp_qbit_test_folder());
+        let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
         let downloader = QBittorrentDownloader::from_downloader_model(downloaders::Model {
             created_at: Default::default(),

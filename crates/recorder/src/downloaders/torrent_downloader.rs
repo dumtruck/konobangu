@@ -1,4 +1,5 @@
 use downloaders::DownloaderCategory;
+use quirks_path::{Path, PathBuf};
 use sea_orm::{ActiveModelTrait, ActiveValue, DatabaseConnection, IntoActiveModel};
 use url::Url;
 
@@ -8,7 +9,7 @@ use super::{
 };
 use crate::{
     models::{bangumi, downloaders, downloads},
-    path::{torrent_path::gen_bangumi_sub_path, VFSPathBuf, VFSSubPath},
+    path::torrent_path::gen_bangumi_sub_path,
 };
 
 #[async_trait::async_trait]
@@ -48,7 +49,7 @@ pub trait TorrentDownloader {
 
     async fn add_category(&self, category: &str) -> eyre::Result<()>;
 
-    fn get_save_path(&self, sub_path: &VFSSubPath) -> VFSPathBuf;
+    fn get_save_path(&self, sub_path: &Path) -> PathBuf;
 
     async fn add_downloads_for_bangumi<'a, 'b>(
         &self,

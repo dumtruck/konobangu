@@ -10,6 +10,7 @@ use std::{
     collections::TryReserveError,
     error::Error,
     fmt,
+    fmt::Formatter,
     hash::{Hash, Hasher},
     io,
     iter::FusedIterator,
@@ -20,7 +21,7 @@ use std::{
 };
 
 use ::url::Url;
-pub use url::PathToUrlError;
+pub use url::{path_equals_as_file_url, PathToUrlError};
 use windows::is_windows_sep;
 
 use crate::{
@@ -707,7 +708,7 @@ impl PathBuf {
         self
     }
 
-    fn push<P: AsRef<Path>>(&mut self, path: P) {
+    pub fn push<P: AsRef<Path>>(&mut self, path: P) {
         self._push(path.as_ref())
     }
 
@@ -988,6 +989,12 @@ impl<P: AsRef<Path>> Extend<P> for PathBuf {
 impl fmt::Debug for PathBuf {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&**self, formatter)
+    }
+}
+
+impl fmt::Display for PathBuf {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&**self, formatter)
     }
 }
 
@@ -1361,6 +1368,12 @@ impl AsRef<str> for Path {
 impl fmt::Debug for Path {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.inner, formatter)
+    }
+}
+
+impl fmt::Display for Path {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.inner, formatter)
     }
 }
 

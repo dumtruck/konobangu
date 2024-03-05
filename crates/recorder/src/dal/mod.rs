@@ -1,13 +1,11 @@
 use bytes::Bytes;
 use opendal::{layers::LoggingLayer, services, Operator};
+use quirks_path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-use crate::{
-    config::AppDalConf,
-    path::{VFSSubPath, VFSSubPathBuf},
-};
+use crate::config::AppDalConf;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -50,8 +48,8 @@ impl AppDalContext {
         let basename = format!("{}{}", Uuid::new_v4(), extname);
         let mut dirname = [subscriber_pid, content_category.as_ref()]
             .into_iter()
-            .map(VFSSubPath::new)
-            .collect::<VFSSubPathBuf>();
+            .map(Path::new)
+            .collect::<PathBuf>();
 
         let mut fs_builder = services::Fs::default();
         fs_builder.root(self.config.fs_root.as_str());

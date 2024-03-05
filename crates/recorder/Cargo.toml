@@ -53,12 +53,12 @@ fancy-regex = "0.13.0"
 regex = "1.10.3"
 lazy_static = "1.4.0"
 maplit = "1.0.2"
-uni-path = "1.51.1"
 tl = { version = "0.7.8", features = ["simd"] }
 lightningcss = "1.0.0-alpha.54"
 html-escape = "0.2.13"
 opendal = "0.45.0"
 librqbit-core = "3.5.0"
+quirks_path = { path = "../quirks_path" }
 
 [dev-dependencies]
 serial_test = "2.0.0"

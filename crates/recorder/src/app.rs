@@ -1,7 +1,6 @@
 use std::path::Path;
 
 use async_trait::async_trait;
-use axum::Router;
 use loco_rs::{
     app::{AppContext, Hooks},
     boot::{create_app, BootResult, StartMode},
