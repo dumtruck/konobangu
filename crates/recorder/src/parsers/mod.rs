@@ -5,4 +5,3 @@ pub mod mikan;
 pub mod raw;
 pub mod title_parser;
 pub mod torrent;
-pub mod torrent_parser;

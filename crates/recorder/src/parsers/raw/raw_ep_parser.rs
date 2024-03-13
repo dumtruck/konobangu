@@ -184,7 +184,7 @@ fn extract_name_from_title_body_name_section(
         let mut split_space = split[0].split(' ').collect_vec();
         let mut search_indices = vec![0];
         if split_space.len() > 1 {
-            search_indices.push(search_indices.len() - 1);
+            search_indices.push(split_space.len() - 1);
         }
         for i in search_indices {
             if NAME_ZH_TEST.is_match(split_space[i]) {
@@ -288,7 +288,7 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
         let (name_en, name_zh, name_jp) = extract_name_from_title_body_name_section(&title_body);
         let (name_en_no_season, name_zh_no_season, name_jp_no_season) =
             extract_name_from_title_body_name_section(&name_without_season);
-        let episode_index = extract_episode_index_from_title_episode(title_episode).unwrap_or(0);
+        let episode_index = extract_episode_index_from_title_episode(title_episode).unwrap_or(1);
         let (sub, resolution, source) = extract_tags_from_title_extra(title_extra);
         Ok(RawEpisodeMeta {
             name_en,
@@ -495,7 +495,7 @@ mod tests {
                   "name_zh": "爱丽丝与特蕾丝的虚幻工厂",
                   "name_zh_no_season": "爱丽丝与特蕾丝的虚幻工厂",
                   "season": 1,
-                  "episode_index": 0,
+                  "episode_index": 1,
                   "sub": "简繁内封",
                   "source": "WebRip",
                   "fansub": "千夏字幕组",
@@ -511,18 +511,33 @@ mod tests {
             r#"{
                       "name_en": "Yuru Camp Movie",
                       "name_en_no_season": "Yuru Camp Movie",
-                      "name_jp": null,
-                      "name_jp_no_season": null,
                       "name_zh": "电影 轻旅轻营 (摇曳露营)",
                       "name_zh_no_season": "电影 轻旅轻营 (摇曳露营)",
                       "season": 1,
-                      "season_raw": null,
-                      "episode_index": 0,
+                      "episode_index": 1,
                       "sub": "繁体",
                       "source": "UHDRip",
                       "fansub": "千夏字幕组&喵萌奶茶屋",
                       "resolution": "2160p"
                 }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_with_large_episode_style() {
+        test_raw_ep_parser_case(
+            r#"[梦蓝字幕组]New Doraemon 哆啦A梦新番[747][2023.02.25][AVC][1080P][GB_JP][MP4]"#,
+            r#"{
+                      "name_en": "New Doraemon",
+                      "name_en_no_season": "New Doraemon",
+                      "name_zh": "哆啦A梦新番",
+                      "name_zh_no_season": "哆啦A梦新番",
+                      "season": 1,
+                      "episode_index": 747,
+                      "sub": "GB",
+                      "fansub": "梦蓝字幕组",
+                      "resolution": "1080P"
+                    }"#,
         )
     }
 
@@ -536,11 +551,29 @@ mod tests {
                   "name_zh": "剧场版-摇曳露营",
                   "name_zh_no_season": "剧场版-摇曳露营",
                   "season": 1,
-                  "episode_index": 0,
+                  "episode_index": 1,
                   "sub": "简日双语",
                   "fansub": "MCE汉化组",
                   "resolution": "1080P"
                 }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_with_implicit_lang_title_sep() {
+        test_raw_ep_parser_case(
+            r#"[织梦字幕组][尼尔：机械纪元 NieR Automata Ver1.1a][02集][1080P][AVC][简日双语]"#,
+            r#"{
+                      "name_en": "NieR Automata Ver1.1a",
+                      "name_en_no_season": "NieR Automata Ver1.1a",
+                      "name_zh": "尼尔：机械纪元",
+                      "name_zh_no_season": "尼尔：机械纪元",
+                      "season": 1,
+                      "episode_index": 2,
+                      "sub": "简日双语",
+                      "fansub": "织梦字幕组",
+                      "resolution": "1080P"
+                    }"#,
         )
     }
 
@@ -602,9 +635,101 @@ mod tests {
         )
     }
 
+    #[test]
+    fn test_parse_ep_title_leading_space_style() {
+        test_raw_ep_parser_case(
+            r#"[ANi]  16bit 的感动 ANOTHER LAYER - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]"#,
+            r#"{
+                      "name_zh": "16bit 的感动 ANOTHER LAYER",
+                      "name_zh_no_season": "16bit 的感动 ANOTHER LAYER",
+                      "season": 1,
+                      "season_raw": null,
+                      "episode_index": 1,
+                      "sub": "CHT",
+                      "source": "Baha",
+                      "fansub": "ANi",
+                      "resolution": "1080P"
+                    }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_title_leading_month_and_wrapped_brackets_style() {
+        test_raw_ep_parser_case(
+            r#"【喵萌奶茶屋】★07月新番★[银砂糖师与黑妖精 ~ Sugar Apple Fairy Tale ~][13][1080p][简日双语][招募翻译]"#,
+            r#"{
+                          "name_en": "~ Sugar Apple Fairy Tale ~",
+                          "name_en_no_season": "~ Sugar Apple Fairy Tale ~",
+                          "name_zh": "银砂糖师与黑妖精",
+                          "name_zh_no_season": "银砂糖师与黑妖精",
+                          "season": 1,
+                          "episode_index": 13,
+                          "sub": "简日双语",
+                          "fansub": "喵萌奶茶屋",
+                          "resolution": "1080p"
+                        }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_title_leading_month_style() {
+        test_raw_ep_parser_case(
+            r#"【极影字幕社】★4月新番 天国大魔境 Tengoku Daimakyou 第05话 GB 720P MP4（字幕社招人内详）"#,
+            r#"{
+                      "name_en": "Tengoku Daimakyou",
+                      "name_en_no_season": "Tengoku Daimakyou",
+                      "name_zh": "天国大魔境",
+                      "name_zh_no_season": "天国大魔境",
+                      "season": 1,
+                      "episode_index": 5,
+                      "sub": "字幕社招人内详",
+                      "source": null,
+                      "fansub": "极影字幕社",
+                      "resolution": "720P"
+                    }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_tokusatsu_style() {
+        test_raw_ep_parser_case(
+            r#"[MagicStar] 假面骑士Geats / 仮面ライダーギーツ EP33 [WEBDL] [1080p] [TTFC]【生】"#,
+            r#"{
+              "name_jp": "仮面ライダーギーツ",
+              "name_jp_no_season": "仮面ライダーギーツ",
+              "name_zh": "假面骑士Geats",
+              "name_zh_no_season": "假面骑士Geats",
+              "season": 1,
+              "episode_index": 33,
+              "source": "WEBDL",
+              "fansub": "MagicStar",
+              "resolution": "1080p"
+            }"#,
+        )
+    }
+
+    #[test]
+    fn test_parse_ep_with_multi_lang_zh_title() {
+        test_raw_ep_parser_case(
+            r#"[百冬练习组&LoliHouse] BanG Dream! 少女乐团派对！☆PICO FEVER！ / Garupa Pico: Fever! - 26 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕][END] [101.69 MB]"#,
+            r#"{
+                      "name_en": "Garupa Pico: Fever!",
+                      "name_en_no_season": "Garupa Pico: Fever!",
+                      "name_zh": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
+                      "name_zh_no_season": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
+                      "season": 1,
+                      "episode_index": 26,
+                      "sub": "简繁内封字幕",
+                      "source": "WebRip",
+                      "fansub": "百冬练习组&LoliHouse",
+                      "resolution": "1080p"
+                    }"#,
+        )
+    }
+
     // TODO: FIXME
     #[test]
-    fn test_bad_case() {
+    fn test_bad_cases() {
         test_raw_ep_parser_case(
             r#"[7³ACG x 桜都字幕组] 摇曳露营△ 剧场版/映画 ゆるキャン△/Eiga Yuru Camp△ [简繁字幕] BDrip 1080p x265 FLAC 2.0"#,
             r#"{
@@ -612,12 +737,28 @@ mod tests {
                   "name_zh_no_season": "摇曳露营△剧场版",
                   "season": 1,
                   "season_raw": null,
-                  "episode_index": 0,
+                  "episode_index": 1,
                   "sub": "简繁字幕",
                   "source": "BDrip",
                   "fansub": "7³ACG x 桜都字幕组",
                   "resolution": "1080p"
                 }"#,
-        )
+        );
+
+        test_raw_ep_parser_case(
+            r#"【幻樱字幕组】【4月新番】【古见同学有交流障碍症 第二季 Komi-san wa, Komyushou Desu. S02】【22】【GB_MP4】【1920X1080】"#,
+            r#"{
+                      "name_en": "第二季 Komi-san wa, Komyushou Desu. S02",
+                      "name_en_no_season": "Komi-san wa, Komyushou Desu.",
+                      "name_zh": "古见同学有交流障碍症",
+                      "name_zh_no_season": "古见同学有交流障碍症",
+                      "season": 2,
+                      "season_raw": "第二季",
+                      "episode_index": 22,
+                      "sub": "GB",
+                      "fansub": "幻樱字幕组",
+                      "resolution": "1920X1080"
+                    }"#,
+        );
     }
 }

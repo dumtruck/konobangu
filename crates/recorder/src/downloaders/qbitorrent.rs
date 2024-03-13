@@ -416,7 +416,6 @@ impl Debug for QBittorrentDownloader {
 #[cfg(test)]
 pub mod tests {
     use itertools::Itertools;
-    use testcontainers::core::ExecCommand;
 
     use super::*;
 

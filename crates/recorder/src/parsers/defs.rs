@@ -1,8 +1,8 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 use fancy_regex::Regex as FancyRegex;
 use lazy_static::lazy_static;
-use maplit::{btreemap, hashmap};
+use maplit::hashmap;
 use regex::Regex;
 
 const LANG_ZH_TW: &str = "zh-tw";
@@ -26,13 +26,13 @@ lazy_static! {
         FancyRegex::new(r"(.*)第?(\d*\.*\d*)[话話集](?:END)?(.*)").unwrap(),
         FancyRegex::new(r"(.*)(?:S\d{2})?EP?(\d+)(.*)").unwrap(),
     ];
-    pub static ref SUBTITLE_LANG: BTreeMap<&'static str, Vec<&'static str>> = {
-        btreemap! {
-          LANG_ZH_TW => vec!["tc", "cht", "繁", "zh-tw"],
-          LANG_ZH => vec!["sc", "chs", "简", "zh", "zh-cn"],
-          LANG_EN => vec!["en", "eng", "英"],
-          LANG_JP => vec!["jp", "jpn", "日"],
-        }
+    pub static ref SUBTITLE_LANG: Vec<(&'static str, Vec<&'static str>)> = {
+        vec![
+            (LANG_ZH_TW, vec!["tc", "cht", "繁", "zh-tw"]),
+            (LANG_ZH, vec!["sc", "chs", "简", "zh", "zh-cn"]),
+            (LANG_EN, vec!["en", "eng", "英"]),
+            (LANG_JP, vec!["jp", "jpn", "日"]),
+        ]
     };
     pub static ref BRACKETS_REG: Regex = Regex::new(r"[\[\]()【】（）]").unwrap();
     pub static ref DIGIT_1PLUS_REG: Regex = Regex::new(r"\d+").unwrap();
