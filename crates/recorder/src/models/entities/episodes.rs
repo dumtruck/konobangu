@@ -11,10 +11,26 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub raw_name: String,
+    pub official_title: String,
     pub display_name: String,
+    pub name_zh: Option<String>,
+    pub name_jp: Option<String>,
+    pub name_en: Option<String>,
+    pub s_name_zh: Option<String>,
+    pub s_name_jp: Option<String>,
+    pub s_name_en: Option<String>,
     pub bangumi_id: i32,
     pub download_id: i32,
     pub save_path: String,
+    pub resolution: Option<String>,
+    pub season: i32,
+    pub season_raw: Option<String>,
+    pub fansub: Option<String>,
+    pub poster_link: Option<String>,
+    pub home_page: Option<String>,
+    pub subtitle: Option<Vec<String>>,
+    pub deleted: bool,
+    pub source: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
