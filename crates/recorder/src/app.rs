@@ -15,7 +15,7 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
     controllers, migrations::Migrator, models::entities::subscribers,
-    workers::subscription_worker::SubscriptionWorker,
+    workers::subscription::SubscriptionWorker,
 };
 
 pub struct App;

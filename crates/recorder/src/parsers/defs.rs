@@ -26,14 +26,6 @@ lazy_static! {
         FancyRegex::new(r"(.*)第?(\d*\.*\d*)[话話集](?:END)?(.*)").unwrap(),
         FancyRegex::new(r"(.*)(?:S\d{2})?EP?(\d+)(.*)").unwrap(),
     ];
-    pub static ref SUBTITLE_LANG: Vec<(&'static str, Vec<&'static str>)> = {
-        vec![
-            (LANG_ZH_TW, vec!["tc", "cht", "繁", "zh-tw"]),
-            (LANG_ZH, vec!["sc", "chs", "简", "zh", "zh-cn"]),
-            (LANG_EN, vec!["en", "eng", "英"]),
-            (LANG_JP, vec!["jp", "jpn", "日"]),
-        ]
-    };
     pub static ref BRACKETS_REG: Regex = Regex::new(r"[\[\]()【】（）]").unwrap();
     pub static ref DIGIT_1PLUS_REG: Regex = Regex::new(r"\d+").unwrap();
     pub static ref ZH_NUM_MAP: HashMap<&'static str, i32> = {

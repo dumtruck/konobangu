@@ -3,9 +3,25 @@
 use sea_orm::{entity::prelude::*, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
 
+use super::bangumi::BangumiRenameMethod;
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct SubscriberBangumiConfig {
-    pub leading_group_tag: Option<bool>,
+    pub leading_fansub_tag: bool,
+    pub complete_history_episodes: bool,
+    pub rename_method: BangumiRenameMethod,
+    pub remove_bad_torrent: bool,
+}
+
+impl Default for SubscriberBangumiConfig {
+    fn default() -> Self {
+        Self {
+            leading_fansub_tag: false,
+            complete_history_episodes: false,
+            rename_method: BangumiRenameMethod::Pn,
+            remove_bad_torrent: false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]

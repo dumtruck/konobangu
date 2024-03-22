@@ -12,4 +12,8 @@ pub enum ParseError {
         expected: String,
         found: String,
     },
+    #[error("Parse language tag error: {0}")]
+    LanguageTagError(#[from] oxilangtag::LanguageTagParseError),
+    #[error("Unsupported language preset: {0}")]
+    UnsupportedLanguagePreset(String),
 }

@@ -59,6 +59,9 @@ html-escape = "0.2.13"
 opendal = "0.45.0"
 librqbit-core = "3.5.0"
 quirks_path = { path = "../quirks_path" }
+tokio-utils = "0.1.2"
+weak-table = "0.3.2"
+oxilangtag = { version = "0.1.5", features = ["serde"] }
 
 [dev-dependencies]
 serial_test = "2.0.0"

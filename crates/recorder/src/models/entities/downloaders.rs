@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
 )]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "downloader_type")]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "downloader_category"
+)]
 #[serde(rename_all = "snake_case")]
 pub enum DownloaderCategory {
     #[sea_orm(string_value = "qbittorrent")]

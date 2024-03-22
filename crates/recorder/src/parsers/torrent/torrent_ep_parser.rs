@@ -5,7 +5,7 @@ use quirks_path::Path;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::parsers::defs::SUBTITLE_LANG;
+use crate::i18n::LanguagePreset;
 
 lazy_static! {
     static ref TORRENT_EP_PARSE_RULES: Vec<FancyRegex> = {
@@ -84,17 +84,11 @@ fn get_season_and_title(season_and_title: &str) -> (String, i32) {
     (title, season)
 }
 
-fn get_subtitle_lang(media_name: &str) -> Option<&str> {
-    let media_name_lower = media_name.to_lowercase();
-    for (lang, lang_aliases) in SUBTITLE_LANG.iter() {
-        if lang_aliases
-            .iter()
-            .any(|alias| media_name_lower.contains(alias))
-        {
-            return Some(lang);
-        }
-    }
-    return None;
+fn get_subtitle_lang(subtitle_str: &str) -> Option<&str> {
+    let media_name_lower = subtitle_str.to_lowercase().trim();
+    LanguagePreset::parse(media_name_lower)
+        .ok()
+        .map(|p| p.name_str())
 }
 
 pub fn parse_episode_media_meta_from_torrent(
