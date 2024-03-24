@@ -71,7 +71,7 @@ pub fn gen_bangumi_sub_path(data: &bangumi::Model) -> PathBuf {
 }
 
 pub fn rule_name(bgm: &bangumi::Model, conf: &subscribers::SubscriberBangumiConfig) -> String {
-    if let (Some(true), Some(group_name)) = (conf.leading_fansub_tag, &bgm.fansub) {
+    if let (true, Some(group_name)) = (conf.leading_fansub_tag, &bgm.fansub) {
         format!("[{}] {} S{}", group_name, bgm.official_title, bgm.season)
     } else {
         format!("{} S{}", bgm.official_title, bgm.season)

@@ -11,12 +11,19 @@ use serde::{Deserialize, Serialize};
 )]
 #[serde(rename_all = "snake_case")]
 pub enum BangumiDistribution {
+    #[sea_orm(string_value = "movie")]
     Movie,
+    #[sea_orm(string_value = "ova")]
     Ova,
+    #[sea_orm(string_value = "oad")]
     Oad,
+    #[sea_orm(string_value = "sp")]
     Sp,
+    #[sea_orm(string_value = "ex")]
     Ex,
+    #[sea_orm(string_value = "tv")]
     Tv,
+    #[sea_orm(string_value = "unknown")]
     Unknown,
 }
 

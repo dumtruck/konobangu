@@ -62,6 +62,8 @@ quirks_path = { path = "../quirks_path" }
 tokio-utils = "0.1.2"
 weak-table = "0.3.2"
 oxilangtag = { version = "0.1.5", features = ["serde"] }
+dateparser = "0.2.1"
+dotenv = "0.15.0"
 
 [dev-dependencies]
 serial_test = "2.0.0"

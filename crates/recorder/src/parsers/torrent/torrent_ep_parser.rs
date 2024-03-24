@@ -84,11 +84,10 @@ fn get_season_and_title(season_and_title: &str) -> (String, i32) {
     (title, season)
 }
 
-fn get_subtitle_lang(subtitle_str: &str) -> Option<&str> {
-    let media_name_lower = subtitle_str.to_lowercase().trim();
-    LanguagePreset::parse(media_name_lower)
-        .ok()
-        .map(|p| p.name_str())
+fn get_subtitle_lang(subtitle_str: &str) -> Option<LanguagePreset> {
+    let lowercase = subtitle_str.to_lowercase();
+    let media_name_lower = lowercase.trim();
+    LanguagePreset::parse(media_name_lower).ok()
 }
 
 pub fn parse_episode_media_meta_from_torrent(
@@ -162,7 +161,7 @@ pub fn parse_episode_subtitle_meta_from_torrent(
 
     Ok(TorrentEpisodeSubtitleMeta {
         media: media_meta,
-        lang: lang.map(|s| s.to_string()),
+        lang: lang.map(|s| s.name_str().to_string()),
     })
 }
 
@@ -266,7 +265,7 @@ mod tests {
             let expected: Option<TorrentEpisodeSubtitleMeta> = serde_json::from_str(expected).ok();
             let found_raw =
                 parse_episode_subtitle_meta_from_torrent(Path::new(raw_name), None, None);
-            let found = found_raw.as_ref().ok().map(|s| s.clone());
+            let found = found_raw.as_ref().ok().cloned();
 
             if expected != found {
                 if found_raw.is_ok() {
@@ -287,7 +286,7 @@ mod tests {
         } else {
             let expected: Option<TorrentEpisodeMediaMeta> = serde_json::from_str(expected).ok();
             let found_raw = parse_episode_media_meta_from_torrent(Path::new(raw_name), None, None);
-            let found = found_raw.as_ref().ok().map(|s| s.clone());
+            let found = found_raw.as_ref().ok().cloned();
 
             if expected != found {
                 if found_raw.is_ok() {

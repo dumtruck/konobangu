@@ -60,12 +60,12 @@ impl LanguagePreset {
         let primary = lang_tag.primary_language();
         let region = lang_tag.region();
 
-        let kind = match primary {
-            "zh" if region == "TW" => LanguagePresetName::ZhTW,
-            "zh" if region == "CN" => LanguagePresetName::ZhCN,
-            "zh" => LanguagePresetName::Zh,
-            "en" => LanguagePresetName::En,
-            "ja" => LanguagePresetName::Ja,
+        let kind = match (primary, region) {
+            ("zh", Some("TW")) => LanguagePresetName::ZhTW,
+            ("zh", Some("CN")) => LanguagePresetName::ZhCN,
+            ("zh", _) => LanguagePresetName::Zh,
+            ("en", _) => LanguagePresetName::En,
+            ("ja", _) => LanguagePresetName::Ja,
             _ => Err(ParseError::UnsupportedLanguagePreset(s_rc.to_string()))?,
         };
 

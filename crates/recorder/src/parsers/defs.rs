@@ -5,11 +5,6 @@ use lazy_static::lazy_static;
 use maplit::hashmap;
 use regex::Regex;
 
-const LANG_ZH_TW: &str = "zh-tw";
-const LANG_ZH: &str = "zh";
-const LANG_EN: &str = "en";
-const LANG_JP: &str = "jp";
-
 lazy_static! {
     pub static ref SEASON_REGEX: Regex =
         Regex::new(r"(S\|[Ss]eason\s+)(\d+)").expect("Invalid regex");

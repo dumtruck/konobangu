@@ -1,11 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+use super::tmdb_client::TMDB_API_ORIGIN;
 use crate::{
     i18n::LanguagePreset,
     models::bangumi::BangumiDistribution,
     parsers::tmdb::{
         tmdb_client::TmdbApiClient,
-        tmdb_dtos::{TmdbSearchMultiItemDto, TmdbSearchMultiPageDto},
+        tmdb_dtos::{
+            TmdbMediaDetailDto, TmdbMovieDetailDto, TmdbSearchMultiItemDto, TmdbSearchMultiPageDto,
+            TmdbTvSeriesDetailDto,
+        },
     },
 };
 
@@ -31,9 +35,12 @@ const TMDB_ANIMATION_GENRE_ID: i64 = 16;
 #[inline]
 fn build_tmdb_search_api_url(query: &str, lang: &LanguagePreset, page: u32) -> String {
     format!(
-        "{TMDB_API_ORIGIN}/3/search/multi?language={lang_tag}&query={query}&page={page}&\
+        "{endpoint}/3/search/multi?language={lang_tag}&query={query}&page={page}&\
          include_adult=true",
+        endpoint = TMDB_API_ORIGIN,
         lang_tag = lang.name_str(),
+        query = query,
+        page = page
     )
 }
 
@@ -49,7 +56,10 @@ fn build_tmdb_info_api_url(
         _ => "tv",
     };
     format!(
-        "{TMDB_API_ORIGIN}/3/{tmdb_media_type}/{id}?language={lang_tag}",
+        "{endpoint}/3/{tmdb_media_type}/{id}?language={lang_tag}",
+        endpoint = TMDB_API_ORIGIN,
+        tmdb_media_type = tmdb_media_type,
+        id = id,
         lang_tag = lang.name_str()
     )
 }
@@ -94,9 +104,16 @@ pub async fn get_tmdb_info_from_id_lang_and_distribution(
     id: i64,
     lang: &LanguagePreset,
     distribution: &BangumiDistribution,
-) -> eyre::Result<TmdbSearchMultiItemDto> {
+) -> eyre::Result<TmdbMediaDetailDto> {
     let info_url = build_tmdb_info_api_url(id, lang, distribution);
-    let info: TmdbSearchMultiItemDto = tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
+    let info = if distribution == &BangumiDistribution::Movie {
+        let info: Box<TmdbMovieDetailDto> = tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
+        TmdbMediaDetailDto::Movie(info)
+    } else {
+        let info: Box<TmdbTvSeriesDetailDto> =
+            tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
+        TmdbMediaDetailDto::Tv(info)
+    };
     Ok(info)
 }
 
@@ -113,46 +130,76 @@ pub async fn parse_tmdb_bangumi_from_title_and_lang(
                 .await?;
     }
     if search_result.is_empty() {
-        return Ok(None);
+        Ok(None)
     } else {
-        let mut target_and_priority: Option<(TmdbSearchMultiItemDto, u32)> = None;
+        let mut target_and_priority: Option<(&TmdbSearchMultiItemDto, u32)> = None;
         for item in search_result.iter() {
             let is_animation = tmdb_genres_is_match_animation(&item.genre_ids);
-            let is_prefer_media_type =
-                item.media_type.as_deref() == Some(distribution.prefer_tmdb_media_type());
+            let is_prefer_media_type = item.media_type == distribution.prefer_tmdb_media_type();
             let priority =
                 (if is_prefer_media_type { 10 } else { 0 }) + (if is_animation { 1 } else { 0 });
-            if let Some((last_target_id, last_priority)) = target_and_priority.as_deref_mut() {
-                if priority > last_priority {
-                    *last_target_id = item;
+            if let Some((last_target, last_priority)) = target_and_priority.as_mut() {
+                if priority > *last_priority {
+                    *last_target = item;
                 }
             } else {
                 target_and_priority = Some((item, priority));
             }
         }
         if let Some((target, _)) = target_and_priority {
-            let info_url = get_tmdb_info_from_id_lang_and_distribution(
+            let info = get_tmdb_info_from_id_lang_and_distribution(
+                tmdb_client,
                 target.id,
                 lang,
-                BangumiDistribution::from_tmdb_media_type(target.media_type),
-            );
-            let info: TmdbSearchMultiItemDto =
-                tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
-            let last_season = match distribution {
-                BangumiDistribution::Movie => 1,
-                BangumiDistribution::Tv => info.number_of_seasons,
-                _ => 1,
-            };
-            Ok(Some(TmdbBangumiItem {
-                id: info.id,
-                name: info.name,
-                origin_name: info.original_name,
-                last_season,
-                year: info.first_air_date,
-                poster_link: info.poster_path,
-            }))
+                &BangumiDistribution::from_tmdb_media_type(&target.media_type),
+            )
+            .await?;
+            match info {
+                TmdbMediaDetailDto::Movie(info) => Ok(Some(TmdbBangumiItem {
+                    id: info.id,
+                    name: info.name,
+                    origin_name: info.original_name,
+                    last_season: 1,
+                    year: Some(info.release_date),
+                    poster_link: info.poster_path,
+                })),
+                TmdbMediaDetailDto::Tv(info) => Ok(Some(TmdbBangumiItem {
+                    id: info.id,
+                    name: info.name,
+                    origin_name: info.original_name,
+                    last_season: info.number_of_seasons,
+                    year: info.first_air_date,
+                    poster_link: info.poster_path,
+                })),
+            }
         } else {
             Ok(None)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parsers::tmdb::{
+        tmdb_bgm_parser::parse_tmdb_bangumi_from_title_and_lang,
+        tmdb_client::tests::prepare_tmdb_api_client,
+    };
+
+    #[tokio::test]
+    async fn test_parse_tmdb_bangumi_from_title_and_lang() {
+        let client = prepare_tmdb_api_client().await;
+        let result = parse_tmdb_bangumi_from_title_and_lang(
+            client.as_ref(),
+            "青春猪头",
+            &crate::i18n::LanguagePreset::parse("zh-CN").expect("failed to create language preset"),
+            &crate::models::bangumi::BangumiDistribution::Tv,
+        )
+        .await
+        .expect("failed to parse tmdb bangumi from title and lang");
+
+        assert_eq!(
+            result.as_ref().map_or("", |item| &item.name),
+            "青春猪头少年不会梦到兔女郎学姐"
+        );
     }
 }
