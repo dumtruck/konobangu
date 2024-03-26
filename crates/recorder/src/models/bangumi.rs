@@ -2,6 +2,7 @@ use regex::Regex;
 use sea_orm::entity::prelude::*;
 
 pub use super::entities::bangumi::*;
+use crate::models::downloads;
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}
@@ -22,4 +23,9 @@ impl BangumiFilter {
         }
         Ok(false)
     }
+}
+
+impl Model {
+    pub async fn search_all() {}
+    pub async fn match_list(dnlds: Vec<downloads::Model>) {}
 }

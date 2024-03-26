@@ -13,8 +13,8 @@ use serde::{Deserialize, Serialize};
 pub enum SubscriptionCategory {
     #[sea_orm(string_value = "mikan")]
     Mikan,
-    #[sea_orm(string_value = "manual")]
-    Manual,
+    #[sea_orm(string_value = "tmdb")]
+    Tmdb,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]

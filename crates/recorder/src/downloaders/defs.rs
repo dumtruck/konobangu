@@ -1,3 +1,4 @@
+use bytes::Bytes;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use librqbit_core::{
@@ -9,10 +10,20 @@ pub use qbit_rs::model::{
     TorrentFilter as QbitTorrentFilter, TorrentSource as QbitTorrentSource,
 };
 use regex::Regex;
-use serde::{Deserialize, Serialize};
+use reqwest::{header::HeaderMap, IntoUrl};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tokio_utils::RateLimiter;
 use url::Url;
 
-use crate::downloaders::{bytes::download_bytes, error::DownloaderError};
+use super::error::DownloaderError;
+
+async fn download_bytes<T: IntoUrl>(url: T) -> eyre::Result<Bytes> {
+    let request_client = reqwest::Client::builder()
+        .user_agent(DEFAULT_USER_AGENT)
+        .build()?;
+    let bytes = request_client.get(url).send().await?.bytes().await?;
+    Ok(bytes)
+}
 
 pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";
 pub const MAGNET_SCHEMA: &str = "magnet";
@@ -245,5 +256,75 @@ impl Torrent {
         match self {
             Torrent::Qbit { torrent, .. } => torrent.category.as_deref(),
         }
+    }
+}
+
+pub struct ApiClient {
+    headers: HeaderMap,
+    rate_limiter: RateLimiter,
+    fetch_client: reqwest::Client,
+}
+
+impl ApiClient {
+    pub fn new(
+        throttle_duration: std::time::Duration,
+        override_headers: Option<HeaderMap>,
+    ) -> eyre::Result<Self> {
+        Ok(Self {
+            headers: override_headers.unwrap_or_else(HeaderMap::new),
+            rate_limiter: RateLimiter::new(throttle_duration),
+            fetch_client: reqwest::Client::builder()
+                .user_agent(DEFAULT_USER_AGENT)
+                .build()?,
+        })
+    }
+
+    pub async fn fetch_json<R, F>(&self, f: F) -> Result<R, reqwest::Error>
+    where
+        F: FnOnce(&reqwest::Client) -> reqwest::RequestBuilder,
+        R: DeserializeOwned,
+    {
+        self.rate_limiter
+            .throttle(|| async {
+                f(&self.fetch_client)
+                    .headers(self.headers.clone())
+                    .send()
+                    .await?
+                    .json::<R>()
+                    .await
+            })
+            .await
+    }
+
+    pub async fn fetch_bytes<F>(&self, f: F) -> Result<Bytes, reqwest::Error>
+    where
+        F: FnOnce(&reqwest::Client) -> reqwest::RequestBuilder,
+    {
+        self.rate_limiter
+            .throttle(|| async {
+                f(&self.fetch_client)
+                    .headers(self.headers.clone())
+                    .send()
+                    .await?
+                    .bytes()
+                    .await
+            })
+            .await
+    }
+
+    pub async fn fetch_text<F>(&self, f: F) -> Result<String, reqwest::Error>
+    where
+        F: FnOnce(&reqwest::Client) -> reqwest::RequestBuilder,
+    {
+        self.rate_limiter
+            .throttle(|| async {
+                f(&self.fetch_client)
+                    .headers(self.headers.clone())
+                    .send()
+                    .await?
+                    .text()
+                    .await
+            })
+            .await
     }
 }

@@ -52,7 +52,7 @@ fn get_fansub(group_and_title: &str) -> (Option<&str>, &str) {
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>();
 
-    match (n.get(0), n.get(1)) {
+    match (n.first(), n.get(1)) {
         (None, None) => (None, ""),
         (Some(n0), None) => (None, *n0),
         (Some(n0), Some(n1)) => {

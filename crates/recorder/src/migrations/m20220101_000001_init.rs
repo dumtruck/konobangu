@@ -42,7 +42,7 @@ impl MigrationTrait for Migration {
                 subscriptions::SubscriptionCategoryEnum,
                 &[
                     subscriptions::SubscriptionCategory::Mikan,
-                    subscriptions::SubscriptionCategory::Manual,
+                    subscriptions::SubscriptionCategory::Tmdb,
                 ],
             )
             .await?;

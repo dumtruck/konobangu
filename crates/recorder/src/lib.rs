@@ -15,3 +15,5 @@ pub mod views;
 pub mod workers;
 
 pub mod i18n;
+
+pub mod subscribe;

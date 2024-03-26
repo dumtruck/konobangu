@@ -1,4 +1,5 @@
 pub mod bangumi;
+pub(crate) mod db_utils;
 pub mod downloaders;
 pub mod downloads;
 pub mod entities;

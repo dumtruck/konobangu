@@ -86,14 +86,17 @@ pub async fn search_tmdb_items_from_title_and_lang(
     let mut items = vec![];
     let page_num = {
         let search_url = build_tmdb_search_api_url(title, lang, 1);
-        let first_page: TmdbSearchMultiPageDto =
-            tmdb_client.fetch(|fetch| fetch.get(search_url)).await?;
+        let first_page: TmdbSearchMultiPageDto = tmdb_client
+            .fetch_json(|fetch| fetch.get(search_url))
+            .await?;
         items.extend(first_page.results);
         first_page.total_pages
     };
     for i in 2..=page_num {
         let search_url = build_tmdb_search_api_url(title, lang, i);
-        let page: TmdbSearchMultiPageDto = tmdb_client.fetch(|fetch| fetch.get(search_url)).await?;
+        let page: TmdbSearchMultiPageDto = tmdb_client
+            .fetch_json(|fetch| fetch.get(search_url))
+            .await?;
         items.extend(page.results);
     }
     Ok(items)
@@ -107,11 +110,12 @@ pub async fn get_tmdb_info_from_id_lang_and_distribution(
 ) -> eyre::Result<TmdbMediaDetailDto> {
     let info_url = build_tmdb_info_api_url(id, lang, distribution);
     let info = if distribution == &BangumiDistribution::Movie {
-        let info: Box<TmdbMovieDetailDto> = tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
+        let info: Box<TmdbMovieDetailDto> =
+            tmdb_client.fetch_json(|fetch| fetch.get(info_url)).await?;
         TmdbMediaDetailDto::Movie(info)
     } else {
         let info: Box<TmdbTvSeriesDetailDto> =
-            tmdb_client.fetch(|fetch| fetch.get(info_url)).await?;
+            tmdb_client.fetch_json(|fetch| fetch.get(info_url)).await?;
         TmdbMediaDetailDto::Tv(info)
     };
     Ok(info)

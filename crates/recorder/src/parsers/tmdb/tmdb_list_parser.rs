@@ -27,7 +27,7 @@ pub async fn parse_tmdb_list_items_from_list_api(
 
     let page_num = {
         let first_page: TmdbListPageDto = tmdb_client
-            .fetch(|fetch| fetch.get(build_tmdb_list_api_url(list_id, lang, 1)))
+            .fetch_json(|fetch| fetch.get(build_tmdb_list_api_url(list_id, lang, 1)))
             .await?;
 
         items.extend(first_page.results);
@@ -37,7 +37,7 @@ pub async fn parse_tmdb_list_items_from_list_api(
 
     for i in 2..=page_num {
         let page: TmdbListPageDto = tmdb_client
-            .fetch(|fetch| fetch.get(build_tmdb_list_api_url(list_id, lang, i)))
+            .fetch_json(|fetch| fetch.get(build_tmdb_list_api_url(list_id, lang, i)))
             .await?;
 
         items.extend(page.results);

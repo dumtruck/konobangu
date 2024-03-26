@@ -3,8 +3,8 @@ use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    downloaders::{bytes::download_bytes, defs::BITTORRENT_MIME_TYPE},
-    parsers::errors::ParseError,
+    downloaders::defs::BITTORRENT_MIME_TYPE,
+    parsers::{errors::ParseError, mikan::mikan_client::MikanClient},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -50,9 +50,10 @@ impl TryFrom<rss::Item> for MikanRssItem {
 }
 
 pub async fn parse_mikan_rss_items_from_rss_link(
+    client: &MikanClient,
     url: impl IntoUrl,
 ) -> eyre::Result<impl Iterator<Item = MikanRssItem>> {
-    let bytes = download_bytes(url).await?;
+    let bytes = client.fetch_bytes(|f| f.get(url)).await?;
 
     let channel = rss::Channel::read_from(&bytes[..])?;
 
@@ -62,14 +63,17 @@ pub async fn parse_mikan_rss_items_from_rss_link(
 #[cfg(test)]
 mod tests {
     use super::parse_mikan_rss_items_from_rss_link;
-    use crate::downloaders::defs::BITTORRENT_MIME_TYPE;
+    use crate::{
+        downloaders::defs::BITTORRENT_MIME_TYPE, parsers::mikan::mikan_client::MikanClient,
+    };
 
     #[tokio::test]
     pub async fn test_mikan_subscription_items_from_rss_url() {
         let url = "https://mikanani.me/RSS/Bangumi?bangumiId=3141&subgroupid=370";
-        let items = parse_mikan_rss_items_from_rss_link(url)
+        let client = MikanClient::new(0).await.expect("should get mikan client");
+        let items = parse_mikan_rss_items_from_rss_link(&client, url)
             .await
-            .expect("should get subscription items from rss url")
+            .expect("should get subscription items from subscription url")
             .collect::<Vec<_>>();
 
         let first_sub_item = items

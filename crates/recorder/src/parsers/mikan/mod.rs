@@ -1,3 +1,4 @@
+pub mod mikan_client;
 pub mod mikan_ep_parser;
 pub mod mikan_rss_parser;
 

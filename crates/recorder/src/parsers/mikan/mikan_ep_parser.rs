@@ -5,9 +5,9 @@ use lightningcss::{properties::Property, values::image::Image};
 use regex::Regex;
 use url::Url;
 
-use crate::{
-    downloaders::{html::download_html, image::download_image},
-    parsers::html::{get_tag_style, query_selector_first_tag},
+use crate::parsers::{
+    html::{get_tag_style, query_selector_first_tag},
+    mikan::mikan_client::MikanClient,
 };
 
 pub struct MikanEpisodeMeta {
@@ -22,10 +22,11 @@ lazy_static! {
 }
 
 pub async fn parse_episode_meta_from_mikan_homepage(
+    client: &MikanClient,
     url: Url,
 ) -> eyre::Result<Option<MikanEpisodeMeta>> {
     let url_host = url.origin().unicode_serialization();
-    let content = download_html(url.as_str()).await?;
+    let content = client.fetch_text(|f| f.get(url.as_str())).await?;
     let dom = tl::parse(&content, tl::ParserOptions::default())?;
     let parser = dom.parser();
     let poster_node = query_selector_first_tag(&dom, r"div.bangumi-poster", parser);
@@ -62,7 +63,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
         p
     });
     let poster_data = if let Some(p) = origin_poster_src.as_ref() {
-        download_image(p.clone()).await.ok()
+        client.fetch_bytes(|f| f.get(p.clone())).await.ok()
     } else {
         None
     };
@@ -93,6 +94,7 @@ mod test {
     use url::Url;
 
     use super::parse_episode_meta_from_mikan_homepage;
+    use crate::parsers::mikan::mikan_client::MikanClient;
 
     #[tokio::test]
     async fn test_parse_mikan() {
@@ -101,7 +103,11 @@ mod test {
                 "https://mikanani.me/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a";
             let url = Url::parse(url_str)?;
 
-            if let Some(ep_meta) = parse_episode_meta_from_mikan_homepage(url.clone()).await? {
+            let client = MikanClient::new(0).await.expect("should get mikan client");
+
+            if let Some(ep_meta) =
+                parse_episode_meta_from_mikan_homepage(&client, url.clone()).await?
+            {
                 assert_eq!(ep_meta.homepage, url);
                 assert_eq!(ep_meta.official_title, "葬送的芙莉莲");
                 assert_eq!(
