@@ -1,8 +1,10 @@
 use sea_orm::{
-    sea_query::{Expr, InsertStatement, Query, SimpleExpr},
-    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, EntityName, EntityTrait,
+    sea_query::{Expr, InsertStatement, IntoIden, Query, SimpleExpr},
+    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, DynIden, EntityName, EntityTrait,
     FromQueryResult, Iterable, SelectModel, SelectorRaw, TryGetable,
 };
+
+use crate::migrations::{defs::GeneralIds, ColumnRef};
 
 #[derive(FromQueryResult)]
 pub(crate) struct OnlyIdsModel<Id>
@@ -75,6 +77,28 @@ where
         db,
         insert_values,
         <V::Entity as EntityTrait>::Column::iter().map(|c| c.select_as(Expr::col(c))),
+        extra_config,
+    )
+    .await?;
+
+    Ok(result)
+}
+
+pub(crate) async fn insert_many_with_returning_id<D, V, F, I>(
+    db: &D,
+    insert_values: impl IntoIterator<Item = V>,
+    extra_config: F,
+) -> eyre::Result<Vec<OnlyIdsModel<I>>>
+where
+    D: ConnectionTrait,
+    V: ActiveModelTrait,
+    F: FnOnce(&mut InsertStatement),
+    I: TryGetable,
+{
+    let result: Vec<OnlyIdsModel<I>> = insert_many_with_returning_columns(
+        db,
+        insert_values,
+        [Expr::col(ColumnRef::Column(GeneralIds::Id.into_iden()))],
         extra_config,
     )
     .await?;

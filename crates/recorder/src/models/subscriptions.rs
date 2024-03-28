@@ -12,7 +12,7 @@ use tracing::{event, instrument, Level};
 
 pub use super::entities::subscriptions::{self, *};
 use crate::{
-    models::{bangumi, db_utils::insert_many_with_returning_all, downloads, episodes},
+    models::{bangumi, db_utils::insert_many_with_returning_all, episodes, resources},
     parsers::{
         mikan::{
             parse_episode_meta_from_mikan_homepage, parse_mikan_rss_items_from_rss_link,
@@ -33,7 +33,7 @@ pub struct SubscriptionCreateFromRssDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(tag = "category")]
+#[serde(tag = "category", rename_all = "snake_case")]
 pub enum SubscriptionCreateDto {
     Mikan(SubscriptionCreateFromRssDto),
 }
@@ -106,7 +106,7 @@ impl Model {
         fields(subscriber_id = "self.subscriber_id", subscription_id = "self.id"),
         skip(self, db, ctx)
     )]
-    pub async fn pull_item(&self, db: &DatabaseConnection, ctx: &AppContext) -> eyre::Result<()> {
+    pub async fn pull_one(&self, db: &DatabaseConnection, ctx: &AppContext) -> eyre::Result<()> {
         let subscription = self;
         let subscription_id = subscription.id;
         match &subscription.category {
@@ -122,20 +122,20 @@ impl Model {
                     return Ok(());
                 }
 
-                let new_downloads = all_items
+                let new_resources = all_items
                     .into_iter()
                     .map(|rss_item| {
-                        downloads::ActiveModel::from_mikan_rss_item(rss_item, subscription.id)
+                        resources::ActiveModel::from_mikan_rss_item(rss_item, subscription.id)
                     })
                     .collect_vec();
 
                 // insert and filter out duplicated items
-                let new_downloads: Vec<downloads::Model> = insert_many_with_returning_all(
+                let new_resources: Vec<resources::Model> = insert_many_with_returning_all(
                     db,
-                    new_downloads,
+                    new_resources,
                     |stat: &mut InsertStatement| {
                         stat.on_conflict(
-                            OnConflict::column(downloads::Column::Url)
+                            OnConflict::column(resources::Column::Url)
                                 .do_nothing()
                                 .to_owned(),
                         );
@@ -144,7 +144,7 @@ impl Model {
                 .await?;
 
                 pub struct MikanEpMetaBundle {
-                    pub download: downloads::Model,
+                    pub resource: resources::Model,
                     pub mikan: MikanEpisodeMeta,
                     pub raw: RawEpisodeMeta,
                     pub poster: Option<String>,
@@ -154,8 +154,8 @@ impl Model {
                     HashMap::new();
                 let dal = ctx.get_dal_unwrap().await;
                 {
-                    for dl in new_downloads {
-                        let mut mikan_meta = if let Some(homepage) = dl.homepage.as_deref() {
+                    for r in new_resources {
+                        let mut mikan_meta = if let Some(homepage) = r.homepage.as_deref() {
                             match parse_episode_meta_from_mikan_homepage(&mikan_client, homepage)
                                 .await
                             {
@@ -208,14 +208,14 @@ impl Model {
                         } else {
                             None
                         };
-                        let raw_meta = match parse_episode_meta_from_raw_name(&dl.origin_title) {
+                        let raw_meta = match parse_episode_meta_from_raw_name(&r.origin_title) {
                             Ok(raw_meta) => raw_meta,
                             Err(e) => {
                                 let error: &dyn std::error::Error = e.as_ref();
                                 event!(
                                     Level::ERROR,
                                     desc = "failed to parse episode meta from origin name",
-                                    origin_name = &dl.origin_title,
+                                    origin_name = &r.origin_title,
                                     error = error
                                 );
                                 continue;
@@ -227,7 +227,7 @@ impl Model {
                             fansub: raw_meta.fansub.clone(),
                         };
                         let meta = MikanEpMetaBundle {
-                            download: dl,
+                            resource: r,
                             mikan: mikan_meta,
                             raw: raw_meta,
                             poster: mikan_poster_link,
@@ -239,7 +239,7 @@ impl Model {
                 for (_, eps) in ep_metas {
                     let meta = eps.first().unwrap_or_else(|| {
                         unreachable!(
-                            "subscriptions pull items bangumi must have at least one episode meta"
+                            "subscriptions pull one bangumi must have at least one episode meta"
                         )
                     });
                     let last_ep = eps.iter().fold(0, |acc, ep| acc.max(ep.raw.episode_index));
@@ -271,7 +271,7 @@ impl Model {
                     let eps = eps.into_iter().map(|ep| {
                         episodes::ActiveModel::from_mikan_meta(
                             bgm.id,
-                            ep.download,
+                            ep.resource,
                             ep.raw,
                             ep.mikan,
                             ep.poster,

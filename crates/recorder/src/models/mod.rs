@@ -1,10 +1,10 @@
 pub mod bangumi;
 pub(crate) mod db_utils;
 pub mod downloaders;
-pub mod downloads;
 pub mod entities;
 pub mod episodes;
 pub mod notifications;
 pub mod prelude;
+pub mod resources;
 pub mod subscribers;
 pub mod subscriptions;

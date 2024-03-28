@@ -9,6 +9,7 @@ use crate::migrations::extension::postgres::Type;
 pub enum GeneralIds {
     CreatedAt,
     UpdatedAt,
+    Id,
 }
 
 #[derive(DeriveIden)]
@@ -63,7 +64,7 @@ pub enum Episodes {
     SNameJp,
     SNameEn,
     BangumiId,
-    DownloadId,
+    ResourceId,
     SavePath,
     Resolution,
     Season,
@@ -76,7 +77,7 @@ pub enum Episodes {
 }
 
 #[derive(DeriveIden)]
-pub enum Downloads {
+pub enum Resources {
     Table,
     Id,
     SubscriptionId,

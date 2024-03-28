@@ -1,6 +1,6 @@
 use sea_orm::{prelude::*, ActiveValue};
 
-pub use crate::models::entities::downloads::*;
+pub use crate::models::entities::resources::*;
 use crate::parsers::mikan::MikanRssItem;
 
 #[async_trait::async_trait]

@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 pub use super::entities::subscribers::*;
 
-pub const ROOT_SUBSCRIBER: &str = "konobangu";
+pub const ROOT_SUBSCRIBER_ID: i32 = 1;
+pub const ROOT_SUBSCRIBER_NAME: &str = "konobangu";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SubscriberIdParams {
@@ -43,7 +44,7 @@ impl Model {
     }
 
     pub async fn find_root(db: &DatabaseConnection) -> ModelResult<Self> {
-        Self::find_by_pid(db, ROOT_SUBSCRIBER).await
+        Self::find_by_pid(db, ROOT_SUBSCRIBER_NAME).await
     }
 
     /// Asynchronously creates a user with a password and saves it to the
@@ -56,8 +57,8 @@ impl Model {
         let txn = db.begin().await?;
 
         let user = ActiveModel {
-            display_name: ActiveValue::set(ROOT_SUBSCRIBER.to_string()),
-            pid: ActiveValue::set(ROOT_SUBSCRIBER.to_string()),
+            display_name: ActiveValue::set(ROOT_SUBSCRIBER_NAME.to_string()),
+            pid: ActiveValue::set(ROOT_SUBSCRIBER_NAME.to_string()),
             ..Default::default()
         }
         .insert(&txn)

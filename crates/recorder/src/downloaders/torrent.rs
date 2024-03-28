@@ -20,7 +20,7 @@ use super::{
     qbitorrent::QBittorrentDownloader,
 };
 use crate::{
-    models::{bangumi, downloaders, downloaders::DownloaderCategory, downloads},
+    models::{bangumi, downloaders, downloaders::DownloaderCategory, resources},
     path::torrent_path::gen_bangumi_sub_path,
 };
 
@@ -296,10 +296,10 @@ pub trait TorrentDownloader {
 
     fn get_save_path(&self, sub_path: &Path) -> PathBuf;
 
-    async fn add_downloads_for_bangumi<'a, 'b>(
+    async fn add_resources_for_bangumi<'a, 'b>(
         &self,
         db: &'a DatabaseConnection,
-        downloads: &[&downloads::Model],
+        resources: &[&resources::Model],
         mut bangumi: bangumi::Model,
     ) -> eyre::Result<bangumi::Model> {
         if bangumi.save_path.is_none() {
@@ -315,12 +315,12 @@ pub trait TorrentDownloader {
             .unwrap_or_else(|| unreachable!("must have a sub path"));
 
         let mut torrent_urls = vec![];
-        for m in downloads.iter() {
+        for m in resources.iter() {
             torrent_urls.push(Url::parse(&m.url as &str)?);
         }
 
         // make sequence to prevent too fast to be banned
-        for d in downloads.iter() {
+        for d in resources.iter() {
             let source = TorrentSource::parse(&d.url).await?;
             self.add_torrents(source, sub_path.clone(), Some("bangumi"))
                 .await?;

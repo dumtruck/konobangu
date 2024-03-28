@@ -65,7 +65,7 @@ workers:
   #   - BackgroundQueue - Workers operate asynchronously in the background, processing queued.
   #   - ForegroundBlocking - Workers operate in the foreground and block until tasks are completed.
   #   - BackgroundAsync - Workers operate asynchronously in the background, processing tasks with async capabilities.
-  mode: BackgroundQueue
+  mode: BackgroundAsync
 
 # Database Configuration
 database:
@@ -88,3 +88,5 @@ database:
   # Recreating schema when application loaded.  This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_recreate: false
 
+tmdb:
+  api_token: '{{ get_env(name="TMDB_API_TOKEN") }}'

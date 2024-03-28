@@ -2,9 +2,8 @@ use loco_rs::schema::table_auto;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::*;
-use crate::models::prelude::{
-    downloads::{DownloadMimeEnum, DownloadStatusEnum},
-    DownloadMime, DownloadStatus,
+use crate::models::resources::{
+    DownloadStatus, DownloadStatusEnum, ResourceMime, ResourceMimeEnum,
 };
 
 #[derive(DeriveMigrationName)]
@@ -15,8 +14,8 @@ impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .create_postgres_enum_for_active_enum(
-                DownloadMimeEnum,
-                &[DownloadMime::OctetStream, DownloadMime::BitTorrent],
+                ResourceMimeEnum,
+                &[ResourceMime::OctetStream, ResourceMime::BitTorrent],
             )
             .await?;
 
@@ -36,29 +35,29 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Downloads::Table)
-                    .col(pk_auto(Downloads::Id))
-                    .col(text(Downloads::OriginTitle))
-                    .col(text(Downloads::DisplayName))
-                    .col(integer(Downloads::SubscriptionId))
+                table_auto(Resources::Table)
+                    .col(pk_auto(Resources::Id))
+                    .col(text(Resources::OriginTitle))
+                    .col(text(Resources::DisplayName))
+                    .col(integer(Resources::SubscriptionId))
                     .col(enumeration(
-                        Downloads::Status,
+                        Resources::Status,
                         DownloadStatusEnum,
-                        DownloadMime::iden_values(),
+                        ResourceMime::iden_values(),
                     ))
                     .col(enumeration(
-                        Downloads::Mime,
-                        DownloadMimeEnum,
-                        DownloadMime::iden_values(),
+                        Resources::Mime,
+                        ResourceMimeEnum,
+                        ResourceMime::iden_values(),
                     ))
-                    .col(big_unsigned_null(Downloads::AllSize))
-                    .col(big_unsigned_null(Downloads::CurrSize))
-                    .col(text(Downloads::Url))
-                    .col(text_null(Downloads::HomePage))
+                    .col(big_unsigned_null(Resources::AllSize))
+                    .col(big_unsigned_null(Resources::CurrSize))
+                    .col(text(Resources::Url))
+                    .col(text_null(Resources::HomePage))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_download_subscription_id")
-                            .from(Downloads::Table, Downloads::SubscriptionId)
+                            .from(Resources::Table, Resources::SubscriptionId)
                             .to(Subscriptions::Table, Subscriptions::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
@@ -66,14 +65,14 @@ impl MigrationTrait for Migration {
                     .index(
                         Index::create()
                             .name("idx_download_url")
-                            .table(Downloads::Table)
-                            .col(Downloads::Url),
+                            .table(Resources::Table)
+                            .col(Resources::Url),
                     )
                     .index(
                         Index::create()
                             .name("idx_download_home_page")
-                            .table(Downloads::Table)
-                            .col(Downloads::HomePage),
+                            .table(Resources::Table)
+                            .col(Resources::HomePage),
                     )
                     .to_owned(),
             )
@@ -87,14 +86,14 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Episodes::Table)
-                    .add_column_if_not_exists(integer_null(Episodes::DownloadId))
+                    .add_column_if_not_exists(integer_null(Episodes::ResourceId))
                     .add_foreign_key(
                         TableForeignKey::new()
-                            .name("fk_episode_download_id")
+                            .name("fk_episode_resource_id")
                             .from_tbl(Episodes::Table)
-                            .from_col(Episodes::DownloadId)
-                            .to_tbl(Downloads::Table)
-                            .to_col(Downloads::Id)
+                            .from_col(Episodes::ResourceId)
+                            .to_tbl(Resources::Table)
+                            .to_col(Resources::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::SetNull),
                     )
@@ -110,8 +109,8 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Episodes::Table)
-                    .drop_foreign_key(Alias::new("fk_episode_download_id"))
-                    .drop_column(Episodes::DownloadId)
+                    .drop_foreign_key(Alias::new("fk_episode_resource_id"))
+                    .drop_column(Episodes::ResourceId)
                     .to_owned(),
             )
             .await?;
@@ -121,11 +120,11 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Downloads::Table).to_owned())
+            .drop_table(Table::drop().table(Resources::Table).to_owned())
             .await?;
 
         manager
-            .drop_postgres_enum_for_active_enum(DownloadMimeEnum)
+            .drop_postgres_enum_for_active_enum(ResourceMimeEnum)
             .await?;
         manager
             .drop_postgres_enum_for_active_enum(DownloadStatusEnum)

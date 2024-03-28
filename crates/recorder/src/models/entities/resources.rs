@@ -24,8 +24,8 @@ pub enum DownloadStatus {
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
 )]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "download_mime")]
-pub enum DownloadMime {
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "resource_mime")]
+pub enum ResourceMime {
     #[sea_orm(string_value = "application/octet-stream")]
     #[serde(rename = "application/octet-stream")]
     OctetStream,
@@ -35,7 +35,7 @@ pub enum DownloadMime {
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "downloads")]
+#[sea_orm(table_name = "resources")]
 pub struct Model {
     pub created_at: DateTime,
     pub updated_at: DateTime,
@@ -45,7 +45,7 @@ pub struct Model {
     pub display_name: String,
     pub subscription_id: i32,
     pub status: DownloadStatus,
-    pub mime: DownloadMime,
+    pub mime: ResourceMime,
     pub url: String,
     pub all_size: Option<u64>,
     pub curr_size: Option<u64>,

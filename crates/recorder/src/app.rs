@@ -1,20 +1,21 @@
-use std::path::Path;
-
 use async_trait::async_trait;
 use loco_rs::{
-    app::{AppContext, Hooks, Initializer},
+    app::Hooks,
     boot::{create_app, BootResult, StartMode},
     controller::AppRoutes,
     db::truncate_table,
     environment::Environment,
+    prelude::*,
     task::Tasks,
-    worker::{AppWorker, Processor},
-    Result,
+    worker::Processor,
 };
-use sea_orm::DatabaseConnection;
+use sea_orm::prelude::*;
 
 use crate::{
-    controllers, migrations::Migrator, models::entities::subscribers, storage::AppDalInitializer,
+    controllers,
+    migrations::Migrator,
+    models::{bangumi, downloaders, episodes, resources, subscribers, subscriptions},
+    storage::AppDalInitializer,
     workers::subscription::SubscriptionWorker,
 };
 
@@ -53,11 +54,20 @@ impl Hooks for App {
     fn register_tasks(_tasks: &mut Tasks) {}
 
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
-        truncate_table(db, subscribers::Entity).await?;
+        futures::try_join!(
+            subscribers::Entity::delete_many()
+                .filter(subscribers::Column::Id.ne(subscribers::ROOT_SUBSCRIBER_ID))
+                .exec(db),
+            truncate_table(db, subscriptions::Entity),
+            truncate_table(db, resources::Entity),
+            truncate_table(db, downloaders::Entity),
+            truncate_table(db, bangumi::Entity),
+            truncate_table(db, episodes::Entity),
+        )?;
         Ok(())
     }
 
-    async fn seed(_db: &DatabaseConnection, _base: &Path) -> Result<()> {
+    async fn seed(_db: &DatabaseConnection, _base: &std::path::Path) -> Result<()> {
         Ok(())
     }
 

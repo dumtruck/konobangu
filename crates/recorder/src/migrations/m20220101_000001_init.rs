@@ -4,7 +4,10 @@ use sea_orm_migration::{prelude::*, schema::*};
 use super::defs::{
     Bangumi, CustomSchemaManagerExt, Episodes, GeneralIds, Subscribers, Subscriptions,
 };
-use crate::models::{subscribers::ROOT_SUBSCRIBER, subscriptions};
+use crate::models::{
+    subscribers::{ROOT_SUBSCRIBER_ID, ROOT_SUBSCRIBER_NAME},
+    subscriptions,
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -34,8 +37,12 @@ impl MigrationTrait for Migration {
 
         let insert = Query::insert()
             .into_table(Subscribers::Table)
-            .columns([Subscribers::Pid, Subscribers::DisplayName])
-            .values_panic([ROOT_SUBSCRIBER.into(), ROOT_SUBSCRIBER.into()])
+            .columns([Subscribers::Id, Subscribers::Pid, Subscribers::DisplayName])
+            .values_panic([
+                ROOT_SUBSCRIBER_ID.into(),
+                ROOT_SUBSCRIBER_NAME.into(),
+                ROOT_SUBSCRIBER_NAME.into(),
+            ])
             .to_owned();
         manager.exec_stmt(insert).await?;
 
@@ -147,7 +154,7 @@ impl MigrationTrait for Migration {
                     .col(text_null(Episodes::SNameJp))
                     .col(text_null(Episodes::SNameEn))
                     .col(integer(Episodes::BangumiId))
-                    .col(integer(Episodes::DownloadId))
+                    .col(integer(Episodes::ResourceId))
                     .col(text_null(Episodes::SavePath))
                     .col(string_null(Episodes::Resolution))
                     .col(integer(Episodes::Season))
