@@ -30,7 +30,7 @@ impl MigrationTrait for Migration {
                         DownloaderCategoryEnum,
                         DownloaderCategory::iden_values(),
                     ))
-                    .col(text(Downloaders::DownloadPath))
+                    .col(text(Downloaders::SavePath))
                     .col(integer(Downloaders::SubscriberId))
                     .foreign_key(
                         ForeignKey::create()

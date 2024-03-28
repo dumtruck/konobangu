@@ -8,7 +8,7 @@ use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION};
 use tokio::sync::RwLock;
 use weak_table::WeakValueHashMap;
 
-use crate::downloaders::defs::{ApiClient, DEFAULT_USER_AGENT};
+use crate::downloaders::ApiClient;
 
 pub(crate) const TMDB_API_ORIGIN: &str = "https://api.themoviedb.org";
 

@@ -3,17 +3,26 @@ use html_escape::decode_html_entities;
 use lazy_static::lazy_static;
 use lightningcss::{properties::Property, values::image::Image};
 use regex::Regex;
+use reqwest::IntoUrl;
+use tracing::instrument;
 use url::Url;
 
 use crate::parsers::{
+    errors::ParseError,
     html::{get_tag_style, query_selector_first_tag},
     mikan::mikan_client::MikanClient,
 };
 
+#[derive(Clone, Debug)]
+pub struct MikanEpisodeMetaPosterBlob {
+    pub origin_url: Url,
+    pub data: Bytes,
+}
+
+#[derive(Clone, Debug)]
 pub struct MikanEpisodeMeta {
     pub homepage: Url,
-    pub poster_data: Option<Bytes>,
-    pub origin_poster_src: Option<Url>,
+    pub poster: Option<MikanEpisodeMetaPosterBlob>,
     pub official_title: String,
 }
 
@@ -21,12 +30,14 @@ lazy_static! {
     static ref MIKAN_TITLE_SEASON: Regex = Regex::new("第.*季").unwrap();
 }
 
+#[instrument(skip(client, url))]
 pub async fn parse_episode_meta_from_mikan_homepage(
     client: &MikanClient,
-    url: Url,
-) -> eyre::Result<Option<MikanEpisodeMeta>> {
+    url: impl IntoUrl,
+) -> eyre::Result<MikanEpisodeMeta> {
+    let url = url.into_url()?;
     let url_host = url.origin().unicode_serialization();
-    let content = client.fetch_text(|f| f.get(url.as_str())).await?;
+    let content = client.fetch_text(|f| f.get(url.clone())).await?;
     let dom = tl::parse(&content, tl::ParserOptions::default())?;
     let parser = dom.parser();
     let poster_node = query_selector_first_tag(&dom, r"div.bangumi-poster", parser);
@@ -62,12 +73,19 @@ pub async fn parse_episode_meta_from_mikan_homepage(
         p.set_query(None);
         p
     });
-    let poster_data = if let Some(p) = origin_poster_src.as_ref() {
-        client.fetch_bytes(|f| f.get(p.clone())).await.ok()
+    let poster = if let Some(p) = origin_poster_src {
+        client
+            .fetch_bytes(|f| f.get(p.clone()))
+            .await
+            .ok()
+            .map(|data| MikanEpisodeMetaPosterBlob {
+                data,
+                origin_url: p,
+            })
     } else {
         None
     };
-    let meta = official_title_node
+    let official_title = official_title_node
         .map(|s| s.inner_text(parser))
         .and_then(|official_title| {
             let title = MIKAN_TITLE_SEASON
@@ -80,13 +98,13 @@ pub async fn parse_episode_meta_from_mikan_homepage(
                 Some(title)
             }
         })
-        .map(|title| MikanEpisodeMeta {
-            homepage: url,
-            poster_data,
-            official_title: title,
-            origin_poster_src,
-        });
-    Ok(meta)
+        .ok_or_else(|| ParseError::MikanEpisodeMetaEmptyOfficialTitleError(url.to_string()))?;
+
+    Ok(MikanEpisodeMeta {
+        homepage: url,
+        poster,
+        official_title,
+    })
 }
 
 #[cfg(test)]
@@ -105,24 +123,25 @@ mod test {
 
             let client = MikanClient::new(0).await.expect("should get mikan client");
 
-            if let Some(ep_meta) =
-                parse_episode_meta_from_mikan_homepage(&client, url.clone()).await?
+            let ep_meta = parse_episode_meta_from_mikan_homepage(&client, url.clone()).await?;
             {
                 assert_eq!(ep_meta.homepage, url);
                 assert_eq!(ep_meta.official_title, "葬送的芙莉莲");
                 assert_eq!(
-                    ep_meta.origin_poster_src,
+                    ep_meta.poster.clone().map(|p| p.origin_url),
                     Some(Url::parse(
                         "https://mikanani.me/images/Bangumi/202309/5ce9fed1.jpg"
                     )?)
                 );
-                let u8_data = ep_meta.poster_data.expect("should have poster data");
+                let u8_data = ep_meta
+                    .poster
+                    .clone()
+                    .map(|p| p.data)
+                    .expect("should have poster data");
                 assert!(
                     u8_data.starts_with(&[255, 216, 255, 224]),
                     "should start with valid jpeg data magic number"
                 );
-            } else {
-                panic!("can not find mikan episode title")
             }
 
             Ok(())

@@ -1,4 +1,4 @@
-use sea_orm::{entity::prelude::*, FromJsonQueryResult};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(
@@ -41,7 +41,7 @@ pub struct Model {
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub origin_name: String,
+    pub origin_title: String,
     pub display_name: String,
     pub subscription_id: i32,
     pub status: DownloadStatus,

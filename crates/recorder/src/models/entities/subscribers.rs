@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 use super::bangumi::BangumiRenameMethod;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct SubscriberBangumiConfig {
+pub struct SubscribeBangumiConfig {
     pub leading_fansub_tag: bool,
     pub complete_history_episodes: bool,
     pub rename_method: BangumiRenameMethod,
     pub remove_bad_torrent: bool,
 }
 
-impl Default for SubscriberBangumiConfig {
+impl Default for SubscribeBangumiConfig {
     fn default() -> Self {
         Self {
             leading_fansub_tag: false,
@@ -35,7 +35,7 @@ pub struct Model {
     pub pid: String,
     pub display_name: String,
     pub downloader_id: Option<i32>,
-    pub bangumi_conf: SubscriberBangumiConfig,
+    pub bangumi_conf: SubscribeBangumiConfig,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

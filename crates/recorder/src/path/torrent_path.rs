@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use quirks_path::{Path, PathBuf};
 
 use crate::{
-    downloaders::defs::Torrent,
+    downloaders::torrent::Torrent,
     models::{bangumi, subscribers},
     parsers::defs::SEASON_REGEX,
 };
@@ -70,7 +70,7 @@ pub fn gen_bangumi_sub_path(data: &bangumi::Model) -> PathBuf {
     PathBuf::from(data.official_title.to_string()).join(format!("Season {}", data.season))
 }
 
-pub fn rule_name(bgm: &bangumi::Model, conf: &subscribers::SubscriberBangumiConfig) -> String {
+pub fn rule_name(bgm: &bangumi::Model, conf: &subscribers::SubscribeBangumiConfig) -> String {
     if let (true, Some(group_name)) = (conf.leading_fansub_tag, &bgm.fansub) {
         format!("[{}] {} S{}", group_name, bgm.official_title, bgm.season)
     } else {

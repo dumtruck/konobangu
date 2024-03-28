@@ -16,4 +16,6 @@ pub enum ParseError {
     LanguageTagError(#[from] oxilangtag::LanguageTagParseError),
     #[error("Unsupported language preset: {0}")]
     UnsupportedLanguagePreset(String),
+    #[error("Parse episode meta error, get empty official title, homepage = {0}")]
+    MikanEpisodeMetaEmptyOfficialTitleError(String),
 }

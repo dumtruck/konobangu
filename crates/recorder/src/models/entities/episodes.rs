@@ -10,7 +10,7 @@ pub struct Model {
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub raw_name: String,
+    pub origin_title: String,
     pub official_title: String,
     pub display_name: String,
     pub name_zh: Option<String>,
@@ -20,16 +20,15 @@ pub struct Model {
     pub s_name_jp: Option<String>,
     pub s_name_en: Option<String>,
     pub bangumi_id: i32,
-    pub download_id: i32,
-    pub save_path: String,
+    pub download_id: Option<i32>,
+    pub save_path: Option<String>,
     pub resolution: Option<String>,
-    pub season: i32,
+    pub season: u32,
     pub season_raw: Option<String>,
     pub fansub: Option<String>,
     pub poster_link: Option<String>,
     pub home_page: Option<String>,
     pub subtitle: Option<Vec<String>>,
-    pub deleted: bool,
     pub source: Option<String>,
 }
 

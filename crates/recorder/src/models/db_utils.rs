@@ -1,5 +1,5 @@
 use sea_orm::{
-    sea_query::{Expr, InsertStatement, IntoColumnRef, Query, SimpleExpr},
+    sea_query::{Expr, InsertStatement, Query, SimpleExpr},
     ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, EntityName, EntityTrait,
     FromQueryResult, Iterable, SelectModel, SelectorRaw, TryGetable,
 };

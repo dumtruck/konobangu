@@ -18,6 +18,7 @@ pub enum Subscribers {
     Pid,
     DisplayName,
     DownloaderId,
+    BangumiConf,
 }
 
 #[derive(DeriveIden)]
@@ -36,18 +37,42 @@ pub enum Subscriptions {
 pub enum Bangumi {
     Table,
     Id,
-    DisplayName,
     SubscriptionId,
+    DisplayName,
+    OfficialTitle,
+    Fansub,
+    Season,
+    Filter,
+    PosterLink,
+    SavePath,
+    LastEp,
+    BangumiConfOverride,
 }
 
 #[derive(DeriveIden)]
 pub enum Episodes {
     Table,
     Id,
+    OriginTitle,
+    OfficialTitle,
     DisplayName,
+    NameZh,
+    NameJp,
+    NameEn,
+    SNameZh,
+    SNameJp,
+    SNameEn,
     BangumiId,
-    OutputName,
     DownloadId,
+    SavePath,
+    Resolution,
+    Season,
+    SeasonRaw,
+    Fansub,
+    PosterLink,
+    HomePage,
+    Subtitle,
+    Source,
 }
 
 #[derive(DeriveIden)]
@@ -55,13 +80,14 @@ pub enum Downloads {
     Table,
     Id,
     SubscriptionId,
-    OriginalName,
+    OriginTitle,
     DisplayName,
     Status,
     CurrSize,
     AllSize,
     Mime,
     Url,
+    HomePage,
 }
 
 #[derive(DeriveIden)]
@@ -73,7 +99,7 @@ pub enum Downloaders {
     Password,
     Username,
     SubscriberId,
-    DownloadPath,
+    SavePath,
 }
 
 #[async_trait::async_trait]

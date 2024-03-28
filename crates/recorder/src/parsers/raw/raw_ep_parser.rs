@@ -43,19 +43,19 @@ lazy_static! {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RawEpisodeMeta {
-    name_en: Option<String>,
-    name_en_no_season: Option<String>,
-    name_jp: Option<String>,
-    name_jp_no_season: Option<String>,
-    name_zh: Option<String>,
-    name_zh_no_season: Option<String>,
-    season: i32,
-    season_raw: Option<String>,
-    episode_index: i32,
-    sub: Option<String>,
-    source: Option<String>,
-    fansub: Option<String>,
-    resolution: Option<String>,
+    pub name_en: Option<String>,
+    pub s_name_en: Option<String>,
+    pub name_jp: Option<String>,
+    pub s_name_jp: Option<String>,
+    pub name_zh: Option<String>,
+    pub s_name_zh: Option<String>,
+    pub season: u32,
+    pub season_raw: Option<String>,
+    pub episode_index: u32,
+    pub sub: Option<Vec<String>>,
+    pub source: Option<String>,
+    pub fansub: Option<String>,
+    pub resolution: Option<String>,
 }
 
 fn extract_fansub(raw_name: &str) -> Option<&str> {
@@ -110,7 +110,7 @@ fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> eyre::Resul
     Ok(raw.to_string())
 }
 
-fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, i32) {
+fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, u32) {
     let name_and_season = EN_BRACKET_SPLIT_RE.replace_all(title_body, " ");
     let seasons = SEASON_EXTRACT_SEASON_ALL_RE
         .find(&name_and_season)
@@ -122,7 +122,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         return (title_body.to_string(), None, 1);
     }
 
-    let mut season = 1;
+    let mut season = 1u32;
     let mut season_raw = None;
     let name = SEASON_EXTRACT_SEASON_ALL_RE.replace_all(&name_and_season, "");
 
@@ -131,7 +131,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_EN_PREFIX_RE.find(s) {
             if let Ok(s) = SEASON_EXTRACT_SEASON_ALL_RE
                 .replace_all(m.as_str(), "")
-                .parse::<i32>()
+                .parse::<u32>()
             {
                 season = s;
                 break;
@@ -140,7 +140,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_EN_NTH_RE.find(s) {
             if let Some(s) = DIGIT_1PLUS_REG
                 .find(m.as_str())
-                .and_then(|s| s.as_str().parse::<i32>().ok())
+                .and_then(|s| s.as_str().parse::<u32>().ok())
             {
                 season = s;
                 break;
@@ -149,13 +149,13 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_ZH_PREFIX_RE.find(s) {
             if let Ok(s) = SEASON_EXTRACT_SEASON_ZH_PREFIX_SUB_RE
                 .replace(m.as_str(), "")
-                .parse::<i32>()
+                .parse::<u32>()
             {
                 season = s;
                 break;
             }
             if let Some(m) = ZH_NUM_RE.find(m.as_str()) {
-                season = ZH_NUM_MAP[m.as_str()];
+                season = ZH_NUM_MAP[m.as_str()] as u32;
                 break;
             }
         }
@@ -207,21 +207,25 @@ fn extract_name_from_title_body_name_section(
     (name_en, name_zh, name_jp)
 }
 
-fn extract_episode_index_from_title_episode(title_episode: &str) -> Option<i32> {
+fn extract_episode_index_from_title_episode(title_episode: &str) -> Option<u32> {
     DIGIT_1PLUS_REG
         .find(title_episode)?
         .as_str()
-        .parse::<i32>()
+        .parse::<u32>()
         .ok()
 }
 
-fn clear_sub(sub: Option<String>) -> Option<String> {
-    sub.map(|s| CLEAR_SUB_RE.replace_all(&s, "").to_string())
+fn clear_sub(sub: Option<Vec<String>>) -> Option<Vec<String>> {
+    sub.map(|s| {
+        s.into_iter()
+            .map(|s| CLEAR_SUB_RE.replace_all(&s, "").to_string())
+            .collect_vec()
+    })
 }
 
 fn extract_tags_from_title_extra(
     title_extra: &str,
-) -> (Option<String>, Option<String>, Option<String>) {
+) -> (Option<Vec<String>>, Option<String>, Option<String>) {
     let replaced = TAGS_EXTRACT_SPLIT_RE.replace_all(title_extra, " ");
     let elements = replaced
         .split(' ')
@@ -229,12 +233,19 @@ fn extract_tags_from_title_extra(
         .filter(|s| !s.is_empty())
         .collect_vec();
 
-    let mut sub = None;
+    let mut sub: Option<Vec<String>> = None;
     let mut resolution = None;
     let mut source = None;
     for element in elements.iter() {
         if SUB_RE.is_match(element) {
-            sub = Some(element.to_string())
+            let el = element.to_string();
+            sub = Some(match sub {
+                Some(mut res) => {
+                    res.push(el);
+                    res
+                }
+                None => vec![el],
+            })
         } else if RESOLUTION_RE.is_match(element) {
             resolution = Some(element.to_string())
         } else if SOURCE_L1_RE.is_match(element) {
@@ -292,11 +303,11 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
         let (sub, resolution, source) = extract_tags_from_title_extra(title_extra);
         Ok(RawEpisodeMeta {
             name_en,
-            name_en_no_season,
+            s_name_en: name_en_no_season,
             name_jp,
-            name_jp_no_season,
+            s_name_jp: name_jp_no_season,
             name_zh,
-            name_zh_no_season,
+            s_name_zh: name_zh_no_season,
             season,
             season_raw,
             episode_index,

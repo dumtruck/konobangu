@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use bytes::Bytes;
 use opendal::{layers::LoggingLayer, services, Operator};
 use quirks_path::{Path, PathBuf};
@@ -9,11 +11,11 @@ use crate::config::AppDalConf;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum AppDalContentCategory {
+pub enum DalContentType {
     Poster,
 }
 
-impl AsRef<str> for AppDalContentCategory {
+impl AsRef<str> for DalContentType {
     fn as_ref(&self) -> &str {
         match self {
             Self::Poster => "poster",
@@ -22,7 +24,7 @@ impl AsRef<str> for AppDalContentCategory {
 }
 
 #[derive(Debug, Clone)]
-pub struct AppDalContext {
+pub struct DalContext {
     pub config: AppDalConf,
 }
 
@@ -31,16 +33,35 @@ pub enum DalStoredUrl {
     Absolute { url: Url },
 }
 
-impl AppDalContext {
-    pub fn new(app_dal_conf: AppDalConf) -> Self {
-        Self {
-            config: app_dal_conf,
+impl DalStoredUrl {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::RelativePath { path } => path.as_str(),
+            Self::Absolute { url } => url.as_str(),
         }
+    }
+}
+
+impl AsRef<str> for DalStoredUrl {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl Display for DalStoredUrl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str().to_string())
+    }
+}
+
+impl DalContext {
+    pub fn new(dal_conf: AppDalConf) -> Self {
+        Self { config: dal_conf }
     }
 
     pub async fn store_blob(
         &self,
-        content_category: AppDalContentCategory,
+        content_category: DalContentType,
         extname: &str,
         data: Bytes,
         subscriber_pid: &str,

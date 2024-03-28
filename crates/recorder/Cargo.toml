@@ -18,30 +18,28 @@ default = []
 testcontainers = []
 
 [dependencies]
-loco-rs = { version = "0.3.1" }
+loco-rs = { version = "0.3.2" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 eyre = "0.6"
-tokio = { version = "1.33.0", default-features = false }
-async-trait = "0.1.74"
+tokio = { version = "1.36.0", default-features = false }
+async-trait = "0.1.79"
 tracing = "0.1.40"
 chrono = "0.4"
-validator = { version = "0.16" }
-sea-orm = { version = "1.0.0-rc.1", features = [
+validator = { version = "0.17" }
+sea-orm = { version = "1.0.0-rc.3", features = [
     "sqlx-sqlite",
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
 ] }
-
-axum = "0.7.1"
-include_dir = "0.7"
-uuid = { version = "1.6.0", features = ["v4"] }
+axum = "0.7.5"
+uuid = { version = "1.8.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"] }
-sea-orm-migration = { version = "1.0.0-rc.1", features = [
+sea-orm-migration = { version = "1.0.0-rc.3", features = [
     "runtime-tokio-rustls",
 ] }
-reqwest = "0.11.24"
+reqwest = { version = "0.12.2", features = ["json"] }
 thiserror = "1.0.57"
 rss = "2.0.7"
 bytes = "1.5.0"
@@ -56,19 +54,19 @@ maplit = "1.0.2"
 tl = { version = "0.7.8", features = ["simd"] }
 lightningcss = "1.0.0-alpha.54"
 html-escape = "0.2.13"
-opendal = "0.45.0"
-librqbit-core = "3.5.0"
+opendal = "0.45.1"
+librqbit-core = "3.6.1"
 quirks_path = { path = "../quirks_path" }
 tokio-utils = "0.1.2"
-weak-table = "0.3.2"
 oxilangtag = { version = "0.1.5", features = ["serde"] }
 dateparser = "0.2.1"
 dotenv = "0.15.0"
+weak-table = "0.3.2"
 
 [dev-dependencies]
-serial_test = "2.0.0"
+serial_test = "3.0.0"
 rstest = "0.18.2"
-loco-rs = { version = "0.3.1", features = ["testing"] }
-insta = { version = "1.34.0", features = ["redactions", "yaml", "filters"] }
+loco-rs = { version = "0.3.2", features = ["testing"] }
+insta = { version = "1.3", features = ["redactions", "yaml", "filters"] }
 testcontainers = { version = "0.15.0" }
-testcontainers-modules = { version = "0.3.5" }
+testcontainers-modules = { version = "0.3.6" }

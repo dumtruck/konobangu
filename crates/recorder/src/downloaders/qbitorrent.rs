@@ -17,13 +17,12 @@ use quirks_path::{path_equals_as_file_url, Path, PathBuf};
 use tokio::time::sleep;
 use url::Url;
 
-use super::{
-    defs::{Torrent, TorrentFilter, TorrentSource},
-    error::DownloaderError,
-    torrent_downloader::TorrentDownloader,
-};
+use super::error::DownloaderError;
 use crate::{
-    downloaders::defs::{QbitTorrent, QbitTorrentContent, TorrentContent},
+    downloaders::{
+        defs::{QbitTorrent, QbitTorrentContent},
+        torrent::{Torrent, TorrentContent, TorrentDownloader, TorrentFilter, TorrentSource},
+    },
     models::{entities::downloaders, prelude::DownloaderCategory},
 };
 
@@ -414,7 +413,7 @@ impl Debug for QBittorrentDownloader {
 }
 
 #[cfg(test)]
-pub mod tests {
+pub(crate) mod tests {
     use itertools::Itertools;
 
     use super::*;

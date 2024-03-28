@@ -37,7 +37,7 @@ pub enum BangumiRenameMethod {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
-pub struct SubscriberBangumiConfigOverride {
+pub struct SubscribeBangumiConfigOverride {
     pub leading_fansub_tag: Option<bool>,
     pub complete_history_episodes: Option<bool>,
     pub rename_method: Option<BangumiRenameMethod>,
@@ -50,6 +50,13 @@ pub struct BangumiFilter {
     pub regex_filters: Option<Vec<String>>,
 }
 
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct BangumiUniqueKey {
+    pub official_title: String,
+    pub season: u32,
+    pub fansub: Option<String>,
+}
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "bangumi")]
 pub struct Model {
@@ -60,15 +67,13 @@ pub struct Model {
     pub subscription_id: i32,
     pub display_name: String,
     pub official_title: String,
-    pub season: i32,
-    pub season_raw: Option<String>,
     pub fansub: Option<String>,
+    pub season: u32,
     pub filter: Option<BangumiFilter>,
-    pub rss_link: Option<String>,
     pub poster_link: Option<String>,
     pub save_path: Option<String>,
-    pub deleted: bool,
-    pub subscriber_conf_override: Option<SubscriberBangumiConfigOverride>,
+    pub last_ep: u32,
+    pub bangumi_conf_override: Option<SubscribeBangumiConfigOverride>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -2,7 +2,7 @@ use std::{ops::Deref, sync::Arc};
 
 use tokio::sync::OnceCell;
 
-use crate::downloaders::defs::ApiClient;
+use crate::downloaders::ApiClient;
 
 pub struct MikanClient {
     api_client: ApiClient,

@@ -38,8 +38,8 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Downloads::Table)
                     .col(pk_auto(Downloads::Id))
-                    .col(string(Downloads::OriginalName))
-                    .col(string(Downloads::DisplayName))
+                    .col(text(Downloads::OriginTitle))
+                    .col(text(Downloads::DisplayName))
                     .col(integer(Downloads::SubscriptionId))
                     .col(enumeration(
                         Downloads::Status,
@@ -51,15 +51,10 @@ impl MigrationTrait for Migration {
                         DownloadMimeEnum,
                         DownloadMime::iden_values(),
                     ))
-                    .col(big_unsigned(Downloads::AllSize))
-                    .col(big_unsigned(Downloads::CurrSize))
+                    .col(big_unsigned_null(Downloads::AllSize))
+                    .col(big_unsigned_null(Downloads::CurrSize))
                     .col(text(Downloads::Url))
-                    .index(
-                        Index::create()
-                            .table(Downloads::Table)
-                            .col(Downloads::Url)
-                            .name("idx_download_url"),
-                    )
+                    .col(text_null(Downloads::HomePage))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_download_subscription_id")
@@ -67,6 +62,18 @@ impl MigrationTrait for Migration {
                             .to(Subscriptions::Table, Subscriptions::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_download_url")
+                            .table(Downloads::Table)
+                            .col(Downloads::Url),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_download_home_page")
+                            .table(Downloads::Table)
+                            .col(Downloads::HomePage),
                     )
                     .to_owned(),
             )

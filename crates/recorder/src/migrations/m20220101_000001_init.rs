@@ -1,3 +1,4 @@
+use loco_rs::schema::jsonb_null;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::{
@@ -20,6 +21,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Subscribers::Id))
                     .col(string_len_uniq(Subscribers::Pid, 64))
                     .col(string(Subscribers::DisplayName))
+                    .col(jsonb_null(Subscribers::BangumiConf))
                     .to_owned(),
             )
             .await?;
@@ -84,8 +86,16 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Bangumi::Table)
                     .col(pk_auto(Bangumi::Id))
-                    .col(text(Bangumi::DisplayName))
                     .col(integer(Bangumi::SubscriptionId))
+                    .col(text(Bangumi::DisplayName))
+                    .col(text(Bangumi::OfficialTitle))
+                    .col(string_null(Bangumi::Fansub))
+                    .col(unsigned(Bangumi::Season))
+                    .col(jsonb_null(Bangumi::Filter))
+                    .col(text_null(Bangumi::PosterLink))
+                    .col(text_null(Bangumi::SavePath))
+                    .col(unsigned(Bangumi::LastEp))
+                    .col(jsonb_null(Bangumi::BangumiConfOverride))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_bangumi_subscription_id")
@@ -93,6 +103,27 @@ impl MigrationTrait for Migration {
                             .to(Subscriptions::Table, Subscriptions::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_bangumi_official_title")
+                            .table(Bangumi::Table)
+                            .col(Bangumi::OfficialTitle)
+                            .unique(),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_bangumi_fansub")
+                            .table(Bangumi::Table)
+                            .col(Bangumi::Fansub)
+                            .unique(),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_bangumi_display_name")
+                            .table(Bangumi::Table)
+                            .col(Bangumi::DisplayName)
+                            .unique(),
                     )
                     .to_owned(),
             )
@@ -106,9 +137,26 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Episodes::Table)
                     .col(pk_auto(Episodes::Id))
+                    .col(text(Episodes::OriginTitle))
+                    .col(text(Episodes::OfficialTitle))
                     .col(text(Episodes::DisplayName))
+                    .col(text_null(Episodes::NameZh))
+                    .col(text_null(Episodes::NameJp))
+                    .col(text_null(Episodes::NameEn))
+                    .col(text_null(Episodes::SNameZh))
+                    .col(text_null(Episodes::SNameJp))
+                    .col(text_null(Episodes::SNameEn))
                     .col(integer(Episodes::BangumiId))
-                    .col(text(Episodes::OutputName))
+                    .col(integer(Episodes::DownloadId))
+                    .col(text_null(Episodes::SavePath))
+                    .col(string_null(Episodes::Resolution))
+                    .col(integer(Episodes::Season))
+                    .col(string_null(Episodes::SeasonRaw))
+                    .col(string_null(Episodes::Fansub))
+                    .col(text_null(Episodes::PosterLink))
+                    .col(text_null(Episodes::HomePage))
+                    .col(jsonb_null(Episodes::Subtitle))
+                    .col(text_null(Episodes::Source))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_episode_bangumi_id")
@@ -116,6 +164,24 @@ impl MigrationTrait for Migration {
                             .to(Bangumi::Table, Bangumi::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_episode_official_title")
+                            .table(Episodes::Table)
+                            .col(Episodes::OfficialTitle),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_episode_fansub")
+                            .table(Episodes::Table)
+                            .col(Episodes::Fansub),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_episode_display_name")
+                            .table(Episodes::Table)
+                            .col(Episodes::DisplayName),
                     )
                     .to_owned(),
             )

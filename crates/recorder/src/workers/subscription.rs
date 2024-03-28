@@ -20,11 +20,11 @@ impl worker::AppWorker<SubscriptionWorkerArgs> for SubscriptionWorker {
 
 #[async_trait]
 impl worker::Worker<SubscriptionWorkerArgs> for SubscriptionWorker {
-    async fn perform(&self, args: SubscriptionWorkerArgs) -> worker::Result<()> {
+    async fn perform(&self, _args: SubscriptionWorkerArgs) -> worker::Result<()> {
         println!("================================================");
 
-        let db = &self.ctx.db;
-        let storage = &self.ctx.storage;
+        // let db = &self.ctx.db;
+        // let storage = &self.ctx.storage;
 
         println!("================================================");
         Ok(())

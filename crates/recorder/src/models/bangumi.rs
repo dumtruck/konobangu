@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
+use itertools::Itertools;
 use regex::Regex;
 use sea_orm::entity::prelude::*;
 
 pub use super::entities::bangumi::*;
-use crate::models::downloads;
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}
@@ -26,6 +28,29 @@ impl BangumiFilter {
 }
 
 impl Model {
-    pub async fn search_all() {}
-    pub async fn match_list(dnlds: Vec<downloads::Model>) {}
+    pub fn get_unique_key(&self) -> BangumiUniqueKey {
+        BangumiUniqueKey {
+            official_title: self.official_title.clone(),
+            season: self.season,
+            fansub: self.fansub.clone(),
+        }
+    }
+
+    pub async fn find_by_unique_keys(
+        db: &DatabaseConnection,
+        unique_keys: impl Iterator<Item = &BangumiUniqueKey>,
+    ) -> eyre::Result<Vec<Self>> {
+        let unique_keys = unique_keys.collect::<HashSet<_>>();
+        let mut found = Entity::find()
+            .filter(Column::OfficialTitle.is_in(unique_keys.iter().map(|k| &k.official_title)))
+            .all(db)
+            .await?;
+
+        found = found
+            .into_iter()
+            .filter(|m| unique_keys.contains(&m.get_unique_key()))
+            .collect_vec();
+
+        Ok(found)
+    }
 }

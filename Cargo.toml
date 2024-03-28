@@ -1,6 +1,9 @@
 cargo-features = ["codegen-backend"]
 [workspace]
-members = ["crates/quirks_path", "crates/recorder"]
+members = [
+    "crates/quirks_path",
+    "crates/recorder"
+]
 resolver = "2"
 
 [profile.dev]

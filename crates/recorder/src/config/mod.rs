@@ -4,7 +4,7 @@ use eyre::OptionExt;
 use itertools::Itertools;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-pub const DAL_CONF_KEY: &str = "dal";
+pub const DAL_CONF_KEY: &str = "storage";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AppCustomConf {

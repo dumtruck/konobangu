@@ -1,65 +1,25 @@
-use itertools::Itertools;
-use loco_rs::app::AppContext;
-use sea_orm::{
-    prelude::*,
-    sea_query::{InsertStatement, OnConflict},
-};
+use sea_orm::{prelude::*, ActiveValue};
 
 pub use crate::models::entities::downloads::*;
-use crate::{
-    models::{
-        db_utils::insert_many_with_returning_all,
-        subscriptions::{self, SubscriptionCategory},
-    },
-    parsers::mikan::{
-        mikan_client::MikanClient, parse_mikan_rss_items_from_rss_link, MikanRssItem,
-    },
-};
+use crate::parsers::mikan::MikanRssItem;
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {
-    pub fn from_mikan_rss_item(m: MikanRssItem, subscription_id: i32) -> Self {
-        todo!()
-    }
-}
-
-impl Model {
-    pub async fn pull_subscription(
-        ctx: AppContext,
-        subscription: &subscriptions::Model,
-    ) -> eyre::Result<Vec<Model>> {
-        let db = &ctx.db;
-        match &subscription.category {
-            SubscriptionCategory::Mikan => {
-                let subscriber_id = subscription.subscriber_id;
-                let client = MikanClient::new(subscriber_id).await?;
-                let items =
-                    parse_mikan_rss_items_from_rss_link(&client, &subscription.source_url).await?;
-                let all_items = items.collect::<Vec<_>>();
-
-                if all_items.is_empty() {
-                    return Ok(vec![]);
-                }
-
-                let new_items = all_items
-                    .into_iter()
-                    .map(|i| ActiveModel::from_mikan_rss_item(i, subscription.id))
-                    .collect_vec();
-
-                // insert and filter out duplicated items
-                let new_items: Vec<Model> =
-                    insert_many_with_returning_all(db, new_items, |stat: &mut InsertStatement| {
-                        stat.on_conflict(OnConflict::column(Column::Url).do_nothing().to_owned());
-                    })
-                    .await?;
-
-                Ok(new_items)
-            }
-            _ => {
-                todo!("other subscription categories")
-            }
+    pub fn from_mikan_rss_item(rss_item: MikanRssItem, subscription_id: i32) -> Self {
+        let download_mime = rss_item.get_download_mime();
+        Self {
+            origin_title: ActiveValue::Set(rss_item.title.clone()),
+            display_name: ActiveValue::Set(rss_item.title),
+            subscription_id: ActiveValue::Set(subscription_id),
+            status: ActiveValue::Set(DownloadStatus::Pending),
+            mime: ActiveValue::Set(download_mime),
+            url: ActiveValue::Set(rss_item.url),
+            all_size: ActiveValue::Set(rss_item.content_length),
+            curr_size: ActiveValue::Set(Some(0)),
+            homepage: ActiveValue::Set(rss_item.homepage),
+            ..Default::default()
         }
     }
 }

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     downloaders::defs::BITTORRENT_MIME_TYPE,
+    models::prelude::DownloadMime,
     parsers::{errors::ParseError, mikan::mikan_client::MikanClient},
 };
 
@@ -15,6 +16,12 @@ pub struct MikanRssItem {
     pub content_length: Option<u64>,
     pub mime: String,
     pub pub_date: Option<i64>,
+}
+
+impl MikanRssItem {
+    pub fn get_download_mime(&self) -> DownloadMime {
+        DownloadMime::BitTorrent
+    }
 }
 
 impl TryFrom<rss::Item> for MikanRssItem {
