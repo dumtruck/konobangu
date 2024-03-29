@@ -18,4 +18,6 @@ pub enum ParseError {
     UnsupportedLanguagePreset(String),
     #[error("Parse episode meta error, get empty official title, homepage = {0}")]
     MikanEpisodeMetaEmptyOfficialTitleError(String),
+    #[error("Parse extname error from source = {0}")]
+    ParseExtnameError(String),
 }

@@ -1,6 +1,6 @@
 use sea_orm::{
     sea_query::{Expr, InsertStatement, IntoIden, Query, SimpleExpr},
-    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, DynIden, EntityName, EntityTrait,
+    ActiveModelTrait, ActiveValue, ColumnTrait, ConnectionTrait, EntityName, EntityTrait,
     FromQueryResult, Iterable, SelectModel, SelectorRaw, TryGetable,
 };
 
@@ -34,27 +34,34 @@ where
     );
     let ent = V::Entity::default();
     let mut insert = Query::insert();
-    let mut insert_statement = insert
+    let insert_statement = insert
         .into_table(ent.table_ref())
         .returning(Query::returning().exprs(returning_columns));
 
     {
-        extra_config(&mut insert_statement);
+        extra_config(insert_statement);
     }
-
-    let mut columns = vec![];
 
     for new_item in insert_values {
+        let mut columns = vec![];
         let mut values = vec![];
         for c in <V::Entity as EntityTrait>::Column::iter() {
-            if let ActiveValue::Set(value) = new_item.get(c.clone()) {
-                columns.push(c);
-                values.push(SimpleExpr::Value(value));
+            let av = new_item.get(c);
+            match av {
+                ActiveValue::Set(value) => {
+                    values.push(c.save_as(Expr::val(value)));
+                    columns.push(c);
+                }
+                ActiveValue::Unchanged(value) => {
+                    values.push(c.save_as(Expr::val(value)));
+                    columns.push(c);
+                }
+                _ => {}
             }
         }
+        insert_statement.columns(columns);
         insert_statement.values(values)?;
     }
-    insert_statement.columns(columns);
 
     let result = SelectorRaw::<SelectModel<M>>::from_statement(db_backend.build(insert_statement))
         .all(db)

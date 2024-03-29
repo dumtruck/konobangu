@@ -1,15 +1,70 @@
 use loco_rs::model::{ModelError, ModelResult};
-use sea_orm::{entity::prelude::*, ActiveValue, TransactionTrait};
+use sea_orm::{entity::prelude::*, ActiveValue, FromJsonQueryResult, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
-pub use super::entities::subscribers::*;
+use super::bangumi::BangumiRenameMethod;
 
-pub const ROOT_SUBSCRIBER_ID: i32 = 1;
 pub const ROOT_SUBSCRIBER_NAME: &str = "konobangu";
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct SubscribeBangumiConfig {
+    pub leading_fansub_tag: bool,
+    pub complete_history_episodes: bool,
+    pub rename_method: BangumiRenameMethod,
+    pub remove_bad_torrent: bool,
+}
+
+impl Default for SubscribeBangumiConfig {
+    fn default() -> Self {
+        Self {
+            leading_fansub_tag: false,
+            complete_history_episodes: false,
+            rename_method: BangumiRenameMethod::Pn,
+            remove_bad_torrent: false,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[sea_orm(table_name = "subscribers")]
+pub struct Model {
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    pub pid: String,
+    pub display_name: String,
+    pub downloader_id: Option<i32>,
+    pub bangumi_conf: Option<SubscribeBangumiConfig>,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(has_many = "super::subscriptions::Entity")]
+    Subscription,
+    #[sea_orm(
+        belongs_to = "super::downloaders::Entity",
+        from = "Column::DownloaderId",
+        to = "super::downloaders::Column::Id"
+    )]
+    Downloader,
+}
+
+impl Related<super::subscriptions::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscription.def()
+    }
+}
+
+impl Related<super::downloaders::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Downloader.def()
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SubscriberIdParams {
-    pub id: String,
+    pub pid: String,
 }
 
 #[async_trait::async_trait]
@@ -20,7 +75,9 @@ impl ActiveModelBehavior for ActiveModel {
     {
         if insert {
             let mut this = self;
-            this.pid = ActiveValue::Set(Uuid::new_v4().to_string());
+            if this.pid.is_not_set() {
+                this.pid = ActiveValue::Set(Uuid::new_v4().to_string());
+            };
             Ok(this)
         } else {
             Ok(self)
@@ -29,17 +86,13 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Model {
-    /// finds a user by the provided pid
-    ///
-    /// # Errors
-    ///
-    /// When could not find user  or DB query error
     pub async fn find_by_pid(db: &DatabaseConnection, pid: &str) -> ModelResult<Self> {
-        let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
-        let subscriber = Entity::find()
-            .filter(Column::Pid.eq(parse_uuid))
-            .one(db)
-            .await?;
+        let subscriber = Entity::find().filter(Column::Pid.eq(pid)).one(db).await?;
+        subscriber.ok_or_else(|| ModelError::EntityNotFound)
+    }
+
+    pub async fn find_by_id(db: &DatabaseConnection, id: i32) -> ModelResult<Self> {
+        let subscriber = Entity::find().filter(Column::Id.eq(id)).one(db).await?;
         subscriber.ok_or_else(|| ModelError::EntityNotFound)
     }
 
@@ -47,12 +100,6 @@ impl Model {
         Self::find_by_pid(db, ROOT_SUBSCRIBER_NAME).await
     }
 
-    /// Asynchronously creates a user with a password and saves it to the
-    /// database.
-    ///
-    /// # Errors
-    ///
-    /// When could not save the user into the DB
     pub async fn create_root(db: &DatabaseConnection) -> ModelResult<Self> {
         let txn = db.begin().await?;
 

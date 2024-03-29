@@ -34,7 +34,7 @@ impl worker::Worker<CollectHistoryEpisodesWorkerArgs> for CollectHistoryEpisodes
     async fn perform(&self, _args: CollectHistoryEpisodesWorkerArgs) -> worker::Result<()> {
         println!("================================================");
 
-        let db = &self.ctx.db;
+        // let db = &self.ctx.db;
 
         println!("================================================");
         Ok(())

@@ -1,0 +1,6 @@
+---
+source: crates/recorder/tests/models/subscriptions.rs
+assertion_line: 55
+expression: a
+---
+1

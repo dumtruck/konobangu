@@ -17,7 +17,8 @@ lazy_static! {
     static ref RESOLUTION_RE: Regex = Regex::new(r"1080|720|2160|4K|2K").unwrap();
     static ref SOURCE_L1_RE: Regex = Regex::new(r"B-Global|[Bb]aha|[Bb]ilibili|AT-X|W[Ee][Bb][Rr][Ii][Pp]|Sentai|B[Dd][Rr][Ii][Pp]|UHD[Rr][Ii][Pp]|NETFLIX").unwrap();
     static ref SOURCE_L2_RE: Regex = Regex::new(r"AMZ|CR|W[Ee][Bb]|B[Dd]").unwrap();
-    static ref SUB_RE: Regex = Regex::new(r"[简繁日字幕]|CH|BIG5|GB").unwrap();
+    static ref SUB_RE: Regex = Regex::new(r"[简繁日英字幕]|CH|BIG5|GB").unwrap();
+    static ref SUB_RE_EXCLUDE: Regex = Regex::new(r"字幕[社组]").unwrap();
     static ref PREFIX_RE: Regex =
         Regex::new(r"[^\w\s\p{Unified_Ideograph}\p{scx=Han}\p{scx=Hira}\p{scx=Kana}-]").unwrap();
     static ref EN_BRACKET_SPLIT_RE: Regex = Regex::new(r"[\[\]]").unwrap();
@@ -49,9 +50,9 @@ pub struct RawEpisodeMeta {
     pub s_name_jp: Option<String>,
     pub name_zh: Option<String>,
     pub s_name_zh: Option<String>,
-    pub season: u32,
+    pub season: i32,
     pub season_raw: Option<String>,
-    pub episode_index: u32,
+    pub episode_index: i32,
     pub sub: Option<Vec<String>>,
     pub source: Option<String>,
     pub fansub: Option<String>,
@@ -110,7 +111,7 @@ fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> eyre::Resul
     Ok(raw.to_string())
 }
 
-fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, u32) {
+fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, i32) {
     let name_and_season = EN_BRACKET_SPLIT_RE.replace_all(title_body, " ");
     let seasons = SEASON_EXTRACT_SEASON_ALL_RE
         .find(&name_and_season)
@@ -122,7 +123,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         return (title_body.to_string(), None, 1);
     }
 
-    let mut season = 1u32;
+    let mut season = 1i32;
     let mut season_raw = None;
     let name = SEASON_EXTRACT_SEASON_ALL_RE.replace_all(&name_and_season, "");
 
@@ -131,7 +132,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_EN_PREFIX_RE.find(s) {
             if let Ok(s) = SEASON_EXTRACT_SEASON_ALL_RE
                 .replace_all(m.as_str(), "")
-                .parse::<u32>()
+                .parse::<i32>()
             {
                 season = s;
                 break;
@@ -140,7 +141,7 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_EN_NTH_RE.find(s) {
             if let Some(s) = DIGIT_1PLUS_REG
                 .find(m.as_str())
-                .and_then(|s| s.as_str().parse::<u32>().ok())
+                .and_then(|s| s.as_str().parse::<i32>().ok())
             {
                 season = s;
                 break;
@@ -149,13 +150,13 @@ fn extract_season_from_title_body(title_body: &str) -> (String, Option<String>, 
         if let Some(m) = SEASON_EXTRACT_SEASON_ZH_PREFIX_RE.find(s) {
             if let Ok(s) = SEASON_EXTRACT_SEASON_ZH_PREFIX_SUB_RE
                 .replace(m.as_str(), "")
-                .parse::<u32>()
+                .parse::<i32>()
             {
                 season = s;
                 break;
             }
             if let Some(m) = ZH_NUM_RE.find(m.as_str()) {
-                season = ZH_NUM_MAP[m.as_str()] as u32;
+                season = ZH_NUM_MAP[m.as_str()];
                 break;
             }
         }
@@ -207,11 +208,11 @@ fn extract_name_from_title_body_name_section(
     (name_en, name_zh, name_jp)
 }
 
-fn extract_episode_index_from_title_episode(title_episode: &str) -> Option<u32> {
+fn extract_episode_index_from_title_episode(title_episode: &str) -> Option<i32> {
     DIGIT_1PLUS_REG
         .find(title_episode)?
         .as_str()
-        .parse::<u32>()
+        .parse::<i32>()
         .ok()
 }
 
@@ -237,7 +238,7 @@ fn extract_tags_from_title_extra(
     let mut resolution = None;
     let mut source = None;
     for element in elements.iter() {
-        if SUB_RE.is_match(element) {
+        if SUB_RE.is_match(element) && !SUB_RE_EXCLUDE.is_match(element) {
             let el = element.to_string();
             sub = Some(match sub {
                 Some(mut res) => {
@@ -297,17 +298,17 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
         let title_body = title_body_pre_process(&title_body, fansub)?;
         let (name_without_season, season_raw, season) = extract_season_from_title_body(&title_body);
         let (name_en, name_zh, name_jp) = extract_name_from_title_body_name_section(&title_body);
-        let (name_en_no_season, name_zh_no_season, name_jp_no_season) =
+        let (s_name_en, s_name_zh, s_name_jp) =
             extract_name_from_title_body_name_section(&name_without_season);
         let episode_index = extract_episode_index_from_title_episode(title_episode).unwrap_or(1);
         let (sub, resolution, source) = extract_tags_from_title_extra(title_extra);
         Ok(RawEpisodeMeta {
             name_en,
-            s_name_en: name_en_no_season,
+            s_name_en,
             name_jp,
-            s_name_jp: name_jp_no_season,
+            s_name_jp,
             name_zh,
-            s_name_zh: name_zh_no_season,
+            s_name_zh,
             season,
             season_raw,
             episode_index,
@@ -345,11 +346,11 @@ mod tests {
             r#"[新Sub][1月新番][我心里危险的东西 第二季][05][HEVC][10Bit][1080P][简日双语][招募翻译]"#,
             r#"{
                   "name_zh": "我心里危险的东西",
-                  "name_zh_no_season": "我心里危险的东西",
+                  "s_name_zh": "我心里危险的东西",
                   "season": 2,
                   "season_raw": "第二季",
                   "episode_index": 5,
-                  "sub": "简日双语",
+                  "sub": ["简日双语"],
                   "source": null,
                   "fansub": "新Sub",
                   "resolution": "1080P"
@@ -363,13 +364,13 @@ mod tests {
             r#"【喵萌奶茶屋】★01月新番★[我内心的糟糕念头 / Boku no Kokoro no Yabai Yatsu][18][1080p][简日双语][招募翻译]"#,
             r#"{
                   "name_en": "Boku no Kokoro no Yabai Yatsu",
-                  "name_en_no_season": "Boku no Kokoro no Yabai Yatsu",
+                  "s_name_en": "Boku no Kokoro no Yabai Yatsu",
                   "name_zh": "我内心的糟糕念头",
-                  "name_zh_no_season": "我内心的糟糕念头",
+                  "s_name_zh": "我内心的糟糕念头",
                   "season": 1,
                   "season_raw": null,
                   "episode_index": 18,
-                  "sub": "简日双语",
+                  "sub": ["简日双语"],
                   "source": null,
                   "fansub": "喵萌奶茶屋",
                   "resolution": "1080p"
@@ -383,13 +384,13 @@ mod tests {
             r#"[LoliHouse] 因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生 2nd / Shin no Nakama 2nd - 08v2 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕]"#,
             r#"{
                     "name_en": "Shin no Nakama 2nd",
-                    "name_en_no_season": "Shin no Nakama",
+                    "s_name_en": "Shin no Nakama",
                     "name_zh": "因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生 2nd",
-                    "name_zh_no_season": "因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生",
+                    "s_name_zh": "因为不是真正的伙伴而被逐出勇者队伍，流落到边境展开慢活人生",
                     "season": 2,
                     "season_raw": "2nd",
                     "episode_index": 8,
-                    "sub": "简繁内封字幕",
+                    "sub": ["简繁内封字幕"],
                     "source": "WebRip",
                     "fansub": "LoliHouse",
                     "resolution": "1080p"
@@ -403,10 +404,10 @@ mod tests {
             r"[动漫国字幕组&LoliHouse] THE MARGINAL SERVICE - 08 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕]",
             r#"{
                 "name_en": "THE MARGINAL SERVICE",
-                "name_en_no_season": "THE MARGINAL SERVICE",
+                "s_name_en": "THE MARGINAL SERVICE",
                 "season": 1,
                 "episode_index": 8,
-                "sub": "简繁内封字幕",
+                "sub": ["简繁内封字幕"],
                 "source": "WebRip",
                 "fansub": "动漫国字幕组&LoliHouse",
                 "resolution": "1080p"
@@ -420,13 +421,13 @@ mod tests {
             r#"[LoliHouse] 事与愿违的不死冒险者 / 非自愿的不死冒险者 / Nozomanu Fushi no Boukensha - 01 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕]"#,
             r#"{
                     "name_en": "Nozomanu Fushi no Boukensha",
-                    "name_en_no_season": "Nozomanu Fushi no Boukensha",
+                    "s_name_en": "Nozomanu Fushi no Boukensha",
                     "name_zh": "事与愿违的不死冒险者",
-                    "name_zh_no_season": "事与愿违的不死冒险者",
+                    "s_name_zh": "事与愿违的不死冒险者",
                     "season": 1,
                     "season_raw": null,
                     "episode_index": 1,
-                    "sub": "简繁内封字幕",
+                    "sub": ["简繁内封字幕"],
                     "source": "WebRip",
                     "fansub": "LoliHouse",
                     "resolution": "1080p"
@@ -442,13 +443,13 @@ mod tests {
                     "name_en": "Pon no Michi",
                     "name_jp": "ぽんのみち",
                     "name_zh": "碰之道",
-                    "name_en_no_season": "Pon no Michi",
-                    "name_jp_no_season": "ぽんのみち",
-                    "name_zh_no_season": "碰之道",
+                    "s_name_en": "Pon no Michi",
+                    "s_name_jp": "ぽんのみち",
+                    "s_name_zh": "碰之道",
                     "season": 1,
                     "season_raw": null,
                     "episode_index": 7,
-                    "sub": "简繁日内封字幕",
+                    "sub": ["简繁日内封字幕"],
                     "source": "WebRip",
                     "fansub": "喵萌奶茶屋&LoliHouse",
                     "resolution": "1080p"
@@ -462,13 +463,13 @@ mod tests {
             r#"[ANi] Yowai Character Tomozakikun /  弱角友崎同学 2nd STAGE - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]"#,
             r#"{
                     "name_en": "Yowai Character Tomozakikun",
-                    "name_en_no_season": "Yowai Character Tomozakikun",
+                    "s_name_en": "Yowai Character Tomozakikun",
                     "name_zh": "弱角友崎同学 2nd STAGE",
-                    "name_zh_no_season": "弱角友崎同学",
+                    "s_name_zh": "弱角友崎同学",
                     "season": 2,
                     "season_raw": "2nd",
                     "episode_index": 9,
-                    "sub": "CHT",
+                    "sub": ["CHT"],
                     "source": "Baha",
                     "fansub": "ANi",
                     "resolution": "1080P"
@@ -482,13 +483,13 @@ mod tests {
             r#"[豌豆字幕组&LoliHouse] 王者天下 第五季 / Kingdom S5 - 07 [WebRip 1080p HEVC-10bit AAC][简繁外挂字幕]"#,
             r#"{
                     "name_en": "Kingdom S5",
-                    "name_en_no_season": "Kingdom",
+                    "s_name_en": "Kingdom",
                     "name_zh": "王者天下 第五季",
-                    "name_zh_no_season": "王者天下",
+                    "s_name_zh": "王者天下",
                     "season": 5,
                     "season_raw": "第五季",
                     "episode_index": 7,
-                    "sub": "简繁外挂字幕",
+                    "sub": ["简繁外挂字幕"],
                     "source": "WebRip",
                     "fansub": "豌豆字幕组&LoliHouse",
                     "resolution": "1080p"
@@ -502,12 +503,12 @@ mod tests {
             r#"【千夏字幕组】【爱丽丝与特蕾丝的虚幻工厂_Alice to Therese no Maboroshi Koujou】[剧场版][WebRip_1080p_HEVC][简繁内封][招募新人]"#,
             r#"{
                   "name_en": "Alice to Therese no Maboroshi Koujou",
-                  "name_en_no_season": "Alice to Therese no Maboroshi Koujou",
+                  "s_name_en": "Alice to Therese no Maboroshi Koujou",
                   "name_zh": "爱丽丝与特蕾丝的虚幻工厂",
-                  "name_zh_no_season": "爱丽丝与特蕾丝的虚幻工厂",
+                  "s_name_zh": "爱丽丝与特蕾丝的虚幻工厂",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简繁内封",
+                  "sub": ["简繁内封"],
                   "source": "WebRip",
                   "fansub": "千夏字幕组",
                   "resolution": "1080p"
@@ -521,12 +522,12 @@ mod tests {
             r#"[千夏字幕组&喵萌奶茶屋][电影 轻旅轻营 (摇曳露营) _Yuru Camp Movie][剧场版][UHDRip_2160p_HEVC][繁体][千夏15周年]"#,
             r#"{
                       "name_en": "Yuru Camp Movie",
-                      "name_en_no_season": "Yuru Camp Movie",
+                      "s_name_en": "Yuru Camp Movie",
                       "name_zh": "电影 轻旅轻营 (摇曳露营)",
-                      "name_zh_no_season": "电影 轻旅轻营 (摇曳露营)",
+                      "s_name_zh": "电影 轻旅轻营 (摇曳露营)",
                       "season": 1,
                       "episode_index": 1,
-                      "sub": "繁体",
+                      "sub": ["繁体"],
                       "source": "UHDRip",
                       "fansub": "千夏字幕组&喵萌奶茶屋",
                       "resolution": "2160p"
@@ -540,12 +541,12 @@ mod tests {
             r#"[梦蓝字幕组]New Doraemon 哆啦A梦新番[747][2023.02.25][AVC][1080P][GB_JP][MP4]"#,
             r#"{
                       "name_en": "New Doraemon",
-                      "name_en_no_season": "New Doraemon",
+                      "s_name_en": "New Doraemon",
                       "name_zh": "哆啦A梦新番",
-                      "name_zh_no_season": "哆啦A梦新番",
+                      "s_name_zh": "哆啦A梦新番",
                       "season": 1,
                       "episode_index": 747,
-                      "sub": "GB",
+                      "sub": ["GB"],
                       "fansub": "梦蓝字幕组",
                       "resolution": "1080P"
                     }"#,
@@ -558,12 +559,12 @@ mod tests {
             r#"【MCE汉化组】[剧场版-摇曳露营][Yuru Camp][Movie][简日双语][1080P][x264 AAC]"#,
             r#"{
                   "name_en": "Yuru Camp",
-                  "name_en_no_season": "Yuru Camp",
+                  "s_name_en": "Yuru Camp",
                   "name_zh": "剧场版-摇曳露营",
-                  "name_zh_no_season": "剧场版-摇曳露营",
+                  "s_name_zh": "剧场版-摇曳露营",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简日双语",
+                  "sub": ["简日双语"],
                   "fansub": "MCE汉化组",
                   "resolution": "1080P"
                 }"#,
@@ -576,12 +577,12 @@ mod tests {
             r#"[织梦字幕组][尼尔：机械纪元 NieR Automata Ver1.1a][02集][1080P][AVC][简日双语]"#,
             r#"{
                       "name_en": "NieR Automata Ver1.1a",
-                      "name_en_no_season": "NieR Automata Ver1.1a",
+                      "s_name_en": "NieR Automata Ver1.1a",
                       "name_zh": "尼尔：机械纪元",
-                      "name_zh_no_season": "尼尔：机械纪元",
+                      "s_name_zh": "尼尔：机械纪元",
                       "season": 1,
                       "episode_index": 2,
-                      "sub": "简日双语",
+                      "sub": ["简日双语"],
                       "fansub": "织梦字幕组",
                       "resolution": "1080P"
                     }"#,
@@ -595,12 +596,12 @@ mod tests {
             r#"
                 {
                   "name_en": "Delicious in Dungeon",
-                  "name_en_no_season": "Delicious in Dungeon",
+                  "s_name_en": "Delicious in Dungeon",
                   "name_zh": "迷宫饭",
-                  "name_zh_no_season": "迷宫饭",
+                  "s_name_zh": "迷宫饭",
                   "season": 1,
                   "episode_index": 3,
-                  "sub": "日语中字",
+                  "sub": ["日语中字"],
                   "source": "NETFLIX",
                   "fansub": "天月搬运组",
                   "resolution": "1080P"
@@ -615,12 +616,12 @@ mod tests {
             r#"[爱恋字幕社][1月新番][迷宫饭][Dungeon Meshi][01][1080P][MP4][简日双语] "#,
             r#"{
                   "name_en": "Dungeon Meshi",
-                  "name_en_no_season": "Dungeon Meshi",
+                  "s_name_en": "Dungeon Meshi",
                   "name_zh": "迷宫饭",
-                  "name_zh_no_season": "迷宫饭",
+                  "s_name_zh": "迷宫饭",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简日双语",
+                  "sub": ["简日双语"],
                   "fansub": "爱恋字幕社",
                   "resolution": "1080P"
                 }"#,
@@ -633,12 +634,12 @@ mod tests {
             r#"[ANi] Mahou Shoujo ni Akogarete / 梦想成为魔法少女 [年龄限制版] - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]"#,
             r#"{
                   "name_en": "Mahou Shoujo ni Akogarete",
-                  "name_en_no_season": "Mahou Shoujo ni Akogarete",
+                  "s_name_en": "Mahou Shoujo ni Akogarete",
                   "name_zh": "梦想成为魔法少女 [年龄限制版]",
-                  "name_zh_no_season": "梦想成为魔法少女 [年龄限制版]",
+                  "s_name_zh": "梦想成为魔法少女 [年龄限制版]",
                   "season": 1,
                   "episode_index": 9,
-                  "sub": "CHT",
+                  "sub": ["CHT"],
                   "source": "Baha",
                   "fansub": "ANi",
                   "resolution": "1080P"
@@ -652,11 +653,11 @@ mod tests {
             r#"[ANi]  16bit 的感动 ANOTHER LAYER - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]"#,
             r#"{
                       "name_zh": "16bit 的感动 ANOTHER LAYER",
-                      "name_zh_no_season": "16bit 的感动 ANOTHER LAYER",
+                      "s_name_zh": "16bit 的感动 ANOTHER LAYER",
                       "season": 1,
                       "season_raw": null,
                       "episode_index": 1,
-                      "sub": "CHT",
+                      "sub": ["CHT"],
                       "source": "Baha",
                       "fansub": "ANi",
                       "resolution": "1080P"
@@ -670,12 +671,12 @@ mod tests {
             r#"【喵萌奶茶屋】★07月新番★[银砂糖师与黑妖精 ~ Sugar Apple Fairy Tale ~][13][1080p][简日双语][招募翻译]"#,
             r#"{
                           "name_en": "~ Sugar Apple Fairy Tale ~",
-                          "name_en_no_season": "~ Sugar Apple Fairy Tale ~",
+                          "s_name_en": "~ Sugar Apple Fairy Tale ~",
                           "name_zh": "银砂糖师与黑妖精",
-                          "name_zh_no_season": "银砂糖师与黑妖精",
+                          "s_name_zh": "银砂糖师与黑妖精",
                           "season": 1,
                           "episode_index": 13,
-                          "sub": "简日双语",
+                          "sub": ["简日双语"],
                           "fansub": "喵萌奶茶屋",
                           "resolution": "1080p"
                         }"#,
@@ -688,12 +689,12 @@ mod tests {
             r#"【极影字幕社】★4月新番 天国大魔境 Tengoku Daimakyou 第05话 GB 720P MP4（字幕社招人内详）"#,
             r#"{
                       "name_en": "Tengoku Daimakyou",
-                      "name_en_no_season": "Tengoku Daimakyou",
+                      "s_name_en": "Tengoku Daimakyou",
                       "name_zh": "天国大魔境",
-                      "name_zh_no_season": "天国大魔境",
+                      "s_name_zh": "天国大魔境",
                       "season": 1,
                       "episode_index": 5,
-                      "sub": "字幕社招人内详",
+                      "sub": ["GB"],
                       "source": null,
                       "fansub": "极影字幕社",
                       "resolution": "720P"
@@ -707,9 +708,9 @@ mod tests {
             r#"[MagicStar] 假面骑士Geats / 仮面ライダーギーツ EP33 [WEBDL] [1080p] [TTFC]【生】"#,
             r#"{
               "name_jp": "仮面ライダーギーツ",
-              "name_jp_no_season": "仮面ライダーギーツ",
+              "s_name_jp": "仮面ライダーギーツ",
               "name_zh": "假面骑士Geats",
-              "name_zh_no_season": "假面骑士Geats",
+              "s_name_zh": "假面骑士Geats",
               "season": 1,
               "episode_index": 33,
               "source": "WEBDL",
@@ -725,12 +726,12 @@ mod tests {
             r#"[百冬练习组&LoliHouse] BanG Dream! 少女乐团派对！☆PICO FEVER！ / Garupa Pico: Fever! - 26 [WebRip 1080p HEVC-10bit AAC][简繁内封字幕][END] [101.69 MB]"#,
             r#"{
                       "name_en": "Garupa Pico: Fever!",
-                      "name_en_no_season": "Garupa Pico: Fever!",
+                      "s_name_en": "Garupa Pico: Fever!",
                       "name_zh": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
-                      "name_zh_no_season": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
+                      "s_name_zh": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
                       "season": 1,
                       "episode_index": 26,
-                      "sub": "简繁内封字幕",
+                      "sub": ["简繁内封字幕"],
                       "source": "WebRip",
                       "fansub": "百冬练习组&LoliHouse",
                       "resolution": "1080p"
@@ -745,11 +746,11 @@ mod tests {
             r#"[7³ACG x 桜都字幕组] 摇曳露营△ 剧场版/映画 ゆるキャン△/Eiga Yuru Camp△ [简繁字幕] BDrip 1080p x265 FLAC 2.0"#,
             r#"{
                   "name_zh": "摇曳露营△剧场版",
-                  "name_zh_no_season": "摇曳露营△剧场版",
+                  "s_name_zh": "摇曳露营△剧场版",
                   "season": 1,
                   "season_raw": null,
                   "episode_index": 1,
-                  "sub": "简繁字幕",
+                  "sub": ["简繁字幕"],
                   "source": "BDrip",
                   "fansub": "7³ACG x 桜都字幕组",
                   "resolution": "1080p"
@@ -760,13 +761,13 @@ mod tests {
             r#"【幻樱字幕组】【4月新番】【古见同学有交流障碍症 第二季 Komi-san wa, Komyushou Desu. S02】【22】【GB_MP4】【1920X1080】"#,
             r#"{
                       "name_en": "第二季 Komi-san wa, Komyushou Desu. S02",
-                      "name_en_no_season": "Komi-san wa, Komyushou Desu.",
+                      "s_name_en": "Komi-san wa, Komyushou Desu.",
                       "name_zh": "古见同学有交流障碍症",
-                      "name_zh_no_season": "古见同学有交流障碍症",
+                      "s_name_zh": "古见同学有交流障碍症",
                       "season": 2,
                       "season_raw": "第二季",
                       "episode_index": 22,
-                      "sub": "GB",
+                      "sub": ["GB"],
                       "fansub": "幻樱字幕组",
                       "resolution": "1920X1080"
                     }"#,

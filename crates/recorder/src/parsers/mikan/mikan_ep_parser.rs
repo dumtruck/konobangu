@@ -22,7 +22,7 @@ pub struct MikanEpisodeMetaPosterBlob {
 #[derive(Clone, Debug)]
 pub struct MikanEpisodeMeta {
     pub homepage: Url,
-    pub poster: Option<MikanEpisodeMetaPosterBlob>,
+    pub poster_url: Option<Url>,
     pub official_title: String,
 }
 
@@ -73,18 +73,6 @@ pub async fn parse_episode_meta_from_mikan_homepage(
         p.set_query(None);
         p
     });
-    let poster = if let Some(p) = origin_poster_src {
-        client
-            .fetch_bytes(|f| f.get(p.clone()))
-            .await
-            .ok()
-            .map(|data| MikanEpisodeMetaPosterBlob {
-                data,
-                origin_url: p,
-            })
-    } else {
-        None
-    };
     let official_title = official_title_node
         .map(|s| s.inner_text(parser))
         .and_then(|official_title| {
@@ -102,7 +90,7 @@ pub async fn parse_episode_meta_from_mikan_homepage(
 
     Ok(MikanEpisodeMeta {
         homepage: url,
-        poster,
+        poster_url: origin_poster_src,
         official_title,
     })
 }
@@ -128,19 +116,10 @@ mod test {
                 assert_eq!(ep_meta.homepage, url);
                 assert_eq!(ep_meta.official_title, "葬送的芙莉莲");
                 assert_eq!(
-                    ep_meta.poster.clone().map(|p| p.origin_url),
+                    ep_meta.poster_url.clone(),
                     Some(Url::parse(
                         "https://mikanani.me/images/Bangumi/202309/5ce9fed1.jpg"
                     )?)
-                );
-                let u8_data = ep_meta
-                    .poster
-                    .clone()
-                    .map(|p| p.data)
-                    .expect("should have poster data");
-                assert!(
-                    u8_data.starts_with(&[255, 216, 255, 224]),
-                    "should start with valid jpeg data magic number"
                 );
             }
 

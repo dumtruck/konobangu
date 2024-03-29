@@ -70,10 +70,10 @@ impl Deref for TmdbApiClient {
 pub(crate) mod tests {
     use std::{env, sync::Arc};
 
-    use crate::parsers::tmdb::tmdb_client::TmdbApiClient;
+    use crate::{parsers::tmdb::tmdb_client::TmdbApiClient, utils::test::load_test_env_panic};
 
     pub async fn prepare_tmdb_api_client() -> Arc<TmdbApiClient> {
-        dotenv::from_filename("test.env").expect("failed to load test.env");
+        load_test_env_panic();
         let tmdb_api_token = env::var("TMDB_API_TOKEN").expect("TMDB_API_TOKEN is not set");
         TmdbApiClient::new(tmdb_api_token)
             .await

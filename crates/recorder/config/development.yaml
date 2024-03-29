@@ -3,7 +3,9 @@
 # Application logging configuration
 logger:
   # Enable or disable logging.
-  enable: false
+  enable: true
+  # Enable pretty backtrace (sets RUST_BACKTRACE=1)
+  pretty_backtrace: true
   # Log level, options: trace, debug, info, warn or error.
   level: debug
   # Define the logging format. options: compact, pretty or Json
@@ -15,11 +17,14 @@ logger:
 # Web server configuration
 server:
   # Port on which the server will listen. the server binding is 0.0.0.0:{PORT}
-  port: 3000
+  port: 3001
   # The UI hostname or IP address that mailers will point to.
-  host: http://localhost
+  host: http://webui.konobangu.com
   # Out of the box middleware configuration. to disable middleware you can changed the `enable` field to `false` of comment the middleware block
   middlewares:
+    # Enable Etag cache header middleware
+    etag:
+      enable: true
     # Allows to limit the payload size request. payload that bigger than this file will blocked the request.
     limit_payload:
       # Enable/Disable the middleware.
@@ -60,12 +65,12 @@ workers:
   #   - BackgroundQueue - Workers operate asynchronously in the background, processing queued.
   #   - ForegroundBlocking - Workers operate in the foreground and block until tasks are completed.
   #   - BackgroundAsync - Workers operate asynchronously in the background, processing tasks with async capabilities.
-  mode: ForegroundBlocking
+  mode: BackgroundAsync
 
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5432/recorder_test")}}
+  uri: '{{ get_env(name="DATABASE_URL", default="postgres://konobangu:konobangu@127.0.0.1:5432/konobangu") }}'
   # When enabled, the sql query will be logged.
   enable_logging: false
   # Set the timeout duration when acquiring a connection.
@@ -79,14 +84,10 @@ database:
   # Run migration up when application loaded
   auto_migrate: true
   # Truncate database when application loaded. This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
-  dangerously_truncate: true
+  dangerously_truncate: false
   # Recreating schema when application loaded.  This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_recreate: false
 
-# Redis Configuration
-redis:
-  # Redis connection URI
-  uri: {{get_env(name="REDIS_URL", default="redis://127.0.0.1")}}
-  # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
-  dangerously_flush: false
-
+settings:
+  dal:
+    fs_root: "data/dal/"

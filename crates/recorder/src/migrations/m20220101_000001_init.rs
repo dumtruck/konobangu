@@ -4,10 +4,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 use super::defs::{
     Bangumi, CustomSchemaManagerExt, Episodes, GeneralIds, Subscribers, Subscriptions,
 };
-use crate::models::{
-    subscribers::{ROOT_SUBSCRIBER_ID, ROOT_SUBSCRIBER_NAME},
-    subscriptions,
-};
+use crate::models::{subscribers::ROOT_SUBSCRIBER_NAME, subscriptions};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -37,19 +34,15 @@ impl MigrationTrait for Migration {
 
         let insert = Query::insert()
             .into_table(Subscribers::Table)
-            .columns([Subscribers::Id, Subscribers::Pid, Subscribers::DisplayName])
-            .values_panic([
-                ROOT_SUBSCRIBER_ID.into(),
-                ROOT_SUBSCRIBER_NAME.into(),
-                ROOT_SUBSCRIBER_NAME.into(),
-            ])
+            .columns([Subscribers::Pid, Subscribers::DisplayName])
+            .values_panic([ROOT_SUBSCRIBER_NAME.into(), ROOT_SUBSCRIBER_NAME.into()])
             .to_owned();
         manager.exec_stmt(insert).await?;
 
         manager
             .create_postgres_enum_for_active_enum(
                 subscriptions::SubscriptionCategoryEnum,
-                &[
+                [
                     subscriptions::SubscriptionCategory::Mikan,
                     subscriptions::SubscriptionCategory::Tmdb,
                 ],
@@ -88,7 +81,6 @@ impl MigrationTrait for Migration {
                 GeneralIds::UpdatedAt,
             )
             .await?;
-
         manager
             .create_table(
                 table_auto(Bangumi::Table)
@@ -112,29 +104,22 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade),
                     )
                     .index(
-                        Index::create()
-                            .name("idx_bangumi_official_title")
-                            .table(Bangumi::Table)
-                            .col(Bangumi::OfficialTitle)
-                            .unique(),
-                    )
-                    .index(
-                        Index::create()
-                            .name("idx_bangumi_fansub")
-                            .table(Bangumi::Table)
-                            .col(Bangumi::Fansub)
-                            .unique(),
-                    )
-                    .index(
-                        Index::create()
-                            .name("idx_bangumi_display_name")
-                            .table(Bangumi::Table)
-                            .col(Bangumi::DisplayName)
+                        manager
+                            .build_convention_index(
+                                Bangumi::Table,
+                                [Bangumi::OfficialTitle, Bangumi::Fansub, Bangumi::Season],
+                            )
                             .unique(),
                     )
                     .to_owned(),
             )
             .await?;
+
+        futures::try_join!(
+            manager.create_convention_index(Bangumi::Table, [Bangumi::Fansub]),
+            manager.create_convention_index(Bangumi::Table, [Bangumi::Season]),
+            manager.create_convention_index(Bangumi::Table, [Bangumi::OfficialTitle]),
+        )?;
 
         manager
             .create_postgres_auto_update_ts_trigger_for_col(Bangumi::Table, GeneralIds::UpdatedAt)
@@ -154,16 +139,16 @@ impl MigrationTrait for Migration {
                     .col(text_null(Episodes::SNameJp))
                     .col(text_null(Episodes::SNameEn))
                     .col(integer(Episodes::BangumiId))
-                    .col(integer(Episodes::ResourceId))
                     .col(text_null(Episodes::SavePath))
                     .col(string_null(Episodes::Resolution))
                     .col(integer(Episodes::Season))
                     .col(string_null(Episodes::SeasonRaw))
                     .col(string_null(Episodes::Fansub))
                     .col(text_null(Episodes::PosterLink))
-                    .col(text_null(Episodes::HomePage))
-                    .col(jsonb_null(Episodes::Subtitle))
+                    .col(text_null(Episodes::Homepage))
+                    .col(array_null(Episodes::Subtitle, ColumnType::Text))
                     .col(text_null(Episodes::Source))
+                    .col(unsigned(Episodes::EpIndex))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_episode_bangumi_id")
@@ -172,27 +157,16 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
-                    .index(
-                        Index::create()
-                            .name("idx_episode_official_title")
-                            .table(Episodes::Table)
-                            .col(Episodes::OfficialTitle),
-                    )
-                    .index(
-                        Index::create()
-                            .name("idx_episode_fansub")
-                            .table(Episodes::Table)
-                            .col(Episodes::Fansub),
-                    )
-                    .index(
-                        Index::create()
-                            .name("idx_episode_display_name")
-                            .table(Episodes::Table)
-                            .col(Episodes::DisplayName),
-                    )
                     .to_owned(),
             )
             .await?;
+
+        futures::try_join!(
+            manager.create_convention_index(Episodes::Table, [Episodes::OfficialTitle]),
+            manager.create_convention_index(Episodes::Table, [Episodes::Fansub]),
+            manager.create_convention_index(Episodes::Table, [Episodes::Season]),
+            manager.create_convention_index(Episodes::Table, [Episodes::EpIndex]),
+        )?;
 
         manager
             .create_postgres_auto_update_ts_trigger_for_col(Episodes::Table, GeneralIds::UpdatedAt)

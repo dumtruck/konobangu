@@ -28,6 +28,7 @@ pub struct DalContext {
     pub config: AppDalConf,
 }
 
+#[derive(Debug, Clone)]
 pub enum DalStoredUrl {
     RelativePath { path: String },
     Absolute { url: Url },
@@ -79,7 +80,8 @@ impl DalContext {
             .layer(LoggingLayer::default())
             .finish();
 
-        fs_op.create_dir(dirname.as_str()).await?;
+        let dirpath = format!("{}/", dirname.as_str());
+        fs_op.create_dir(&dirpath).await?;
 
         let fullname = {
             dirname.push(basename);
@@ -91,5 +93,38 @@ impl DalContext {
         Ok(DalStoredUrl::RelativePath {
             path: fullname.to_string(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use base64::Engine;
+
+    use crate::{
+        config::AppDalConf, models::subscribers::ROOT_SUBSCRIBER_NAME, storage::DalContext,
+    };
+
+    #[tokio::test]
+    async fn test_dal_context() {
+        let dal_context = DalContext::new(AppDalConf {
+            fs_root: "data/dal".to_string(),
+        });
+
+        let a = dal_context
+            .store_blob(
+                crate::storage::DalContentType::Poster,
+                ".jpg",
+                bytes::Bytes::from(
+                    base64::engine::general_purpose::STANDARD.decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==").expect("should decode as vec u8")
+                ),
+                ROOT_SUBSCRIBER_NAME,
+            )
+            .await
+            .expect("dal context should store blob");
+
+        assert!(
+            matches!(a, crate::storage::DalStoredUrl::RelativePath { .. }),
+            "dal context should store blob as relative path"
+        );
     }
 }

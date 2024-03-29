@@ -10,9 +10,65 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 use tracing::{event, instrument, Level};
 
-pub use super::entities::subscriptions::{self, *};
+#[derive(
+    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize, DeriveDisplay,
+)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "subscription_category"
+)]
+#[serde(rename_all = "snake_case")]
+pub enum SubscriptionCategory {
+    #[sea_orm(string_value = "mikan")]
+    Mikan,
+    #[sea_orm(string_value = "tmdb")]
+    Tmdb,
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[sea_orm(table_name = "subscriptions")]
+pub struct Model {
+    #[sea_orm(column_type = "Timestamp")]
+    pub created_at: DateTime,
+    #[sea_orm(column_type = "Timestamp")]
+    pub updated_at: DateTime,
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    pub display_name: String,
+    pub subscriber_id: i32,
+    pub category: SubscriptionCategory,
+    pub source_url: String,
+    pub aggregate: bool,
+    pub enabled: bool,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::subscribers::Entity",
+        from = "Column::SubscriberId",
+        to = "super::subscribers::Column::Id"
+    )]
+    Subscriber,
+    #[sea_orm(has_many = "super::bangumi::Entity")]
+    Bangumi,
+}
+
+impl Related<super::subscribers::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscriber.def()
+    }
+}
+
+impl Related<super::bangumi::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Bangumi.def()
+    }
+}
+
 use crate::{
-    models::{bangumi, db_utils::insert_many_with_returning_all, episodes, resources},
+    models::{bangumi, episodes, resources, subscribers},
     parsers::{
         mikan::{
             parse_episode_meta_from_mikan_homepage, parse_mikan_rss_items_from_rss_link,
@@ -20,8 +76,7 @@ use crate::{
         },
         raw::{parse_episode_meta_from_raw_name, RawEpisodeMeta},
     },
-    path::extract_extname_from_url,
-    storage::{AppContextDalExt, DalContentType},
+    utils::db::insert_many_with_returning_all,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -104,9 +159,14 @@ impl Model {
 
     #[instrument(
         fields(subscriber_id = "self.subscriber_id", subscription_id = "self.id"),
-        skip(self, db, ctx)
+        skip(self, ctx)
     )]
-    pub async fn pull_one(&self, db: &DatabaseConnection, ctx: &AppContext) -> eyre::Result<()> {
+    pub async fn pull_one(
+        &self,
+        ctx: &AppContext,
+        subscriber: &subscribers::Model,
+    ) -> eyre::Result<()> {
+        let db = &ctx.db;
         let subscription = self;
         let subscription_id = subscription.id;
         match &subscription.category {
@@ -152,7 +212,6 @@ impl Model {
 
                 let mut ep_metas: HashMap<bangumi::BangumiUniqueKey, Vec<MikanEpMetaBundle>> =
                     HashMap::new();
-                let dal = ctx.get_dal_unwrap().await;
                 {
                     for r in new_resources {
                         let mut mikan_meta = if let Some(homepage) = r.homepage.as_deref() {
@@ -174,40 +233,34 @@ impl Model {
                         } else {
                             continue;
                         };
-                        let mikan_poster_link = if let Some(poster) = mikan_meta.poster.take() {
-                            if let Some(extname) = extract_extname_from_url(&poster.origin_url) {
-                                let result = dal
-                                    .store_blob(
-                                        DalContentType::Poster,
-                                        &extname,
-                                        poster.data,
-                                        &subscriber_id.to_string(),
-                                    )
-                                    .await;
-                                match result {
-                                    Ok(stored_url) => Some(stored_url.to_string()),
+                        let mikan_poster_link =
+                            if let Some(poster_url) = mikan_meta.poster_url.take() {
+                                let poster_url_str = poster_url.to_string();
+                                let poster_resource_result = resources::Model::from_poster_url(
+                                    ctx,
+                                    &subscriber.pid,
+                                    subscription_id,
+                                    mikan_meta.official_title.clone(),
+                                    poster_url,
+                                    |url| mikan_client.fetch_bytes(|f| f.get(url)),
+                                )
+                                .await;
+                                match poster_resource_result {
+                                    Ok(resource) => resource.save_path,
                                     Err(e) => {
                                         let error: &dyn std::error::Error = e.as_ref();
                                         event!(
                                             Level::ERROR,
-                                            desc = "failed to store mikan meta poster",
-                                            origin_url = poster.origin_url.as_str(),
+                                            desc = "failed to fetch mikan meta poster",
+                                            poster_url = poster_url_str,
                                             error = error
                                         );
                                         None
                                     }
                                 }
                             } else {
-                                event!(
-                                    Level::ERROR,
-                                    desc = "failed to extract mikan meta poster extname",
-                                    origin_url = poster.origin_url.as_str(),
-                                );
                                 None
-                            }
-                        } else {
-                            None
-                        };
+                            };
                         let raw_meta = match parse_episode_meta_from_raw_name(&r.origin_title) {
                             Ok(raw_meta) => raw_meta,
                             Err(e) => {

@@ -86,7 +86,7 @@ pub struct TmdbTvSeriesDetailDto {
     pub episode_run_time: Option<Vec<i32>>,
     pub genres: Vec<TmdbGenresObjDto>,
     pub first_air_date: Option<String>,
-    pub home_page: Option<String>,
+    pub homepage: Option<String>,
     pub in_production: bool,
     pub languages: Vec<String>,
     pub last_air_date: Option<String>,

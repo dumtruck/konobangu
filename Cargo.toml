@@ -7,5 +7,5 @@ members = [
 resolver = "2"
 
 [profile.dev]
-debug = 0
+#debug = 0
 codegen-backend = "cranelift"

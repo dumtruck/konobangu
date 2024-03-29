@@ -23,7 +23,7 @@ use crate::{
         defs::{QbitTorrent, QbitTorrentContent},
         torrent::{Torrent, TorrentContent, TorrentDownloader, TorrentFilter, TorrentSource},
     },
-    models::{entities::downloaders, prelude::DownloaderCategory},
+    models::{downloaders, prelude::DownloaderCategory},
 };
 
 pub struct SyncDataCache {

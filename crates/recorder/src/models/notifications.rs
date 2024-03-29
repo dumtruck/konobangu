@@ -4,6 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct Notification {
     official_title: String,
     season: i32,
-    episode_size: u32,
+    episode_size: i32,
     poster_url: Option<String>,
 }

@@ -2,7 +2,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
     migrations::defs::{CustomSchemaManagerExt, Downloaders, GeneralIds, Subscribers},
-    models::{downloaders::DownloaderCategoryEnum, prelude::DownloaderCategory},
+    models::downloaders::{DownloaderCategory, DownloaderCategoryEnum},
 };
 
 #[derive(DeriveMigrationName)]
@@ -14,7 +14,7 @@ impl MigrationTrait for Migration {
         manager
             .create_postgres_enum_for_active_enum(
                 DownloaderCategoryEnum,
-                &[DownloaderCategory::QBittorrent],
+                [DownloaderCategory::QBittorrent],
             )
             .await?;
 

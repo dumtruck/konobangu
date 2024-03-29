@@ -3,7 +3,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::*;
 use crate::models::resources::{
-    DownloadStatus, DownloadStatusEnum, ResourceMime, ResourceMimeEnum,
+    DownloadStatus, DownloadStatusEnum, ResourceCategory, ResourceCategoryEnum,
 };
 
 #[derive(DeriveMigrationName)]
@@ -14,15 +14,19 @@ impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .create_postgres_enum_for_active_enum(
-                ResourceMimeEnum,
-                &[ResourceMime::OctetStream, ResourceMime::BitTorrent],
+                ResourceCategoryEnum,
+                [
+                    ResourceCategory::BitTorrent,
+                    ResourceCategory::OctetStream,
+                    ResourceCategory::Poster,
+                ],
             )
             .await?;
 
         manager
             .create_postgres_enum_for_active_enum(
                 DownloadStatusEnum,
-                &[
+                [
                     DownloadStatus::Pending,
                     DownloadStatus::Downloading,
                     DownloadStatus::Completed,
@@ -43,17 +47,18 @@ impl MigrationTrait for Migration {
                     .col(enumeration(
                         Resources::Status,
                         DownloadStatusEnum,
-                        ResourceMime::iden_values(),
+                        ResourceCategory::iden_values(),
                     ))
                     .col(enumeration(
-                        Resources::Mime,
-                        ResourceMimeEnum,
-                        ResourceMime::iden_values(),
+                        Resources::Category,
+                        ResourceCategoryEnum,
+                        ResourceCategory::iden_values(),
                     ))
-                    .col(big_unsigned_null(Resources::AllSize))
-                    .col(big_unsigned_null(Resources::CurrSize))
+                    .col(big_integer_null(Resources::AllSize))
+                    .col(big_integer_null(Resources::CurrSize))
                     .col(text(Resources::Url))
-                    .col(text_null(Resources::HomePage))
+                    .col(text_null(Resources::Homepage))
+                    .col(text_null(Resources::SavePath))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_download_subscription_id")
@@ -63,20 +68,17 @@ impl MigrationTrait for Migration {
                             .on_delete(ForeignKeyAction::Cascade),
                     )
                     .index(
-                        Index::create()
-                            .name("idx_download_url")
-                            .table(Resources::Table)
-                            .col(Resources::Url),
-                    )
-                    .index(
-                        Index::create()
-                            .name("idx_download_home_page")
-                            .table(Resources::Table)
-                            .col(Resources::HomePage),
+                        manager
+                            .build_convention_index(Resources::Table, [Resources::Url])
+                            .unique(),
                     )
                     .to_owned(),
             )
             .await?;
+
+        futures::try_join!(
+            manager.create_convention_index(Resources::Table, [Resources::Homepage]),
+        )?;
 
         manager
             .create_postgres_auto_update_ts_fn_for_col(GeneralIds::UpdatedAt)
@@ -124,7 +126,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_postgres_enum_for_active_enum(ResourceMimeEnum)
+            .drop_postgres_enum_for_active_enum(ResourceCategoryEnum)
             .await?;
         manager
             .drop_postgres_enum_for_active_enum(DownloadStatusEnum)

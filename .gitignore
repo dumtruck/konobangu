@@ -222,4 +222,6 @@ index.d.ts.map
 
 /temp
 /rustc-ice-*
-/test.env
+/crates/recorder/config/test.local.env
+**/*.local.yaml
+**/*.local.env

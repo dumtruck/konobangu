@@ -1,6 +1,7 @@
-use std::{collections::HashSet, fmt::Display};
+use std::collections::HashSet;
 
-use sea_orm::{DeriveIden, Statement};
+use itertools::Itertools;
+use sea_orm::{ActiveEnum, DeriveIden, Statement};
 use sea_orm_migration::prelude::{extension::postgres::IntoTypeRef, *};
 
 use crate::migrations::extension::postgres::Type;
@@ -71,9 +72,10 @@ pub enum Episodes {
     SeasonRaw,
     Fansub,
     PosterLink,
-    HomePage,
+    Homepage,
     Subtitle,
     Source,
+    EpIndex,
 }
 
 #[derive(DeriveIden)]
@@ -86,9 +88,10 @@ pub enum Resources {
     Status,
     CurrSize,
     AllSize,
-    Mime,
+    Category,
     Url,
-    HomePage,
+    Homepage,
+    SavePath,
 }
 
 #[derive(DeriveIden)]
@@ -178,7 +181,7 @@ pub trait CustomSchemaManagerExt {
 
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
+        T: ActiveEnum<Value = String, ValueVec = Vec<String>> + Send,
         I: IntoIterator<Item = T> + Send,
     >(
         &self,
@@ -188,7 +191,7 @@ pub trait CustomSchemaManagerExt {
 
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
+        T: ActiveEnum<Value = String, ValueVec = Vec<String>> + Send,
         I: IntoIterator<Item = T> + Send,
     >(
         &self,
@@ -210,6 +213,48 @@ pub trait CustomSchemaManagerExt {
         &self,
         enum_name: E,
     ) -> Result<HashSet<String>, DbErr>;
+
+    async fn create_convention_index<
+        T: IntoTableRef + Send,
+        I: IntoIterator<Item = C> + Send,
+        C: IntoIndexColumn + Send,
+    >(
+        &self,
+        table: T,
+        columns: I,
+    ) -> Result<(), DbErr>;
+
+    fn build_convention_index<
+        T: IntoTableRef + Send,
+        I: IntoIterator<Item = C> + Send,
+        C: IntoIndexColumn + Send,
+    >(
+        &self,
+        table: T,
+        columns: I,
+    ) -> IndexCreateStatement {
+        let table = table.into_table_ref();
+        let table_name = match &table {
+            TableRef::Table(s) => s.to_string(),
+            _ => panic!("unsupported table ref"),
+        };
+        let columns = columns
+            .into_iter()
+            .map(|c| c.into_index_column())
+            .collect_vec();
+        let mut stmt = Index::create();
+        stmt.table(table);
+        for c in columns {
+            stmt.col(c);
+        }
+        let index_name = format!(
+            "idx_{}_{}",
+            table_name,
+            stmt.get_index_spec().get_column_names().join("-")
+        );
+        stmt.name(&index_name);
+        stmt
+    }
 }
 
 #[async_trait::async_trait]
@@ -217,7 +262,8 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
     async fn create_postgres_auto_update_ts_fn(&self, col_name: &str) -> Result<(), DbErr> {
         let sql = format!(
             "CREATE OR REPLACE FUNCTION update_{col_name}_column() RETURNS TRIGGER AS $$ BEGIN \
-             NEW.{col_name}  = current_timestamp; RETURN NEW; END; $$ language 'plpgsql';"
+             NEW.\"{col_name}\" = current_timestamp; RETURN NEW; END; $$ language 'plpgsql';",
+            col_name = col_name
         );
 
         self.get_connection()
@@ -266,7 +312,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
 
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
+        T: ActiveEnum<Value = String, ValueVec = Vec<String>> + Send,
         I: IntoIterator<Item = T> + Send,
     >(
         &self,
@@ -277,7 +323,10 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         if !existed {
             let idents = values
                 .into_iter()
-                .map(|v| Alias::new(v.to_string()))
+                .map(|v| {
+                    let v = v.to_value();
+                    Alias::new(v)
+                })
                 .collect::<Vec<_>>();
             self.create_type(Type::create().as_enum(enum_name).values(idents).to_owned())
                 .await?;
@@ -290,7 +339,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
 
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
+        T: ActiveEnum<Value = String, ValueVec = Vec<String>> + Send,
         I: IntoIterator<Item = T> + Send,
     >(
         &self,
@@ -300,7 +349,8 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         let exists_values = self.get_postgres_enum_values(enum_name.clone()).await?;
         let to_add_values = values
             .into_iter()
-            .filter(|v| !exists_values.contains(&v.to_string()))
+            .map(|v| v.to_value())
+            .filter(|v| !exists_values.contains(v))
             .collect::<Vec<_>>();
 
         if to_add_values.is_empty() {
@@ -310,6 +360,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         let mut type_alter = Type::alter().name(enum_name);
 
         for v in to_add_values {
+            let v: Value = v.into();
             type_alter = type_alter.add_value(Alias::new(v.to_string()));
         }
 
@@ -345,8 +396,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
     ) -> Result<HashSet<String>, DbErr> {
         let enum_name: String = enum_name.into_iden().to_string();
         let sql = format!(
-            "SELECT pg_enum.enumlabel AS enumlabel FROM pg_type JOIN pg_enum ON pg_enum.enumtypid \
-             = pg_type.oid WHERE pg_type.typname = '{enum_name}';"
+            r#"SELECT pg_enum.enumlabel AS enumlabel FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = '{enum_name}';"#
         );
 
         let results = self
@@ -360,5 +410,18 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         }
 
         Ok(items)
+    }
+
+    async fn create_convention_index<
+        T: IntoTableRef + Send,
+        I: IntoIterator<Item = C> + Send,
+        C: IntoIndexColumn + Send,
+    >(
+        &self,
+        table: T,
+        columns: I,
+    ) -> Result<(), DbErr> {
+        let stmt = self.build_convention_index(table, columns);
+        self.create_index(stmt.to_owned()).await
     }
 }

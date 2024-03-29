@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::entities::subscribers;
+use crate::models::subscribers;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CurrentResponse {
