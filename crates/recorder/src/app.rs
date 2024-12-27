@@ -4,19 +4,36 @@ use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks},
     boot::{create_app, BootResult, StartMode},
+    cache,
     controller::AppRoutes,
     db::truncate_table,
     environment::Environment,
+    prelude::*,
     task::Tasks,
-    worker::{AppWorker, Processor},
     Result,
 };
 use sea_orm::DatabaseConnection;
 
 use crate::{
-    controllers, migrations::Migrator, models::entities::subscribers,
+    controllers,
+    dal::{AppDalClient, AppDalInitalizer},
+    extract::mikan::{client::AppMikanClientInitializer, AppMikanClient},
+    migrations::Migrator,
+    models::entities::subscribers,
     workers::subscription_worker::SubscriptionWorker,
 };
+
+pub trait AppContextExt {
+    fn get_dal_client(&self) -> &AppDalClient {
+        AppDalClient::global()
+    }
+
+    fn get_mikan_client(&self) -> &AppMikanClient {
+        AppMikanClient::global()
+    }
+}
+
+impl AppContextExt for AppContext {}
 
 pub struct App;
 
@@ -24,6 +41,15 @@ pub struct App;
 impl Hooks for App {
     fn app_name() -> &'static str {
         env!("CARGO_CRATE_NAME")
+    }
+
+    async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
+        let initializers: Vec<Box<dyn Initializer>> = vec![
+            Box::new(AppDalInitalizer),
+            Box::new(AppMikanClientInitializer),
+        ];
+
+        Ok(initializers)
     }
 
     fn app_version() -> String {
@@ -46,8 +72,16 @@ impl Hooks for App {
             .add_route(controllers::subscribers::routes())
     }
 
-    fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
-        p.register(SubscriptionWorker::build(ctx));
+    async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
+        queue.register(SubscriptionWorker::build(ctx)).await?;
+        Ok(())
+    }
+
+    async fn after_context(ctx: AppContext) -> Result<AppContext> {
+        Ok(AppContext {
+            cache: cache::Cache::new(cache::drivers::inmem::new()).into(),
+            ..ctx
+        })
     }
 
     fn register_tasks(_tasks: &mut Tasks) {}

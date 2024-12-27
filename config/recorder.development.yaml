@@ -88,7 +88,7 @@ database:
   # Database connection URI
   uri: '{{ get_env(name="DATABASE_URL", default="postgres://konobangu:konobangu@127.0.0.1:5432/konobangu") }}'
   # When enabled, the sql query will be logged.
-  enable_logging: false
+  enable_logging: true
   # Set the timeout duration when acquiring a connection.
   connect_timeout: 500
   # Set the idle duration before closing a connection.
@@ -111,3 +111,6 @@ redis:
   # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_flush: false
 
+settings:
+  dal:
+    fs_root: ./temp

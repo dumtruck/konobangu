@@ -50,6 +50,7 @@ pub struct Model {
     pub all_size: Option<u64>,
     pub curr_size: Option<u64>,
     pub homepage: Option<String>,
+    pub save_path: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

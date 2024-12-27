@@ -7,6 +7,9 @@ pub use crate::models::entities::downloaders::*;
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
+    pub fn get_endpoint(&self) -> String {
+        self.endpoint.clone()
+    }
     pub fn endpoint_url(&self) -> Result<Url, url::ParseError> {
         let url = Url::parse(&self.endpoint)?;
         Ok(url)

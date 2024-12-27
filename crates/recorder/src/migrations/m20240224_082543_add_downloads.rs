@@ -13,26 +13,25 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager
-            .create_postgres_enum_for_active_enum(
-                DownloadMimeEnum,
-                &[DownloadMime::OctetStream, DownloadMime::BitTorrent],
-            )
-            .await?;
+        create_postgres_enum_for_active_enum!(
+            manager,
+            DownloadMimeEnum,
+            DownloadMime::BitTorrent,
+            DownloadMime::OctetStream
+        )
+        .await?;
 
-        manager
-            .create_postgres_enum_for_active_enum(
-                DownloadStatusEnum,
-                &[
-                    DownloadStatus::Pending,
-                    DownloadStatus::Downloading,
-                    DownloadStatus::Completed,
-                    DownloadStatus::Failed,
-                    DownloadStatus::Deleted,
-                    DownloadStatus::Paused,
-                ],
-            )
-            .await?;
+        create_postgres_enum_for_active_enum!(
+            manager,
+            DownloadStatusEnum,
+            DownloadStatus::Downloading,
+            DownloadStatus::Paused,
+            DownloadStatus::Pending,
+            DownloadStatus::Completed,
+            DownloadStatus::Failed,
+            DownloadStatus::Deleted
+        )
+        .await?;
 
         manager
             .create_table(
@@ -54,15 +53,11 @@ impl MigrationTrait for Migration {
                     .col(big_unsigned(Downloads::AllSize))
                     .col(big_unsigned(Downloads::CurrSize))
                     .col(text(Downloads::Url))
-                    .index(
-                        Index::create()
-                            .table(Downloads::Table)
-                            .col(Downloads::Url)
-                            .name("idx_download_url"),
-                    )
+                    .col(text_null(Downloads::Homepage))
+                    .col(text_null(Downloads::SavePath))
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk_download_subscription_id")
+                            .name("fk_downloads_subscription_id")
                             .from(Downloads::Table, Downloads::SubscriptionId)
                             .to(Subscriptions::Table, Subscriptions::Id)
                             .on_update(ForeignKeyAction::Restrict)
@@ -73,7 +68,14 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .create_postgres_auto_update_ts_fn_for_col(GeneralIds::UpdatedAt)
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx_downloads_url")
+                    .table(Downloads::Table)
+                    .col(Downloads::Url)
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -83,7 +85,7 @@ impl MigrationTrait for Migration {
                     .add_column_if_not_exists(integer_null(Episodes::DownloadId))
                     .add_foreign_key(
                         TableForeignKey::new()
-                            .name("fk_episode_download_id")
+                            .name("fk_episodes_download_id")
                             .from_tbl(Episodes::Table)
                             .from_col(Episodes::DownloadId)
                             .to_tbl(Downloads::Table)
@@ -103,14 +105,10 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Episodes::Table)
-                    .drop_foreign_key(Alias::new("fk_episode_download_id"))
+                    .drop_foreign_key(Alias::new("fk_episodes_download_id"))
                     .drop_column(Episodes::DownloadId)
                     .to_owned(),
             )
-            .await?;
-
-        manager
-            .drop_postgres_auto_update_ts_fn_for_col(GeneralIds::UpdatedAt)
             .await?;
 
         manager
@@ -120,6 +118,7 @@ impl MigrationTrait for Migration {
         manager
             .drop_postgres_enum_for_active_enum(DownloadMimeEnum)
             .await?;
+
         manager
             .drop_postgres_enum_for_active_enum(DownloadStatusEnum)
             .await?;

@@ -13,57 +13,57 @@ name = "recorder_cli"
 path = "src/bin/main.rs"
 required-features = []
 
-[features]
-default = []
-testcontainers = []
-
 [dependencies]
-loco-rs = { version = "0.3.1" }
+loco-rs = { version = "0.13.2" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 eyre = "0.6"
-tokio = { version = "1.33.0", default-features = false }
-async-trait = "0.1.74"
-tracing = "0.1.40"
+tokio = { version = "1.42", default-features = false }
+async-trait = "0.1.83"
+tracing = "0.1.41"
 chrono = "0.4"
-validator = { version = "0.16" }
-sea-orm = { version = "1.0.0-rc.1", features = [
+validator = { version = "0.19" }
+sea-orm = { version = "1.1.3", features = [
     "sqlx-sqlite",
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
 ] }
 
-axum = "0.7.1"
+axum = "0.7.9"
 include_dir = "0.7"
 uuid = { version = "1.6.0", features = ["v4"] }
-tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"] }
-sea-orm-migration = { version = "1.0.0-rc.1", features = [
-    "runtime-tokio-rustls",
-] }
-reqwest = "0.11.24"
-thiserror = "1.0.57"
-rss = "2.0.7"
-bytes = "1.5.0"
-futures = "0.3.30"
-itertools = "0.12.1"
-qbit-rs = { git = "https://github.com/George-Miao/qbit.git", rev = "ad5af6a", features = ["default", "builder"] }
-url = "2.5.0"
-fancy-regex = "0.13.0"
-regex = "1.10.3"
-lazy_static = "1.4.0"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+sea-orm-migration = { version = "1.1.3", features = ["runtime-tokio-rustls"] }
+reqwest = "0.12.9"
+thiserror = "2"
+rss = "2"
+bytes = "1.9"
+futures = "0.3.31"
+itertools = "0.13.0"
+url = "2.5"
+fancy-regex = "0.14"
+regex = "1.11"
+lazy_static = "1.5"
 maplit = "1.0.2"
-tl = { version = "0.7.8", features = ["simd"] }
-lightningcss = "1.0.0-alpha.54"
+lightningcss = "1.0.0-alpha.61"
 html-escape = "0.2.13"
-opendal = "0.45.0"
-librqbit-core = "3.5.0"
-quirks_path = { path = "../quirks_path" }
+opendal = { version = "0.51.0", features = ["default", "services-fs"] }
+quirks_path = { path = "../quirks-path" }
+torrent = { path = "../torrent" }
+zune-image = "0.4.15"
+once_cell = "1.20.2"
+reqwest-middleware = "0.4.0"
+reqwest-retry = "0.7.0"
+reqwest-tracing = "0.5.5"
+scraper = "0.22.0"
+leaky-bucket = "1.1.2"
+serde_with = "3"
 
 [dev-dependencies]
-serial_test = "2.0.0"
-rstest = "0.18.2"
-loco-rs = { version = "0.3.1", features = ["testing"] }
-insta = { version = "1.34.0", features = ["redactions", "yaml", "filters"] }
-testcontainers = { version = "0.15.0" }
-testcontainers-modules = { version = "0.3.5" }
+serial_test = "3"
+rstest = "0.23.0"
+loco-rs = { version = "0.13.2", features = ["testing"] }
+insta = { version = "1", features = ["redactions", "yaml", "filters"] }
+testcontainers = { version = "0.23.1" }
+testcontainers-modules = { version = "0.11.4" }

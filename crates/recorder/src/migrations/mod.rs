@@ -1,5 +1,6 @@
 pub use sea_orm_migration::prelude::*;
 
+#[macro_use]
 pub mod defs;
 pub mod m20220101_000001_init;
 pub mod m20240224_082543_add_downloads;

@@ -1,9 +1,13 @@
+use loco_rs::schema::jsonb_null;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::{
     Bangumi, CustomSchemaManagerExt, Episodes, GeneralIds, Subscribers, Subscriptions,
 };
-use crate::models::{subscribers::ROOT_SUBSCRIBER, subscriptions};
+use crate::models::{
+    subscribers::ROOT_SUBSCRIBER,
+    subscriptions::{self, SubscriptionCategoryEnum},
+};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -14,15 +18,18 @@ impl MigrationTrait for Migration {
         manager
             .create_postgres_auto_update_ts_fn_for_col(GeneralIds::UpdatedAt)
             .await?;
+
         manager
             .create_table(
                 table_auto(Subscribers::Table)
                     .col(pk_auto(Subscribers::Id))
                     .col(string_len_uniq(Subscribers::Pid, 64))
                     .col(string(Subscribers::DisplayName))
+                    .col(jsonb_null(Subscribers::BangumiConf))
                     .to_owned(),
             )
             .await?;
+
         manager
             .create_postgres_auto_update_ts_trigger_for_col(
                 Subscribers::Table,
@@ -37,15 +44,13 @@ impl MigrationTrait for Migration {
             .to_owned();
         manager.exec_stmt(insert).await?;
 
-        manager
-            .create_postgres_enum_for_active_enum(
-                subscriptions::SubscriptionCategoryEnum,
-                &[
-                    subscriptions::SubscriptionCategory::Mikan,
-                    subscriptions::SubscriptionCategory::Manual,
-                ],
-            )
-            .await?;
+        create_postgres_enum_for_active_enum!(
+            manager,
+            subscriptions::SubscriptionCategoryEnum,
+            subscriptions::SubscriptionCategory::Mikan,
+            subscriptions::SubscriptionCategory::Manual
+        )
+        .await?;
 
         manager
             .create_table(
@@ -54,7 +59,6 @@ impl MigrationTrait for Migration {
                     .col(string(Subscriptions::DisplayName))
                     .col(integer(Subscriptions::SubscriberId))
                     .col(text(Subscriptions::SourceUrl))
-                    .col(boolean(Subscriptions::Aggregate))
                     .col(boolean(Subscriptions::Enabled))
                     .col(enumeration(
                         Subscriptions::Category,
@@ -63,7 +67,7 @@ impl MigrationTrait for Migration {
                     ))
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk_subscription_subscriber_id")
+                            .name("fk_subscriptions_subscriber_id")
                             .from(Subscriptions::Table, Subscriptions::SubscriberId)
                             .to(Subscribers::Table, Subscribers::Id)
                             .on_update(ForeignKeyAction::Restrict)
@@ -84,8 +88,21 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Bangumi::Table)
                     .col(pk_auto(Bangumi::Id))
-                    .col(text(Bangumi::DisplayName))
+                    .col(text_null(Bangumi::MikanBangumiId))
                     .col(integer(Bangumi::SubscriptionId))
+                    .col(text(Bangumi::DisplayName))
+                    .col(text(Bangumi::RawName))
+                    .col(integer(Bangumi::Season))
+                    .col(text_null(Bangumi::SeasonRaw))
+                    .col(text_null(Bangumi::Fansub))
+                    .col(text_null(Bangumi::MikanFansubId))
+                    .col(jsonb_null(Bangumi::Filter))
+                    .col(text_null(Bangumi::RssLink))
+                    .col(text_null(Bangumi::PosterLink))
+                    .col(text_null(Bangumi::SavePath))
+                    .col(boolean(Bangumi::Deleted).default(false))
+                    .col(text_null(Bangumi::Homepage))
+                    .col(jsonb_null(Bangumi::Extra))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_bangumi_subscription_id")
@@ -99,6 +116,28 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx_bangumi_mikan_bangumi_id")
+                    .table(Bangumi::Table)
+                    .col(Bangumi::MikanBangumiId)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx_bangumi_mikan_fansub_id")
+                    .table(Bangumi::Table)
+                    .col(Bangumi::MikanFansubId)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
             .create_postgres_auto_update_ts_trigger_for_col(Bangumi::Table, GeneralIds::UpdatedAt)
             .await?;
 
@@ -106,17 +145,63 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Episodes::Table)
                     .col(pk_auto(Episodes::Id))
+                    .col(text_null(Episodes::MikanEpisodeId))
+                    .col(text(Episodes::RawName))
                     .col(text(Episodes::DisplayName))
                     .col(integer(Episodes::BangumiId))
-                    .col(text(Episodes::OutputName))
+                    .col(integer(Episodes::SubscriptionId))
+                    .col(text_null(Episodes::SavePath))
+                    .col(text_null(Episodes::Resolution))
+                    .col(integer(Episodes::Season))
+                    .col(text_null(Episodes::SeasonRaw))
+                    .col(text_null(Episodes::Fansub))
+                    .col(text_null(Episodes::PosterLink))
+                    .col(integer(Episodes::EpisodeIndex))
+                    .col(text_null(Episodes::Homepage))
+                    .col(text_null(Episodes::Subtitle))
+                    .col(boolean(Episodes::Deleted).default(false))
+                    .col(text_null(Episodes::Source))
+                    .col(jsonb_null(Episodes::Extra))
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk_episode_bangumi_id")
+                            .name("fk_episodes_subscription_id")
+                            .from(Episodes::Table, Episodes::SubscriptionId)
+                            .to(Subscriptions::Table, Subscriptions::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_episodes_bangumi_id")
                             .from(Episodes::Table, Episodes::BangumiId)
                             .to(Bangumi::Table, Bangumi::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx_episodes_mikan_episode_id")
+                    .table(Episodes::Table)
+                    .col(Episodes::MikanEpisodeId)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx_episodes_bangumi_id_mikan_episode_id")
+                    .table(Episodes::Table)
+                    .col(Episodes::BangumiId)
+                    .col(Episodes::MikanEpisodeId)
+                    .unique()
                     .to_owned(),
             )
             .await?;
@@ -130,17 +215,23 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
+            .drop_table(Table::drop().table(Episodes::Table).to_owned())
+            .await?;
+
+        manager
             .drop_postgres_auto_update_ts_trigger_for_col(Episodes::Table, GeneralIds::UpdatedAt)
             .await?;
+
         manager
-            .drop_table(Table::drop().table(Episodes::Table).to_owned())
+            .drop_table(Table::drop().table(Bangumi::Table).to_owned())
             .await?;
 
         manager
             .drop_postgres_auto_update_ts_trigger_for_col(Bangumi::Table, GeneralIds::UpdatedAt)
             .await?;
+
         manager
-            .drop_table(Table::drop().table(Bangumi::Table).to_owned())
+            .drop_table(Table::drop().table(Subscriptions::Table).to_owned())
             .await?;
 
         manager
@@ -149,8 +240,9 @@ impl MigrationTrait for Migration {
                 GeneralIds::UpdatedAt,
             )
             .await?;
+
         manager
-            .drop_table(Table::drop().table(Subscriptions::Table).to_owned())
+            .drop_table(Table::drop().table(Subscribers::Table).to_owned())
             .await?;
 
         manager
@@ -158,11 +250,15 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Subscribers::Table).to_owned())
+            .drop_postgres_enum_for_active_enum(subscriptions::SubscriptionCategoryEnum)
             .await?;
 
         manager
-            .drop_postgres_enum_for_active_enum(subscriptions::SubscriptionCategoryEnum)
+            .drop_postgres_auto_update_ts_fn_for_col(GeneralIds::UpdatedAt)
+            .await?;
+
+        manager
+            .drop_postgres_enum_for_active_enum(SubscriptionCategoryEnum)
             .await?;
 
         Ok(())

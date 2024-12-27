@@ -1,8 +1,8 @@
 use loco_rs::cli;
-use recorder::migrations::Migrator;
-use recorder::app::App;
+use recorder::{app::App, migrations::Migrator};
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
-    cli::main::<App, Migrator>().await
+    cli::main::<App, Migrator>().await?;
+    Ok(())
 }

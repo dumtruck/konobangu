@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::collections::HashSet;
 
 use sea_orm::{DeriveIden, Statement};
 use sea_orm_migration::prelude::{extension::postgres::IntoTypeRef, *};
@@ -18,17 +18,17 @@ pub enum Subscribers {
     Pid,
     DisplayName,
     DownloaderId,
+    BangumiConf,
 }
 
 #[derive(DeriveIden)]
 pub enum Subscriptions {
     Table,
     Id,
-    SubscriberId,
     DisplayName,
+    SubscriberId,
     Category,
     SourceUrl,
-    Aggregate,
     Enabled,
 }
 
@@ -36,32 +36,61 @@ pub enum Subscriptions {
 pub enum Bangumi {
     Table,
     Id,
+    MikanBangumiId,
     DisplayName,
     SubscriptionId,
+    RawName,
+    Season,
+    SeasonRaw,
+    Fansub,
+    MikanFansubId,
+    Filter,
+    RssLink,
+    PosterLink,
+    SavePath,
+    Deleted,
+    Homepage,
+    Extra,
 }
 
 #[derive(DeriveIden)]
 pub enum Episodes {
     Table,
     Id,
+    MikanEpisodeId,
+    RawName,
     DisplayName,
     BangumiId,
-    OutputName,
+    SubscriptionId,
     DownloadId,
+    SavePath,
+    Resolution,
+    Season,
+    SeasonRaw,
+    Fansub,
+    PosterLink,
+    EpisodeIndex,
+    Homepage,
+    Subtitle,
+    Deleted,
+    Source,
+    Extra,
 }
 
 #[derive(DeriveIden)]
 pub enum Downloads {
     Table,
     Id,
-    SubscriptionId,
     OriginalName,
     DisplayName,
+    SubscriptionId,
     Status,
     CurrSize,
     AllSize,
     Mime,
     Url,
+    Homepage,
+    SavePath,
 }
 
 #[derive(DeriveIden)]
@@ -73,7 +102,17 @@ pub enum Downloaders {
     Password,
     Username,
     SubscriberId,
-    DownloadPath,
+    SavePath,
+}
+
+macro_rules! create_postgres_enum_for_active_enum {
+    ($manager: expr, $active_enum: expr, $($enum_value:expr),+) => {
+        {
+            use sea_orm::ActiveEnum;
+            let values = [$($enum_value,)+].map(|v| ActiveEnum::to_value(&v));
+            ($manager).create_postgres_enum_for_active_enum($active_enum, values)
+        }
+    };
 }
 
 #[async_trait::async_trait]
@@ -151,8 +190,7 @@ pub trait CustomSchemaManagerExt {
 
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
-        I: IntoIterator<Item = T> + Send,
+        I: IntoIterator<Item = String> + Send,
     >(
         &self,
         enum_name: E,
@@ -161,8 +199,7 @@ pub trait CustomSchemaManagerExt {
 
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
-        I: IntoIterator<Item = T> + Send,
+        I: IntoIterator<Item = String> + Send,
     >(
         &self,
         enum_name: E,
@@ -186,7 +223,7 @@ pub trait CustomSchemaManagerExt {
 }
 
 #[async_trait::async_trait]
-impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
+impl CustomSchemaManagerExt for SchemaManager<'_> {
     async fn create_postgres_auto_update_ts_fn(&self, col_name: &str) -> Result<(), DbErr> {
         let sql = format!(
             "CREATE OR REPLACE FUNCTION update_{col_name}_column() RETURNS TRIGGER AS $$ BEGIN \
@@ -239,8 +276,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
 
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
-        I: IntoIterator<Item = T> + Send,
+        I: IntoIterator<Item = String> + Send,
     >(
         &self,
         enum_name: E,
@@ -248,10 +284,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
     ) -> Result<(), DbErr> {
         let existed = self.if_postgres_enum_exists(enum_name.clone()).await?;
         if !existed {
-            let idents = values
-                .into_iter()
-                .map(|v| Alias::new(v.to_string()))
-                .collect::<Vec<_>>();
+            let idents = values.into_iter().map(Alias::new).collect::<Vec<_>>();
             self.create_type(Type::create().as_enum(enum_name).values(idents).to_owned())
                 .await?;
         } else {
@@ -263,8 +296,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
 
     async fn add_postgres_enum_values_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
-        T: Display + Send,
-        I: IntoIterator<Item = T> + Send,
+        I: IntoIterator<Item = String> + Send,
     >(
         &self,
         enum_name: E,
@@ -273,7 +305,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         let exists_values = self.get_postgres_enum_values(enum_name.clone()).await?;
         let to_add_values = values
             .into_iter()
-            .filter(|v| !exists_values.contains(&v.to_string()))
+            .filter(|v| !exists_values.contains(v as &str))
             .collect::<Vec<_>>();
 
         if to_add_values.is_empty() {
@@ -283,7 +315,7 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         let mut type_alter = Type::alter().name(enum_name);
 
         for v in to_add_values {
-            type_alter = type_alter.add_value(Alias::new(v.to_string()));
+            type_alter = type_alter.add_value(Alias::new(v));
         }
 
         self.alter_type(type_alter.to_owned()).await?;
@@ -294,8 +326,10 @@ impl<'c> CustomSchemaManagerExt for SchemaManager<'c> {
         &self,
         enum_name: E,
     ) -> Result<(), DbErr> {
-        self.drop_type(Type::drop().name(enum_name).to_owned())
-            .await?;
+        if self.if_postgres_enum_exists(enum_name.clone()).await? {
+            self.drop_type(Type::drop().name(enum_name).to_owned())
+                .await?;
+        }
         Ok(())
     }
 

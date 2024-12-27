@@ -7,6 +7,16 @@ pub struct BangumiFilter {
     pub group: Option<Vec<String>>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct BangumiExtra {
+    pub name_zh: Option<String>,
+    pub s_name_zh: Option<String>,
+    pub name_en: Option<String>,
+    pub s_name_en: Option<String>,
+    pub name_jp: Option<String>,
+    pub s_name_jp: Option<String>,
+}
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "bangumi")]
 pub struct Model {
@@ -14,17 +24,22 @@ pub struct Model {
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
+    pub mikan_bangumi_id: Option<String>,
     pub subscription_id: i32,
     pub display_name: String,
-    pub official_title: String,
+    pub raw_name: String,
     pub season: i32,
     pub season_raw: Option<String>,
     pub fansub: Option<String>,
+    pub mikan_fansub_id: Option<String>,
     pub filter: Option<BangumiFilter>,
     pub rss_link: Option<String>,
     pub poster_link: Option<String>,
     pub save_path: Option<String>,
+    #[sea_orm(default = "false")]
     pub deleted: bool,
+    pub homepage: Option<String>,
+    pub extra: Option<BangumiExtra>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

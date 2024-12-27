@@ -11,12 +11,12 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager
-            .create_postgres_enum_for_active_enum(
-                DownloaderCategoryEnum,
-                &[DownloaderCategory::QBittorrent],
-            )
-            .await?;
+        create_postgres_enum_for_active_enum!(
+            manager,
+            DownloaderCategoryEnum,
+            DownloaderCategory::QBittorrent
+        )
+        .await?;
 
         manager
             .create_table(
@@ -30,7 +30,7 @@ impl MigrationTrait for Migration {
                         DownloaderCategoryEnum,
                         DownloaderCategory::iden_values(),
                     ))
-                    .col(text(Downloaders::DownloadPath))
+                    .col(text(Downloaders::SavePath))
                     .col(integer(Downloaders::SubscriberId))
                     .foreign_key(
                         ForeignKey::create()
@@ -60,7 +60,7 @@ impl MigrationTrait for Migration {
                     .add_column_if_not_exists(integer_null(Subscribers::DownloaderId))
                     .add_foreign_key(
                         TableForeignKey::new()
-                            .name("fk_subscriber_downloader_id")
+                            .name("fk_subscribers_downloader_id")
                             .from_tbl(Subscribers::Table)
                             .from_col(Subscribers::DownloaderId)
                             .to_tbl(Downloaders::Table)
@@ -79,7 +79,7 @@ impl MigrationTrait for Migration {
             .alter_table(
                 Table::alter()
                     .table(Subscribers::Table)
-                    .drop_foreign_key(Alias::new("fk_subscriber_downloader_id"))
+                    .drop_foreign_key(Alias::new("fk_subscribers_downloader_id"))
                     .drop_column(Subscribers::DownloaderId)
                     .to_owned(),
             )

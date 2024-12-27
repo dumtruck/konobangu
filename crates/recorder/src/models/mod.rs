@@ -5,5 +5,6 @@ pub mod entities;
 pub mod episodes;
 pub mod notifications;
 pub mod prelude;
+pub mod query;
 pub mod subscribers;
 pub mod subscriptions;

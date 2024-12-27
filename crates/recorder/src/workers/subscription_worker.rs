@@ -12,19 +12,18 @@ pub struct SubscriptionWorkerArgs {
     pub subscription: subscriptions::Model,
 }
 
-impl worker::AppWorker<SubscriptionWorkerArgs> for SubscriptionWorker {
+#[async_trait]
+
+impl BackgroundWorker<SubscriptionWorkerArgs> for SubscriptionWorker {
     fn build(ctx: &AppContext) -> Self {
         Self { ctx: ctx.clone() }
     }
-}
 
-#[async_trait]
-impl worker::Worker<SubscriptionWorkerArgs> for SubscriptionWorker {
-    async fn perform(&self, args: SubscriptionWorkerArgs) -> worker::Result<()> {
+    async fn perform(&self, _args: SubscriptionWorkerArgs) -> Result<()> {
         println!("================================================");
 
-        let db = &self.ctx.db;
-        let storage = &self.ctx.storage;
+        let _db = &self.ctx.db;
+        let _storage = &self.ctx.storage;
 
         println!("================================================");
         Ok(())

@@ -19,7 +19,7 @@ pub struct Model {
     pub pid: String,
     pub display_name: String,
     pub downloader_id: Option<i32>,
-    pub bangumi_conf: SubscriberBangumiConfig,
+    pub bangumi_conf: Option<SubscriberBangumiConfig>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

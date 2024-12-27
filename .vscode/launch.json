@@ -1,0 +1,88 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug quirks_path lib",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=quirks_path"
+        ],
+        "filter": {
+          "name": "quirks_path",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug recorder bin",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=recorder_cli",
+          "--package=recorder",
+        ],
+        "filter": {
+          "name": "recorder_cli",
+          "kind": "bin"
+        }
+      },
+      "args": [
+        "--environment",
+        "recorder.development"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug playground example",
+      "cargo": {
+        "args": [
+          "build",
+          "--example=playground",
+          "--package=recorder",
+        ],
+        "filter": {
+          "name": "playground",
+          "kind": "example"
+        }
+      },
+      "args": [
+        "--environment",
+        "recorder.development"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug record lib",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--test=mod",
+          "--package=recorder"
+        ],
+        "filter": {
+          "name": "mod",
+          "kind": "test"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

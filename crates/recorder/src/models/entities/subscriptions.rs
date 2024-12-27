@@ -30,7 +30,6 @@ pub struct Model {
     pub subscriber_id: i32,
     pub category: SubscriptionCategory,
     pub source_url: String,
-    pub aggregate: bool,
     pub enabled: bool,
 }
 
@@ -44,6 +43,8 @@ pub enum Relation {
     Subscriber,
     #[sea_orm(has_many = "super::bangumi::Entity")]
     Bangumi,
+    #[sea_orm(has_many = "super::episodes::Entity")]
+    Episodes,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -55,5 +56,11 @@ impl Related<super::subscribers::Entity> for Entity {
 impl Related<super::bangumi::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Bangumi.def()
+    }
+}
+
+impl Related<super::episodes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Episodes.def()
     }
 }

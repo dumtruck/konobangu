@@ -2,8 +2,8 @@ use loco_rs::prelude::*;
 
 use crate::{models::entities::subscribers, views::subscribers::CurrentResponse};
 
-async fn current(State(ctx): State<AppContext>) -> Result<Json<CurrentResponse>> {
-    let subscriber = subscribers::Model::find_root(&ctx.db).await?;
+async fn current(State(ctx): State<AppContext>) -> Result<impl IntoResponse> {
+    let subscriber = subscribers::Model::find_root(&ctx).await?;
     format::json(CurrentResponse::new(&subscriber))
 }
 
