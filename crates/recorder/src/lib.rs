@@ -1,4 +1,4 @@
-#![feature(duration_constructors, assert_matches)]
+#![feature(duration_constructors, assert_matches, unboxed_closures)]
 
 pub mod app;
 pub mod config;

@@ -6,6 +6,7 @@ pub use super::entities::bangumi::*;
 impl Model {
     pub async fn get_or_insert_from_mikan<F>(
         ctx: &AppContext,
+        subscriber_id: i32,
         subscription_id: i32,
         mikan_bangumi_id: String,
         mikan_fansub_id: String,
@@ -30,6 +31,7 @@ impl Model {
                 mikan_bangumi_id: ActiveValue::Set(Some(mikan_bangumi_id)),
                 mikan_fansub_id: ActiveValue::Set(Some(mikan_fansub_id)),
                 subscription_id: ActiveValue::Set(subscription_id),
+                subscriber_id: ActiveValue::Set(subscriber_id),
                 ..Default::default()
             };
             f(&mut bgm).await?;

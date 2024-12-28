@@ -25,6 +25,7 @@ pub struct Model {
     pub display_name: String,
     pub bangumi_id: i32,
     pub subscription_id: i32,
+    pub subscriber_id: i32,
     pub download_id: Option<i32>,
     pub save_path: Option<String>,
     pub resolution: Option<String>,
@@ -61,6 +62,12 @@ pub enum Relation {
         to = "super::subscriptions::Column::Id"
     )]
     Subscriptions,
+    #[sea_orm(
+        belongs_to = "super::subscribers::Entity",
+        from = "Column::SubscriberId",
+        to = "super::subscribers::Column::Id"
+    )]
+    Subscriber,
 }
 
 impl Related<super::bangumi::Entity> for Entity {
@@ -78,5 +85,11 @@ impl Related<super::downloads::Entity> for Entity {
 impl Related<super::subscriptions::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Subscriptions.def()
+    }
+}
+
+impl Related<super::subscribers::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscriber.def()
     }
 }

@@ -90,6 +90,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Bangumi::Id))
                     .col(text_null(Bangumi::MikanBangumiId))
                     .col(integer(Bangumi::SubscriptionId))
+                    .col(integer(Bangumi::SubscriberId))
                     .col(text(Bangumi::DisplayName))
                     .col(text(Bangumi::RawName))
                     .col(integer(Bangumi::Season))
@@ -108,6 +109,14 @@ impl MigrationTrait for Migration {
                             .name("fk_bangumi_subscription_id")
                             .from(Bangumi::Table, Bangumi::SubscriptionId)
                             .to(Subscriptions::Table, Subscriptions::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_bangumi_subscriber_id")
+                            .from(Bangumi::Table, Bangumi::SubscriberId)
+                            .to(Subscribers::Table, Subscribers::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
@@ -150,6 +159,7 @@ impl MigrationTrait for Migration {
                     .col(text(Episodes::DisplayName))
                     .col(integer(Episodes::BangumiId))
                     .col(integer(Episodes::SubscriptionId))
+                    .col(integer(Episodes::SubscriberId))
                     .col(text_null(Episodes::SavePath))
                     .col(text_null(Episodes::Resolution))
                     .col(integer(Episodes::Season))
@@ -175,6 +185,14 @@ impl MigrationTrait for Migration {
                             .name("fk_episodes_bangumi_id")
                             .from(Episodes::Table, Episodes::BangumiId)
                             .to(Bangumi::Table, Bangumi::Id)
+                            .on_update(ForeignKeyAction::Restrict)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_episodes_subscriber_id")
+                            .from(Episodes::Table, Episodes::SubscriberId)
+                            .to(Subscribers::Table, Subscribers::Id)
                             .on_update(ForeignKeyAction::Restrict)
                             .on_delete(ForeignKeyAction::Cascade),
                     )

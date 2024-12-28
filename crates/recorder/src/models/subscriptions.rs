@@ -123,8 +123,7 @@ impl Model {
                         .iter()
                         .map(|s| Value::from(s.mikan_episode_id.clone())),
                 );
-                stmt.expr(Expr::col(episodes::Column::SubscriptionId))
-                    .and_where(Expr::col(episodes::Column::SubscriptionId).eq(self.id));
+                stmt.and_where(Expr::col(episodes::Column::SubscriberId).eq(self.subscriber_id));
 
                 let builder = &db.get_database_backend();
 
@@ -132,7 +131,7 @@ impl Model {
                     .query_all(builder.build(&stmt))
                     .await?
                     .into_iter()
-                    .flat_map(|qs| qs.try_get_by_index::<String>(0))
+                    .flat_map(|qs| qs.try_get_by_index(0))
                     .collect::<HashSet<String>>();
 
                 let new_rss_items = items
@@ -173,6 +172,7 @@ impl Model {
                     let bgm = Arc::new(
                         bangumi::Model::get_or_insert_from_mikan(
                             ctx,
+                            self.subscriber_id,
                             self.id,
                             mikan_bangumi_id.to_string(),
                             mikan_fansub_id.to_string(),

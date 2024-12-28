@@ -35,6 +35,7 @@ impl Model {
                     .do_nothing()
                     .to_owned(),
             )
+            .on_empty_do_nothing()
             .exec(db)
             .await?;
 
@@ -61,6 +62,7 @@ impl ActiveModel {
             display_name: ActiveValue::Set(item.episode_title.clone()),
             bangumi_id: ActiveValue::Set(bgm.id),
             subscription_id: ActiveValue::Set(bgm.subscription_id),
+            subscriber_id: ActiveValue::Set(bgm.subscriber_id),
             resolution: ActiveValue::Set(raw_meta.resolution),
             season: ActiveValue::Set(if raw_meta.season > 0 {
                 raw_meta.season

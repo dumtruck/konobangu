@@ -32,6 +32,10 @@ pub enum Relation {
         to = "super::downloaders::Column::Id"
     )]
     Downloader,
+    #[sea_orm(has_many = "super::bangumi::Entity")]
+    Bangumi,
+    #[sea_orm(has_many = "super::episodes::Entity")]
+    Episode,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -43,5 +47,17 @@ impl Related<super::subscriptions::Entity> for Entity {
 impl Related<super::downloaders::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Downloader.def()
+    }
+}
+
+impl Related<super::bangumi::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Bangumi.def()
+    }
+}
+
+impl Related<super::episodes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Episode.def()
     }
 }
