@@ -11,8 +11,9 @@ const NAME_EXTRACT_REPLACE_ADHOC1_REPLACED: &str = "$1/$2";
 
 lazy_static! {
     static ref TITLE_RE: Regex = Regex::new(
-        r#"(.*|\[.*])( -? \d+|\[\d+]|\[\d+.?[vV]\d]|第\d+[话話集]|\[第?\d+[话話集]]|\[\d+.?END]|[Ee][Pp]?\d+)(.*)"#
+        r#"(.*|\[.*])( -? \d+|\[\d+]|\[\d+.?[vV]\d]|第\d+[话話集]|\[第?\d+[话話集]]|\[\d+.?END]|[Ee][Pp]?\d+|\[\s*\d+\s*[\-\~]\s*\d+\s*\p{scx=Han}*[话話集]\s*])(.*)"#
     ).unwrap();
+    static ref EP_COLLECTION_RE:Regex = Regex::new(r#"\[?\s*\d+\s*[\-\~]\s*\d+\s*\p{scx=Han}*合?[话話集]\s*]?"#).unwrap();
     static ref MOVIE_TITLE_RE:Regex = Regex::new(r#"(.*|\[.*])(剧场版|[Mm]ovie|电影)(.*?)$"#).unwrap();
     static ref RESOLUTION_RE: Regex = Regex::new(r"1080|720|2160|4K|2K").unwrap();
     static ref SOURCE_L1_RE: Regex = Regex::new(r"B-Global|[Bb]aha|[Bb]ilibili|AT-X|W[Ee][Bb][Rr][Ii][Pp]|Sentai|B[Dd][Rr][Ii][Pp]|UHD[Rr][Ii][Pp]|NETFLIX").unwrap();
@@ -41,7 +42,7 @@ lazy_static! {
     static ref CLEAR_SUB_RE: Regex = Regex::new(r"_MP4|_MKV").unwrap();
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct RawEpisodeMeta {
     pub name_en: Option<String>,
     pub name_en_no_season: Option<String>,
@@ -252,14 +253,14 @@ fn extract_tags_from_title_extra(
 }
 
 pub fn check_is_movie(title: &str) -> bool {
-    MOVIE_SEASON_EXTRACT_RE.is_match(title)
+    MOVIE_TITLE_RE.is_match(title)
 }
 
 pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta> {
     let raw_title = s.trim();
     let raw_title_without_ch_brackets = replace_ch_bracket_to_en(raw_title);
     let fansub = extract_fansub(&raw_title_without_ch_brackets);
-    let is_movie = check_is_movie(&raw_title_without_ch_brackets);
+    let movie_capture = check_is_movie(&raw_title_without_ch_brackets);
     if let Some(title_re_match_obj) = MOVIE_TITLE_RE
         .captures(&raw_title_without_ch_brackets)
         .or(TITLE_RE.captures(&raw_title_without_ch_brackets))
@@ -278,8 +279,10 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
             .map(|s| s.as_str().trim())
             .unwrap_or_else(|| unreachable!("TITLE_RE has at least 3 capture groups"));
 
-        if is_movie {
+        if movie_capture {
             title_body += title_episode;
+            title_episode = "";
+        } else if EP_COLLECTION_RE.is_match(&title_episode) {
             title_episode = "";
         }
 
@@ -306,16 +309,20 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> eyre::Result<RawEpisodeMeta>
             resolution,
         })
     } else {
-        Err(eyre::eyre!("Can not parse episode meta from raw filename"))
+        Err(eyre::eyre!(
+            "Can not parse episode meta from raw filename {}",
+            raw_title
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::{parse_episode_meta_from_raw_name, RawEpisodeMeta};
 
     fn test_raw_ep_parser_case(raw_name: &str, expected: &str) {
-        let expected: Option<RawEpisodeMeta> = serde_json::from_str(expected).unwrap();
+        let expected: Option<RawEpisodeMeta> = serde_json::from_str(expected).unwrap_or_default();
         let found = parse_episode_meta_from_raw_name(raw_name).ok();
 
         if expected != found {
@@ -725,6 +732,78 @@ mod tests {
                       "resolution": "1080p"
                     }"#,
         )
+    }
+
+    #[test]
+    fn test_ep_collections() {
+        test_raw_ep_parser_case(
+            r#"[奶²&LoliHouse] 蘑菇狗 / Kinokoinu: Mushroom Pup [01-12 精校合集][WebRip 1080p HEVC-10bit AAC][简日内封字幕]"#,
+            r#"{
+                "name_en": "Kinokoinu: Mushroom Pup",
+                "name_en_no_season": "Kinokoinu: Mushroom Pup",
+                "name_zh": "蘑菇狗",
+                "name_zh_no_season": "蘑菇狗",
+                "season": 1,
+                "episode_index": 1,
+                "subtitle": "简日内封字幕",
+                "source": "WebRip",
+                "fansub": "奶²&LoliHouse",
+                "resolution": "1080p",
+                 "name": " 蘑菇狗 / Kinokoinu: Mushroom Pup [01-12 精校合集]"
+            }"#,
+        );
+
+        test_raw_ep_parser_case(
+            r#"[LoliHouse] 叹气的亡灵想隐退 / Nageki no Bourei wa Intai shitai [01-13 合集][WebRip 1080p HEVC-10bit AAC][简繁内封字幕][Fin]"#,
+            r#"{
+                "name_en": "Nageki no Bourei wa Intai shitai",
+                "name_en_no_season": "Nageki no Bourei wa Intai shitai",
+                "name_jp": null,
+                "name_jp_no_season": null,
+                "name_zh": "叹气的亡灵想隐退",
+                "name_zh_no_season": "叹气的亡灵想隐退",
+                "season": 1,
+                "season_raw": null,
+                "episode_index": 1,
+                "subtitle": "简繁内封字幕",
+                "source": "WebRip",
+                "fansub": "LoliHouse",
+                "resolution": "1080p"
+            }"#,
+        );
+
+        test_raw_ep_parser_case(
+            r#"[LoliHouse] 精灵幻想记 第二季 / Seirei Gensouki S2 [01-12 合集][WebRip 1080p HEVC-10bit AAC][简繁内封字幕][Fin]"#,
+            r#"{
+                "name_en": "Seirei Gensouki S2",
+                "name_en_no_season": "Seirei Gensouki",
+                "name_zh": "精灵幻想记 第二季",
+                "name_zh_no_season": "精灵幻想记",
+                "season": 2,
+                "season_raw": "第二季",
+                "episode_index": 1,
+                "subtitle": "简繁内封字幕",
+                "source": "WebRip",
+                "fansub": "LoliHouse",
+                "resolution": "1080p"
+            }"#,
+        );
+
+        test_raw_ep_parser_case(
+            r#"[喵萌奶茶屋&LoliHouse] 超自然武装当哒当 / 胆大党 / Dandadan [01-12 精校合集][WebRip 1080p HEVC-10bit AAC][简繁日内封字幕][Fin]"#,
+            r#" {
+                "name_en": "Dandadan",
+                "name_en_no_season": "Dandadan",
+                "name_zh": "超自然武装当哒当",
+                "name_zh_no_season": "超自然武装当哒当",
+                "season": 1,
+                "episode_index": 1,
+                "subtitle": "简繁日内封字幕",
+                "source": "WebRip",
+                "fansub": "喵萌奶茶屋&LoliHouse",
+                "resolution": "1080p"
+            }"#,
+        );
     }
 
     // TODO: FIXME

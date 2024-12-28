@@ -27,7 +27,13 @@ impl Model {
         let db = &ctx.db;
         let new_episode_active_modes = creations
             .into_iter()
-            .flat_map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr));
+            .map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr))
+            .inspect(|result| {
+                if let Err(e) = result {
+                    tracing::warn!("Failed to create episode: {:?}", e);
+                }
+            })
+            .flatten();
 
         Entity::insert_many(new_episode_active_modes)
             .on_conflict(
@@ -50,7 +56,12 @@ impl ActiveModel {
     ) -> eyre::Result<Self> {
         let item = creation.episode;
         let bgm = creation.bangumi;
-        let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)?;
+        let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)
+            .inspect_err(|e| {
+                tracing::warn!("Failed to parse episode meta: {:?}", e);
+            })
+            .ok()
+            .unwrap_or_default();
         let homepage = build_mikan_episode_homepage(
             ctx.get_mikan_client().base_url(),
             &item.mikan_episode_id,

@@ -19,10 +19,10 @@ use recorder::{
 use sea_orm_migration::MigratorTrait;
 
 async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> eyre::Result<()> {
-    // let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
+    let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
 
-    let rss_link =
-        "https://mikanani.me/RSS/MyBangumi?token=FE9tccsML2nBPUUqpCuJW2uJZydAXCntHJ7RpD9LDP8%3d";
+    // let rss_link =
+    //     "https://mikanani.me/RSS/MyBangumi?token=FE9tccsML2nBPUUqpCuJW2uJZydAXCntHJ7RpD9LDP8%3d";
     let subscription = if let Some(subscription) = subscriptions::Entity::find()
         .filter(subscriptions::Column::SourceUrl.eq(String::from(rss_link)))
         .one(&ctx.db)
@@ -49,7 +49,7 @@ async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> eyre::Result<()> {
 
 async fn init() -> eyre::Result<AppContext> {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .with_test_writer()
         .init();
     let ctx = loco_rs::cli::playground::<App>().await?;
