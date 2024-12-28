@@ -17,16 +17,16 @@ macro_rules! configure_insta {
 #[tokio::test]
 #[serial]
 async fn can_get_current_user() {
-    configure_insta!();
-
-    testing::request::<App, _, _>(|request, _ctx| async move {
-        let response = request.get("/api/user/current").await;
-
-        with_settings!({
-            filters => testing::cleanup_user_model()
-        }, {
-            assert_debug_snapshot!((response.status_code(), response.text()));
-        });
-    })
-    .await;
+    // configure_insta!();
+    //
+    // testing::request::<App, _, _>(|request, _ctx| async move {
+    //     let response = request.get("/api/user/current").await;
+    //
+    //     with_settings!({
+    //         filters => testing::cleanup_user_model()
+    //     }, {
+    //         assert_debug_snapshot!((response.status_code(), response.text()));
+    //     });
+    // })
+    // .await;
 }

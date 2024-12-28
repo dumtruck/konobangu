@@ -3,7 +3,9 @@
 # Application logging configuration
 logger:
   # Enable or disable logging.
-  enable: false
+  enable: true
+  # Enable pretty backtrace (sets RUST_BACKTRACE=1)
+  pretty_backtrace: true
   # Log level, options: trace, debug, info, warn or error.
   level: debug
   # Define the logging format. options: compact, pretty or Json
@@ -15,11 +17,14 @@ logger:
 # Web server configuration
 server:
   # Port on which the server will listen. the server binding is 0.0.0.0:{PORT}
-  port: 3000
+  port: 3001
   # The UI hostname or IP address that mailers will point to.
-  host: http://localhost
+  host: http://webui.konobangu.com
   # Out of the box middleware configuration. to disable middleware you can changed the `enable` field to `false` of comment the middleware block
   middlewares:
+    # Enable Etag cache header middleware
+    etag:
+      enable: true
     # Allows to limit the payload size request. payload that bigger than this file will blocked the request.
     limit_payload:
       # Enable/Disable the middleware.
@@ -60,7 +65,7 @@ workers:
   #   - BackgroundQueue - Workers operate asynchronously in the background, processing queued.
   #   - ForegroundBlocking - Workers operate in the foreground and block until tasks are completed.
   #   - BackgroundAsync - Workers operate asynchronously in the background, processing tasks with async capabilities.
-  mode: ForegroundBlocking
+  mode: BackgroundQueue
 
 # Mailer Configuration.
 mailer:
@@ -69,7 +74,7 @@ mailer:
     # Enable/Disable smtp mailer.
     enable: true
     # SMTP server host. e.x localhost, smtp.gmail.com
-    host: localhost
+    host: '{{ get_env(name="MAILER_HOST", default="localhost") }}'
     # SMTP server port
     port: 1025
     # Use secure connection (SSL/TLS).
@@ -77,14 +82,13 @@ mailer:
     # auth:
     #   user:
     #   password:
-  stub: true
 
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5432/recorder_test")}} 
+  uri: '{{ get_env(name="DATABASE_URL", default="postgres://konobangu:konobangu@127.0.0.1:5432/konobangu") }}'
   # When enabled, the sql query will be logged.
-  enable_logging: false
+  enable_logging: true
   # Set the timeout duration when acquiring a connection.
   connect_timeout: 500
   # Set the idle duration before closing a connection.
@@ -96,23 +100,26 @@ database:
   # Run migration up when application loaded
   auto_migrate: true
   # Truncate database when application loaded. This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
-  dangerously_truncate: true
+  dangerously_truncate: false
   # Recreating schema when application loaded.  This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_recreate: false
 
 # Redis Configuration
 redis:
   # Redis connection URI
-  uri: {{get_env(name="REDIS_URL", default="redis://127.0.0.1")}}
+  uri: '{{ get_env(name="REDIS_URL", default="redis://127.0.0.1:6379") }}'
   # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
   dangerously_flush: false
 
-# Authentication Configuration
-auth:
-  # JWT authentication
-  jwt:
-    # Secret key for token generation and verification
-    secret: ZknFYqXpnDgaWcKJZ5J5
-    # Token expiration time in seconds
-    expiration: 604800 # 7 days
-
+settings:
+  dal:
+    data_dir: ./temp
+  mikan:
+    http_client:
+      exponential_backoff_max_retries: 3
+      leaky_bucket_max_tokens: 2
+      leaky_bucket_initial_tokens: 0
+      leaky_bucket_refill_tokens: 1
+      leaky_bucket_refill_interval: 500
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+    base_url: "https://mikanani.me/"

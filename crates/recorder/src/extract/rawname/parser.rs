@@ -338,7 +338,7 @@ mod tests {
                   "season": 2,
                   "season_raw": "第二季",
                   "episode_index": 5,
-                  "sub": "简日双语",
+                  "subtitle": "简日双语",
                   "source": null,
                   "fansub": "新Sub",
                   "resolution": "1080P"
@@ -358,7 +358,7 @@ mod tests {
                   "season": 1,
                   "season_raw": null,
                   "episode_index": 18,
-                  "sub": "简日双语",
+                  "subtitle": "简日双语",
                   "source": null,
                   "fansub": "喵萌奶茶屋",
                   "resolution": "1080p"
@@ -378,7 +378,7 @@ mod tests {
                     "season": 2,
                     "season_raw": "2nd",
                     "episode_index": 8,
-                    "sub": "简繁内封字幕",
+                    "subtitle": "简繁内封字幕",
                     "source": "WebRip",
                     "fansub": "LoliHouse",
                     "resolution": "1080p"
@@ -395,7 +395,7 @@ mod tests {
                 "name_en_no_season": "THE MARGINAL SERVICE",
                 "season": 1,
                 "episode_index": 8,
-                "sub": "简繁内封字幕",
+                "subtitle": "简繁内封字幕",
                 "source": "WebRip",
                 "fansub": "动漫国字幕组&LoliHouse",
                 "resolution": "1080p"
@@ -415,7 +415,7 @@ mod tests {
                     "season": 1,
                     "season_raw": null,
                     "episode_index": 1,
-                    "sub": "简繁内封字幕",
+                    "subtitle": "简繁内封字幕",
                     "source": "WebRip",
                     "fansub": "LoliHouse",
                     "resolution": "1080p"
@@ -437,7 +437,7 @@ mod tests {
                     "season": 1,
                     "season_raw": null,
                     "episode_index": 7,
-                    "sub": "简繁日内封字幕",
+                    "subtitle": "简繁日内封字幕",
                     "source": "WebRip",
                     "fansub": "喵萌奶茶屋&LoliHouse",
                     "resolution": "1080p"
@@ -457,7 +457,7 @@ mod tests {
                     "season": 2,
                     "season_raw": "2nd",
                     "episode_index": 9,
-                    "sub": "CHT",
+                    "subtitle": "CHT",
                     "source": "Baha",
                     "fansub": "ANi",
                     "resolution": "1080P"
@@ -477,7 +477,7 @@ mod tests {
                     "season": 5,
                     "season_raw": "第五季",
                     "episode_index": 7,
-                    "sub": "简繁外挂字幕",
+                    "subtitle": "简繁外挂字幕",
                     "source": "WebRip",
                     "fansub": "豌豆字幕组&LoliHouse",
                     "resolution": "1080p"
@@ -496,7 +496,7 @@ mod tests {
                   "name_zh_no_season": "爱丽丝与特蕾丝的虚幻工厂",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简繁内封",
+                  "subtitle": "简繁内封",
                   "source": "WebRip",
                   "fansub": "千夏字幕组",
                   "resolution": "1080p"
@@ -515,7 +515,7 @@ mod tests {
                       "name_zh_no_season": "电影 轻旅轻营 (摇曳露营)",
                       "season": 1,
                       "episode_index": 1,
-                      "sub": "繁体",
+                      "subtitle": "繁体",
                       "source": "UHDRip",
                       "fansub": "千夏字幕组&喵萌奶茶屋",
                       "resolution": "2160p"
@@ -534,7 +534,7 @@ mod tests {
                       "name_zh_no_season": "哆啦A梦新番",
                       "season": 1,
                       "episode_index": 747,
-                      "sub": "GB",
+                      "subtitle": "GB",
                       "fansub": "梦蓝字幕组",
                       "resolution": "1080P"
                     }"#,
@@ -552,7 +552,7 @@ mod tests {
                   "name_zh_no_season": "剧场版-摇曳露营",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简日双语",
+                  "subtitle": "简日双语",
                   "fansub": "MCE汉化组",
                   "resolution": "1080P"
                 }"#,
@@ -570,7 +570,7 @@ mod tests {
                       "name_zh_no_season": "尼尔：机械纪元",
                       "season": 1,
                       "episode_index": 2,
-                      "sub": "简日双语",
+                      "subtitle": "简日双语",
                       "fansub": "织梦字幕组",
                       "resolution": "1080P"
                     }"#,
@@ -589,7 +589,7 @@ mod tests {
                   "name_zh_no_season": "迷宫饭",
                   "season": 1,
                   "episode_index": 3,
-                  "sub": "日语中字",
+                  "subtitle": "日语中字",
                   "source": "NETFLIX",
                   "fansub": "天月搬运组",
                   "resolution": "1080P"
@@ -609,7 +609,7 @@ mod tests {
                   "name_zh_no_season": "迷宫饭",
                   "season": 1,
                   "episode_index": 1,
-                  "sub": "简日双语",
+                  "subtitle": "简日双语",
                   "fansub": "爱恋字幕社",
                   "resolution": "1080P"
                 }"#,
@@ -627,7 +627,7 @@ mod tests {
                   "name_zh_no_season": "梦想成为魔法少女 [年龄限制版]",
                   "season": 1,
                   "episode_index": 9,
-                  "sub": "CHT",
+                  "subtitle": "CHT",
                   "source": "Baha",
                   "fansub": "ANi",
                   "resolution": "1080P"
@@ -645,7 +645,7 @@ mod tests {
                       "season": 1,
                       "season_raw": null,
                       "episode_index": 1,
-                      "sub": "CHT",
+                      "subtitle": "CHT",
                       "source": "Baha",
                       "fansub": "ANi",
                       "resolution": "1080P"
@@ -664,7 +664,7 @@ mod tests {
                           "name_zh_no_season": "银砂糖师与黑妖精",
                           "season": 1,
                           "episode_index": 13,
-                          "sub": "简日双语",
+                          "subtitle": "简日双语",
                           "fansub": "喵萌奶茶屋",
                           "resolution": "1080p"
                         }"#,
@@ -682,7 +682,7 @@ mod tests {
                       "name_zh_no_season": "天国大魔境",
                       "season": 1,
                       "episode_index": 5,
-                      "sub": "字幕社招人内详",
+                      "subtitle": "字幕社招人内详",
                       "source": null,
                       "fansub": "极影字幕社",
                       "resolution": "720P"
@@ -719,7 +719,7 @@ mod tests {
                       "name_zh_no_season": "BanG Dream! 少女乐团派对！☆PICO FEVER！",
                       "season": 1,
                       "episode_index": 26,
-                      "sub": "简繁内封字幕",
+                      "subtitle": "简繁内封字幕",
                       "source": "WebRip",
                       "fansub": "百冬练习组&LoliHouse",
                       "resolution": "1080p"
@@ -738,7 +738,7 @@ mod tests {
                   "season": 1,
                   "season_raw": null,
                   "episode_index": 1,
-                  "sub": "简繁字幕",
+                  "subtitle": "简繁字幕",
                   "source": "BDrip",
                   "fansub": "7³ACG x 桜都字幕组",
                   "resolution": "1080p"
@@ -755,7 +755,7 @@ mod tests {
                       "season": 2,
                       "season_raw": "第二季",
                       "episode_index": 22,
-                      "sub": "GB",
+                      "subtitle": "GB",
                       "fansub": "幻樱字幕组",
                       "resolution": "1920X1080"
                     }"#,
