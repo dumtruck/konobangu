@@ -113,4 +113,13 @@ redis:
 
 settings:
   dal:
-    fs_root: ./temp
+    data_dir: ./temp
+  mikan:
+    http_client:
+      exponential_backoff_max_retries: 3
+      leaky_bucket_max_tokens: 2
+      leaky_bucket_initial_tokens: 0
+      leaky_bucket_refill_tokens: 1
+      leaky_bucket_refill_interval: 500
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
+    base_url: "https://mikanani.me/"

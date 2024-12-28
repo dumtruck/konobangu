@@ -71,7 +71,7 @@ impl AppDalClient {
                 .data_dir
                 .as_ref()
                 .map(|s| s as &str)
-                .unwrap_or("data"),
+                .unwrap_or("./data"),
         )
     }
 
