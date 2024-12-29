@@ -6,17 +6,14 @@ prepare-dev-recorder:
   cargo install sea-orm-cli
   cargo install cargo-watch
 
+dev-webui:
+  pnpm run dev
+
 dev-recorder:
-  cargo watch -w crates/recorder -w config -x 'recorder start'
+  cargo watch -w apps/recorder -w config -x 'recorder start'
 
 down-recorder:
-  cargo run -p recorder --bin recorder_cli -- db down 999 --environment recorder.development
+  cargo run -p recorder --bin recorder_cli -- db down 999 --environment recorder/development
 
 play-recorder:
   cargo recorder-playground
-
-dev-webui:
-  npm run dev:webui
-
-dev-proxy:
-  npm run dev:proxy

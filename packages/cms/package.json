@@ -1,0 +1,30 @@
+{
+  "name": "@konobangu/cms",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "content-collections build",
+    "analyze": "content-collections build",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@content-collections/mdx": "^0.2.0",
+    "@content-collections/core": "^0.8.0",
+    "@content-collections/next": "^0.2.4",
+    "@konobangu/env": "workspace:*",
+    "acorn": "^8.14.0",
+    "fumadocs-core": "^14.6.0",
+    "react": "^19.0.0",
+    "reading-time": "^1.5.0",
+    "sqip": "1.0.0-alpha.51"
+  },
+  "devDependencies": {
+    "@content-collections/cli": "^0.1.6",
+    "@konobangu/typescript-config": "workspace:*",
+    "@types/node": "22.10.1",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "next": "^15.1.3"
+  }
+}

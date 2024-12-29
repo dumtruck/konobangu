@@ -1,0 +1,20 @@
+{
+  "extends": [
+    "@konobangu/typescript-config/nextjs.json",
+    "@konobangu/cms/typescript-config.json"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@konobangu/*": ["../../packages/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "next.config.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ]
+}

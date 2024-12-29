@@ -1,0 +1,23 @@
+{
+  "name": "@konobangu/collaboration",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@konobangu/env": "workspace:*",
+    "@liveblocks/client": "^2.14.0",
+    "@liveblocks/node": "^2.14.0",
+    "@liveblocks/react": "^2.14.0",
+    "react": "^19.0.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@konobangu/typescript-config": "workspace:*",
+    "@types/node": "22.10.1",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "^19.0.2"
+  }
+}

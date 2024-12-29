@@ -1,0 +1,22 @@
+{
+  "name": "@konobangu/feature-flags",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@konobangu/auth": "workspace:*",
+    "@konobangu/analytics": "workspace:*",
+    "@konobangu/design-system": "workspace:*",
+    "@vercel/flags": "^2.6.3"
+  },
+  "peerDependencies": {
+    "next": "^15.1.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@konobangu/typescript-config": "workspace:*"
+  }
+}

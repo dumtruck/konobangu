@@ -1,0 +1,8 @@
+{
+  "extends": "@konobangu/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../../apps/web/content-collections.ts"],
+  "exclude": ["node_modules"]
+}

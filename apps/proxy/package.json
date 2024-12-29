@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "whistle run -p 8899 -t 30000 -M \"keepXFF|prod|capture\" -D . --no-global-plugins"
+    "start": "cross-env WHISTLE_MODE=\"prod|capture|keepXFF\" whistle run -p 8899 -t 30000 -D . --no-global-plugins",
+    "dev": "pnpm run start"
   },
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "whistle": "^2.9.61"
+    "whistle": "^2.9.61",
+    "cross-env": "^7.0.3"
   }
 }

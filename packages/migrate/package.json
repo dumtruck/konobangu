@@ -1,0 +1,22 @@
+{
+  "name": "@konobangu/migrate",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@konobangu/env": "workspace:*",
+    "@konobangu/auth": "workspace:*",
+    "@konobangu/database": "workspace:*",
+    "@next/env": "^15.1.3"
+  },
+  "devDependencies": {
+    "@konobangu/typescript-config": "workspace:*",
+    "@types/node": "22.10.1",
+    "bufferutil": "^4.0.8",
+    "typescript": "^5.7.2"
+  }
+}

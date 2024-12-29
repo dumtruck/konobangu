@@ -1,0 +1,51 @@
+{
+  "name": "app",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000 --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "analyze": "ANALYZE=true pnpm build",
+    "test": "vitest run",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@prisma/client": "6.0.1",
+    "@konobangu/analytics": "workspace:*",
+    "@konobangu/auth": "workspace:*",
+    "@konobangu/collaboration": "workspace:*",
+    "@konobangu/database": "workspace:*",
+    "@konobangu/migrate": "workspace:*",
+    "@konobangu/design-system": "workspace:*",
+    "@konobangu/env": "workspace:*",
+    "@konobangu/feature-flags": "workspace:*",
+    "@konobangu/next-config": "workspace:*",
+    "@konobangu/security": "workspace:*",
+    "@konobangu/seo": "workspace:*",
+    "@konobangu/tailwind-config": "workspace:*",
+    "@konobangu/webhooks": "workspace:*",
+    "@sentry/nextjs": "^8.43.0",
+    "fuse.js": "^7.0.0",
+    "import-in-the-middle": "^1.11.3",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.3",
+    "next-themes": "^0.4.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "require-in-the-middle": "^7.4.0"
+  },
+  "devDependencies": {
+    "@konobangu/testing": "workspace:*",
+    "@konobangu/typescript-config": "workspace:*",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "22.10.1",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.2",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
