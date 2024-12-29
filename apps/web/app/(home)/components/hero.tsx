@@ -1,5 +1,5 @@
 import { blog } from '@konobangu/cms';
-import { Feed } from '@konobangu/cms/components/feed';
+// import { Feed } from '@konobangu/cms/components/feed';
 import { Button } from '@konobangu/design-system/components/ui/button';
 import { env } from '@konobangu/env';
 import { MoveRight, PhoneCall } from 'lucide-react';
@@ -14,8 +14,7 @@ export const Hero = async () => {
       <div className="container mx-auto">
         <div className="flex flex-col items-center justify-center gap-8 py-20 lg:py-40">
           <div>
-            <Feed queries={[blog.latestPostQuery]} draft={draft.isEnabled}>
-              {/* biome-ignore lint/suspicious/useAwait: "Server Actions must be async" */}
+            {/* <Feed queries={[blog.latestPostQuery]} draft={draft.isEnabled}>
               {async ([data]) => {
                 'use server';
 
@@ -32,7 +31,7 @@ export const Hero = async () => {
                   </Button>
                 );
               }}
-            </Feed>
+            </Feed> */}
           </div>
           <div className="flex flex-col gap-4">
             <h1 className="max-w-2xl text-center font-regular text-5xl tracking-tighter md:text-7xl">
