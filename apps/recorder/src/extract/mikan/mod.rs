@@ -5,7 +5,7 @@ pub mod rss_parser;
 pub mod web_parser;
 
 pub use client::{AppMikanClient, AppMikanClientInitializer};
-pub use config::{AppMikanConfig, MIKAN_CONF_KEY};
+pub use config::AppMikanConfig;
 pub use constants::{MIKAN_BASE_URL, MIKAN_BUCKET_KEY};
 pub use rss_parser::{
     build_mikan_bangumi_rss_link, build_mikan_subscriber_aggregation_rss_link,

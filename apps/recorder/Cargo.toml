@@ -57,6 +57,8 @@ reqwest-tracing = "0.5.5"
 scraper = "0.22.0"
 leaky-bucket = "1.1.2"
 serde_with = "3"
+jwt-authorizer = "0.15.0"
+axum-auth = "0.7.0"
 
 [dev-dependencies]
 serial_test = "3"

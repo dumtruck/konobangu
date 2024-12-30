@@ -112,8 +112,10 @@ redis:
   dangerously_flush: false
 
 settings:
+
   dal:
     data_dir: ./data
+
   mikan:
     http_client:
       exponential_backoff_max_retries: 3
@@ -123,3 +125,13 @@ settings:
       leaky_bucket_refill_interval: 500
       user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0"
     base_url: "https://mikanani.me/"
+    
+  auth:
+    auth_type: "oidc" # or "basic"
+    basic_user: "konobangu"
+    basic_password: "konobangu"
+    oidc_api_issuer: "https://some-oidc-auth.com/oidc"
+    oidc_api_audience: "https://konobangu.com/api"
+    oidc_extra_scopes: "read:konobangu,write:konobangu"
+    oidc_extra_claim_key: ""
+    oidc_extra_claim_value: ""

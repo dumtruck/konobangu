@@ -107,6 +107,16 @@ pub enum Downloaders {
     SavePath,
 }
 
+#[derive(DeriveIden)]
+pub enum Auth {
+    Table,
+    Id,
+    Pid,
+    SubscriberId,
+    AvatarUrl,
+    AuthType,
+}
+
 macro_rules! create_postgres_enum_for_active_enum {
     ($manager: expr, $active_enum: expr, $($enum_value:expr),+) => {
         {

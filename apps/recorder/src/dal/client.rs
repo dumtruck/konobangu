@@ -27,11 +27,6 @@ impl AsRef<str> for DalContentCategory {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct AppDalClient {
-    pub config: AppDalConfig,
-}
-
 static APP_DAL_CLIENT: OnceCell<AppDalClient> = OnceCell::new();
 
 pub enum DalStoredUrl {
@@ -54,15 +49,20 @@ impl fmt::Display for DalStoredUrl {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct AppDalClient {
+    pub config: AppDalConfig,
+}
+
 impl AppDalClient {
     pub fn new(config: AppDalConfig) -> Self {
         Self { config }
     }
 
-    pub fn global() -> &'static AppDalClient {
+    pub fn app_instance() -> &'static AppDalClient {
         APP_DAL_CLIENT
             .get()
-            .expect("Global app dal client is not initialized")
+            .expect("AppDalClient is not initialized")
     }
 
     pub fn get_fs(&self) -> Fs {
@@ -192,7 +192,7 @@ impl Initializer for AppDalInitalizer {
 
     async fn before_run(&self, app_context: &AppContext) -> loco_rs::Result<()> {
         let config = &app_context.config;
-        let app_dal_conf = config.get_dal_conf()?;
+        let app_dal_conf = config.get_app_conf()?.dal;
 
         APP_DAL_CLIENT.get_or_init(|| AppDalClient::new(app_dal_conf.unwrap_or_default()));
 

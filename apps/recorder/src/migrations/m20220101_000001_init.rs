@@ -5,7 +5,7 @@ use super::defs::{
     Bangumi, CustomSchemaManagerExt, Episodes, GeneralIds, Subscribers, Subscriptions,
 };
 use crate::models::{
-    subscribers::ROOT_SUBSCRIBER,
+    subscribers::SEED_SUBSCRIBER,
     subscriptions::{self, SubscriptionCategoryEnum},
 };
 
@@ -40,7 +40,7 @@ impl MigrationTrait for Migration {
         let insert = Query::insert()
             .into_table(Subscribers::Table)
             .columns([Subscribers::Pid, Subscribers::DisplayName])
-            .values_panic([ROOT_SUBSCRIBER.into(), ROOT_SUBSCRIBER.into()])
+            .values_panic([SEED_SUBSCRIBER.into(), SEED_SUBSCRIBER.into()])
             .to_owned();
         manager.exec_stmt(insert).await?;
 

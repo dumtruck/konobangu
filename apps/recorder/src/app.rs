@@ -15,6 +15,7 @@ use loco_rs::{
 use sea_orm::DatabaseConnection;
 
 use crate::{
+    auth::service::AppAuthService,
     controllers,
     dal::{AppDalClient, AppDalInitalizer},
     extract::mikan::{client::AppMikanClientInitializer, AppMikanClient},
@@ -25,11 +26,15 @@ use crate::{
 
 pub trait AppContextExt {
     fn get_dal_client(&self) -> &AppDalClient {
-        AppDalClient::global()
+        AppDalClient::app_instance()
     }
 
     fn get_mikan_client(&self) -> &AppMikanClient {
-        AppMikanClient::global()
+        AppMikanClient::app_instance()
+    }
+
+    fn get_auth_service(&self) -> &AppAuthService {
+        &AppAuthService::app_instance()
     }
 }
 

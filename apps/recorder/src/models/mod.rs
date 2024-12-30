@@ -1,3 +1,4 @@
+pub mod auth;
 pub mod bangumi;
 pub mod downloaders;
 pub mod downloads;

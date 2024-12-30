@@ -13,7 +13,7 @@ dev-recorder:
   cargo watch -w apps/recorder -w config -x 'recorder start'
 
 down-recorder:
-  cargo run -p recorder --bin recorder_cli -- db down 999 --environment recorder/development
+  cargo run -p recorder --bin recorder_cli -- db down 999 --environment development
 
 play-recorder:
   cargo recorder-playground

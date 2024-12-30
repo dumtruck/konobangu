@@ -12,7 +12,7 @@ use recorder::{
     extract::mikan::parse_mikan_rss_items_from_rss_link,
     migrations::Migrator,
     models::{
-        subscribers::ROOT_SUBSCRIBER,
+        subscribers::SEED_SUBSCRIBER,
         subscriptions::{self, SubscriptionCreateFromRssDto},
     },
 };

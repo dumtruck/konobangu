@@ -1,9 +1,13 @@
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::{
-    dal::{config::AppDalConfig, DAL_CONF_KEY},
-    extract::mikan::{AppMikanConfig, MIKAN_CONF_KEY},
-};
+use crate::{auth::AppAuthConfig, dal::config::AppDalConfig, extract::mikan::AppMikanConfig};
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AppConfig {
+    pub auth: AppAuthConfig,
+    pub dal: Option<AppDalConfig>,
+    pub mikan: Option<AppMikanConfig>,
+}
 
 pub fn deserialize_key_path_from_json_value<T: DeserializeOwned>(
     value: &serde_json::Value,
@@ -37,12 +41,11 @@ pub fn deserialize_key_path_from_app_config<T: DeserializeOwned>(
 pub trait AppConfigExt {
     fn get_root_conf(&self) -> &loco_rs::config::Config;
 
-    fn get_dal_conf(&self) -> loco_rs::Result<Option<AppDalConfig>> {
-        deserialize_key_path_from_app_config(self.get_root_conf(), &[DAL_CONF_KEY])
-    }
-
-    fn get_mikan_conf(&self) -> loco_rs::Result<Option<AppMikanConfig>> {
-        deserialize_key_path_from_app_config(self.get_root_conf(), &[MIKAN_CONF_KEY])
+    fn get_app_conf(&self) -> loco_rs::Result<AppConfig> {
+        Ok(
+            deserialize_key_path_from_app_config(self.get_root_conf(), &[])?
+                .expect("app config must be present"),
+        )
     }
 }
 

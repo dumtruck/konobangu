@@ -1,6 +1,6 @@
 [alias]
-recorder = "run -p recorder --bin recorder_cli -- --environment recorder/development"
-recorder-playground = "run -p recorder  --example playground -- --environment recorder/development"
+recorder = "run -p recorder --bin recorder_cli -- --environment development"
+recorder-playground = "run -p recorder  --example playground -- --environment development"
 
 [build]
 rustflags = ["-Zthreads=8"]

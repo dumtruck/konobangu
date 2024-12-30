@@ -36,6 +36,8 @@ pub enum Relation {
     Bangumi,
     #[sea_orm(has_many = "super::episodes::Entity")]
     Episode,
+    #[sea_orm(has_many = "super::auth::Entity")]
+    Auth,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -59,5 +61,11 @@ impl Related<super::bangumi::Entity> for Entity {
 impl Related<super::episodes::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Episode.def()
+    }
+}
+
+impl Related<super::auth::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Auth.def()
     }
 }

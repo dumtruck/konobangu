@@ -26,10 +26,10 @@ impl AppMikanClient {
         })
     }
 
-    pub fn global() -> &'static AppMikanClient {
+    pub fn app_instance() -> &'static AppMikanClient {
         APP_MIKAN_CLIENT
             .get()
-            .expect("Global mikan http client is not initialized")
+            .expect("AppMikanClient is not initialized")
     }
 
     pub fn base_url(&self) -> &str {
@@ -55,7 +55,7 @@ impl Initializer for AppMikanClientInitializer {
 
     async fn before_run(&self, app_context: &AppContext) -> loco_rs::Result<()> {
         let config = &app_context.config;
-        let app_mikan_conf = config.get_mikan_conf()?.unwrap_or_default();
+        let app_mikan_conf = config.get_app_conf()?.mikan.unwrap_or_default();
 
         APP_MIKAN_CLIENT.get_or_try_init(|| AppMikanClient::new(app_mikan_conf))?;
 
