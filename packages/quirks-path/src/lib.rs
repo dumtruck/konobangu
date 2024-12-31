@@ -1702,11 +1702,11 @@ mod tests {
         );
         assert!(matches!(
             test_fn(r"\\?\abc\path"),
-            Err(PathToUrlError::UrlNotSupportedPrefix { .. })
+            Err(PathToUrlError::NotSupportedPrefixError { .. })
         ));
         assert!(matches!(
             test_fn(r"\\.\device\path"),
-            Err(PathToUrlError::UrlNotSupportedPrefix { .. })
+            Err(PathToUrlError::NotSupportedPrefixError { .. })
         ));
         assert!(matches!(
             test_fn(r"~/a"),

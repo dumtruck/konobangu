@@ -14,9 +14,10 @@ use qbit_rs::{
 };
 use quirks_path::{path_equals_as_file_url, Path, PathBuf};
 use tokio::time::sleep;
+use tracing::instrument;
 use url::Url;
 
-use crate::{Torrent, TorrentDownloadError, TorrentDownloader, TorrentFilter, TorrentSource};
+use super::{Torrent, TorrentDownloadError, TorrentDownloader, TorrentFilter, TorrentSource};
 
 impl From<TorrentSource> for QbitTorrentSource {
     fn from(value: TorrentSource) -> Self {
@@ -81,7 +82,9 @@ impl QBittorrentDownloader {
     ) -> Result<Self, TorrentDownloadError> {
         let endpoint_url =
             Url::parse(&creation.endpoint).map_err(TorrentDownloadError::InvalidUrlParse)?;
+
         let credential = Credential::new(creation.username, creation.password);
+
         let client = Qbit::new(endpoint_url.clone(), credential);
 
         client
@@ -100,6 +103,7 @@ impl QBittorrentDownloader {
         })
     }
 
+    #[instrument(level = "debug")]
     pub async fn api_version(&self) -> eyre::Result<String> {
         let result = self.client.get_webapi_version().await?;
         Ok(result)
@@ -116,8 +120,9 @@ impl QBittorrentDownloader {
         H: FnOnce() -> E,
         G: Fn(Arc<Qbit>, E) -> Fut,
         Fut: Future<Output = eyre::Result<D>>,
-        F: FnMut(D) -> bool,
+        F: FnMut(&D) -> bool,
         E: Clone,
+        D: Debug + serde::Serialize,
     {
         let mut next_wait_ms = 32u64;
         let mut all_wait_ms = 0u64;
@@ -129,9 +134,10 @@ impl QBittorrentDownloader {
             if all_wait_ms >= timeout.as_millis() as u64 {
                 // full update
                 let sync_data = fetch_data_fn(self.client.clone(), env.clone()).await?;
-                if stop_wait_fn(sync_data) {
+                if stop_wait_fn(&sync_data) {
                     break;
                 } else {
+                    tracing::warn!(name = "wait_until timeout", sync_data = serde_json::to_string(&sync_data).unwrap(), timeout = ?timeout);
                     return Err(TorrentDownloadError::TimeoutError {
                         action: Cow::Borrowed("QBittorrentDownloader::wait_unit"),
                         timeout,
@@ -140,7 +146,7 @@ impl QBittorrentDownloader {
                 }
             }
             let sync_data = fetch_data_fn(self.client.clone(), env.clone()).await?;
-            if stop_wait_fn(sync_data) {
+            if stop_wait_fn(&sync_data) {
                 break;
             }
             next_wait_ms *= 2;
@@ -148,6 +154,7 @@ impl QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "trace", skip(self, stop_wait_fn))]
     pub async fn wait_torrents_until<F>(
         &self,
         arg: GetTorrentListArg,
@@ -155,7 +162,7 @@ impl QBittorrentDownloader {
         timeout: Option<Duration>,
     ) -> eyre::Result<()>
     where
-        F: FnMut(Vec<QbitTorrent>) -> bool,
+        F: FnMut(&Vec<QbitTorrent>) -> bool,
     {
         self.wait_until(
             || arg,
@@ -171,7 +178,8 @@ impl QBittorrentDownloader {
         .await
     }
 
-    pub async fn wait_sync_until<F: FnMut(SyncData) -> bool>(
+    #[instrument(level = "debug", skip(self, stop_wait_fn))]
+    pub async fn wait_sync_until<F: FnMut(&SyncData) -> bool>(
         &self,
         stop_wait_fn: F,
         timeout: Option<Duration>,
@@ -188,7 +196,8 @@ impl QBittorrentDownloader {
         .await
     }
 
-    async fn wait_torrent_contents_until<F: FnMut(Vec<QbitTorrentContent>) -> bool>(
+    #[instrument(level = "debug", skip(self, stop_wait_fn))]
+    async fn wait_torrent_contents_until<F: FnMut(&Vec<QbitTorrentContent>) -> bool>(
         &self,
         hash: &str,
         stop_wait_fn: F,
@@ -211,6 +220,7 @@ impl QBittorrentDownloader {
 
 #[async_trait::async_trait]
 impl TorrentDownloader for QBittorrentDownloader {
+    #[instrument(level = "debug", skip(self))]
     async fn get_torrents_info(
         &self,
         status_filter: TorrentFilter,
@@ -239,6 +249,7 @@ impl TorrentDownloader for QBittorrentDownloader {
             .collect::<Vec<_>>())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn add_torrents(
         &self,
         source: TorrentSource,
@@ -268,6 +279,7 @@ impl TorrentDownloader for QBittorrentDownloader {
             |sync_data| {
                 sync_data
                     .torrents
+                    .as_ref()
                     .is_some_and(|t| t.contains_key(source_hash))
             },
             None,
@@ -276,6 +288,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn delete_torrents(&self, hashes: Vec<String>) -> eyre::Result<()> {
         self.client
             .delete_torrents(hashes.clone(), Some(true))
@@ -291,6 +304,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn rename_torrent_file(
         &self,
         hash: &str,
@@ -304,7 +318,11 @@ impl TorrentDownloader for QBittorrentDownloader {
             hash,
             |contents| -> bool {
                 contents.iter().any(|c| {
-                    path_equals_as_file_url(save_path.join(&c.name), &new_path).unwrap_or(false)
+                    path_equals_as_file_url(save_path.join(&c.name), &new_path)
+                        .inspect_err(|error| {
+                            tracing::warn!(name = "path_equals_as_file_url", error = ?error);
+                        })
+                        .unwrap_or(false)
                 })
             },
             None,
@@ -313,19 +331,23 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn move_torrents(&self, hashes: Vec<String>, new_path: &str) -> eyre::Result<()> {
         self.client
             .set_torrent_location(hashes.clone(), new_path)
             .await?;
+
         self.wait_torrents_until(
             GetTorrentListArg::builder()
                 .hashes(hashes.join("|"))
                 .build(),
             |torrents| -> bool {
-                torrents.iter().all(|t| {
-                    t.save_path
-                        .as_ref()
-                        .is_some_and(|p| path_equals_as_file_url(p, new_path).unwrap_or(false))
+                torrents.iter().flat_map(|t| t.save_path.as_ref()).any(|p| {
+                    path_equals_as_file_url(p, new_path)
+                        .inspect_err(|error| {
+                            tracing::warn!(name = "path_equals_as_file_url", error = ?error);
+                        })
+                        .unwrap_or(false)
                 })
             },
             None,
@@ -346,11 +368,13 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(torrent.save_path.take())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn check_connection(&self) -> eyre::Result<()> {
         self.api_version().await?;
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn set_torrents_category(&self, hashes: Vec<String>, category: &str) -> eyre::Result<()> {
         let result = self
             .client
@@ -379,6 +403,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn add_torrent_tags(&self, hashes: Vec<String>, tags: Vec<String>) -> eyre::Result<()> {
         if tags.is_empty() {
             return Err(eyre::eyre!("add torrent tags can not be empty"));
@@ -408,6 +433,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn add_category(&self, category: &str) -> eyre::Result<()> {
         self.client
             .add_category(
@@ -419,6 +445,7 @@ impl TorrentDownloader for QBittorrentDownloader {
             |sync_data| {
                 sync_data
                     .categories
+                    .as_ref()
                     .is_some_and(|s| s.contains_key(category))
             },
             None,
@@ -445,11 +472,12 @@ impl Debug for QBittorrentDownloader {
 #[cfg(test)]
 pub mod tests {
     use itertools::Itertools;
+    use testcontainers_modules::testcontainers::ImageExt;
 
     use super::*;
 
     fn get_tmp_qbit_test_folder() -> &'static str {
-        if cfg!(windows) {
+        if cfg!(all(windows, not(feature = "testcontainers"))) {
             "C:\\Windows\\Temp\\konobangu\\qbit"
         } else {
             "/tmp/konobangu/qbit"
@@ -457,65 +485,117 @@ pub mod tests {
     }
 
     #[cfg(feature = "testcontainers")]
-    pub fn create_qbit_testcontainer() -> testcontainers::RunnableImage<testcontainers::GenericImage>
-    {
-        let image = testcontainers::RunnableImage::from(
-            testcontainers::GenericImage::new("linuxserver/qbittorrent", "latest")
-                .with_wait_for(testcontainers::core::WaitFor::message_on_stderr(
-                    "Connection to localhost",
-                ))
-                .with_env_var("WEBUI_PORT", "8080")
-                .with_env_var("TZ", "Asia/Singapore")
-                .with_env_var("TORRENTING_PORT", "6881")
-                .with_exposed_port(8080)
-                .with_exposed_port(6881),
-        );
+    pub async fn create_qbit_testcontainer(
+    ) -> eyre::Result<testcontainers::ContainerRequest<testcontainers::GenericImage>> {
+        use testcontainers::{
+            core::{
+                ContainerPort,
+                // ReuseDirective,
+                WaitFor,
+            },
+            GenericImage,
+        };
 
-        image
+        use crate::test_utils::testcontainers::ContainerRequestEnhancedExt;
+
+        let container = GenericImage::new("linuxserver/qbittorrent", "latest")
+            .with_wait_for(WaitFor::message_on_stderr("Connection to localhost"))
+            .with_env_var("WEBUI_PORT", "8080")
+            .with_env_var("TZ", "Asia/Singapore")
+            .with_env_var("TORRENTING_PORT", "6881")
+            .with_mapped_port(6881, ContainerPort::Tcp(6881))
+            .with_mapped_port(8080, ContainerPort::Tcp(8080))
+            // .with_reuse(ReuseDirective::Always)
+            .with_default_log_consumer()
+            .with_prune_existed_label("qbit-downloader", true, true)
+            .await?;
+
+        Ok(container)
     }
 
     #[cfg(not(feature = "testcontainers"))]
     #[tokio::test]
     async fn test_qbittorrent_downloader() {
-        test_qbittorrent_downloader_impl().await;
+        test_qbittorrent_downloader_impl(None, None).await;
     }
 
-    // @TODO: not support now, testcontainers crate not support to read logs to get
-    // password
     #[cfg(feature = "testcontainers")]
-    #[tokio::test]
-    async fn test_qbittorrent_downloader() {
-        let docker = testcontainers::clients::Cli::default();
-        let image = create_qbit_testcontainer();
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_qbittorrent_downloader() -> eyre::Result<()> {
+        use testcontainers::runners::AsyncRunner;
+        use tokio::io::AsyncReadExt;
 
-        let _container = docker.run(image);
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::DEBUG)
+            .with_test_writer()
+            .init();
 
-        test_qbittorrent_downloader_impl().await;
+        let image = create_qbit_testcontainer().await?;
+
+        let container = image.start().await?;
+
+        let mut logs = String::new();
+
+        container.stdout(false).read_to_string(&mut logs).await?;
+
+        let username = logs
+            .lines()
+            .find_map(|line| {
+                if line.contains("The WebUI administrator username is") {
+                    line.split_whitespace().last()
+                } else {
+                    None
+                }
+            })
+            .expect("should have username")
+            .trim();
+
+        let password = logs
+            .lines()
+            .find_map(|line| {
+                if line.contains("A temporary password is provided for this session") {
+                    line.split_whitespace().last()
+                } else {
+                    None
+                }
+            })
+            .expect("should have password")
+            .trim();
+
+        tracing::info!(username, password);
+
+        test_qbittorrent_downloader_impl(Some(username), Some(password)).await?;
+
+        Ok(())
     }
 
-    async fn test_qbittorrent_downloader_impl() {
+    async fn test_qbittorrent_downloader_impl(
+        username: Option<&str>,
+        password: Option<&str>,
+    ) -> eyre::Result<()> {
         let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
-        let downloader = QBittorrentDownloader::from_creation(QBittorrentDownloaderCreation {
-            endpoint: "http://localhost:8080".to_string(),
-            password: "".to_string(),
-            username: "".to_string(),
+        let mut downloader = QBittorrentDownloader::from_creation(QBittorrentDownloaderCreation {
+            endpoint: "http://127.0.0.1:8080".to_string(),
+            password: password.unwrap_or_default().to_string(),
+            username: username.unwrap_or_default().to_string(),
             subscriber_id: 0,
             save_path: base_save_path.to_string(),
         })
-        .await
-        .unwrap();
+        .await?;
 
-        downloader.check_connection().await.unwrap();
+        downloader.wait_sync_timeout = Duration::from_secs(3);
+
+        downloader.check_connection().await?;
 
         downloader
             .delete_torrents(vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()])
-            .await
-            .unwrap();
+            .await?;
 
         let torrent_source = TorrentSource::parse(
+            None,
           "https://mikanani.me/Download/20240301/47ee2d69e7f19af783ad896541a07b012676f858.torrent"
-      ).await.unwrap();
+      ).await?;
 
         let save_path = base_save_path.join(format!(
             "test_add_torrents_{}",
@@ -524,8 +604,7 @@ pub mod tests {
 
         downloader
             .add_torrents(torrent_source, save_path.to_string(), Some("bangumi"))
-            .await
-            .unwrap();
+            .await?;
 
         let get_torrent = async || -> eyre::Result<Torrent> {
             let torrent_infos = downloader
@@ -540,7 +619,7 @@ pub mod tests {
             Ok(result)
         };
 
-        let target_torrent = get_torrent().await.unwrap();
+        let target_torrent = get_torrent().await?;
 
         let files = target_torrent.iter_files().collect_vec();
         assert!(!files.is_empty());
@@ -558,10 +637,9 @@ pub mod tests {
                 vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
                 vec![test_tag.clone()],
             )
-            .await
-            .unwrap();
+            .await?;
 
-        let target_torrent = get_torrent().await.unwrap();
+        let target_torrent = get_torrent().await?;
 
         assert!(target_torrent.get_tags().iter().any(|s| s == &test_tag));
 
@@ -572,10 +650,9 @@ pub mod tests {
                 vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
                 &test_category,
             )
-            .await
-            .unwrap();
+            .await?;
 
-        let target_torrent = get_torrent().await.unwrap();
+        let target_torrent = get_torrent().await?;
 
         assert_eq!(Some(test_category.as_str()), target_torrent.get_category());
 
@@ -589,10 +666,9 @@ pub mod tests {
                 vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
                 moved_save_path.as_str(),
             )
-            .await
-            .unwrap();
+            .await?;
 
-        let target_torrent = get_torrent().await.unwrap();
+        let target_torrent = get_torrent().await?;
 
         let content_path = target_torrent.iter_files().next().unwrap().get_name();
 
@@ -604,10 +680,9 @@ pub mod tests {
                 content_path,
                 new_content_path,
             )
-            .await
-            .unwrap();
+            .await?;
 
-        let target_torrent = get_torrent().await.unwrap();
+        let target_torrent = get_torrent().await?;
 
         let content_path = target_torrent.iter_files().next().unwrap().get_name();
 
@@ -615,14 +690,14 @@ pub mod tests {
 
         downloader
             .delete_torrents(vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()])
-            .await
-            .unwrap();
+            .await?;
 
         let torrent_infos1 = downloader
             .get_torrents_info(TorrentFilter::All, None, None)
-            .await
-            .unwrap();
+            .await?;
 
         assert!(torrent_infos1.is_empty());
+
+        Ok(())
     }
 }

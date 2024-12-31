@@ -31,6 +31,12 @@ pub struct HttpClient {
     pub config: HttpClientConfig,
 }
 
+impl Into<ClientWithMiddleware> for HttpClient {
+    fn into(self) -> ClientWithMiddleware {
+        self.client
+    }
+}
+
 impl Deref for HttpClient {
     type Target = ClientWithMiddleware;
 

@@ -13,14 +13,21 @@ name = "recorder_cli"
 path = "src/bin/main.rs"
 required-features = []
 
+[features]
+default = []
+testcontainers = [
+    "dep:testcontainers",
+    "dep:testcontainers-modules",
+    "dep:bollard",
+]
+
 [dependencies]
 quirks_path = { path = "../../packages/quirks-path" }
-dlsignal = { path = "../../packages/dlsignal" }
 loco-rs = { version = "0.13" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 eyre = "0.6"
-tokio = { version = "1.42", default-features = false }
+tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }
 async-trait = "0.1.83"
 tracing = "0.1"
 chrono = "0.4"
@@ -60,6 +67,25 @@ leaky-bucket = "1.1.2"
 serde_with = "3"
 jwt-authorizer = "0.15.0"
 axum-auth = "0.7.0"
+futures = "0.3.31"
+librqbit-core = "4"
+qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe", features = [
+    "default",
+    "builder",
+] }
+testcontainers = { version = "0.23.1", features = [
+    "default",
+    "properties-config",
+    "watchdog",
+    "http_wait",
+    "reusable-containers",
+], optional = true }
+testcontainers-modules = { version = "0.11.4", optional = true }
+
+log = "0.4.22"
+anyhow = "1.0.95"
+bollard = { version = "0.18", optional = true }
+
 
 [dev-dependencies]
 serial_test = "3"

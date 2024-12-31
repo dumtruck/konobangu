@@ -256,3 +256,6 @@ public/sitemap*.xml
 
 # Custom
 /data
+
+patches/*
+!patches/.gitkeep

@@ -10,12 +10,20 @@ const URL_PATH_SEGMENT: &AsciiSet = &URL_PATH.add(b'/').add(b'%');
 
 #[derive(thiserror::Error, Debug)]
 pub enum PathToUrlError {
-    #[error("Path not absolute: {path}")]
+    #[error(transparent)]
+    UrlParseError(#[from] url::ParseError),
+    #[error("PathNotAbsoluteError {{ path = {path} }}")]
     PathNotAbsoluteError { path: Cow<'static, str> },
-    #[error("Invalid UNC path")]
-    ParseUrlError(#[from] ::url::ParseError),
-    #[error("Path prefix can not be a url: {path}")]
-    UrlNotSupportedPrefix { path: Cow<'static, str> },
+    #[error("NotSupportedPrefixError {{ path = {path}, prefix = {prefix} }}")]
+    NotSupportedPrefixError {
+        path: Cow<'static, str>,
+        prefix: Cow<'static, str>,
+    },
+    #[error("NotSupportedFirstComponentError {{ path = {path}, comp = {comp} }}")]
+    NotSupportedFirstComponentError {
+        path: Cow<'static, str>,
+        comp: Cow<'static, str>,
+    },
 }
 
 #[inline]
@@ -60,15 +68,41 @@ pub(crate) fn path_to_file_url_segments(
                 serialization.extend(percent_encode(share.as_bytes(), URL_PATH_SEGMENT));
             }
             _ => {
-                return Err(PathToUrlError::UrlNotSupportedPrefix {
+                return Err(PathToUrlError::NotSupportedPrefixError {
                     path: Cow::Owned(path.as_str().to_string()),
-                })
+                    prefix: Cow::Owned(p.as_str().to_string()),
+                });
             }
         },
-        _ => {
-            return Err(PathToUrlError::UrlNotSupportedPrefix {
+        Some(Component::RootDir(_)) => {
+            let host_end = to_u32(serialization.len()).unwrap();
+            let mut empty = true;
+            for component in components {
+                empty = false;
+                serialization.push('/');
+
+                serialization.extend(percent_encode(
+                    component.as_str().as_bytes(),
+                    URL_PATH_SEGMENT,
+                ));
+            }
+
+            if empty {
+                serialization.push('/');
+            }
+            return Ok((host_end, None));
+        }
+        Some(comp) => {
+            return Err(PathToUrlError::NotSupportedFirstComponentError {
                 path: Cow::Owned(path.as_str().to_string()),
-            })
+                comp: Cow::Owned(comp.as_str().to_string()),
+            });
+        }
+        None => {
+            return Err(PathToUrlError::NotSupportedFirstComponentError {
+                path: Cow::Owned(path.as_str().to_string()),
+                comp: Cow::Borrowed("null"),
+            });
         }
     }
 

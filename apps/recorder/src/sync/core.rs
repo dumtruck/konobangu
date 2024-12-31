@@ -1,4 +1,5 @@
-use bytes::Bytes;
+use std::fmt::Debug;
+
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use librqbit_core::{
@@ -7,23 +8,14 @@ use librqbit_core::{
 };
 use quirks_path::{Path, PathBuf};
 use regex::Regex;
-use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::{QbitTorrent, QbitTorrentContent, TorrentDownloadError};
+use super::{QbitTorrent, QbitTorrentContent, TorrentDownloadError};
+use crate::fetch::{fetch_bytes, HttpClient};
 
 pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";
 pub const MAGNET_SCHEMA: &str = "magnet";
-pub const DEFAULT_TORRENT_USER_AGENT: &str = "Wget/1.13.4 (linux-gnu)";
-
-async fn download_torrent_file<T: IntoUrl>(url: T) -> eyre::Result<Bytes> {
-    let request_client = reqwest::Client::builder()
-        .user_agent(DEFAULT_TORRENT_USER_AGENT)
-        .build()?;
-    let bytes = request_client.get(url).send().await?.bytes().await?;
-    Ok(bytes)
-}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -46,7 +38,7 @@ lazy_static! {
     static ref TORRENT_EXT_RE: Regex = Regex::new(r"\.torrent$").unwrap();
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum TorrentSource {
     MagnetUrl {
         url: Url,
@@ -64,7 +56,7 @@ pub enum TorrentSource {
 }
 
 impl TorrentSource {
-    pub async fn parse(url: &str) -> eyre::Result<Self> {
+    pub async fn parse(client: Option<&HttpClient>, url: &str) -> eyre::Result<Self> {
         let url = Url::parse(url)?;
         let source = if url.scheme() == MAGNET_SCHEMA {
             TorrentSource::from_magnet_url(url)?
@@ -79,11 +71,11 @@ impl TorrentSource {
             ) {
                 TorrentSource::from_torrent_url(url, match_hash.as_str().to_string())?
             } else {
-                let contents = download_torrent_file(url).await?;
+                let contents = fetch_bytes(client, url).await?;
                 TorrentSource::from_torrent_file(contents.to_vec(), Some(basename.to_string()))?
             }
         } else {
-            let contents = download_torrent_file(url).await?;
+            let contents = fetch_bytes(client, url).await?;
             TorrentSource::from_torrent_file(contents.to_vec(), None)?
         };
         Ok(source)
@@ -133,6 +125,24 @@ impl TorrentSource {
             TorrentSource::MagnetUrl { hash, .. } => hash,
             TorrentSource::TorrentUrl { hash, .. } => hash,
             TorrentSource::TorrentFile { hash, .. } => hash,
+        }
+    }
+}
+
+impl Debug for TorrentSource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TorrentSource::MagnetUrl { url, .. } => {
+                write!(f, "MagnetUrl {{ url: {} }}", url.as_str())
+            }
+            TorrentSource::TorrentUrl { url, .. } => {
+                write!(f, "TorrentUrl {{ url: {} }}", url.as_str())
+            }
+            TorrentSource::TorrentFile { name, hash, .. } => write!(
+                f,
+                "TorrentFile {{ name: \"{}\", hash: \"{hash}\" }}",
+                name.as_deref().unwrap_or_default()
+            ),
         }
     }
 }

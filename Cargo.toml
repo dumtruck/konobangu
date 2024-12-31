@@ -1,3 +1,9 @@
 [workspace]
-members = ["apps/recorder", "packages/quirks-path", "packages/dlsignal"]
+members = ["apps/recorder", "packages/quirks-path"]
 resolver = "2"
+
+[patch.crates-io]
+testcontainers = { git = "https://github.com/testcontainers/testcontainers-rs.git", rev = "af21727" }
+
+# [patch."https://github.com/lonelyhentxi/qbit.git"]
+# qbit-rs = { path = "./patches/qbit-rs" }
