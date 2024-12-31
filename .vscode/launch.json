@@ -94,31 +94,31 @@
       "name": "Next.js: debug client-side (app)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3000"
+      "url": "http://localhost:5000"
     },
     {
       "name": "Next.js: debug client-side (web)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3001"
+      "url": "http://localhost:5001"
     },
     {
       "name": "Next.js: debug client-side (api)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3002"
+      "url": "http://localhost:5002"
     },
     {
       "name": "Next.js: debug client-side (email)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3003"
+      "url": "http://localhost:5003"
     },
     {
       "name": "Next.js: debug client-side (app)",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3004"
+      "url": "http://localhost:5004"
     },
     {
       "name": "Next.js: debug full stack",

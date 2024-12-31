@@ -2,7 +2,7 @@
   "name": "docs",
   "private": true,
   "scripts": {
-    "dev": "npx --yes mintlify dev --port 3004",
+    "dev": "npx --yes mintlify dev --port 5004",
     "lint": "npx --yes mintlify broken-links"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ use std::ops::Deref;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
 
-use super::{AppMikanConfig, MIKAN_BASE_URL};
+use super::AppMikanConfig;
 use crate::{config::AppConfigExt, fetch::HttpClient};
 
 static APP_MIKAN_CLIENT: OnceCell<AppMikanClient> = OnceCell::new();
@@ -14,12 +14,10 @@ pub struct AppMikanClient {
 }
 
 impl AppMikanClient {
-    pub fn new(mut config: AppMikanConfig) -> loco_rs::Result<Self> {
+    pub fn new(config: AppMikanConfig) -> loco_rs::Result<Self> {
         let http_client =
-            HttpClient::new(config.http_client.take()).map_err(loco_rs::Error::wrap)?;
-        let base_url = config
-            .base_url
-            .unwrap_or_else(|| String::from(MIKAN_BASE_URL));
+            HttpClient::from_config(config.http_client).map_err(loco_rs::Error::wrap)?;
+        let base_url = config.base_url;
         Ok(Self {
             http_client,
             base_url,
@@ -55,7 +53,7 @@ impl Initializer for AppMikanClientInitializer {
 
     async fn before_run(&self, app_context: &AppContext) -> loco_rs::Result<()> {
         let config = &app_context.config;
-        let app_mikan_conf = config.get_app_conf()?.mikan.unwrap_or_default();
+        let app_mikan_conf = config.get_app_conf()?.mikan;
 
         APP_MIKAN_CLIENT.get_or_try_init(|| AppMikanClient::new(app_mikan_conf))?;
 

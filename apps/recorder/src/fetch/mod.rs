@@ -6,6 +6,7 @@ pub mod image;
 
 pub use core::DEFAULT_HTTP_CLIENT_USER_AGENT;
 
-pub use bytes::download_bytes;
+pub use bytes::fetch_bytes;
 pub use client::{HttpClient, HttpClientConfig};
-pub use image::download_image;
+pub use html::fetch_html;
+pub use image::fetch_image;

@@ -107,7 +107,7 @@ impl Initializer for AppAuthServiceInitializer {
 
         let service = AppAuthService::from_conf(auth_conf)
             .await
-            .map_err(|e| loco_rs::Error::wrap(e))?;
+            .map_err(loco_rs::Error::wrap)?;
 
         APP_AUTH_SERVICE.get_or_init(|| service);
 

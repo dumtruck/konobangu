@@ -18,7 +18,7 @@ use crate::{
     app::AppContextExt,
     dal::DalContentCategory,
     extract::html::parse_style_attr,
-    fetch::{html::download_html_with_client, image::download_image_with_client},
+    fetch::{html::fetch_html, image::fetch_image},
     models::subscribers,
 };
 
@@ -95,7 +95,7 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src(
     origin_poster_src: Url,
 ) -> eyre::Result<MikanBangumiPosterMeta> {
     let http_client = client.map(|s| s.deref());
-    let poster_data = download_image_with_client(http_client, origin_poster_src.clone()).await?;
+    let poster_data = fetch_image(http_client, origin_poster_src.clone()).await?;
     Ok(MikanBangumiPosterMeta {
         origin_poster_src,
         poster_data: Some(poster_data),
@@ -127,8 +127,7 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
         });
     }
 
-    let poster_data =
-        download_image_with_client(Some(mikan_client.deref()), origin_poster_src.clone()).await?;
+    let poster_data = fetch_image(Some(mikan_client.deref()), origin_poster_src.clone()).await?;
 
     let poster_str = dal_client
         .store_object(
@@ -153,7 +152,7 @@ pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
 ) -> eyre::Result<MikanBangumiMeta> {
     let http_client = client.map(|s| s.deref());
     let url_host = url.origin().unicode_serialization();
-    let content = download_html_with_client(http_client, url.as_str()).await?;
+    let content = fetch_html(http_client, url.as_str()).await?;
     let html = Html::parse_document(&content);
 
     let bangumi_fansubs = html
@@ -276,7 +275,7 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
 ) -> eyre::Result<MikanEpisodeMeta> {
     let http_client = client.map(|s| s.deref());
     let url_host = url.origin().unicode_serialization();
-    let content = download_html_with_client(http_client, url.as_str()).await?;
+    let content = fetch_html(http_client, url.as_str()).await?;
 
     let html = Html::parse_document(&content);
 
@@ -400,6 +399,8 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         mikan_episode_id,
     })
 }
+
+pub async fn parse_mikan_bangumis_from_user_home(_client: Option<&AppMikanClient>, _url: Url) {}
 
 #[cfg(test)]
 mod test {

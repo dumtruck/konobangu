@@ -15,7 +15,7 @@ required-features = []
 
 [dependencies]
 quirks_path = { path = "../../packages/quirks-path" }
-torrent = { path = "../../packages/torrent" }
+dlsignal = { path = "../../packages/dlsignal" }
 loco-rs = { version = "0.13" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -29,8 +29,9 @@ sea-orm = { version = "1", features = [
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
-    "debug-print"
+    "debug-print",
 ] }
+figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
 
 axum = "0.7.9"
 uuid = { version = "1.6.0", features = ["v4"] }

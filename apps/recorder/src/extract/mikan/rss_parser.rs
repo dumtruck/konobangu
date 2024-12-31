@@ -1,17 +1,17 @@
 use std::ops::Deref;
 
 use chrono::DateTime;
+use dlsignal::core::BITTORRENT_MIME_TYPE;
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
-use torrent::core::BITTORRENT_MIME_TYPE;
 use url::Url;
 
 use super::{
     web_parser::{parse_mikan_episode_id_from_homepage, MikanEpisodeHomepage},
     AppMikanClient,
 };
-use crate::{extract::errors::ParseError, fetch::bytes::download_bytes_with_client};
+use crate::{extract::errors::ParseError, fetch::bytes::fetch_bytes};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanRssItem {
@@ -228,7 +228,7 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
     url: impl IntoUrl,
 ) -> eyre::Result<MikanRssChannel> {
     let http_client = client.map(|s| s.deref());
-    let bytes = download_bytes_with_client(http_client, url.as_str()).await?;
+    let bytes = fetch_bytes(http_client, url.as_str()).await?;
 
     let channel = rss::Channel::read_from(&bytes[..])?;
 
@@ -297,7 +297,7 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
 mod tests {
     use std::assert_matches::assert_matches;
 
-    use torrent::core::BITTORRENT_MIME_TYPE;
+    use dlsignal::core::BITTORRENT_MIME_TYPE;
 
     use crate::extract::mikan::{
         parse_mikan_rss_channel_from_rss_link, MikanBangumiAggregationRssChannel,

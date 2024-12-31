@@ -194,7 +194,7 @@ impl Initializer for AppDalInitalizer {
         let config = &app_context.config;
         let app_dal_conf = config.get_app_conf()?.dal;
 
-        APP_DAL_CLIENT.get_or_init(|| AppDalClient::new(app_dal_conf.unwrap_or_default()));
+        APP_DAL_CLIENT.get_or_init(|| AppDalClient::new(app_dal_conf));
 
         Ok(())
     }

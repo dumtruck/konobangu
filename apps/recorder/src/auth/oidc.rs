@@ -93,7 +93,7 @@ impl AuthService for OidcAuthService {
 
         let token_data = self.authorizer.check_auth(&token).await?;
         let claims = token_data.claims;
-        if !claims.sub.as_deref().is_some_and(|s| !s.trim().is_empty()) {
+        if claims.sub.as_deref().is_none_or(|s| s.trim().is_empty()) {
             return Err(AuthError::OidcSubMissingError);
         }
         if !claims.contains_audience(&config.audience) {
@@ -103,7 +103,7 @@ impl AuthService for OidcAuthService {
             let found_scopes = claims.scopes().collect::<HashSet<_>>();
             if !expected_scopes
                 .iter()
-                .all(|es| found_scopes.contains(&es as &str))
+                .all(|es| found_scopes.contains(es as &str))
             {
                 return Err(AuthError::OidcExtraScopesMatchError {
                     expected: expected_scopes.iter().join(","),

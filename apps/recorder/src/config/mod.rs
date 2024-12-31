@@ -1,12 +1,18 @@
+use figment::{
+    providers::{Format, Json, Yaml},
+    Figment,
+};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{auth::AppAuthConfig, dal::config::AppDalConfig, extract::mikan::AppMikanConfig};
 
+const DEFAULT_APP_SETTINGS_MIXIN: &str = include_str!("./settings_mixin.yaml");
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AppConfig {
     pub auth: AppAuthConfig,
-    pub dal: Option<AppDalConfig>,
-    pub mikan: Option<AppMikanConfig>,
+    pub dal: AppDalConfig,
+    pub mikan: AppMikanConfig,
 }
 
 pub fn deserialize_key_path_from_json_value<T: DeserializeOwned>(
@@ -42,10 +48,19 @@ pub trait AppConfigExt {
     fn get_root_conf(&self) -> &loco_rs::config::Config;
 
     fn get_app_conf(&self) -> loco_rs::Result<AppConfig> {
-        Ok(
-            deserialize_key_path_from_app_config(self.get_root_conf(), &[])?
-                .expect("app config must be present"),
-        )
+        let settings_str = self
+            .get_root_conf()
+            .settings
+            .as_ref()
+            .map(serde_json::to_string)
+            .unwrap_or_else(|| Ok(String::new()))?;
+
+        let app_config = Figment::from(Json::string(&settings_str))
+            .merge(Yaml::string(DEFAULT_APP_SETTINGS_MIXIN))
+            .extract()
+            .map_err(loco_rs::Error::wrap)?;
+
+        Ok(app_config)
     }
 }
 

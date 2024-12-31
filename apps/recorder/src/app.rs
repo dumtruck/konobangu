@@ -34,7 +34,7 @@ pub trait AppContextExt {
     }
 
     fn get_auth_service(&self) -> &AppAuthService {
-        &AppAuthService::app_instance()
+        AppAuthService::app_instance()
     }
 }
 

@@ -1,3 +1,3 @@
 [workspace]
-members = ["apps/recorder", "packages/quirks-path", "packages/torrent"]
+members = ["apps/recorder", "packages/quirks-path", "packages/dlsignal"]
 resolver = "2"
