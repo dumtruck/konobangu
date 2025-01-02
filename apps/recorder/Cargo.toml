@@ -44,7 +44,7 @@ axum = "0.7.9"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls"] }
-reqwest = "0.12.9"
+reqwest = { version = "0.12.9" }
 thiserror = "2"
 rss = "2"
 bytes = "1.9"
@@ -85,6 +85,8 @@ testcontainers-modules = { version = "0.11.4", optional = true }
 log = "0.4.22"
 anyhow = "1.0.95"
 bollard = { version = "0.18", optional = true }
+async-graphql = "7.0.13"
+async-graphql-axum = "7.0.13"
 
 
 [dev-dependencies]

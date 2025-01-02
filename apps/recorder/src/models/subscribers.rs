@@ -2,12 +2,72 @@ use loco_rs::{
     app::AppContext,
     model::{ModelError, ModelResult},
 };
-use sea_orm::{entity::prelude::*, ActiveValue, TransactionTrait};
+use sea_orm::{entity::prelude::*, ActiveValue, FromJsonQueryResult, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
-pub use super::entities::subscribers::*;
-
 pub const SEED_SUBSCRIBER: &str = "konobangu";
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+pub struct SubscriberBangumiConfig {
+    pub leading_group_tag: Option<bool>,
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[sea_orm(table_name = "subscribers")]
+pub struct Model {
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    #[sea_orm(primary_key)]
+    pub id: i32,
+    #[sea_orm(unique)]
+    pub pid: String,
+    pub display_name: String,
+    pub bangumi_conf: Option<SubscriberBangumiConfig>,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(has_many = "super::subscriptions::Entity")]
+    Subscription,
+    #[sea_orm(has_many = "super::downloaders::Entity")]
+    Downloader,
+    #[sea_orm(has_many = "super::bangumi::Entity")]
+    Bangumi,
+    #[sea_orm(has_many = "super::episodes::Entity")]
+    Episode,
+    #[sea_orm(has_many = "super::auth::Entity")]
+    Auth,
+}
+
+impl Related<super::subscriptions::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscription.def()
+    }
+}
+
+impl Related<super::downloaders::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Downloader.def()
+    }
+}
+
+impl Related<super::bangumi::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Bangumi.def()
+    }
+}
+
+impl Related<super::episodes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Episode.def()
+    }
+}
+
+impl Related<super::auth::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Auth.def()
+    }
+}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SubscriberIdParams {

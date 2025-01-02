@@ -20,7 +20,7 @@ use crate::{
     dal::{AppDalClient, AppDalInitalizer},
     extract::mikan::{client::AppMikanClientInitializer, AppMikanClient},
     migrations::Migrator,
-    models::entities::subscribers,
+    models::subscribers,
     workers::subscription_worker::SubscriptionWorker,
 };
 

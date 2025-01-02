@@ -38,7 +38,6 @@ pub enum Bangumi {
     Id,
     MikanBangumiId,
     DisplayName,
-    SubscriptionId,
     SubscriberId,
     RawName,
     Season,
@@ -55,6 +54,14 @@ pub enum Bangumi {
 }
 
 #[derive(DeriveIden)]
+pub enum SubscriptionBangumi {
+    Table,
+    Id,
+    SubscriptionId,
+    BangumiId,
+}
+
+#[derive(DeriveIden)]
 pub enum Episodes {
     Table,
     Id,
@@ -62,7 +69,6 @@ pub enum Episodes {
     RawName,
     DisplayName,
     BangumiId,
-    SubscriptionId,
     SubscriberId,
     DownloadId,
     SavePath,
@@ -80,12 +86,22 @@ pub enum Episodes {
 }
 
 #[derive(DeriveIden)]
+pub enum SubscriptionEpisode {
+    Table,
+    Id,
+    SubscriptionId,
+    EpisodeId,
+}
+
+#[derive(DeriveIden)]
 pub enum Downloads {
     Table,
     Id,
-    OriginalName,
+    RawName,
     DisplayName,
-    SubscriptionId,
+    SubscriberId,
+    DownloaderId,
+    EpisodeId,
     Status,
     CurrSize,
     AllSize,

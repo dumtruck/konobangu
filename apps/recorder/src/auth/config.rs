@@ -24,7 +24,7 @@ pub struct OidcAuthConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "auth_type", rename_all = "snake_case")]
 pub enum AppAuthConfig {
     Basic(BasicAuthConfig),
     Oidc(OidcAuthConfig),
