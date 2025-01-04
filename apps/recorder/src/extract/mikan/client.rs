@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use async_trait::async_trait;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
 
@@ -45,7 +46,7 @@ impl Deref for AppMikanClient {
 
 pub struct AppMikanClientInitializer;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Initializer for AppMikanClientInitializer {
     fn name(&self) -> String {
         "AppMikanClientInitializer".to_string()

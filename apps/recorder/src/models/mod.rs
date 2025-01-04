@@ -3,7 +3,6 @@ pub mod bangumi;
 pub mod downloaders;
 pub mod downloads;
 pub mod episodes;
-pub mod prelude;
 pub mod query;
 pub mod subscribers;
 pub mod subscription_bangumi;

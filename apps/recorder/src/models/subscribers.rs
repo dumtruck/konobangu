@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use loco_rs::{
     app::AppContext,
     model::{ModelError, ModelResult},
@@ -69,12 +70,26 @@ impl Related<super::auth::Entity> for Entity {
     }
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Subscription,
+    #[sea_orm(entity = "super::downloaders::Entity")]
+    Downloader,
+    #[sea_orm(entity = "super::bangumi::Entity")]
+    Bangumi,
+    #[sea_orm(entity = "super::episodes::Entity")]
+    Episode,
+    #[sea_orm(entity = "super::auth::Entity")]
+    Auth,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SubscriberIdParams {
     pub id: String,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {
     async fn before_save<C>(self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where

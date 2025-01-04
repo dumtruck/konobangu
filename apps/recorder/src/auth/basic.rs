@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use axum::{http::request::Parts, RequestPartsExt};
 use axum_auth::AuthBasic;
 
@@ -13,7 +14,7 @@ pub struct BasicAuthService {
     pub config: BasicAuthConfig,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl AuthService for BasicAuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
         if let Ok(AuthBasic((found_user, found_password))) = request.extract().await {

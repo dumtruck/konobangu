@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -50,5 +51,5 @@ pub enum RelatedEntity {
     Subscriber,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}

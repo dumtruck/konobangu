@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 pub use sea_orm_migration::prelude::*;
 
 #[macro_use]
@@ -8,7 +9,7 @@ pub mod m20241231_000001_auth;
 
 pub struct Migrator;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![

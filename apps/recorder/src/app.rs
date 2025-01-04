@@ -16,9 +16,10 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
     auth::service::AppAuthService,
-    controllers,
+    controllers::{self},
     dal::{AppDalClient, AppDalInitalizer},
     extract::mikan::{client::AppMikanClientInitializer, AppMikanClient},
+    graphql::service::{AppGraphQLService, AppGraphQLServiceInitializer},
     migrations::Migrator,
     models::subscribers,
     workers::subscription_worker::SubscriptionWorker,
@@ -36,6 +37,10 @@ pub trait AppContextExt {
     fn get_auth_service(&self) -> &AppAuthService {
         AppAuthService::app_instance()
     }
+
+    fn get_graphql_service(&self) -> &AppGraphQLService {
+        AppGraphQLService::app_instance()
+    }
 }
 
 impl AppContextExt for AppContext {}
@@ -52,6 +57,7 @@ impl Hooks for App {
         let initializers: Vec<Box<dyn Initializer>> = vec![
             Box::new(AppDalInitalizer),
             Box::new(AppMikanClientInitializer),
+            Box::new(AppGraphQLServiceInitializer),
         ];
 
         Ok(initializers)
@@ -71,10 +77,11 @@ impl Hooks for App {
         create_app::<Self, Migrator>(mode, environment).await
     }
 
-    fn routes(_ctx: &AppContext) -> AppRoutes {
+    fn routes(ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
             .prefix("/api")
             .add_route(controllers::subscribers::routes())
+            .add_route(controllers::graphql::routes(ctx.get_graphql_service()))
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {

@@ -4,7 +4,10 @@ use figment::{
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::{auth::AppAuthConfig, dal::config::AppDalConfig, extract::mikan::AppMikanConfig};
+use crate::{
+    auth::AppAuthConfig, dal::config::AppDalConfig, extract::mikan::AppMikanConfig,
+    graphql::config::AppGraphQLConfig,
+};
 
 const DEFAULT_APP_SETTINGS_MIXIN: &str = include_str!("./settings_mixin.yaml");
 
@@ -13,6 +16,7 @@ pub struct AppConfig {
     pub auth: AppAuthConfig,
     pub dal: AppDalConfig,
     pub mikan: AppMikanConfig,
+    pub graphql: AppGraphQLConfig,
 }
 
 pub fn deserialize_key_path_from_json_value<T: DeserializeOwned>(

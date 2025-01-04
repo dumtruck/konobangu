@@ -7,6 +7,7 @@ pub mod controllers;
 pub mod dal;
 pub mod extract;
 pub mod fetch;
+pub mod graphql;
 pub mod migrations;
 pub mod models;
 pub mod sync;

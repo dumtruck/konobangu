@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use axum::{
     extract::FromRequestParts,
     http::request::Parts,
@@ -21,7 +22,7 @@ pub struct AuthUserInfo {
     pub auth_type: AuthType,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl<S> FromRequestParts<S> for AuthUserInfo
 where
     S: Send + Sync,
@@ -42,7 +43,7 @@ where
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 pub trait AuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError>;
 }
@@ -84,7 +85,7 @@ impl AppAuthService {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl AuthService for AppAuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
         match self {
@@ -96,7 +97,7 @@ impl AuthService for AppAuthService {
 
 pub struct AppAuthServiceInitializer;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Initializer for AppAuthServiceInitializer {
     fn name(&self) -> String {
         String::from("AppAuthServiceInitializer")

@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use loco_rs::app::AppContext;
 use sea_orm::{entity::prelude::*, sea_query::OnConflict, ActiveValue, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
@@ -59,11 +60,19 @@ pub enum Relation {
     Subscriber,
     #[sea_orm(has_many = "super::episodes::Entity")]
     Episode,
+    #[sea_orm(has_many = "super::subscription_bangumi::Entity")]
+    SubscriptionBangumi,
 }
 
 impl Related<super::episodes::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Episode.def()
+    }
+}
+
+impl Related<super::subscription_bangumi::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriptionBangumi.def()
     }
 }
 
@@ -81,6 +90,18 @@ impl Related<super::subscribers::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Subscriber.def()
     }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Subscription,
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::episodes::Entity")]
+    Episode,
+    #[sea_orm(entity = "super::subscription_bangumi::Entity")]
+    SubscriptionBangumi,
 }
 
 impl Model {
@@ -146,5 +167,5 @@ impl Model {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}

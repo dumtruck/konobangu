@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -101,7 +102,17 @@ impl Related<super::episodes::Entity> for Entity {
     }
 }
 
-#[async_trait::async_trait]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::downloaders::Entity")]
+    Downloader,
+    #[sea_orm(entity = "super::episodes::Entity")]
+    Episode,
+}
+
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {}

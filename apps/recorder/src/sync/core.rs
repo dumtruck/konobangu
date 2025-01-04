@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use async_trait::async_trait;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use librqbit_core::{
@@ -238,7 +239,7 @@ impl Torrent {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 pub trait TorrentDownloader {
     async fn get_torrents_info(
         &self,

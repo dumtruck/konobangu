@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use loco_rs::app::AppContext;
 use sea_orm::{entity::prelude::*, sea_query::OnConflict, ActiveValue, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
@@ -70,9 +71,11 @@ pub enum Relation {
     )]
     Bangumi,
     #[sea_orm(has_many = "super::subscriptions::Entity")]
-    Subscriptions,
+    Subscription,
     #[sea_orm(has_one = "super::downloads::Entity")]
-    Downloads,
+    Download,
+    #[sea_orm(has_many = "super::subscription_episode::Entity")]
+    SubscriptionEpisode,
 }
 
 impl Related<super::bangumi::Entity> for Entity {
@@ -83,13 +86,7 @@ impl Related<super::bangumi::Entity> for Entity {
 
 impl Related<super::downloads::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Downloads.def()
-    }
-}
-
-impl Related<super::subscriptions::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Subscriptions.def()
+        Relation::Download.def()
     }
 }
 
@@ -97,6 +94,36 @@ impl Related<super::subscribers::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Subscriber.def()
     }
+}
+
+impl Related<super::subscription_episode::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriptionEpisode.def()
+    }
+}
+
+impl Related<super::subscriptions::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::subscription_episode::Relation::Subscription.def()
+    }
+
+    fn via() -> Option<RelationDef> {
+        Some(Relation::Subscription.def())
+    }
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::downloads::Entity")]
+    Subscription,
+    #[sea_orm(entity = "super::bangumi::Entity")]
+    Bangumi,
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Download,
+    #[sea_orm(entity = "super::subscription_episode::Entity")]
+    SubscriptionEpisode,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -206,5 +233,5 @@ impl ActiveModel {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}

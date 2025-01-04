@@ -1,5 +1,6 @@
 use std::{collections::HashSet, sync::Arc};
 
+use async_trait::async_trait;
 use itertools::Itertools;
 use loco_rs::app::AppContext;
 use sea_orm::{entity::prelude::*, ActiveValue};
@@ -81,6 +82,18 @@ impl Related<super::subscribers::Entity> for Entity {
     }
 }
 
+impl Related<super::subscription_bangumi::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriptionBangumi.def()
+    }
+}
+
+impl Related<super::subscription_episode::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriptionEpisode.def()
+    }
+}
+
 impl Related<super::bangumi::Entity> for Entity {
     fn to() -> RelationDef {
         super::subscription_bangumi::Relation::Bangumi.def()
@@ -109,6 +122,20 @@ impl Related<super::episodes::Entity> for Entity {
     }
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::bangumi::Entity")]
+    Bangumi,
+    #[sea_orm(entity = "super::episodes::Entity")]
+    Episode,
+    #[sea_orm(entity = "super::subscription_episode::Entity")]
+    SubscriptionEpisode,
+    #[sea_orm(entity = "super::subscription_bangumi::Entity")]
+    SubscriptionBangumi,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SubscriptionCreateFromRssDto {
     pub rss_link: String,
@@ -122,7 +149,7 @@ pub enum SubscriptionCreateDto {
     Mikan(SubscriptionCreateFromRssDto),
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {

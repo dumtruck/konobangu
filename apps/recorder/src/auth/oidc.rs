@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use async_trait::async_trait;
 use axum::http::request::Parts;
 use itertools::Itertools;
 use jwt_authorizer::{authorizer::Authorizer, NumericDate, OneOrArray};
@@ -80,7 +81,7 @@ pub struct OidcAuthService {
     pub authorizer: Authorizer<OidcAuthClaims>,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl AuthService for OidcAuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
         let config = &self.config;

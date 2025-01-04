@@ -11,8 +11,9 @@ use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
+use async_trait::async_trait;
 
-use crate::fetch::DEFAULT_HTTP_CLIENT_USER_AGENT;
+use super::get_random_mobile_ua;
 
 #[serde_as]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -31,9 +32,9 @@ pub struct HttpClient {
     pub config: HttpClientConfig,
 }
 
-impl Into<ClientWithMiddleware> for HttpClient {
-    fn into(self) -> ClientWithMiddleware {
-        self.client
+impl From<HttpClient> for ClientWithMiddleware {
+    fn from(val: HttpClient) -> Self {
+        val.client
     }
 }
 
@@ -49,7 +50,7 @@ pub struct RateLimiterMiddleware {
     rate_limiter: RateLimiter,
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl reqwest_middleware::Middleware for RateLimiterMiddleware {
     async fn handle(
         &self,
@@ -68,7 +69,7 @@ impl HttpClient {
             config
                 .user_agent
                 .as_deref()
-                .unwrap_or(DEFAULT_HTTP_CLIENT_USER_AGENT),
+                .unwrap_or_else(|| get_random_mobile_ua()),
         );
 
         let reqwest_client = reqwest_client_builder.build()?;

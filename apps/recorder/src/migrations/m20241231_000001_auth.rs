@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::Auth;
@@ -12,7 +13,7 @@ use crate::{
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         create_postgres_enum_for_active_enum!(

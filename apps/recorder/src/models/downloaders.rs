@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -5,11 +6,17 @@ use url::Url;
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
 )]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "downloader_type")]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "downloader_category"
+)]
 #[serde(rename_all = "snake_case")]
 pub enum DownloaderCategory {
     #[sea_orm(string_value = "qbittorrent")]
     QBittorrent,
+    #[sea_orm(string_value = "dandanplay")]
+    Dandanplay,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
@@ -55,7 +62,15 @@ impl Related<super::downloads::Entity> for Entity {
     }
 }
 
-#[async_trait::async_trait]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::downloads::Entity")]
+    Download,
+}
+
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {

@@ -1,5 +1,6 @@
 use std::fmt;
 
+use async_trait::async_trait;
 use bytes::Bytes;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
@@ -184,7 +185,7 @@ impl AppDalClient {
 
 pub struct AppDalInitalizer;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Initializer for AppDalInitalizer {
     fn name(&self) -> String {
         String::from("AppDalInitalizer")

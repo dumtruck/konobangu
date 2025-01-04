@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm::{
     prelude::Expr,
     sea_query::{Alias, IntoColumnRef, IntoTableRef, Query, SelectStatement},
@@ -26,7 +27,7 @@ pub fn filter_values_in<
         .to_owned()
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 pub trait InsertManyReturningExt<A>: Sized
 where
     <A::Entity as EntityTrait>::Model: IntoActiveModel<A>,
@@ -49,7 +50,7 @@ where
         I: IntoIterator<Item = <A::Entity as EntityTrait>::Column> + Send;
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl<A> InsertManyReturningExt<A> for Insert<A>
 where
     <A::Entity as EntityTrait>::Model: IntoActiveModel<A>,

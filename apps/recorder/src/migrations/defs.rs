@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use async_trait::async_trait;
 use sea_orm::{DeriveIden, Statement};
 use sea_orm_migration::prelude::{extension::postgres::IntoTypeRef, *};
 
@@ -143,7 +144,7 @@ macro_rules! create_postgres_enum_for_active_enum {
     };
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 pub trait CustomSchemaManagerExt {
     async fn create_postgres_auto_update_ts_fn(&self, col_name: &str) -> Result<(), DbErr>;
     async fn create_postgres_auto_update_ts_fn_for_col<C: IntoIden + 'static + Send>(
@@ -250,7 +251,7 @@ pub trait CustomSchemaManagerExt {
     ) -> Result<HashSet<String>, DbErr>;
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl CustomSchemaManagerExt for SchemaManager<'_> {
     async fn create_postgres_auto_update_ts_fn(&self, col_name: &str) -> Result<(), DbErr> {
         let sql = format!(

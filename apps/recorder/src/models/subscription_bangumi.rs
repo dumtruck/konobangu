@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use sea_orm::{entity::prelude::*, ActiveValue};
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +43,15 @@ impl Related<super::bangumi::Entity> for Entity {
     }
 }
 
-#[async_trait::async_trait]
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Subscription,
+    #[sea_orm(entity = "super::bangumi::Entity")]
+    Bangumi,
+}
+
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {

@@ -2,6 +2,7 @@ use std::{
     borrow::Cow, collections::HashSet, fmt::Debug, future::Future, sync::Arc, time::Duration,
 };
 
+use async_trait::async_trait;
 use eyre::OptionExt;
 use futures::future::try_join_all;
 pub use qbit_rs::model::{
@@ -218,7 +219,7 @@ impl QBittorrentDownloader {
     }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl TorrentDownloader for QBittorrentDownloader {
     #[instrument(level = "debug", skip(self))]
     async fn get_torrents_info(
@@ -472,7 +473,6 @@ impl Debug for QBittorrentDownloader {
 #[cfg(test)]
 pub mod tests {
     use itertools::Itertools;
-    use testcontainers_modules::testcontainers::ImageExt;
 
     use super::*;
 
@@ -495,6 +495,7 @@ pub mod tests {
             },
             GenericImage,
         };
+        use testcontainers_modules::testcontainers::ImageExt;
 
         use crate::test_utils::testcontainers::ContainerRequestEnhancedExt;
 

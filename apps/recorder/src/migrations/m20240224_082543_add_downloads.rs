@@ -1,25 +1,24 @@
+use async_trait::async_trait;
 use loco_rs::schema::table_auto;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::*;
 use crate::models::{
-    downloaders::DownloaderCategoryEnum,
-    prelude::{
-        downloads::{DownloadMimeEnum, DownloadStatusEnum},
-        DownloadMime, DownloadStatus, DownloaderCategory,
-    },
+    downloaders::{DownloaderCategory, DownloaderCategoryEnum},
+    downloads::{DownloadMime, DownloadMimeEnum, DownloadStatus, DownloadStatusEnum},
 };
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
+#[async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         create_postgres_enum_for_active_enum!(
             manager,
             DownloaderCategoryEnum,
-            DownloaderCategory::QBittorrent
+            DownloaderCategory::QBittorrent,
+            DownloaderCategory::Dandanplay
         )
         .await?;
 

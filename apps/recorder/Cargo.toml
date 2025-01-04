@@ -85,8 +85,10 @@ testcontainers-modules = { version = "0.11.4", optional = true }
 log = "0.4.22"
 anyhow = "1.0.95"
 bollard = { version = "0.18", optional = true }
-async-graphql = "7.0.13"
+async-graphql = { version = "7.0.13", features = [] }
 async-graphql-axum = "7.0.13"
+fastrand = "2.3.0"
+seaography = "1.1.2"
 
 
 [dev-dependencies]
