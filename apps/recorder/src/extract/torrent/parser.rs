@@ -1,4 +1,4 @@
-use eyre::OptionExt;
+use color_eyre::eyre::OptionExt;
 use fancy_regex::Regex as FancyRegex;
 use lazy_static::lazy_static;
 use quirks_path::Path;
@@ -101,10 +101,10 @@ pub fn parse_episode_media_meta_from_torrent(
     torrent_path: &Path,
     torrent_name: Option<&str>,
     season: Option<i32>,
-) -> eyre::Result<TorrentEpisodeMediaMeta> {
+) -> color_eyre::eyre::Result<TorrentEpisodeMediaMeta> {
     let media_name = torrent_path
         .file_name()
-        .ok_or_else(|| eyre::eyre!("failed to get file name of {}", torrent_path))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("failed to get file name of {}", torrent_path))?;
     let mut match_obj = None;
     for rule in TORRENT_EP_PARSE_RULES.iter() {
         match_obj = if let Some(torrent_name) = torrent_name.as_ref() {
@@ -119,7 +119,7 @@ pub fn parse_episode_media_meta_from_torrent(
     if let Some(match_obj) = match_obj {
         let group_season_and_title = match_obj
             .get(1)
-            .ok_or_else(|| eyre::eyre!("should have 1 group"))?
+            .ok_or_else(|| color_eyre::eyre::eyre!("should have 1 group"))?
             .as_str();
         let (fansub, season_and_title) = get_fansub(group_season_and_title);
         let (title, season) = if let Some(season) = season {
@@ -146,7 +146,7 @@ pub fn parse_episode_media_meta_from_torrent(
             extname,
         })
     } else {
-        Err(eyre::eyre!(
+        Err(color_eyre::eyre::eyre!(
             "failed to parse episode media meta from torrent_path='{}' torrent_name='{:?}'",
             torrent_path,
             torrent_name
@@ -158,11 +158,11 @@ pub fn parse_episode_subtitle_meta_from_torrent(
     torrent_path: &Path,
     torrent_name: Option<&str>,
     season: Option<i32>,
-) -> eyre::Result<TorrentEpisodeSubtitleMeta> {
+) -> color_eyre::eyre::Result<TorrentEpisodeSubtitleMeta> {
     let media_meta = parse_episode_media_meta_from_torrent(torrent_path, torrent_name, season)?;
     let media_name = torrent_path
         .file_name()
-        .ok_or_else(|| eyre::eyre!("failed to get file name of {}", torrent_path))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("failed to get file name of {}", torrent_path))?;
 
     let lang = get_subtitle_lang(media_name);
 

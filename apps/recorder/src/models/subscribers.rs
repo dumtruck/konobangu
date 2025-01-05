@@ -128,7 +128,10 @@ impl Model {
         subscriber.ok_or_else(|| ModelError::EntityNotFound)
     }
 
-    pub async fn find_pid_by_id_with_cache(ctx: &AppContext, id: i32) -> eyre::Result<String> {
+    pub async fn find_pid_by_id_with_cache(
+        ctx: &AppContext,
+        id: i32,
+    ) -> color_eyre::eyre::Result<String> {
         let db = &ctx.db;
         let cache = &ctx.cache;
         let pid = cache

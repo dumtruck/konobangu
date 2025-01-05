@@ -137,7 +137,7 @@ impl Model {
         ctx: &AppContext,
         subscription_id: i32,
         creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
-    ) -> eyre::Result<()> {
+    ) -> color_eyre::eyre::Result<()> {
         let db = &ctx.db;
         let new_episode_active_modes = creations
             .into_iter()
@@ -187,7 +187,7 @@ impl ActiveModel {
     pub fn from_mikan_episode_meta(
         ctx: &AppContext,
         creation: MikanEpsiodeCreation,
-    ) -> eyre::Result<Self> {
+    ) -> color_eyre::eyre::Result<Self> {
         let item = creation.episode;
         let bgm = creation.bangumi;
         let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)

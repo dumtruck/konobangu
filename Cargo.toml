@@ -1,5 +1,5 @@
 [workspace]
-members = ["apps/recorder", "packages/quirks-path"]
+members = ["apps/recorder"]
 resolver = "2"
 
 [patch.crates-io]

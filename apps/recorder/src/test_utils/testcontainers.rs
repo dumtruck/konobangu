@@ -19,7 +19,7 @@ where
         container_label: &str,
         prune: bool,
         force: bool,
-    ) -> eyre::Result<Self>;
+    ) -> color_eyre::eyre::Result<Self>;
 
     fn with_default_log_consumer(self) -> Self;
 }
@@ -34,7 +34,7 @@ where
         container_label: &str,
         prune: bool,
         force: bool,
-    ) -> eyre::Result<Self> {
+    ) -> color_eyre::eyre::Result<Self> {
         use std::collections::HashMap;
 
         use bollard::container::PruneContainersOptions;

@@ -87,7 +87,7 @@ impl AppDalClient {
         bucket: Option<&str>,
         filename: &str,
         data: Bytes,
-    ) -> eyre::Result<DalStoredUrl> {
+    ) -> color_eyre::eyre::Result<DalStoredUrl> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [
@@ -124,7 +124,7 @@ impl AppDalClient {
         subscriber_pid: &str,
         bucket: Option<&str>,
         filename: &str,
-    ) -> eyre::Result<Option<DalStoredUrl>> {
+    ) -> color_eyre::eyre::Result<Option<DalStoredUrl>> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [
@@ -158,7 +158,7 @@ impl AppDalClient {
         subscriber_pid: &str,
         bucket: Option<&str>,
         filename: &str,
-    ) -> eyre::Result<Buffer> {
+    ) -> color_eyre::eyre::Result<Buffer> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [

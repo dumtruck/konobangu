@@ -112,9 +112,9 @@ impl Model {
         mikan_bangumi_id: String,
         mikan_fansub_id: String,
         f: F,
-    ) -> eyre::Result<Model>
+    ) -> color_eyre::eyre::Result<Model>
     where
-        F: AsyncFnOnce(&mut ActiveModel) -> eyre::Result<()>,
+        F: AsyncFnOnce(&mut ActiveModel) -> color_eyre::eyre::Result<()>,
     {
         let db = &ctx.db;
         if let Some(existed) = Entity::find()

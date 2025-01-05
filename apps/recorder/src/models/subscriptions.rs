@@ -182,7 +182,7 @@ impl Model {
         ctx: &AppContext,
         create_dto: SubscriptionCreateDto,
         subscriber_id: i32,
-    ) -> eyre::Result<Self> {
+    ) -> color_eyre::eyre::Result<Self> {
         let db = &ctx.db;
         let subscription = ActiveModel::from_create_dto(create_dto, subscriber_id);
 
@@ -193,7 +193,7 @@ impl Model {
         ctx: &AppContext,
         ids: impl Iterator<Item = i32>,
         enabled: bool,
-    ) -> eyre::Result<()> {
+    ) -> color_eyre::eyre::Result<()> {
         let db = &ctx.db;
         Entity::update_many()
             .col_expr(Column::Enabled, Expr::value(enabled))
@@ -206,7 +206,7 @@ impl Model {
     pub async fn delete_with_ids(
         ctx: &AppContext,
         ids: impl Iterator<Item = i32>,
-    ) -> eyre::Result<()> {
+    ) -> color_eyre::eyre::Result<()> {
         let db = &ctx.db;
         Entity::delete_many()
             .filter(Column::Id.is_in(ids))
@@ -215,7 +215,7 @@ impl Model {
         Ok(())
     }
 
-    pub async fn pull_subscription(&self, ctx: &AppContext) -> eyre::Result<()> {
+    pub async fn pull_subscription(&self, ctx: &AppContext) -> color_eyre::eyre::Result<()> {
         match &self.category {
             SubscriptionCategory::Mikan => {
                 let mikan_client = ctx.get_mikan_client();
@@ -288,7 +288,7 @@ impl Model {
                             self.id,
                             mikan_bangumi_id.to_string(),
                             mikan_fansub_id.to_string(),
-                            async |am| -> eyre::Result<()> {
+                            async |am| -> color_eyre::eyre::Result<()> {
                                 let bgm_meta = parse_mikan_bangumi_meta_from_mikan_homepage(
                                     Some(mikan_client),
                                     bgm_homepage.clone(),

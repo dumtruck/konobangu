@@ -22,11 +22,9 @@ testcontainers = [
 ]
 
 [dependencies]
-quirks_path = { path = "../../packages/quirks-path" }
 loco-rs = { version = "0.13" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-eyre = "0.6"
 tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }
 async-trait = "0.1.83"
 tracing = "0.1"
@@ -82,6 +80,9 @@ testcontainers = { version = "0.23.1", features = [
 ], optional = true }
 testcontainers-modules = { version = "0.11.4", optional = true }
 
+color-eyre = "0.6"
+
+
 log = "0.4.22"
 anyhow = "1.0.95"
 bollard = { version = "0.18", optional = true }
@@ -89,7 +90,7 @@ async-graphql = { version = "7.0.13", features = [] }
 async-graphql-axum = "7.0.13"
 fastrand = "2.3.0"
 seaography = "1.1.2"
-
+quirks_path = "0.1.0"
 
 [dev-dependencies]
 serial_test = "3"

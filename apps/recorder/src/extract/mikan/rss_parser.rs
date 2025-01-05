@@ -166,7 +166,7 @@ pub fn build_mikan_bangumi_rss_link(
     mikan_base_url: &str,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> eyre::Result<Url> {
+) -> color_eyre::eyre::Result<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path("/RSS/Bangumi");
     url.query_pairs_mut()
@@ -181,7 +181,7 @@ pub fn build_mikan_bangumi_rss_link(
 pub fn build_mikan_subscriber_aggregation_rss_link(
     mikan_base_url: &str,
     mikan_aggregation_id: &str,
-) -> eyre::Result<Url> {
+) -> color_eyre::eyre::Result<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path("/RSS/MyBangumi");
     url.query_pairs_mut()
@@ -222,7 +222,7 @@ pub fn parse_mikan_subscriber_aggregation_id_from_rss_link(
 pub async fn parse_mikan_rss_items_from_rss_link(
     client: Option<&AppMikanClient>,
     url: impl IntoUrl,
-) -> eyre::Result<Vec<MikanRssItem>> {
+) -> color_eyre::eyre::Result<Vec<MikanRssItem>> {
     let channel = parse_mikan_rss_channel_from_rss_link(client, url).await?;
 
     Ok(channel.into_items())
@@ -231,7 +231,7 @@ pub async fn parse_mikan_rss_items_from_rss_link(
 pub async fn parse_mikan_rss_channel_from_rss_link(
     client: Option<&AppMikanClient>,
     url: impl IntoUrl,
-) -> eyre::Result<MikanRssChannel> {
+) -> color_eyre::eyre::Result<MikanRssChannel> {
     let http_client = client.map(|s| s.deref());
     let bytes = fetch_bytes(http_client, url.as_str()).await?;
 

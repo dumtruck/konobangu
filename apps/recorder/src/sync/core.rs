@@ -57,7 +57,7 @@ pub enum TorrentSource {
 }
 
 impl TorrentSource {
-    pub async fn parse(client: Option<&HttpClient>, url: &str) -> eyre::Result<Self> {
+    pub async fn parse(client: Option<&HttpClient>, url: &str) -> color_eyre::eyre::Result<Self> {
         let url = Url::parse(url)?;
         let source = if url.scheme() == MAGNET_SCHEMA {
             TorrentSource::from_magnet_url(url)?
@@ -82,7 +82,10 @@ impl TorrentSource {
         Ok(source)
     }
 
-    pub fn from_torrent_file(file: Vec<u8>, name: Option<String>) -> eyre::Result<Self> {
+    pub fn from_torrent_file(
+        file: Vec<u8>,
+        name: Option<String>,
+    ) -> color_eyre::eyre::Result<Self> {
         let torrent: TorrentMetaV1Owned = torrent_from_bytes(&file)
             .map_err(|_| TorrentDownloadError::InvalidTorrentFileFormat)?;
         let hash = torrent.info_hash.as_string();
@@ -93,7 +96,7 @@ impl TorrentSource {
         })
     }
 
-    pub fn from_magnet_url(url: Url) -> eyre::Result<Self> {
+    pub fn from_magnet_url(url: Url) -> color_eyre::eyre::Result<Self> {
         if url.scheme() != MAGNET_SCHEMA {
             Err(TorrentDownloadError::InvalidUrlSchema {
                 found: url.scheme().to_string(),
@@ -117,7 +120,7 @@ impl TorrentSource {
         }
     }
 
-    pub fn from_torrent_url(url: Url, hash: String) -> eyre::Result<Self> {
+    pub fn from_torrent_url(url: Url, hash: String) -> color_eyre::eyre::Result<Self> {
         Ok(TorrentSource::TorrentUrl { url, hash })
     }
 
@@ -246,35 +249,47 @@ pub trait TorrentDownloader {
         status_filter: TorrentFilter,
         category: Option<String>,
         tag: Option<String>,
-    ) -> eyre::Result<Vec<Torrent>>;
+    ) -> color_eyre::eyre::Result<Vec<Torrent>>;
 
     async fn add_torrents(
         &self,
         source: TorrentSource,
         save_path: String,
         category: Option<&str>,
-    ) -> eyre::Result<()>;
+    ) -> color_eyre::eyre::Result<()>;
 
-    async fn delete_torrents(&self, hashes: Vec<String>) -> eyre::Result<()>;
+    async fn delete_torrents(&self, hashes: Vec<String>) -> color_eyre::eyre::Result<()>;
 
     async fn rename_torrent_file(
         &self,
         hash: &str,
         old_path: &str,
         new_path: &str,
-    ) -> eyre::Result<()>;
+    ) -> color_eyre::eyre::Result<()>;
 
-    async fn move_torrents(&self, hashes: Vec<String>, new_path: &str) -> eyre::Result<()>;
+    async fn move_torrents(
+        &self,
+        hashes: Vec<String>,
+        new_path: &str,
+    ) -> color_eyre::eyre::Result<()>;
 
-    async fn get_torrent_path(&self, hashes: String) -> eyre::Result<Option<String>>;
+    async fn get_torrent_path(&self, hashes: String) -> color_eyre::eyre::Result<Option<String>>;
 
-    async fn check_connection(&self) -> eyre::Result<()>;
+    async fn check_connection(&self) -> color_eyre::eyre::Result<()>;
 
-    async fn set_torrents_category(&self, hashes: Vec<String>, category: &str) -> eyre::Result<()>;
+    async fn set_torrents_category(
+        &self,
+        hashes: Vec<String>,
+        category: &str,
+    ) -> color_eyre::eyre::Result<()>;
 
-    async fn add_torrent_tags(&self, hashes: Vec<String>, tags: Vec<String>) -> eyre::Result<()>;
+    async fn add_torrent_tags(
+        &self,
+        hashes: Vec<String>,
+        tags: Vec<String>,
+    ) -> color_eyre::eyre::Result<()>;
 
-    async fn add_category(&self, category: &str) -> eyre::Result<()>;
+    async fn add_category(&self, category: &str) -> color_eyre::eyre::Result<()>;
 
     fn get_save_path(&self, sub_path: &Path) -> PathBuf;
 }

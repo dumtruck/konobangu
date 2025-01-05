@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use bytes::Bytes;
-use eyre::ContextCompat;
+use color_eyre::eyre::ContextCompat;
 use html_escape::decode_html_entities;
 use itertools::Itertools;
 use lazy_static::lazy_static;
@@ -65,7 +65,7 @@ pub fn build_mikan_bangumi_homepage(
     mikan_base_url: &str,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> eyre::Result<Url> {
+) -> color_eyre::eyre::Result<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path(&format!("/Home/Bangumi/{mikan_bangumi_id}"));
     url.set_fragment(mikan_fansub_id);
@@ -75,7 +75,7 @@ pub fn build_mikan_bangumi_homepage(
 pub fn build_mikan_episode_homepage(
     mikan_base_url: &str,
     mikan_episode_id: &str,
-) -> eyre::Result<Url> {
+) -> color_eyre::eyre::Result<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
     Ok(url)
@@ -93,7 +93,7 @@ pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHom
 pub async fn parse_mikan_bangumi_poster_from_origin_poster_src(
     client: Option<&AppMikanClient>,
     origin_poster_src: Url,
-) -> eyre::Result<MikanBangumiPosterMeta> {
+) -> color_eyre::eyre::Result<MikanBangumiPosterMeta> {
     let http_client = client.map(|s| s.deref());
     let poster_data = fetch_image(http_client, origin_poster_src.clone()).await?;
     Ok(MikanBangumiPosterMeta {
@@ -107,7 +107,7 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
     ctx: &AppContext,
     origin_poster_src: Url,
     subscriber_id: i32,
-) -> eyre::Result<MikanBangumiPosterMeta> {
+) -> color_eyre::eyre::Result<MikanBangumiPosterMeta> {
     let dal_client = ctx.get_dal_client();
     let mikan_client = ctx.get_mikan_client();
     let subscriber_pid = &subscribers::Model::find_pid_by_id_with_cache(ctx, subscriber_id).await?;
@@ -149,7 +149,7 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
 pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
     client: Option<&AppMikanClient>,
     url: Url,
-) -> eyre::Result<MikanBangumiMeta> {
+) -> color_eyre::eyre::Result<MikanBangumiMeta> {
     let http_client = client.map(|s| s.deref());
     let url_host = url.origin().unicode_serialization();
     let content = fetch_html(http_client, url.as_str()).await?;
@@ -272,7 +272,7 @@ pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
 pub async fn parse_mikan_episode_meta_from_mikan_homepage(
     client: Option<&AppMikanClient>,
     url: Url,
-) -> eyre::Result<MikanEpisodeMeta> {
+) -> color_eyre::eyre::Result<MikanEpisodeMeta> {
     let http_client = client.map(|s| s.deref());
     let url_host = url.origin().unicode_serialization();
     let content = fetch_html(http_client, url.as_str()).await?;
@@ -417,7 +417,7 @@ mod test {
 
     #[tokio::test]
     async fn test_parse_mikan_episode() {
-        let test_fn = async || -> eyre::Result<()> {
+        let test_fn = async || -> color_eyre::eyre::Result<()> {
             let url_str =
                 "https://mikanani.me/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a";
             let url = Url::parse(url_str)?;
@@ -461,7 +461,7 @@ mod test {
 
     #[tokio::test]
     async fn test_parse_mikan_bangumi() {
-        let test_fn = async || -> eyre::Result<()> {
+        let test_fn = async || -> color_eyre::eyre::Result<()> {
             let url_str = "https://mikanani.me/Home/Bangumi/3416#370";
             let url = Url::parse(url_str)?;
 

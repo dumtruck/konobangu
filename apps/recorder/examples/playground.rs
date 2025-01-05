@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use eyre::Context;
+use color_eyre::eyre::Context;
 use itertools::Itertools;
 use loco_rs::{
     app::Hooks,
@@ -18,7 +18,8 @@ use recorder::{
 };
 use sea_orm_migration::MigratorTrait;
 
-async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> eyre::Result<()> {
+async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> color_eyre::eyre::Result<()> {
+    color_eyre::install()?;
     let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
 
     // let rss_link =
@@ -47,7 +48,7 @@ async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> eyre::Result<()> {
     Ok(())
 }
 
-async fn init() -> eyre::Result<AppContext> {
+async fn init() -> color_eyre::eyre::Result<AppContext> {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .with_test_writer()
@@ -61,7 +62,7 @@ async fn init() -> eyre::Result<AppContext> {
 }
 
 #[tokio::main]
-async fn main() -> eyre::Result<()> {
+async fn main() -> color_eyre::eyre::Result<()> {
     let ctx = init().await?;
     pull_mikan_bangumi_rss(&ctx).await?;
 

@@ -1,6 +1,7 @@
 pub mod core;
 pub mod error;
 pub mod qbit;
+mod utils;
 
 pub use core::{
     Torrent, TorrentContent, TorrentDownloader, TorrentFilter, TorrentSource, BITTORRENT_MIME_TYPE,
