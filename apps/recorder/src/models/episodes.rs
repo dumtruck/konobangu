@@ -45,7 +45,7 @@ pub struct Model {
     pub poster_link: Option<String>,
     pub episode_index: i32,
     pub homepage: Option<String>,
-    pub subtitle: Option<Vec<String>>,
+    pub subtitle: Option<String>,
     #[sea_orm(default = "false")]
     pub deleted: bool,
     pub source: Option<String>,
@@ -218,7 +218,7 @@ impl ActiveModel {
             poster_link: ActiveValue::Set(bgm.poster_link.clone()),
             episode_index: ActiveValue::Set(raw_meta.episode_index),
             homepage: ActiveValue::Set(Some(homepage.to_string())),
-            subtitle: ActiveValue::Set(raw_meta.subtitle.map(|s| vec![s])),
+            subtitle: ActiveValue::Set(raw_meta.subtitle),
             source: ActiveValue::Set(raw_meta.source),
             extra: ActiveValue::Set(EpisodeExtra {
                 name_zh: raw_meta.name_zh,

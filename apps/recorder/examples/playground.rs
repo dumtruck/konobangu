@@ -19,7 +19,6 @@ use recorder::{
 use sea_orm_migration::MigratorTrait;
 
 async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> color_eyre::eyre::Result<()> {
-    color_eyre::install()?;
     let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
 
     // let rss_link =
@@ -49,10 +48,7 @@ async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> color_eyre::eyre::Result<()
 }
 
 async fn init() -> color_eyre::eyre::Result<AppContext> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_test_writer()
-        .init();
+    color_eyre::install()?;
     let ctx = loco_rs::cli::playground::<App>().await?;
     let BootResult {
         app_context: ctx, ..
@@ -65,16 +61,6 @@ async fn init() -> color_eyre::eyre::Result<AppContext> {
 async fn main() -> color_eyre::eyre::Result<()> {
     let ctx = init().await?;
     pull_mikan_bangumi_rss(&ctx).await?;
-
-    // let active_model: articles::ActiveModel = ActiveModel {
-    //     title: Set(Some("how to build apps in 3 steps".to_string())),
-    //     content: Set(Some("use Loco: https://loco.rs".to_string())),
-    //     ..Default::default()
-    // };
-    // active_model.insert(&ctx.db).await.unwrap();
-
-    // let res = articles::Entity::find().all(&ctx.db).await.unwrap();
-    // println!("{:?}", res);
 
     Ok(())
 }

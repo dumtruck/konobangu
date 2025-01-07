@@ -15,7 +15,6 @@ pub fn schema(
     seaography::register_entities!(
         builder,
         [
-            auth,
             bangumi,
             downloaders,
             downloads,
@@ -28,7 +27,6 @@ pub fn schema(
     );
 
     {
-        builder.register_enumeration::<auth::AuthType>();
         builder.register_enumeration::<downloads::DownloadStatus>();
         builder.register_enumeration::<subscriptions::SubscriptionCategory>();
         builder.register_enumeration::<downloaders::DownloaderCategory>();

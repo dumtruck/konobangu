@@ -1,7 +1,10 @@
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_axum::GraphQL;
-use axum::response::Html;
-use loco_rs::prelude::*;
+use axum::{
+    response::{Html, IntoResponse},
+    routing::{get, post_service},
+};
+use loco_rs::prelude::Routes;
 
 use crate::graphql::service::AppGraphQLService;
 
@@ -12,8 +15,11 @@ pub async fn graphql_playground() -> impl IntoResponse {
 }
 
 pub fn routes(graphql_service: &AppGraphQLService) -> Routes {
-    Routes::new().prefix("/graphql").add(
-        "/",
-        get(graphql_playground).post_service(GraphQL::new(graphql_service.schema.clone())),
-    )
+    Routes::new()
+        .prefix("/graphql")
+        .add("/playground", get(graphql_playground))
+        .add(
+            "/",
+            post_service(GraphQL::new(graphql_service.schema.clone())),
+        )
 }

@@ -80,8 +80,6 @@ pub enum RelatedEntity {
     Bangumi,
     #[sea_orm(entity = "super::episodes::Entity")]
     Episode,
-    #[sea_orm(entity = "super::auth::Entity")]
-    Auth,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

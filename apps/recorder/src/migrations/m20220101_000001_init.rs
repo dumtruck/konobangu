@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use loco_rs::schema::jsonb_null;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::{
@@ -27,7 +26,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Subscribers::Id))
                     .col(string_len_uniq(Subscribers::Pid, 64))
                     .col(string(Subscribers::DisplayName))
-                    .col(jsonb_null(Subscribers::BangumiConf))
+                    .col(json_binary_null(Subscribers::BangumiConf))
                     .to_owned(),
             )
             .await?;
@@ -101,13 +100,13 @@ impl MigrationTrait for Migration {
                     .col(text_null(Bangumi::SeasonRaw))
                     .col(text_null(Bangumi::Fansub))
                     .col(text_null(Bangumi::MikanFansubId))
-                    .col(jsonb_null(Bangumi::Filter))
+                    .col(json_binary_null(Bangumi::Filter))
                     .col(text_null(Bangumi::RssLink))
                     .col(text_null(Bangumi::PosterLink))
                     .col(text_null(Bangumi::SavePath))
                     .col(boolean(Bangumi::Deleted).default(false))
                     .col(text_null(Bangumi::Homepage))
-                    .col(jsonb_null(Bangumi::Extra))
+                    .col(json_binary_null(Bangumi::Extra))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_bangumi_subscriber_id")
@@ -214,7 +213,7 @@ impl MigrationTrait for Migration {
                     .col(text_null(Episodes::Subtitle))
                     .col(boolean(Episodes::Deleted).default(false))
                     .col(text_null(Episodes::Source))
-                    .col(jsonb_null(Episodes::Extra))
+                    .col(json_binary_null(Episodes::Extra))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_episodes_bangumi_id")

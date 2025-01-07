@@ -58,6 +58,8 @@ server:
       #   - POST
       # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
       # max_age: 3600
+    fallback:
+      enable: false
 
 # Worker Configuration
 workers:

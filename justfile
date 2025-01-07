@@ -10,7 +10,7 @@ dev-webui:
   pnpm run dev
 
 dev-recorder:
-  cargo watch -w apps/recorder -w config -x 'recorder start'
+  cargo watch -w apps/recorder -x 'recorder start'
 
 down-recorder:
   cargo run -p recorder --bin recorder_cli -- db down 999 --environment development

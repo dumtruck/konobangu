@@ -22,7 +22,6 @@ pub struct AuthUserInfo {
     pub auth_type: AuthType,
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AuthUserInfo
 where
     S: Send + Sync,

@@ -5,6 +5,7 @@ use loco_rs::{
     app::{AppContext, Hooks},
     boot::{create_app, BootResult, StartMode},
     cache,
+    config::Config,
     controller::AppRoutes,
     db::truncate_table,
     environment::Environment,
@@ -24,6 +25,8 @@ use crate::{
     models::subscribers,
     workers::subscription_worker::SubscriptionWorker,
 };
+
+pub const CONFIG_FOLDER: &str = "LOCO_CONFIG_FOLDER";
 
 pub trait AppContextExt {
     fn get_dal_client(&self) -> &AppDalClient {
@@ -49,6 +52,20 @@ pub struct App;
 
 #[async_trait]
 impl Hooks for App {
+    async fn load_config(env: &Environment) -> Result<Config> {
+        std::env::var(CONFIG_FOLDER).map_or_else(
+            |_| {
+                let monorepo_project_config_dir = Path::new("./apps/recorder/config");
+                if monorepo_project_config_dir.exists() && monorepo_project_config_dir.is_dir() {
+                    return env.load_from_folder(monorepo_project_config_dir);
+                }
+                let current_config_dir = Path::new("./config");
+                env.load_from_folder(current_config_dir)
+            },
+            |config_folder| env.load_from_folder(Path::new(&config_folder)),
+        )
+    }
+
     fn app_name() -> &'static str {
         env!("CARGO_CRATE_NAME")
     }
@@ -73,8 +90,12 @@ impl Hooks for App {
         )
     }
 
-    async fn boot(mode: StartMode, environment: &Environment) -> Result<BootResult> {
-        create_app::<Self, Migrator>(mode, environment).await
+    async fn boot(
+        mode: StartMode,
+        environment: &Environment,
+        config: Config,
+    ) -> Result<BootResult> {
+        create_app::<Self, Migrator>(mode, environment, config).await
     }
 
     fn routes(ctx: &AppContext) -> AppRoutes {

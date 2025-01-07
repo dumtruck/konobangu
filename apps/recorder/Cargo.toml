@@ -38,7 +38,7 @@ sea-orm = { version = "1", features = [
 ] }
 figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
 
-axum = "0.7.9"
+axum = "0.8"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls"] }
@@ -64,7 +64,6 @@ scraper = "0.22.0"
 leaky-bucket = "1.1.2"
 serde_with = "3"
 jwt-authorizer = "0.15.0"
-axum-auth = "0.7.0"
 futures = "0.3.31"
 librqbit-core = "4"
 qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe", features = [
@@ -91,6 +90,7 @@ async-graphql-axum = "7.0.13"
 fastrand = "2.3.0"
 seaography = "1.1.2"
 quirks_path = "0.1.0"
+base64 = "0.22.1"
 
 [dev-dependencies]
 serial_test = "3"

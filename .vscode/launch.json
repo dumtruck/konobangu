@@ -7,25 +7,6 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "debug quirks_path lib",
-      "cargo": {
-        "args": [
-          "test",
-          "--no-run",
-          "--lib",
-          "--package=quirks_path"
-        ],
-        "filter": {
-          "name": "quirks_path",
-          "kind": "lib"
-        }
-      },
-      "args": [],
-      "cwd": "${workspaceFolder}"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
       "name": "debug recorder bin",
       "cargo": {
         "args": [
@@ -39,8 +20,9 @@
         }
       },
       "args": [
+        "start",
         "--environment",
-        "recorder/development"
+        "development"
       ],
       "cwd": "${workspaceFolder}"
     },
@@ -61,14 +43,14 @@
       },
       "args": [
         "--environment",
-        "recorder/development"
+        "development"
       ],
       "cwd": "${workspaceFolder}"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "debug record lib",
+      "name": "debug recorder lib",
       "cargo": {
         "args": [
           "test",
