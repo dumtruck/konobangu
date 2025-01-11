@@ -7,6 +7,7 @@ use axum::{
 use jwt_authorizer::{JwtAuthorizer, Validation};
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
+use reqwest::header::HeaderValue;
 
 use super::{
     basic::BasicAuthService,
@@ -16,6 +17,7 @@ use super::{
 };
 use crate::{app::AppContextExt as _, config::AppConfigExt, models::auth::AuthType};
 
+#[derive(Clone, Debug)]
 pub struct AuthUserInfo {
     pub user_pid: String,
     pub auth_type: AuthType,
@@ -40,6 +42,7 @@ impl FromRequestParts<AppContext> for AuthUserInfo {
 #[async_trait]
 pub trait AuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError>;
+    fn www_authenticate_header_value(&self) -> Option<HeaderValue>;
 }
 
 pub enum AppAuthService {
@@ -85,6 +88,13 @@ impl AuthService for AppAuthService {
         match self {
             AppAuthService::Basic(service) => service.extract_user_info(request).await,
             AppAuthService::Oidc(service) => service.extract_user_info(request).await,
+        }
+    }
+
+    fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
+        match self {
+            AppAuthService::Basic(service) => service.www_authenticate_header_value(),
+            AppAuthService::Oidc(service) => service.www_authenticate_header_value(),
         }
     }
 }

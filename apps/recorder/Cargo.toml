@@ -99,6 +99,9 @@ quirks_path = "0.1.0"
 base64 = "0.22.1"
 tower = "0.5.2"
 axum-extra = "0.10.0"
+tower-http = "0.6.2"
+serde_yaml = "0.9.34"
+tera = "1.20.0"
 
 [dev-dependencies]
 serial_test = "3"

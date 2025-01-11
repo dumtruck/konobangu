@@ -6,6 +6,7 @@ resolver = "2"
 testcontainers = { git = "https://github.com/testcontainers/testcontainers-rs.git", rev = "af21727" }
 # loco-rs = { git = "https://github.com/lonelyhentxi/loco.git", rev = "beb890e" }
 # loco-rs = { git = "https://github.com/loco-rs/loco.git" }
+loco-rs = { path = "./patches/loco" }
 async-graphql = { git = "https://github.com/aumetra/async-graphql.git", rev = "690ece7" }
 async-graphql-axum = { git = "https://github.com/aumetra/async-graphql.git", rev = "690ece7" }
 jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }

@@ -1,0 +1,7 @@
+{
+  "name": "recorder",
+  "version": "1.0.0",
+  "dependencies": {
+    "altair-static": "^8.1.3"
+  }
+}

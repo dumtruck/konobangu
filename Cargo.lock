@@ -3298,8 +3298,6 @@ dependencies = [
 [[package]]
 name = "loco-gen"
 version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef868bd2df99c949018850b36fb700bba01b10001715f94390bcdb81f412f874"
 dependencies = [
  "chrono",
  "clap",
@@ -3318,8 +3316,6 @@ dependencies = [
 [[package]]
 name = "loco-rs"
 version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2250c89f0f996c3493ec3d2588a2d63e2861a48df7b9585cb28fbf6faf15a1a0"
 dependencies = [
  "argon2",
  "async-trait",
@@ -4621,12 +4617,15 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "serde_yaml",
  "serial_test",
+ "tera",
  "testcontainers",
  "testcontainers-modules",
  "thiserror 2.0.10",
  "tokio",
  "tower 0.5.2",
+ "tower-http",
  "tracing",
  "tracing-subscriber",
  "url",

@@ -3,11 +3,11 @@ import {
   noseconeConfig,
   noseconeMiddleware,
 } from '@konobangu/security/middleware';
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 const securityHeaders = noseconeMiddleware(noseconeConfig);
 
-export async function middleware (_request: NextRequest) {
+export async function middleware(_request: NextRequest) {
   const response = await securityHeaders();
   return authMiddleware(response as any);
 }

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use async_trait::async_trait;
-use axum::http::request::Parts;
+use axum::http::{request::Parts, HeaderValue};
 use itertools::Itertools;
 use jwt_authorizer::{authorizer::Authorizer, NumericDate, OneOrArray};
 use serde::{Deserialize, Serialize};
@@ -134,5 +134,9 @@ impl AuthService for OidcAuthService {
                 .unwrap_or_else(|| unreachable!("sub should be present and validated")),
             auth_type: AuthType::Oidc,
         })
+    }
+
+    fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
+        Some(HeaderValue::from_static(r#"Bearer realm="konobangu""#))
     }
 }

@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use axum::http::request::Parts;
+use axum::http::{request::Parts, HeaderValue};
 use base64::{self, Engine};
 use reqwest::header::AUTHORIZATION;
 
@@ -75,5 +75,9 @@ impl AuthService for BasicAuthService {
             }
         }
         Err(AuthError::BasicInvalidCredentials)
+    }
+
+    fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
+        Some(HeaderValue::from_static(r#"Basic realm="konobangu""#))
     }
 }

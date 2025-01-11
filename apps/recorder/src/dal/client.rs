@@ -11,7 +11,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::AppDalConfig;
-use crate::config::AppConfigExt;
+use crate::{app::App, config::AppConfigExt};
 
 // TODO: wait app-context-trait to integrate
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,12 +52,16 @@ impl fmt::Display for DalStoredUrl {
 
 #[derive(Debug, Clone)]
 pub struct AppDalClient {
-    pub config: AppDalConfig,
+    pub data_dir: String,
 }
 
 impl AppDalClient {
     pub fn new(config: AppDalConfig) -> Self {
-        Self { config }
+        Self {
+            data_dir: App::get_working_root()
+                .join(config.data_dir.as_deref().unwrap_or("./data"))
+                .to_string(),
+        }
     }
 
     pub fn app_instance() -> &'static AppDalClient {
@@ -67,13 +71,7 @@ impl AppDalClient {
     }
 
     pub fn get_fs(&self) -> Fs {
-        Fs::default().root(
-            self.config
-                .data_dir
-                .as_ref()
-                .map(|s| s as &str)
-                .unwrap_or("./data"),
-        )
+        Fs::default().root(&self.data_dir)
     }
 
     pub fn create_filename(extname: &str) -> String {
