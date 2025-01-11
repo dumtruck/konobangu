@@ -3,7 +3,6 @@ use axum::{
     extract::FromRequestParts,
     http::request::Parts,
     response::{IntoResponse as _, Response},
-    Extension,
 };
 use jwt_authorizer::{JwtAuthorizer, Validation};
 use loco_rs::app::{AppContext, Initializer};
@@ -22,21 +21,17 @@ pub struct AuthUserInfo {
     pub auth_type: AuthType,
 }
 
-impl<S> FromRequestParts<S> for AuthUserInfo
-where
-    S: Send + Sync,
-{
+impl FromRequestParts<AppContext> for AuthUserInfo {
     type Rejection = Response;
 
-    async fn from_request_parts(req: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let Extension(ctx) = Extension::<AppContext>::from_request_parts(req, state)
-            .await
-            .expect("AppContext should be present");
-
-        let auth_service = ctx.get_auth_service();
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppContext,
+    ) -> Result<Self, Self::Rejection> {
+        let auth_service = state.get_auth_service();
 
         auth_service
-            .extract_user_info(req)
+            .extract_user_info(parts)
             .await
             .map_err(|err| err.into_response())
     }

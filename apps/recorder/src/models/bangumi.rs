@@ -1,3 +1,4 @@
+use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use loco_rs::app::AppContext;
 use sea_orm::{entity::prelude::*, sea_query::OnConflict, ActiveValue, FromJsonQueryResult};
@@ -5,13 +6,19 @@ use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
+)]
+#[graphql(name = "BangumiFilter")]
 pub struct BangumiFilter {
     pub name: Option<Vec<String>>,
     pub group: Option<Vec<String>>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
+)]
+#[graphql(name = "BangumiExtra")]
 pub struct BangumiExtra {
     pub name_zh: Option<String>,
     pub s_name_zh: Option<String>,
@@ -21,14 +28,16 @@ pub struct BangumiExtra {
     pub s_name_jp: Option<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
 #[sea_orm(table_name = "bangumi")]
+#[graphql(name = "Bangumi")]
 pub struct Model {
     pub created_at: DateTime,
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
     pub mikan_bangumi_id: Option<String>,
+    #[graphql(default_with = "default_subscriber_id")]
     pub subscriber_id: i32,
     pub display_name: String,
     pub raw_name: String,

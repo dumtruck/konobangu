@@ -1,25 +1,40 @@
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql_axum::GraphQL;
+use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
+    extract::State,
+    middleware::from_extractor_with_state,
     response::{Html, IntoResponse},
-    routing::{get, post_service},
+    routing::{get, post},
 };
-use loco_rs::prelude::Routes;
+use loco_rs::{app::AppContext, prelude::Routes};
 
-use crate::graphql::service::AppGraphQLService;
+use crate::{app::AppContextExt, auth::AuthUserInfo};
 
-pub async fn graphql_playground() -> impl IntoResponse {
+async fn graphql_playground() -> impl IntoResponse {
     Html(playground_source(GraphQLPlaygroundConfig::new(
         "/api/graphql",
     )))
 }
 
-pub fn routes(graphql_service: &AppGraphQLService) -> Routes {
+async fn graphql_handler(
+    State(ctx): State<AppContext>,
+    auth_user_info: AuthUserInfo,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    let graphql_service = ctx.get_graphql_service();
+    let mut req = req.into_inner();
+    req = req.data(auth_user_info);
+
+    graphql_service.schema.execute(req).await.into()
+}
+
+pub fn routes(state: AppContext) -> Routes {
     Routes::new()
         .prefix("/graphql")
         .add("/playground", get(graphql_playground))
         .add(
             "/",
-            post_service(GraphQL::new(graphql_service.schema.clone())),
+            post(graphql_handler)
+                .layer(from_extractor_with_state::<AuthUserInfo, AppContext>(state)),
         )
 }

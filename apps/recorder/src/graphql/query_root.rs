@@ -2,7 +2,11 @@ use async_graphql::dynamic::*;
 use sea_orm::DatabaseConnection;
 use seaography::{Builder, BuilderContext};
 
-lazy_static::lazy_static! { static ref CONTEXT : BuilderContext = BuilderContext :: default () ; }
+lazy_static::lazy_static! { static ref CONTEXT : BuilderContext = {
+      BuilderContext {
+        ..Default::default()
+      }
+}; }
 
 pub fn schema(
     database: DatabaseConnection,
@@ -34,6 +38,7 @@ pub fn schema(
     }
 
     let schema = builder.schema_builder();
+
     let schema = if let Some(depth) = depth {
         schema.limit_depth(depth)
     } else {

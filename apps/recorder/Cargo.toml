@@ -22,7 +22,7 @@ testcontainers = [
 ]
 
 [dependencies]
-loco-rs = { version = "0.13" }
+loco-rs = { version = "0.14" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }
@@ -42,7 +42,13 @@ axum = "0.8"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls"] }
-reqwest = { version = "0.12.9" }
+reqwest = { version = "0.12", features = [
+    "charset",
+    "http2",
+    "json",
+    "macos-system-configuration",
+    "rustls-tls",
+] }
 thiserror = "2"
 rss = "2"
 bytes = "1.9"
@@ -91,8 +97,10 @@ fastrand = "2.3.0"
 seaography = "1.1.2"
 quirks_path = "0.1.0"
 base64 = "0.22.1"
+tower = "0.5.2"
+axum-extra = "0.10.0"
 
 [dev-dependencies]
 serial_test = "3"
-loco-rs = { version = "0.13", features = ["testing"] }
+loco-rs = { version = "0.14", features = ["testing"] }
 insta = { version = "1", features = ["redactions", "yaml", "filters"] }

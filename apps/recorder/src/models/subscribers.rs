@@ -1,3 +1,4 @@
+use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use loco_rs::{
     app::AppContext,
@@ -8,7 +9,9 @@ use serde::{Deserialize, Serialize};
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
+#[derive(
+    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
+)]
 pub struct SubscriberBangumiConfig {
     pub leading_group_tag: Option<bool>,
 }
@@ -104,11 +107,6 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 impl Model {
-    /// finds a user by the provided pid
-    ///
-    /// # Errors
-    ///
-    /// When could not find user  or DB query error
     pub async fn find_by_pid(ctx: &AppContext, pid: &str) -> ModelResult<Self> {
         let db = &ctx.db;
         let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
@@ -148,12 +146,6 @@ impl Model {
         Self::find_by_pid(ctx, SEED_SUBSCRIBER).await
     }
 
-    /// Asynchronously creates a user with a password and saves it to the
-    /// database.
-    ///
-    /// # Errors
-    ///
-    /// When could not save the user into the DB
     pub async fn create_root(ctx: &AppContext) -> ModelResult<Self> {
         let db = &ctx.db;
         let txn = db.begin().await?;

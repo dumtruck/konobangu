@@ -13,10 +13,9 @@ use loco_rs::{
     task::Tasks,
     Result,
 };
-use sea_orm::DatabaseConnection;
 
 use crate::{
-    auth::service::AppAuthService,
+    auth::service::{AppAuthService, AppAuthServiceInitializer},
     controllers::{self},
     dal::{AppDalClient, AppDalInitalizer},
     extract::mikan::{client::AppMikanClientInitializer, AppMikanClient},
@@ -75,6 +74,7 @@ impl Hooks for App {
             Box::new(AppDalInitalizer),
             Box::new(AppMikanClientInitializer),
             Box::new(AppGraphQLServiceInitializer),
+            Box::new(AppAuthServiceInitializer),
         ];
 
         Ok(initializers)
@@ -101,8 +101,8 @@ impl Hooks for App {
     fn routes(ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
             .prefix("/api")
-            .add_route(controllers::subscribers::routes())
-            .add_route(controllers::graphql::routes(ctx.get_graphql_service()))
+            .add_route(controllers::auth::routes())
+            .add_route(controllers::graphql::routes(ctx.clone()))
     }
 
     async fn connect_workers(ctx: &AppContext, queue: &Queue) -> Result<()> {
@@ -119,12 +119,12 @@ impl Hooks for App {
 
     fn register_tasks(_tasks: &mut Tasks) {}
 
-    async fn truncate(db: &DatabaseConnection) -> Result<()> {
-        truncate_table(db, subscribers::Entity).await?;
+    async fn truncate(ctx: &AppContext) -> Result<()> {
+        truncate_table(&ctx.db, subscribers::Entity).await?;
         Ok(())
     }
 
-    async fn seed(_db: &DatabaseConnection, _base: &Path) -> Result<()> {
+    async fn seed(_ctx: &AppContext, _base: &Path) -> Result<()> {
         Ok(())
     }
 }

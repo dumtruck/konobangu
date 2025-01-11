@@ -9,6 +9,9 @@ prepare-dev-recorder:
 dev-webui:
   pnpm run dev
 
+dev-proxy:
+  pnpm run --filter=proxy dev
+
 dev-recorder:
   cargo watch -w apps/recorder -x 'recorder start'
 

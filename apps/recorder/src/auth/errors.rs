@@ -1,6 +1,7 @@
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
+    Json,
 };
 use thiserror::Error;
 
@@ -30,6 +31,6 @@ pub enum AuthError {
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        (StatusCode::UNAUTHORIZED, self.to_string()).into_response()
+        (StatusCode::UNAUTHORIZED, Json(self.to_string())).into_response()
     }
 }
