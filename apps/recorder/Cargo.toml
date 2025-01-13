@@ -84,10 +84,7 @@ testcontainers = { version = "0.23.1", features = [
     "reusable-containers",
 ], optional = true }
 testcontainers-modules = { version = "0.11.4", optional = true }
-
 color-eyre = "0.6"
-
-
 log = "0.4.22"
 anyhow = "1.0.95"
 bollard = { version = "0.18", optional = true }
@@ -102,6 +99,19 @@ axum-extra = "0.10.0"
 tower-http = "0.6.2"
 serde_yaml = "0.9.34"
 tera = "1.20.0"
+openidconnect = "4.0.0-rc.1"
+http-cache-reqwest = { version = "0.15", features = [
+    "manager-cacache",
+    "manager-moka",
+] }
+moka = "0.12.10"
+http-cache = { version = "0.20.0", features = [
+    "cacache-tokio",
+    "manager-cacache",
+    "manager-moka",
+], default-features = false }
+http-cache-semantics = "2.1.0"
+dotenv = "0.15.0"
 
 [dev-dependencies]
 serial_test = "3"

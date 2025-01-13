@@ -15,6 +15,9 @@ dev-proxy:
 dev-recorder:
   cargo watch -w apps/recorder -x 'recorder start'
 
+dev-playground:
+  pnpm run --filter=recorder dev
+
 down-recorder:
   cargo run -p recorder --bin recorder_cli -- db down 999 --environment development
 

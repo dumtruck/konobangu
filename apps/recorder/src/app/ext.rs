@@ -1,4 +1,4 @@
-use loco_rs::app::AppContext;
+use loco_rs::{app::AppContext, environment::Environment};
 
 use crate::{
     auth::service::AppAuthService, dal::AppDalClient, extract::mikan::AppMikanClient,
@@ -20,6 +20,14 @@ pub trait AppContextExt {
 
     fn get_graphql_service(&self) -> &AppGraphQLService {
         AppGraphQLService::app_instance()
+    }
+
+    fn get_node_env(&self) -> Environment {
+        let node_env = std::env::var("NODE_ENV");
+        match node_env.as_deref() {
+            Ok("production") => Environment::Production,
+            _ => Environment::Development,
+        }
     }
 }
 

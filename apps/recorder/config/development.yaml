@@ -18,8 +18,9 @@ logger:
 server:
     # Port on which the server will listen. the server binding is 0.0.0.0:{PORT}
     port: 5001
+    binding: "0.0.0.0"
     # The UI hostname or IP address that mailers will point to.
-    host: http://webui.konobangu.com
+    host: '{{ get_env(name="HOST", default="localhost") }}'
     # Out of the box middleware configuration. to disable middleware you can changed the `enable` field to `false` of comment the middleware block
     middlewares:
         # Enable Etag cache header middleware
@@ -68,7 +69,7 @@ workers:
     #   - BackgroundQueue - Workers operate asynchronously in the background, processing queued.
     #   - ForegroundBlocking - Workers operate in the foreground and block until tasks are completed.
     #   - BackgroundAsync - Workers operate asynchronously in the background, processing tasks with async capabilities.
-    mode: BackgroundQueue
+    mode: BackgroundAsync
 
 # Mailer Configuration.
 mailer:
@@ -89,7 +90,7 @@ mailer:
 # Database Configuration
 database:
     # Database connection URI
-    uri: '{{ get_env(name="DATABASE_URL", default="postgres://konobangu:konobangu@127.0.0.1:5432/konobangu") }}'
+    uri: '{{ get_env(name="DATABASE_URL", default="postgres://konobangu:konobangu@localhost:5432/konobangu") }}'
     # When enabled, the sql query will be logged.
     enable_logging: true
     # Set the timeout duration when acquiring a connection.
@@ -110,13 +111,13 @@ database:
 # Redis Configuration
 redis:
     # Redis connection URI
-    uri: '{{ get_env(name="REDIS_URL", default="redis://127.0.0.1:6379") }}'
+    uri: '{{ get_env(name="REDIS_URL", default="redis://localhost:6379") }}'
     # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
     dangerously_flush: false
 
 settings:
     dal:
-        data_dir: ./data
+        data_dir: '{{ get_env(name="DAL_DATA_DIR", default="./data") }}'
 
     mikan:
         base_url: "https://mikanani.me/"
@@ -128,11 +129,17 @@ settings:
             leaky_bucket_refill_interval: 500
 
     auth:
-        auth_type: "oidc" # or "basic"
-        basic_user: "konobangu"
-        basic_password: "konobangu"
-        oidc_api_issuer: "https://some-oidc-auth.com/oidc"
-        oidc_api_audience: "https://konobangu.com/api"
-        oidc_extra_scopes: "read:konobangu,write:konobangu"
-        oidc_extra_claim_key: ""
-        oidc_extra_claim_value: ""
+        auth_type: '{{ get_env(name="AUTH_TYPE", default = "basic") }}'
+        basic_user: '{{ get_env(name="BASIC_USER", default = "konobangu") }}'
+        basic_password: '{{ get_env(name="BASIC_PASSWORD", default = "konobangu") }}'
+        oidc_issuer: '{{ get_env(name="OIDC_ISSUER", default = "") }}'
+        oidc_audience: '{{ get_env(name="OIDC_AUDIENCE", default = "") }}'
+        oidc_client_id: '{{ get_env(name="OIDC_CLIENT_ID", default = "") }}'
+        oidc_client_secret: '{{ get_env(name="OIDC_CLIENT_SECRET", default = "") }}'
+        oidc_extra_scopes: '{{ get_env(name="OIDC_EXTRA_SCOPES", default = "") }}'
+        oidc_extra_claim_key: '{{ get_env(name="OIDC_EXTRA_CLAIM_KEY", default = "") }}'
+        oidc_extra_claim_value: '{{ get_env(name="OIDC_EXTRA_CLAIM_VALUE", default = "") }}'
+
+    graphql:
+        depth_limit: null
+        complexity_limit: null

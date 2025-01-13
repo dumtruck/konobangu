@@ -6,6 +6,9 @@
   },
   "linter": {
     "rules": {
+      "style": {
+        "noNonNullAssertion": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off"
       },

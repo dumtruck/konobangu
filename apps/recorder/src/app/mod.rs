@@ -3,6 +3,7 @@ pub mod ext;
 use std::{
     fs,
     path::{self, Path, PathBuf},
+    sync::Arc,
 };
 
 use async_trait::async_trait;
@@ -90,26 +91,47 @@ impl Hooks for App {
 
         for working_root in working_roots_to_search.iter() {
             let working_root = PathBuf::from(working_root);
+            for env_file in [
+                working_root.join(format!(".env.{env}.local")),
+                working_root.join(format!(".env.{env}")),
+                working_root.join(".env.local"),
+                working_root.join(".env"),
+            ] {
+                tracing::info!(env_file =? env_file);
+                if env_file.exists() && env_file.is_file() {
+                    dotenv::from_path(&env_file).map_err(loco_rs::Error::wrap)?;
+                    tracing::info!("loaded env from {} success.", env_file.to_string_lossy());
+                }
+            }
+        }
+
+        for working_root in working_roots_to_search.iter() {
+            let working_root = PathBuf::from(working_root);
             let config_dir = working_root.as_path().join("config");
+
             for config_file in [
                 config_dir.join(format!("{env}.local.yaml")),
                 config_dir.join(format!("{env}.yaml")),
             ] {
                 if config_file.exists() && config_file.is_file() {
-                    tracing::info!(config_file =? config_file, "loading environment from");
-
                     let content = fs::read_to_string(config_file.clone())?;
+
                     let rendered = tera::Tera::one_off(
                         &content,
-                        &tera::Context::from_serialize(serde_json::json!({}))?,
+                        &tera::Context::from_value(serde_json::json!({}))?,
                         false,
                     )?;
 
                     App::set_working_root(working_root);
 
-                    return serde_yaml::from_str(&rendered).map_err(|err| {
-                        loco_rs::Error::YAMLFile(err, config_file.to_string_lossy().to_string())
-                    });
+                    let config_file = &config_file.to_string_lossy();
+
+                    let res = serde_yaml::from_str(&rendered)
+                        .map_err(|err| loco_rs::Error::YAMLFile(err, config_file.to_string()))?;
+
+                    tracing::info!("loading config from {} success", config_file);
+
+                    return Ok(res);
                 }
             }
         }
@@ -118,8 +140,7 @@ impl Hooks for App {
             "no configuration file found in search paths: {}",
             working_roots_to_search
                 .iter()
-                .map(|p| path::absolute(PathBuf::from(p)))
-                .flatten()
+                .flat_map(|p| path::absolute(PathBuf::from(p)))
                 .map(|p| p.to_string_lossy().to_string())
                 .join(",")
         )))
@@ -137,15 +158,28 @@ impl Hooks for App {
     }
 
     fn routes(ctx: &AppContext) -> AppRoutes {
+        let ctx = Arc::new(ctx.clone());
         AppRoutes::with_default_routes()
             .prefix("/api")
-            .add_route(controllers::auth::routes())
             .add_route(controllers::graphql::routes(ctx.clone()))
     }
 
     fn middlewares(ctx: &AppContext) -> Vec<Box<dyn MiddlewareLayer>> {
+        use loco_rs::controller::middleware::static_assets::{FolderConfig, StaticAssets};
+
         let mut middlewares = middleware::default_middleware_stack(ctx);
-        middlewares.extend(controllers::graphql::asset_middlewares());
+        middlewares.push(Box::new(StaticAssets {
+            enable: true,
+            must_exist: true,
+            folder: FolderConfig {
+                uri: String::from("/api/static"),
+                path: App::get_working_root().join("public").into(),
+            },
+            fallback: App::get_working_root()
+                .join("public/assets/404.html")
+                .into(),
+            precompressed: false,
+        }));
         middlewares
     }
 

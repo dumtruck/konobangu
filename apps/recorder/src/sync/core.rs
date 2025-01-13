@@ -64,7 +64,7 @@ impl TorrentSource {
         } else if let Some(basename) = url
             .clone()
             .path_segments()
-            .and_then(|segments| segments.last())
+            .and_then(|mut segments| segments.next_back())
         {
             if let (Some(match_hash), true) = (
                 TORRENT_HASH_RE.find(basename),

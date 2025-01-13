@@ -22,12 +22,12 @@ impl AuthBasic {
             .headers
             .get(AUTHORIZATION)
             .and_then(|s| s.to_str().ok())
-            .ok_or_else(|| AuthError::BasicInvalidCredentials)?;
+            .ok_or(AuthError::BasicInvalidCredentials)?;
 
         let split = authorization.split_once(' ');
 
         match split {
-            Some((name, contents)) if name == "Basic" => {
+            Some(("Basic", contents)) => {
                 let decoded = base64::engine::general_purpose::STANDARD
                     .decode(contents)
                     .map_err(|_| AuthError::BasicInvalidCredentials)?;
@@ -79,5 +79,9 @@ impl AuthService for BasicAuthService {
 
     fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
         Some(HeaderValue::from_static(r#"Basic realm="konobangu""#))
+    }
+
+    fn auth_type(&self) -> AuthType {
+        AuthType::Basic
     }
 }

@@ -1,16 +1,15 @@
-dal:
-    data_dir: ./data
+# dal:
+#     data_dir: ./data
 
-mikan:
-    http_client:
-        exponential_backoff_max_retries: 3
-        leaky_bucket_max_tokens: 2
-        leaky_bucket_initial_tokens: 0
-        leaky_bucket_refill_tokens: 1
-        leaky_bucket_refill_interval: 500
-    base_url: "https://mikanani.me/"
+# mikan:
+#     http_client:
+#         exponential_backoff_max_retries: 3
+#         leaky_bucket_max_tokens: 2
+#         leaky_bucket_initial_tokens: 0
+#         leaky_bucket_refill_tokens: 1
+#         leaky_bucket_refill_interval: 500
+#     base_url: "https://mikanani.me/"
 
-graphql:
-    playground_static: "./node_modules/altair-static/build/dist"
-    depth_limit: null
-    complexity_limit: null
+# graphql:
+#     depth_limit: null
+#     complexity_limit: null

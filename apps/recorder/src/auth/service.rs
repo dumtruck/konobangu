@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_trait::async_trait;
 use axum::{
     extract::FromRequestParts,
@@ -6,6 +8,7 @@ use axum::{
 };
 use jwt_authorizer::{JwtAuthorizer, Validation};
 use loco_rs::app::{AppContext, Initializer};
+use moka::future::Cache;
 use once_cell::sync::OnceCell;
 use reqwest::header::HeaderValue;
 
@@ -15,7 +18,15 @@ use super::{
     oidc::{OidcAuthClaims, OidcAuthService},
     AppAuthConfig,
 };
-use crate::{app::AppContextExt as _, config::AppConfigExt, models::auth::AuthType};
+use crate::{
+    app::AppContextExt as _,
+    config::AppConfigExt,
+    fetch::{
+        client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
+        HttpClient, HttpClientConfig,
+    },
+    models::auth::AuthType,
+};
 
 #[derive(Clone, Debug)]
 pub struct AuthUserInfo {
@@ -43,6 +54,7 @@ impl FromRequestParts<AppContext> for AuthUserInfo {
 pub trait AuthService {
     async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError>;
     fn www_authenticate_header_value(&self) -> Option<HeaderValue>;
+    fn auth_type(&self) -> AuthType;
 }
 
 pub enum AppAuthService {
@@ -74,7 +86,18 @@ impl AppAuthService {
 
                 AppAuthService::Oidc(OidcAuthService {
                     config,
-                    authorizer: jwt_auth,
+                    api_authorizer: jwt_auth,
+                    oidc_provider_client: HttpClient::from_config(HttpClientConfig {
+                        exponential_backoff_max_retries: Some(3),
+                        cache_backend: Some(HttpClientCacheBackendConfig::Moka { cache_size: 1 }),
+                        cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
+                        ..Default::default()
+                    })
+                    .map_err(AuthError::OidcProviderHttpClientError)?,
+                    oidc_request_cache: Cache::builder()
+                        .time_to_live(Duration::from_mins(5))
+                        .name("oidc_request_cache")
+                        .build(),
                 })
             }
         };
@@ -95,6 +118,13 @@ impl AuthService for AppAuthService {
         match self {
             AppAuthService::Basic(service) => service.www_authenticate_header_value(),
             AppAuthService::Oidc(service) => service.www_authenticate_header_value(),
+        }
+    }
+
+    fn auth_type(&self) -> AuthType {
+        match self {
+            AppAuthService::Basic(service) => service.auth_type(),
+            AppAuthService::Oidc(service) => service.auth_type(),
         }
     }
 }

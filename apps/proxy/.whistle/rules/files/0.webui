@@ -1,2 +1,0 @@
-^https://konobangu.com/*** http://127.0.0.1:5000/$1 excludeFilter://^https://konobangu.com/api/***
-^wss://konobangu.com/*** ws://127.0.0.1:5000/$1 ^excludeFilter://^wss://konobangu.com/api/***

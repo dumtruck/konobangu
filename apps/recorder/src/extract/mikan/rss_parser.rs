@@ -8,7 +8,7 @@ use url::Url;
 
 use crate::{
     extract::{
-        errors::ParseError,
+        errors::ExtractError,
         mikan::{
             web_parser::{parse_mikan_episode_id_from_homepage, MikanEpisodeHomepage},
             AppMikanClient,
@@ -101,7 +101,7 @@ impl MikanRssChannel {
 }
 
 impl TryFrom<rss::Item> for MikanRssItem {
-    type Error = ParseError;
+    type Error = ExtractError;
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
         let mime_type = item
@@ -113,7 +113,7 @@ impl TryFrom<rss::Item> for MikanRssItem {
 
             let homepage = item
                 .link
-                .ok_or_else(|| ParseError::MikanRssItemFormatError {
+                .ok_or_else(|| ExtractError::MikanRssItemFormatError {
                     reason: String::from("must to have link for homepage"),
                 })?;
 
@@ -124,7 +124,7 @@ impl TryFrom<rss::Item> for MikanRssItem {
             let MikanEpisodeHomepage {
                 mikan_episode_id, ..
             } = parse_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
-                ParseError::MikanRssItemFormatError {
+                ExtractError::MikanRssItemFormatError {
                     reason: String::from("homepage link format invalid"),
                 }
             })?;
@@ -142,7 +142,7 @@ impl TryFrom<rss::Item> for MikanRssItem {
                 mikan_episode_id,
             })
         } else {
-            Err(ParseError::MimeError {
+            Err(ExtractError::MimeError {
                 expected: String::from(BITTORRENT_MIME_TYPE),
                 found: mime_type,
                 desc: String::from("MikanRssItem"),
@@ -291,7 +291,7 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
             },
         ));
     } else {
-        return Err(ParseError::MikanRssFormatError {
+        return Err(ExtractError::MikanRssFormatError {
             url: url.as_str().into(),
         }
         .into());

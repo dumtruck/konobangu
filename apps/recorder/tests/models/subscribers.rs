@@ -21,7 +21,8 @@ async fn can_find_by_pid() {
     // testing::seed::<App>(&boot.app_context.db).await.unwrap();
     //
     // let existing_subscriber =
-    //     Model::find_by_pid(&boot.app_context, "11111111-1111-1111-1111-111111111111").await;
+    //     Model::find_by_pid(&boot.app_context,
+    // "11111111-1111-1111-1111-111111111111").await;
     //
     // assert_debug_snapshot!(existing_subscriber);
 }
