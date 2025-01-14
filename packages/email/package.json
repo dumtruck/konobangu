@@ -7,8 +7,8 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@react-email/components": "0.0.31",
     "@konobangu/env": "workspace:*",
+    "@react-email/components": "0.0.31",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -16,7 +16,7 @@
     "@konobangu/typescript-config": "workspace:*",
     "@types/node": "22.10.1",
     "@types/react": "19.0.1",
-    "@types/react-dom": "^19.0.2",
-    "typescript": "^5.7.2"
+    "@types/react-dom": "^19.0.3",
+    "typescript": "^5.7.3"
   }
 }

@@ -9,7 +9,7 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "whistle": "^2.9.61",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "whistle": "^2.9.93"
   }
 }

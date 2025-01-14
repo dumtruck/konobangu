@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/dumtruck/konobangu.git"
@@ -21,7 +24,7 @@
     "migrate-down": "cd apps/app && tsx node_modules/@konobangu/migrate/scripts/down.ts",
     "clean": "git clean -xdf node_modules"
   },
-  "packageManager": "pnpm@9.15.2",
+  "packageManager": "pnpm@9.15.4",
   "engines": {
     "node": ">=22"
   },
@@ -38,9 +41,10 @@
     "@types/jsdom": "^21.1.7",
     "rimraf": "^6.0.1",
     "shx": "^0.3.4",
+    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.3",
-    "ultracite": "^4.1.14"
+    "ultracite": "^4.1.15"
   }
 }

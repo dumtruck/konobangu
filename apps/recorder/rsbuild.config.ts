@@ -6,12 +6,12 @@ export default defineConfig({
   plugins: [pluginReact()],
   html: {
     favicon: './public/assets/favicon.ico',
-    tags: [
-      {
-        tag: 'script',
-        attrs: { src: 'https://cdn.tailwindcss.com' },
-      },
-    ],
+    // tags: [
+    //   {
+    //     tag: 'script',
+    //     attrs: { src: 'https://cdn.tailwindcss.com' },
+    //   },
+    // ],
   },
   tools: {
     rspack: {
@@ -19,6 +19,9 @@ export default defineConfig({
     },
   },
   source: {
+    entry: {
+      index: './src/main.tsx',
+    },
     define: {
       'process.env.AUTH_TYPE': JSON.stringify(process.env.AUTH_TYPE),
       'process.env.OIDC_CLIENT_ID': JSON.stringify(process.env.OIDC_CLIENT_ID),

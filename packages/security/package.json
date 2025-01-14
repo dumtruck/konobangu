@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "@arcjet/next": "1.0.0-alpha.34",
-    "@nosecone/next": "1.0.0-alpha.34",
+    "@konobangu/database": "workspace:*",
     "@konobangu/env": "workspace:*",
-    "@konobangu/database": "workspace:*"
+    "@nosecone/next": "1.0.0-alpha.34"
   },
   "devDependencies": {
     "@konobangu/typescript-config": "workspace:*",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.3"
   }
 }

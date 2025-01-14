@@ -9,10 +9,10 @@
   "dependencies": {
     "@konobangu/auth": "workspace:*",
     "@konobangu/env": "workspace:*",
-    "svix": "^1.43.0"
+    "svix": "^1.45.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "@konobangu/typescript-config": "workspace:*"
+    "@konobangu/typescript-config": "workspace:*",
+    "typescript": "^5.7.3"
   }
 }

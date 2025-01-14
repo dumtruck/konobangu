@@ -13,7 +13,7 @@ dev-proxy:
   pnpm run --filter=proxy dev
 
 dev-recorder:
-  cargo watch -w apps/recorder -x 'recorder start'
+  cargo watch -w apps/recorder -i '**/*.{js,css,scss,tsx,ts,jsx,html}' -x 'recorder start'
 
 dev-playground:
   pnpm run --filter=recorder dev

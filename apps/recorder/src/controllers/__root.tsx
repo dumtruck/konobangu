@@ -26,7 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <>
-      <div className="flex gap-2 p-2 text-lg">
+      {/* <div className="flex gap-2 p-2 text-lg ">
         <Link
           to="/"
           activeProps={{
@@ -43,8 +43,8 @@ function RootComponent() {
         >
           GraphQL
         </Link>
-      </div>
-      <hr />
+      </div> */}
+      {/* <hr /> */}
       <Outlet />
       <TanStackRouterDevtools position="bottom-right" />
     </>
