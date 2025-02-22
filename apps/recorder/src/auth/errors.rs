@@ -1,5 +1,6 @@
 use std::fmt;
 
+use async_graphql::dynamic::ResolverContext;
 use axum::{
     Json,
     http::StatusCode,
@@ -75,14 +76,48 @@ pub enum AuthError {
     #[error("Subject missing")]
     OidcSubMissingError,
     #[error(fmt = display_graphql_permission_error)]
-    GraphQLPermissionError(async_graphql::Error),
+    GraphQLPermissionError {
+        inner_error: async_graphql::Error,
+        field: String,
+        column: String,
+        context_path: String,
+    },
+}
+
+impl AuthError {
+    pub fn from_graphql_subscribe_id_guard(
+        inner_error: async_graphql::Error,
+        context: &ResolverContext,
+        field_name: &str,
+        column_name: &str,
+    ) -> AuthError {
+        AuthError::GraphQLPermissionError {
+            inner_error,
+            field: field_name.to_string(),
+            column: column_name.to_string(),
+            context_path: context
+                .ctx
+                .path_node
+                .map(|p| p.to_string_vec().join(""))
+                .unwrap_or_default(),
+        }
+    }
 }
 
 fn display_graphql_permission_error(
-    error: &async_graphql::Error,
+    inner_error: &async_graphql::Error,
+    field: &String,
+    column: &String,
+    context_path: &String,
     formatter: &mut fmt::Formatter<'_>,
 ) -> fmt::Result {
-    write!(formatter, "GraphQL permission denied: {}", error.message)
+    write!(
+        formatter,
+        "GraphQL permission denied since {context_path}{}{field}{}{column}: {}",
+        (if field.is_empty() { "" } else { "." }),
+        (if column.is_empty() { "" } else { "." }),
+        inner_error.message
+    )
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -24,7 +24,7 @@ fn guard_data_object_accessor_with_subscriber_id(
     if id == subscriber_id as i64 {
         Ok(())
     } else {
-        Err(async_graphql::Error::new("subscriber permission denied"))
+        Err(async_graphql::Error::new("subscriber not match"))
     }
 }
 
@@ -43,7 +43,7 @@ fn guard_data_object_accessor_with_optional_subscriber_id(
         if id == subscriber_id as i64 {
             Ok(())
         } else {
-            Err(async_graphql::Error::new("subscriber permission denied"))
+            Err(async_graphql::Error::new("subscriber not match"))
         }
     } else {
         Ok(())
@@ -66,7 +66,7 @@ fn guard_filter_object_accessor_with_subscriber_id(
     if id == subscriber_id as i64 {
         Ok(())
     } else {
-        Err(async_graphql::Error::new("subscriber permission denied"))
+        Err(async_graphql::Error::new("subscriber not match"))
     }
 }
 
@@ -100,7 +100,7 @@ where
         entity_name,
         context.entity_delete_mutation.mutation_suffix.clone()
     ));
-    let entity_delete_filter_field_name =
+    let entity_delete_mutation_filter_field_name =
         Arc::new(context.entity_delete_mutation.filter_field.clone());
     let entity_update_mutation_field_name = Arc::new(format!(
         "{}{}",
@@ -126,6 +126,14 @@ where
                                 &column_name,
                                 subscriber_id,
                             )
+                        })
+                        .map_err(|inner_error| {
+                            AuthError::from_graphql_subscribe_id_guard(
+                                inner_error,
+                                context,
+                                &entity_create_one_mutation_data_field_name,
+                                &column_name,
+                            )
                         }),
                     field if field == entity_create_batch_mutation_field_name.as_str() => context
                         .args
@@ -140,15 +148,31 @@ where
                                     )
                                 })
                             })
+                        })
+                        .map_err(|inner_error| {
+                            AuthError::from_graphql_subscribe_id_guard(
+                                inner_error,
+                                context,
+                                &entity_create_batch_mutation_data_field_name,
+                                &column_name,
+                            )
                         }),
                     field if field == entity_delete_mutation_field_name.as_str() => context
                         .args
-                        .try_get(&entity_delete_filter_field_name)
+                        .try_get(&entity_delete_mutation_filter_field_name)
                         .and_then(|filter_value| {
                             guard_filter_object_accessor_with_subscriber_id(
                                 filter_value,
                                 &column_name,
                                 subscriber_id,
+                            )
+                        })
+                        .map_err(|inner_error| {
+                            AuthError::from_graphql_subscribe_id_guard(
+                                inner_error,
+                                context,
+                                &entity_delete_mutation_filter_field_name,
+                                &column_name,
                             )
                         }),
                     field if field == entity_update_mutation_field_name.as_str() => context
@@ -161,6 +185,14 @@ where
                                 subscriber_id,
                             )
                         })
+                        .map_err(|inner_error| {
+                            AuthError::from_graphql_subscribe_id_guard(
+                                inner_error,
+                                context,
+                                &entity_update_mutation_filter_field_name,
+                                &column_name,
+                            )
+                        })
                         .and_then(|_| {
                             match context.args.get(&entity_update_mutation_data_field_name) {
                                 Some(data_value) => {
@@ -169,6 +201,14 @@ where
                                         &column_name,
                                         subscriber_id,
                                     )
+                                    .map_err(|inner_error| {
+                                        AuthError::from_graphql_subscribe_id_guard(
+                                            inner_error,
+                                            context,
+                                            &entity_update_mutation_data_field_name,
+                                            &column_name,
+                                        )
+                                    })
                                 }
                                 None => Ok(()),
                             }
@@ -182,13 +222,23 @@ where
                                 &column_name,
                                 subscriber_id,
                             )
+                        })
+                        .map_err(|inner_error| {
+                            AuthError::from_graphql_subscribe_id_guard(
+                                inner_error,
+                                context,
+                                &entity_query_filter_field_name,
+                                &column_name,
+                            )
                         }),
-                    field => Err(async_graphql::Error::new(format!(
-                        "unsupport graphql field {}",
-                        field
-                    ))),
+                    field => Err(AuthError::from_graphql_subscribe_id_guard(
+                        async_graphql::Error::new("unsupport graphql field"),
+                        context,
+                        field,
+                        "",
+                    )),
                 };
-                match validation_result.map_err(AuthError::GraphQLPermissionError) {
+                match validation_result {
                     Ok(_) => GuardAction::Allow,
                     Err(err) => GuardAction::Block(Some(err.to_string())),
                 }
