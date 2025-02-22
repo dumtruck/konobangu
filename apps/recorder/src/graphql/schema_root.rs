@@ -1,10 +1,13 @@
 use async_graphql::dynamic::*;
 use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
-use seaography::{Builder, BuilderContext, FilterType, FnGuard};
+use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use super::util::{get_entity_column_key, get_entity_key};
-use crate::graphql::guard::guard_entity_with_subscriber_id;
+use super::{
+    filter::{SUBSCRIBER_ID_FILTER_INFO, subscriber_id_condition_function},
+    util::{get_entity_column_key, get_entity_key},
+};
+use crate::graphql::{filter::init_custom_filter_info, guard::guard_entity_with_subscriber_id};
 
 static CONTEXT: OnceCell<BuilderContext> = OnceCell::new();
 
@@ -20,19 +23,27 @@ fn restrict_filter_input_for_entity<T>(
     context.filter_types.overwrites.insert(key, filter_type);
 }
 
-fn restrict_subscriber_for_entity<T>(
-    context: &mut BuilderContext,
-    column: &T::Column,
-    entity_guard: impl FnOnce(&BuilderContext, &T::Column) -> FnGuard,
-) where
+fn restrict_subscriber_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
+where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
     let entity_key = get_entity_key::<T>(context);
-    context
-        .guards
-        .entity_guards
-        .insert(entity_key, entity_guard(context, column));
+    let entity_column_key = get_entity_column_key::<T>(context, column);
+    context.guards.entity_guards.insert(
+        entity_key,
+        guard_entity_with_subscriber_id::<T>(context, column),
+    );
+    context.filter_types.overwrites.insert(
+        entity_column_key.clone(),
+        Some(FilterType::Custom(
+            SUBSCRIBER_ID_FILTER_INFO.get().unwrap().type_name.clone(),
+        )),
+    );
+    context.filter_types.condition_functions.insert(
+        entity_column_key,
+        subscriber_id_condition_function::<T>(context, column),
+    );
 }
 
 pub fn schema(
@@ -41,47 +52,41 @@ pub fn schema(
     complexity: Option<usize>,
 ) -> Result<Schema, SchemaError> {
     use crate::models::*;
+    init_custom_filter_info();
     let context = CONTEXT.get_or_init(|| {
         let mut context = BuilderContext::default();
+
         restrict_subscriber_for_entity::<bangumi::Entity>(
             &mut context,
             &bangumi::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<bangumi::Entity>,
         );
         restrict_subscriber_for_entity::<downloaders::Entity>(
             &mut context,
             &downloaders::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<downloaders::Entity>,
         );
         restrict_subscriber_for_entity::<downloads::Entity>(
             &mut context,
             &downloads::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<downloads::Entity>,
         );
         restrict_subscriber_for_entity::<episodes::Entity>(
             &mut context,
             &episodes::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<episodes::Entity>,
         );
         restrict_subscriber_for_entity::<subscriptions::Entity>(
             &mut context,
             &subscriptions::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<subscriptions::Entity>,
         );
         restrict_subscriber_for_entity::<subscribers::Entity>(
             &mut context,
             &subscribers::Column::Id,
-            guard_entity_with_subscriber_id::<subscribers::Entity>,
         );
         restrict_subscriber_for_entity::<subscription_bangumi::Entity>(
             &mut context,
             &subscription_bangumi::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<subscription_bangumi::Entity>,
         );
         restrict_subscriber_for_entity::<subscription_episode::Entity>(
             &mut context,
             &subscription_episode::Column::SubscriberId,
-            guard_entity_with_subscriber_id::<subscription_episode::Entity>,
         );
         for column in subscribers::Column::iter() {
             if !matches!(column, subscribers::Column::Id) {
@@ -95,6 +100,14 @@ pub fn schema(
         context
     });
     let mut builder = Builder::new(context, database.clone());
+
+    {
+        let filter_types_map_helper = FilterTypesMapHelper { context };
+
+        builder.schema = builder.schema.register(
+            filter_types_map_helper.generate_filter_input(SUBSCRIBER_ID_FILTER_INFO.get().unwrap()),
+        );
+    }
 
     {
         builder.register_entity::<subscribers::Entity>(

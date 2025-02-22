@@ -91,7 +91,7 @@ bollard = { version = "0.18", optional = true }
 async-graphql = { version = "7.0.15", features = [] }
 async-graphql-axum = "7.0.15"
 fastrand = "2.3.0"
-seaography = "1.1"
+seaography = { version = "1.1" }
 quirks_path = "0.1.1"
 base64 = "0.22.1"
 tower = "0.5.2"
