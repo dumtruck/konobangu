@@ -16,7 +16,6 @@ pub enum GeneralIds {
 pub enum Subscribers {
     Table,
     Id,
-    Pid,
     DisplayName,
     DownloaderId,
     BangumiConf,
@@ -58,6 +57,7 @@ pub enum Bangumi {
 pub enum SubscriptionBangumi {
     Table,
     Id,
+    SubscriberId,
     SubscriptionId,
     BangumiId,
 }
@@ -90,6 +90,7 @@ pub enum Episodes {
 pub enum SubscriptionEpisode {
     Table,
     Id,
+    SubscriberId,
     SubscriptionId,
     EpisodeId,
 }
@@ -130,7 +131,6 @@ pub enum Auth {
     Id,
     Pid,
     SubscriberId,
-    AvatarUrl,
     AuthType,
 }
 

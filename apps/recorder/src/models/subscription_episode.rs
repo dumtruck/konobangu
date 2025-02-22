@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{entity::prelude::*, ActiveValue};
+use sea_orm::{ActiveValue, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
+    pub subscriber_id: i32,
     pub subscription_id: i32,
     pub episode_id: i32,
 }
@@ -55,8 +56,13 @@ pub enum RelatedEntity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {
-    pub fn from_subscription_and_episode(subscription_id: i32, episode_id: i32) -> Self {
+    pub fn from_subscription_and_episode(
+        subscriber_id: i32,
+        subscription_id: i32,
+        episode_id: i32,
+    ) -> Self {
         Self {
+            subscriber_id: ActiveValue::Set(subscriber_id),
             subscription_id: ActiveValue::Set(subscription_id),
             episode_id: ActiveValue::Set(episode_id),
             ..Default::default()

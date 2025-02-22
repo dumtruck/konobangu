@@ -2,13 +2,13 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
     migrations::defs::{CustomSchemaManagerExt, Downloaders, GeneralIds, Subscribers},
-    models::{downloaders::DownloaderCategoryEnum, prelude::DownloaderCategory},
+    models::downloaders::{DownloaderCategory, DownloaderCategoryEnum},
 };
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         create_postgres_enum_for_active_enum!(

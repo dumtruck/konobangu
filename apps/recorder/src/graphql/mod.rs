@@ -1,5 +1,8 @@
 pub mod config;
-pub mod query_root;
+pub mod extention;
+pub mod guard;
+pub mod schema_root;
 pub mod service;
+pub mod util;
 
-pub use query_root::schema;
+pub use schema_root::schema;

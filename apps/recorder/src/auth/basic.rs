@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use axum::http::{request::Parts, HeaderValue};
+use axum::http::{HeaderValue, request::Parts};
 use base64::{self, Engine};
+use loco_rs::app::AppContext;
 use reqwest::header::AUTHORIZATION;
 
 use super::{
@@ -59,7 +60,11 @@ pub struct BasicAuthService {
 
 #[async_trait]
 impl AuthService for BasicAuthService {
-    async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
+    async fn extract_user_info(
+        &self,
+        ctx: &AppContext,
+        request: &mut Parts,
+    ) -> Result<AuthUserInfo, AuthError> {
         if let Ok(AuthBasic {
             user: found_user,
             password: found_password,
@@ -68,8 +73,11 @@ impl AuthService for BasicAuthService {
             if self.config.user == found_user
                 && self.config.password == found_password.unwrap_or_default()
             {
+                let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER)
+                    .await
+                    .map_err(AuthError::FindAuthRecordError)?;
                 return Ok(AuthUserInfo {
-                    user_pid: SEED_SUBSCRIBER.to_string(),
+                    subscriber_auth,
                     auth_type: AuthType::Basic,
                 });
             }

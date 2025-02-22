@@ -24,7 +24,6 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(Subscribers::Table)
                     .col(pk_auto(Subscribers::Id))
-                    .col(string_len_uniq(Subscribers::Pid, 64))
                     .col(string(Subscribers::DisplayName))
                     .col(json_binary_null(Subscribers::BangumiConf))
                     .to_owned(),
@@ -42,8 +41,8 @@ impl MigrationTrait for Migration {
             .exec_stmt(
                 Query::insert()
                     .into_table(Subscribers::Table)
-                    .columns([Subscribers::Pid, Subscribers::DisplayName])
-                    .values_panic([SEED_SUBSCRIBER.into(), SEED_SUBSCRIBER.into()])
+                    .columns([Subscribers::DisplayName])
+                    .values_panic([SEED_SUBSCRIBER.into()])
                     .to_owned(),
             )
             .await?;
@@ -159,6 +158,7 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(SubscriptionBangumi::Table)
                     .col(pk_auto(SubscriptionBangumi::Id))
+                    .col(integer(SubscriptionBangumi::SubscriberId))
                     .col(integer(SubscriptionBangumi::SubscriptionId))
                     .col(integer(SubscriptionBangumi::BangumiId))
                     .foreign_key(
@@ -189,6 +189,17 @@ impl MigrationTrait for Migration {
                             .col(SubscriptionBangumi::BangumiId)
                             .unique(),
                     )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("index_subscription_bangumi_subscriber_id")
+                    .table(SubscriptionBangumi::Table)
+                    .col(SubscriptionBangumi::SubscriberId)
                     .to_owned(),
             )
             .await?;
@@ -268,6 +279,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(SubscriptionEpisode::Id))
                     .col(integer(SubscriptionEpisode::SubscriptionId))
                     .col(integer(SubscriptionEpisode::EpisodeId))
+                    .col(integer(SubscriptionEpisode::SubscriberId))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_subscription_episode_subscription_id")
@@ -300,10 +312,31 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("index_subscription_episode_subscriber_id")
+                    .table(SubscriptionEpisode::Table)
+                    .col(SubscriptionEpisode::SubscriberId)
+                    .to_owned(),
+            )
+            .await?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .name("index_subscription_episode_subscriber_id")
+                    .table(SubscriptionBangumi::Table)
+                    .to_owned(),
+            )
+            .await?;
+
         manager
             .drop_table(Table::drop().table(SubscriptionEpisode::Table).to_owned())
             .await?;
@@ -314,6 +347,16 @@ impl MigrationTrait for Migration {
 
         manager
             .drop_table(Table::drop().table(Episodes::Table).to_owned())
+            .await?;
+
+        manager
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .name("index_subscription_bangumi_subscriber_id")
+                    .table(SubscriptionBangumi::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager

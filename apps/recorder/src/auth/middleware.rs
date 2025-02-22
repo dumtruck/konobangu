@@ -19,7 +19,7 @@ pub async fn api_auth_middleware(
 
     let (mut parts, body) = request.into_parts();
 
-    let mut response = match auth_service.extract_user_info(&mut parts).await {
+    let mut response = match auth_service.extract_user_info(&ctx, &mut parts).await {
         Ok(auth_user_info) => {
             let mut request = Request::from_parts(parts, body);
             request.extensions_mut().insert(auth_user_info);

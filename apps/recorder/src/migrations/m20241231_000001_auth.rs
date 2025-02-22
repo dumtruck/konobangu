@@ -34,7 +34,6 @@ impl MigrationTrait for Migration {
                         AuthTypeEnum,
                         AuthType::iden_values(),
                     ))
-                    .col(string_null(Auth::AvatarUrl))
                     .col(integer(Auth::SubscriberId))
                     .foreign_key(
                         ForeignKey::create()
@@ -66,6 +65,20 @@ impl MigrationTrait for Migration {
             .create_postgres_auto_update_ts_trigger_for_col(Auth::Table, GeneralIds::UpdatedAt)
             .await?;
 
+        let seed_subscriber_id = manager
+            .get_connection()
+            .query_one(
+                manager.get_database_backend().build(
+                    Query::select()
+                        .column(Subscribers::Id)
+                        .from(Subscribers::Table)
+                        .limit(1),
+                ),
+            )
+            .await?
+            .ok_or_else(|| DbErr::RecordNotFound(String::from("seed subscriber not found")))?
+            .try_get_by_index::<i32>(0)?;
+
         manager
             .exec_stmt(
                 Query::insert()
@@ -74,7 +87,7 @@ impl MigrationTrait for Migration {
                     .values_panic([
                         SEED_SUBSCRIBER.into(),
                         SimpleExpr::from(AuthType::Basic).as_enum(AuthTypeEnum),
-                        1.into(),
+                        seed_subscriber_id.into(),
                     ])
                     .to_owned(),
             )

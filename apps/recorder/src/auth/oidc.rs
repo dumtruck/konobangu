@@ -4,14 +4,15 @@ use std::{
 };
 
 use async_trait::async_trait;
-use axum::http::{request::Parts, HeaderValue};
+use axum::http::{HeaderValue, request::Parts};
 use itertools::Itertools;
-use jwt_authorizer::{authorizer::Authorizer, NumericDate, OneOrArray};
+use jwt_authorizer::{NumericDate, OneOrArray, authorizer::Authorizer};
+use loco_rs::{app::AppContext, model::ModelError};
 use moka::future::Cache;
 use openidconnect::{
-    core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
     AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     OAuth2TokenResponse, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, TokenResponse,
+    core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -258,7 +259,11 @@ impl OidcAuthService {
 
 #[async_trait]
 impl AuthService for OidcAuthService {
-    async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
+    async fn extract_user_info(
+        &self,
+        ctx: &AppContext,
+        request: &mut Parts,
+    ) -> Result<AuthUserInfo, AuthError> {
         let config = &self.config;
         let token = self.api_authorizer.extract_token(&request.headers).ok_or(
             AuthError::OidcJwtAuthError(jwt_authorizer::AuthError::MissingToken()),
@@ -266,9 +271,11 @@ impl AuthService for OidcAuthService {
 
         let token_data = self.api_authorizer.check_auth(&token).await?;
         let claims = token_data.claims;
-        if claims.sub.as_deref().is_none_or(|s| s.trim().is_empty()) {
+        let sub = if let Some(sub) = claims.sub.as_deref() {
+            sub
+        } else {
             return Err(AuthError::OidcSubMissingError);
-        }
+        };
         if !claims.contains_audience(&config.audience) {
             return Err(AuthError::OidcAudMissingError(config.audience.clone()));
         }
@@ -298,12 +305,16 @@ impl AuthService for OidcAuthService {
                 }
             }
         }
+        let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {
+            Err(ModelError::EntityNotFound) => {
+                crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await
+            }
+            r => r,
+        }
+        .map_err(AuthError::FindAuthRecordError)?;
+
         Ok(AuthUserInfo {
-            user_pid: claims
-                .sub
-                .as_deref()
-                .map(|s| s.trim().to_string())
-                .unwrap_or_else(|| unreachable!("sub should be present and validated")),
+            subscriber_auth,
             auth_type: AuthType::Oidc,
         })
     }

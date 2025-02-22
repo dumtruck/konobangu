@@ -38,7 +38,9 @@ pub enum DownloadMime {
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "downloads")]
 pub struct Model {
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTime,
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,

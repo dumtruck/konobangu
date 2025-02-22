@@ -4,7 +4,7 @@ use loco_rs::{
     app::AppContext,
     model::{ModelError, ModelResult},
 };
-use sea_orm::{entity::prelude::*, ActiveValue, FromJsonQueryResult, TransactionTrait};
+use sea_orm::{ActiveValue, FromJsonQueryResult, TransactionTrait, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
@@ -16,15 +16,15 @@ pub struct SubscriberBangumiConfig {
     pub leading_group_tag: Option<bool>,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
 #[sea_orm(table_name = "subscribers")]
 pub struct Model {
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTime,
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
-    #[sea_orm(unique)]
-    pub pid: String,
     pub display_name: String,
     pub bangumi_conf: Option<SubscriberBangumiConfig>,
 }
@@ -91,59 +91,22 @@ pub struct SubscriberIdParams {
 }
 
 #[async_trait]
-impl ActiveModelBehavior for ActiveModel {
-    async fn before_save<C>(self, _db: &C, insert: bool) -> Result<Self, DbErr>
-    where
-        C: ConnectionTrait,
-    {
-        if insert {
-            let mut this = self;
-            this.pid = ActiveValue::Set(Uuid::new_v4().to_string());
-            Ok(this)
-        } else {
-            Ok(self)
-        }
-    }
-}
+impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_by_pid(ctx: &AppContext, pid: &str) -> ModelResult<Self> {
-        let db = &ctx.db;
-        let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
-        let subscriber = Entity::find()
-            .filter(Column::Pid.eq(parse_uuid))
-            .one(db)
-            .await?;
-        subscriber.ok_or_else(|| ModelError::EntityNotFound)
+    pub async fn find_seed_subscriber_id(ctx: &AppContext) -> ModelResult<i32> {
+        let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER).await?;
+        Ok(subscriber_auth.subscriber_id)
     }
 
     pub async fn find_by_id(ctx: &AppContext, id: i32) -> ModelResult<Self> {
         let db = &ctx.db;
 
-        let subscriber = Entity::find_by_id(id).one(db).await?;
-        subscriber.ok_or_else(|| ModelError::EntityNotFound)
-    }
-
-    pub async fn find_pid_by_id_with_cache(
-        ctx: &AppContext,
-        id: i32,
-    ) -> color_eyre::eyre::Result<String> {
-        let db = &ctx.db;
-        let cache = &ctx.cache;
-        let pid = cache
-            .get_or_insert(&format!("subscriber-id2pid::{}", id), async {
-                let subscriber = Entity::find_by_id(id)
-                    .one(db)
-                    .await?
-                    .ok_or_else(|| loco_rs::Error::string(&format!("No such pid for id {}", id)))?;
-                Ok(subscriber.pid)
-            })
-            .await?;
-        Ok(pid)
-    }
-
-    pub async fn find_root(ctx: &AppContext) -> ModelResult<Self> {
-        Self::find_by_pid(ctx, SEED_SUBSCRIBER).await
+        let subscriber = Entity::find_by_id(id)
+            .one(db)
+            .await?
+            .ok_or_else(|| ModelError::EntityNotFound)?;
+        Ok(subscriber)
     }
 
     pub async fn create_root(ctx: &AppContext) -> ModelResult<Self> {
@@ -152,7 +115,6 @@ impl Model {
 
         let user = ActiveModel {
             display_name: ActiveValue::set(SEED_SUBSCRIBER.to_string()),
-            pid: ActiveValue::set(SEED_SUBSCRIBER.to_string()),
             ..Default::default()
         }
         .insert(&txn)

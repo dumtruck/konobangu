@@ -13,24 +13,24 @@ use once_cell::sync::OnceCell;
 use reqwest::header::HeaderValue;
 
 use super::{
+    AppAuthConfig,
     basic::BasicAuthService,
     errors::AuthError,
     oidc::{OidcAuthClaims, OidcAuthService},
-    AppAuthConfig,
 };
 use crate::{
     app::AppContextExt as _,
     config::AppConfigExt,
     fetch::{
-        client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
         HttpClient, HttpClientConfig,
+        client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
     },
     models::auth::AuthType,
 };
 
 #[derive(Clone, Debug)]
 pub struct AuthUserInfo {
-    pub user_pid: String,
+    pub subscriber_auth: crate::models::auth::Model,
     pub auth_type: AuthType,
 }
 
@@ -44,7 +44,7 @@ impl FromRequestParts<AppContext> for AuthUserInfo {
         let auth_service = state.get_auth_service();
 
         auth_service
-            .extract_user_info(parts)
+            .extract_user_info(state, parts)
             .await
             .map_err(|err| err.into_response())
     }
@@ -52,7 +52,11 @@ impl FromRequestParts<AppContext> for AuthUserInfo {
 
 #[async_trait]
 pub trait AuthService {
-    async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError>;
+    async fn extract_user_info(
+        &self,
+        ctx: &AppContext,
+        request: &mut Parts,
+    ) -> Result<AuthUserInfo, AuthError>;
     fn www_authenticate_header_value(&self) -> Option<HeaderValue>;
     fn auth_type(&self) -> AuthType;
 }
@@ -79,21 +83,23 @@ impl AppAuthService {
                     .iss(&[&config.issuer])
                     .aud(&[&config.audience]);
 
-                let jwt_auth = JwtAuthorizer::<OidcAuthClaims>::from_oidc(&config.issuer)
+                let oidc_provider_client = HttpClient::from_config(HttpClientConfig {
+                    exponential_backoff_max_retries: Some(3),
+                    cache_backend: Some(HttpClientCacheBackendConfig::Moka { cache_size: 1 }),
+                    cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
+                    ..Default::default()
+                })
+                .map_err(AuthError::OidcProviderHttpClientError)?;
+
+                let api_authorizer = JwtAuthorizer::<OidcAuthClaims>::from_oidc(&config.issuer)
                     .validation(validation)
                     .build()
                     .await?;
 
                 AppAuthService::Oidc(OidcAuthService {
                     config,
-                    api_authorizer: jwt_auth,
-                    oidc_provider_client: HttpClient::from_config(HttpClientConfig {
-                        exponential_backoff_max_retries: Some(3),
-                        cache_backend: Some(HttpClientCacheBackendConfig::Moka { cache_size: 1 }),
-                        cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
-                        ..Default::default()
-                    })
-                    .map_err(AuthError::OidcProviderHttpClientError)?,
+                    api_authorizer,
+                    oidc_provider_client,
                     oidc_request_cache: Cache::builder()
                         .time_to_live(Duration::from_mins(5))
                         .name("oidc_request_cache")
@@ -107,10 +113,14 @@ impl AppAuthService {
 
 #[async_trait]
 impl AuthService for AppAuthService {
-    async fn extract_user_info(&self, request: &mut Parts) -> Result<AuthUserInfo, AuthError> {
+    async fn extract_user_info(
+        &self,
+        ctx: &AppContext,
+        request: &mut Parts,
+    ) -> Result<AuthUserInfo, AuthError> {
         match self {
-            AppAuthService::Basic(service) => service.extract_user_info(request).await,
-            AppAuthService::Oidc(service) => service.extract_user_info(request).await,
+            AppAuthService::Basic(service) => service.extract_user_info(ctx, request).await,
+            AppAuthService::Oidc(service) => service.extract_user_info(ctx, request).await,
         }
     }
 

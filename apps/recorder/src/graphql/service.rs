@@ -4,7 +4,7 @@ use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
 use sea_orm::DatabaseConnection;
 
-use super::{config::AppGraphQLConfig, query_root};
+use super::{config::AppGraphQLConfig, schema_root};
 use crate::config::AppConfigExt;
 
 static APP_GRAPHQL_SERVICE: OnceCell<AppGraphQLService> = OnceCell::new();
@@ -16,7 +16,7 @@ pub struct AppGraphQLService {
 
 impl AppGraphQLService {
     pub fn new(config: AppGraphQLConfig, db: DatabaseConnection) -> Result<Self, SchemaError> {
-        let schema = query_root::schema(db, config.depth_limit, config.complexity_limit)?;
+        let schema = schema_root::schema(db, config.depth_limit, config.complexity_limit)?;
         Ok(Self { schema })
     }
 

@@ -12,14 +12,13 @@ use scraper::Html;
 use url::Url;
 
 use super::{
-    parse_mikan_bangumi_id_from_rss_link, AppMikanClient, MikanBangumiRssLink, MIKAN_BUCKET_KEY,
+    AppMikanClient, MIKAN_BUCKET_KEY, MikanBangumiRssLink, parse_mikan_bangumi_id_from_rss_link,
 };
 use crate::{
     app::AppContextExt,
     dal::DalContentCategory,
     extract::html::parse_style_attr,
     fetch::{html::fetch_html, image::fetch_image},
-    models::subscribers,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -110,11 +109,10 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
 ) -> color_eyre::eyre::Result<MikanBangumiPosterMeta> {
     let dal_client = ctx.get_dal_client();
     let mikan_client = ctx.get_mikan_client();
-    let subscriber_pid = &subscribers::Model::find_pid_by_id_with_cache(ctx, subscriber_id).await?;
     if let Some(poster_src) = dal_client
         .exists_object(
             DalContentCategory::Image,
-            subscriber_pid,
+            subscriber_id,
             Some(MIKAN_BUCKET_KEY),
             &origin_poster_src.path().replace("/images/Bangumi/", ""),
         )
@@ -132,7 +130,7 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
     let poster_str = dal_client
         .store_object(
             DalContentCategory::Image,
-            subscriber_pid,
+            subscriber_id,
             Some(MIKAN_BUCKET_KEY),
             &origin_poster_src.path().replace("/images/Bangumi/", ""),
             poster_data.clone(),

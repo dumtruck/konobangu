@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
-use opendal::{layers::LoggingLayer, services::Fs, Buffer, Operator};
+use opendal::{Buffer, Operator, layers::LoggingLayer, services::Fs};
 use quirks_path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -81,7 +81,7 @@ impl AppDalClient {
     pub async fn store_object(
         &self,
         content_category: DalContentCategory,
-        subscriber_pid: &str,
+        subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
         data: Bytes,
@@ -89,7 +89,7 @@ impl AppDalClient {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [
-                    subscriber_pid,
+                    &subscriber_id.to_string(),
                     content_category.as_ref(),
                     bucket.unwrap_or_default(),
                     filename,
@@ -119,14 +119,14 @@ impl AppDalClient {
     pub async fn exists_object(
         &self,
         content_category: DalContentCategory,
-        subscriber_pid: &str,
+        subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
     ) -> color_eyre::eyre::Result<Option<DalStoredUrl>> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [
-                    subscriber_pid,
+                    &subscriber_id.to_string(),
                     content_category.as_ref(),
                     bucket.unwrap_or_default(),
                     filename,

@@ -29,7 +29,7 @@ tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }
 async-trait = "0.1.83"
 tracing = "0.1"
 chrono = "0.4"
-sea-orm = { version = "1", features = [
+sea-orm = { version = "1.1", features = [
     "sqlx-sqlite",
     "sqlx-postgres",
     "runtime-tokio-rustls",
@@ -41,7 +41,7 @@ figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
 axum = "0.8"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-sea-orm-migration = { version = "1", features = ["runtime-tokio-rustls"] }
+sea-orm-migration = { version = "1.1", features = ["runtime-tokio-rustls"] }
 reqwest = { version = "0.12", features = [
     "charset",
     "http2",
@@ -76,7 +76,7 @@ qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe
     "default",
     "builder",
 ] }
-testcontainers = { version = "0.23.1", features = [
+testcontainers = { version = "0.23.3", features = [
     "default",
     "properties-config",
     "watchdog",
@@ -88,10 +88,10 @@ color-eyre = "0.6"
 log = "0.4.22"
 anyhow = "1.0.95"
 bollard = { version = "0.18", optional = true }
-async-graphql = { version = "7.0.13", features = [] }
-async-graphql-axum = "7.0.13"
+async-graphql = { version = "7.0.15", features = [] }
+async-graphql-axum = "7.0.15"
 fastrand = "2.3.0"
-seaography = "1.1.2"
+seaography = "1.1"
 quirks_path = "0.1.1"
 base64 = "0.22.1"
 tower = "0.5.2"
@@ -99,7 +99,7 @@ axum-extra = "0.10.0"
 tower-http = "0.6.2"
 serde_yaml = "0.9.34"
 tera = "1.20.0"
-openidconnect = "4.0.0-rc.1"
+openidconnect = "4"
 http-cache-reqwest = { version = "0.15", features = [
     "manager-cacache",
     "manager-moka",

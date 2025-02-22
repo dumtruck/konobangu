@@ -22,9 +22,9 @@ pub enum DownloaderCategory {
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "downloaders")]
 pub struct Model {
-    #[sea_orm(column_type = "Timestamp")]
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTime,
-    #[sea_orm(column_type = "Timestamp")]
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,

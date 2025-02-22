@@ -1,7 +1,7 @@
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use loco_rs::app::AppContext;
-use sea_orm::{entity::prelude::*, sea_query::OnConflict, ActiveValue, FromJsonQueryResult};
+use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
@@ -9,7 +9,6 @@ use super::subscription_bangumi;
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
 )]
-#[graphql(name = "BangumiFilter")]
 pub struct BangumiFilter {
     pub name: Option<Vec<String>>,
     pub group: Option<Vec<String>>,
@@ -18,7 +17,6 @@ pub struct BangumiFilter {
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
 )]
-#[graphql(name = "BangumiExtra")]
 pub struct BangumiExtra {
     pub name_zh: Option<String>,
     pub s_name_zh: Option<String>,
@@ -30,14 +28,14 @@ pub struct BangumiExtra {
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
 #[sea_orm(table_name = "bangumi")]
-#[graphql(name = "Bangumi")]
 pub struct Model {
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTime,
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
     pub mikan_bangumi_id: Option<String>,
-    #[graphql(default_with = "default_subscriber_id")]
     pub subscriber_id: i32,
     pub display_name: String,
     pub raw_name: String,

@@ -3,7 +3,7 @@ use std::{collections::HashSet, sync::Arc};
 use async_trait::async_trait;
 use itertools::Itertools;
 use loco_rs::app::AppContext;
-use sea_orm::{entity::prelude::*, ActiveValue};
+use sea_orm::{ActiveValue, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{bangumi, episodes, query::filter_values_in};
@@ -15,8 +15,8 @@ use crate::{
             parse_mikan_bangumi_meta_from_mikan_homepage,
             parse_mikan_episode_meta_from_mikan_homepage, parse_mikan_rss_channel_from_rss_link,
             web_parser::{
-                parse_mikan_bangumi_poster_from_origin_poster_src_with_cache,
                 MikanBangumiPosterMeta,
+                parse_mikan_bangumi_poster_from_origin_poster_src_with_cache,
             },
         },
         rawname::extract_season_from_title_body,
@@ -43,9 +43,9 @@ pub enum SubscriptionCategory {
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscriptions")]
 pub struct Model {
-    #[sea_orm(column_type = "Timestamp")]
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTime,
-    #[sea_orm(column_type = "Timestamp")]
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
@@ -325,6 +325,7 @@ impl Model {
                     );
                     episodes::Model::add_episodes(
                         ctx,
+                        self.subscriber_id,
                         self.id,
                         new_ep_metas.into_iter().map(|item| MikanEpsiodeCreation {
                             episode: item,

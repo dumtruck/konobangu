@@ -1,11 +1,14 @@
+use std::fmt;
+
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
+use loco_rs::model::ModelError;
 use openidconnect::{
-    core::CoreErrorResponseType, ConfigurationError, RequestTokenError, SignatureVerificationError,
-    SigningError, StandardErrorResponse,
+    ConfigurationError, RequestTokenError, SignatureVerificationError, SigningError,
+    StandardErrorResponse, core::CoreErrorResponseType,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -19,6 +22,8 @@ pub enum AuthError {
         supported: Vec<AuthType>,
         current: AuthType,
     },
+    #[error("Failed to find auth record")]
+    FindAuthRecordError(ModelError),
     #[error("Invalid credentials")]
     BasicInvalidCredentials,
     #[error(transparent)]
@@ -69,6 +74,15 @@ pub enum AuthError {
     OidcAudMissingError(String),
     #[error("Subject missing")]
     OidcSubMissingError,
+    #[error(fmt = display_graphql_permission_error)]
+    GraphQLPermissionError(async_graphql::Error),
+}
+
+fn display_graphql_permission_error(
+    error: &async_graphql::Error,
+    formatter: &mut fmt::Formatter<'_>,
+) -> fmt::Result {
+    write!(formatter, "GraphQL permission denied: {}", error.message)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
