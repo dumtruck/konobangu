@@ -1,13 +1,14 @@
 use std::ops::Deref;
 
 use bytes::Bytes;
-use color_eyre::eyre::ContextCompat;
+use color_eyre::eyre::{self, ContextCompat};
 use html_escape::decode_html_entities;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use lightningcss::{properties::Property, values::image::Image as CSSImage};
 use loco_rs::app::AppContext;
 use regex::Regex;
+use reqwest::IntoUrl;
 use scraper::Html;
 use url::Url;
 
@@ -41,7 +42,6 @@ pub struct MikanBangumiMeta {
     pub mikan_bangumi_id: String,
     pub mikan_fansub_id: Option<String>,
     pub fansub: Option<String>,
-    pub mikan_fansub_candidates: Vec<(String, String)>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -56,28 +56,59 @@ pub struct MikanEpisodeHomepage {
     pub mikan_episode_id: String,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct MikanBangumiHomepage {
+    pub mikan_bangumi_id: String,
+    pub mikan_fansub_id: Option<String>,
+}
+
 lazy_static! {
     static ref MIKAN_TITLE_SEASON: Regex = Regex::new("第.*季").unwrap();
 }
 
 pub fn build_mikan_bangumi_homepage(
-    mikan_base_url: &str,
+    mikan_base_url: impl IntoUrl,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> color_eyre::eyre::Result<Url> {
-    let mut url = Url::parse(mikan_base_url)?;
+) -> eyre::Result<Url> {
+    let mut url = mikan_base_url.into_url()?;
     url.set_path(&format!("/Home/Bangumi/{mikan_bangumi_id}"));
     url.set_fragment(mikan_fansub_id);
     Ok(url)
 }
 
 pub fn build_mikan_episode_homepage(
-    mikan_base_url: &str,
+    mikan_base_url: impl IntoUrl,
     mikan_episode_id: &str,
-) -> color_eyre::eyre::Result<Url> {
-    let mut url = Url::parse(mikan_base_url)?;
+) -> eyre::Result<Url> {
+    let mut url = mikan_base_url.into_url()?;
     url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
     Ok(url)
+}
+
+pub fn build_mikan_bangumi_expand_info_url(
+    mikan_base_url: impl IntoUrl,
+    mikan_bangumi_id: &str,
+) -> eyre::Result<Url> {
+    let mut url = mikan_base_url.into_url()?;
+    url.set_path("/ExpandBangumi");
+    url.query_pairs_mut()
+        .append_pair("bangumiId", mikan_bangumi_id)
+        .append_pair("showSubscribed", "true");
+    Ok(url)
+}
+
+pub fn parse_mikan_bangumi_id_from_homepage(url: &Url) -> Option<MikanBangumiHomepage> {
+    if url.path().starts_with("/Home/Bangumi/") {
+        let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
+
+        Some(MikanBangumiHomepage {
+            mikan_bangumi_id,
+            mikan_fansub_id: url.fragment().map(String::from),
+        })
+    } else {
+        None
+    }
 }
 
 pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHomepage> {
@@ -91,12 +122,12 @@ pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHom
 
 pub async fn parse_mikan_bangumi_poster_from_origin_poster_src(
     client: Option<&AppMikanClient>,
-    origin_poster_src: Url,
-) -> color_eyre::eyre::Result<MikanBangumiPosterMeta> {
+    origin_poster_src_url: Url,
+) -> eyre::Result<MikanBangumiPosterMeta> {
     let http_client = client.map(|s| s.deref());
-    let poster_data = fetch_image(http_client, origin_poster_src.clone()).await?;
+    let poster_data = fetch_image(http_client, origin_poster_src_url.clone()).await?;
     Ok(MikanBangumiPosterMeta {
-        origin_poster_src,
+        origin_poster_src: origin_poster_src_url,
         poster_data: Some(poster_data),
         poster_src: None,
     })
@@ -104,9 +135,9 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src(
 
 pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
     ctx: &AppContext,
-    origin_poster_src: Url,
+    origin_poster_src_url: Url,
     subscriber_id: i32,
-) -> color_eyre::eyre::Result<MikanBangumiPosterMeta> {
+) -> eyre::Result<MikanBangumiPosterMeta> {
     let dal_client = ctx.get_dal_client();
     let mikan_client = ctx.get_mikan_client();
     if let Some(poster_src) = dal_client
@@ -114,43 +145,83 @@ pub async fn parse_mikan_bangumi_poster_from_origin_poster_src_with_cache(
             DalContentCategory::Image,
             subscriber_id,
             Some(MIKAN_BUCKET_KEY),
-            &origin_poster_src.path().replace("/images/Bangumi/", ""),
+            &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
         )
         .await?
     {
         return Ok(MikanBangumiPosterMeta {
-            origin_poster_src,
+            origin_poster_src: origin_poster_src_url,
             poster_data: None,
             poster_src: Some(poster_src.to_string()),
         });
     }
 
-    let poster_data = fetch_image(Some(mikan_client.deref()), origin_poster_src.clone()).await?;
+    let poster_data =
+        fetch_image(Some(mikan_client.deref()), origin_poster_src_url.clone()).await?;
 
     let poster_str = dal_client
         .store_object(
             DalContentCategory::Image,
             subscriber_id,
             Some(MIKAN_BUCKET_KEY),
-            &origin_poster_src.path().replace("/images/Bangumi/", ""),
+            &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
             poster_data.clone(),
         )
         .await?;
 
     Ok(MikanBangumiPosterMeta {
-        origin_poster_src,
+        origin_poster_src: origin_poster_src_url,
         poster_data: Some(poster_data),
         poster_src: Some(poster_str.to_string()),
     })
 }
 
+pub fn parse_mikan_origin_poster_src_from_style_attr(
+    mikan_base_url: impl IntoUrl,
+    style_attr: &str,
+) -> Option<Url> {
+    let base_url = mikan_base_url.into_url().ok()?;
+    parse_style_attr(style_attr)
+        .and_then(|style| {
+            style.iter().find_map(|(prop, _)| {
+                match prop {
+                    Property::BackgroundImage(images) => {
+                        for img in images {
+                            if let CSSImage::Url(path) = img {
+                                if let Ok(url) = base_url.join(path.url.trim()) {
+                                    return Some(url);
+                                }
+                            }
+                        }
+                    }
+                    Property::Background(backgrounds) => {
+                        for bg in backgrounds {
+                            if let CSSImage::Url(path) = &bg.image {
+                                if let Ok(url) = base_url.join(path.url.trim()) {
+                                    return Some(url);
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                None
+            })
+        })
+        .map(|mut poster_str| {
+            poster_str.set_query(None);
+            poster_str.set_fragment(None);
+            poster_str
+        })
+}
+
 pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
     client: Option<&AppMikanClient>,
-    url: Url,
-) -> color_eyre::eyre::Result<MikanBangumiMeta> {
+    mikan_bangumi_homepage_url: Url,
+) -> eyre::Result<MikanBangumiMeta> {
     let http_client = client.map(|s| s.deref());
-    let url_host = url.origin().unicode_serialization();
-    let content = fetch_html(http_client, url.as_str()).await?;
+    let mikan_base_url = mikan_bangumi_homepage_url.origin().unicode_serialization();
+    let content = fetch_html(http_client, mikan_bangumi_homepage_url.as_str()).await?;
     let html = Html::parse_document(&content);
 
     let bangumi_fansubs = html
@@ -181,7 +252,7 @@ pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
         })
         .collect_vec();
 
-    let fansub_info = url.fragment().and_then(|b| {
+    let fansub_info = mikan_bangumi_homepage_url.fragment().and_then(|b| {
         bangumi_fansubs
             .iter()
             .find_map(|(id, name)| if id == b { Some((id, name)) } else { None })
@@ -198,7 +269,10 @@ pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
         .and_then(|title| if title.is_empty() { None } else { Some(title) })
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan bangumi official title for {}", url)
+            format!(
+                "Missing mikan bangumi official title for {}",
+                mikan_bangumi_homepage_url
+            )
         })?;
 
     let MikanBangumiRssLink {
@@ -208,72 +282,41 @@ pub async fn parse_mikan_bangumi_meta_from_mikan_homepage(
         .next()
         .and_then(|el| el.value().attr("href"))
         .as_ref()
-        .and_then(|s| url.join(s).ok())
+        .and_then(|s| mikan_bangumi_homepage_url.join(s).ok())
         .and_then(|rss_link_url| parse_mikan_bangumi_id_from_rss_link(&rss_link_url))
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan bangumi rss link or error format for {}", url)
+            format!(
+                "Missing mikan bangumi rss link or error format for {}",
+                mikan_bangumi_homepage_url
+            )
         })?;
 
     let origin_poster_src = html
         .select(&scraper::Selector::parse(".bangumi-poster").unwrap())
         .next()
         .and_then(|el| el.value().attr("style"))
-        .as_ref()
-        .and_then(|s| parse_style_attr(s))
-        .and_then(|style| {
-            style.iter().find_map(|(prop, _)| {
-                match prop {
-                    Property::BackgroundImage(images) => {
-                        for img in images {
-                            if let CSSImage::Url(path) = img {
-                                if let Ok(url) =
-                                    Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
-                                {
-                                    return Some(url);
-                                }
-                            }
-                        }
-                    }
-                    Property::Background(backgrounds) => {
-                        for bg in backgrounds {
-                            if let CSSImage::Url(path) = &bg.image {
-                                if let Ok(url) =
-                                    Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
-                                {
-                                    return Some(url);
-                                }
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-                None
-            })
-        })
-        .map(|mut origin_poster_src| {
-            origin_poster_src.set_query(None);
-            origin_poster_src
+        .and_then(|style_attr| {
+            parse_mikan_origin_poster_src_from_style_attr(&mikan_base_url, style_attr)
         });
 
     Ok(MikanBangumiMeta {
-        homepage: url,
+        homepage: mikan_bangumi_homepage_url,
         bangumi_title,
         origin_poster_src,
         mikan_bangumi_id,
         fansub: fansub_info.map(|s| s.1.to_string()),
         mikan_fansub_id: fansub_info.map(|s| s.0.to_string()),
-        mikan_fansub_candidates: bangumi_fansubs.clone(),
     })
 }
 
 pub async fn parse_mikan_episode_meta_from_mikan_homepage(
     client: Option<&AppMikanClient>,
-    url: Url,
-) -> color_eyre::eyre::Result<MikanEpisodeMeta> {
+    mikan_episode_homepage_url: Url,
+) -> eyre::Result<MikanEpisodeMeta> {
     let http_client = client.map(|s| s.deref());
-    let url_host = url.origin().unicode_serialization();
-    let content = fetch_html(http_client, url.as_str()).await?;
+    let mikan_base_url = mikan_episode_homepage_url.origin().unicode_serialization();
+    let content = fetch_html(http_client, mikan_episode_homepage_url.as_str()).await?;
 
     let html = Html::parse_document(&content);
 
@@ -288,7 +331,10 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         .and_then(|title| if title.is_empty() { None } else { Some(title) })
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan bangumi official title for {}", url)
+            format!(
+                "Missing mikan bangumi official title for {}",
+                mikan_episode_homepage_url
+            )
         })?;
 
     let episode_title = html
@@ -303,7 +349,10 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         .and_then(|title| if title.is_empty() { None } else { Some(title) })
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan episode official title for {}", url)
+            format!(
+                "Missing mikan episode official title for {}",
+                mikan_episode_homepage_url
+            )
         })?;
 
     let (mikan_bangumi_id, mikan_fansub_id) = html
@@ -311,7 +360,7 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         .next()
         .and_then(|el| el.value().attr("href"))
         .as_ref()
-        .and_then(|s| url.join(s).ok())
+        .and_then(|s| mikan_episode_homepage_url.join(s).ok())
         .and_then(|rss_link_url| parse_mikan_bangumi_id_from_rss_link(&rss_link_url))
         .and_then(
             |MikanBangumiRssLink {
@@ -324,7 +373,10 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         )
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan bangumi rss link or error format for {}", url)
+            format!(
+                "Missing mikan bangumi rss link or error format for {}",
+                mikan_episode_homepage_url
+            )
         })?;
 
     let fansub = html
@@ -337,73 +389,126 @@ pub async fn parse_mikan_episode_meta_from_mikan_homepage(
         })
         .wrap_err_with(|| {
             // todo: error handler
-            format!("Missing mikan bangumi fansub name for {}", url)
+            format!(
+                "Missing mikan bangumi fansub name for {}",
+                mikan_episode_homepage_url
+            )
         })?;
 
     let origin_poster_src = html
         .select(&scraper::Selector::parse(".bangumi-poster").unwrap())
         .next()
         .and_then(|el| el.value().attr("style"))
-        .as_ref()
-        .and_then(|s| parse_style_attr(s))
-        .and_then(|style| {
-            style.iter().find_map(|(prop, _)| {
-                match prop {
-                    Property::BackgroundImage(images) => {
-                        for img in images {
-                            if let CSSImage::Url(path) = img {
-                                if let Ok(url) =
-                                    Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
-                                {
-                                    return Some(url);
-                                }
-                            }
-                        }
-                    }
-                    Property::Background(backgrounds) => {
-                        for bg in backgrounds {
-                            if let CSSImage::Url(path) = &bg.image {
-                                if let Ok(url) =
-                                    Url::parse(&url_host).and_then(|s| s.join(path.url.trim()))
-                                {
-                                    return Some(url);
-                                }
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-                None
-            })
-        })
-        .map(|mut origin_poster_src| {
-            origin_poster_src.set_query(None);
-            origin_poster_src
-        });
+        .and_then(|s| parse_mikan_origin_poster_src_from_style_attr(mikan_base_url, s));
 
     let MikanEpisodeHomepage {
         mikan_episode_id, ..
-    } = parse_mikan_episode_id_from_homepage(&url)
-        .wrap_err_with(|| format!("Failed to extract mikan_episode_id from {}", &url))?;
+    } = parse_mikan_episode_id_from_homepage(&mikan_episode_homepage_url).wrap_err_with(|| {
+        format!(
+            "Failed to extract mikan_episode_id from {}",
+            &mikan_episode_homepage_url
+        )
+    })?;
 
     Ok(MikanEpisodeMeta {
         mikan_bangumi_id,
         mikan_fansub_id,
         bangumi_title,
         episode_title,
-        homepage: url,
+        homepage: mikan_episode_homepage_url,
         origin_poster_src,
         fansub,
         mikan_episode_id,
     })
 }
 
-pub async fn parse_mikan_bangumis_from_user_home(_client: Option<&AppMikanClient>, _url: Url) {}
+/**
+ * @logined-required
+ */
+pub async fn parse_mikan_bangumis_meta_from_my_bangumi_page(
+    client: Option<&AppMikanClient>,
+    my_bangumi_page_url: Url,
+) -> eyre::Result<Vec<MikanBangumiMeta>> {
+    let http_client = client.map(|c| c.deref());
+    let mikan_base_url = my_bangumi_page_url.origin().unicode_serialization();
+
+    let content = fetch_html(http_client, my_bangumi_page_url.clone()).await?;
+
+    let html = Html::parse_document(&content);
+
+    let mut bangumi_list = vec![];
+    for bangumi_elem in
+        html.select(&scraper::Selector::parse(".sk-bangumi .an-info a.an-text").unwrap())
+    {
+        if let (Some(bangumi_home_page_url), Some(bangumi_title)) =
+            (bangumi_elem.attr("href"), bangumi_elem.attr("title"))
+        {
+            let origin_poster_src = bangumi_elem
+                .prev_sibling()
+                .and_then(|ele| ele.value().as_element())
+                .and_then(|ele| ele.attr("style"))
+                .and_then(|style_attr| {
+                    parse_mikan_origin_poster_src_from_style_attr(
+                        mikan_base_url.clone(),
+                        style_attr,
+                    )
+                });
+            let bangumi_home_page_url = my_bangumi_page_url.join(bangumi_home_page_url)?;
+            if let Some(MikanBangumiHomepage {
+                ref mikan_bangumi_id,
+                ..
+            }) = parse_mikan_bangumi_id_from_homepage(&bangumi_home_page_url)
+            {
+                let bangumi_expand_info_url =
+                    build_mikan_bangumi_expand_info_url(mikan_base_url.clone(), mikan_bangumi_id)?;
+                let bangumi_expand_info_content =
+                    fetch_html(http_client, bangumi_expand_info_url).await?;
+                let bangumi_expand_info_fragment =
+                    Html::parse_fragment(&bangumi_expand_info_content);
+                for fansub_info in bangumi_expand_info_fragment.select(
+                    &scraper::Selector::parse("js-expand_bangumi-subgroup.js-subscribed").unwrap(),
+                ) {
+                    if let (Some(fansub_name), Some(mikan_fansub_id)) = (
+                        fansub_info
+                            .select(&scraper::Selector::parse(".tag-res-name[title]").unwrap())
+                            .next()
+                            .and_then(|ele| ele.attr("title")),
+                        fansub_info
+                            .select(
+                                &scraper::Selector::parse(
+                                    ".active[data-subtitlegroupid][data-bangumiid]",
+                                )
+                                .unwrap(),
+                            )
+                            .next()
+                            .and_then(|ele| ele.attr("data-subtitlegroupid")),
+                    ) {
+                        bangumi_list.push(MikanBangumiMeta {
+                            homepage: build_mikan_bangumi_homepage(
+                                mikan_base_url.clone(),
+                                mikan_bangumi_id.as_str(),
+                                Some(mikan_fansub_id),
+                            )?,
+                            bangumi_title: bangumi_title.to_string(),
+                            mikan_bangumi_id: mikan_bangumi_id.to_string(),
+                            mikan_fansub_id: Some(mikan_fansub_id.to_string()),
+                            fansub: Some(fansub_name.to_string()),
+                            origin_poster_src: origin_poster_src.clone(),
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(bangumi_list)
+}
 
 #[cfg(test)]
 mod test {
     use std::assert_matches::assert_matches;
 
+    use color_eyre::eyre;
     use url::Url;
     use zune_image::{codecs::ImageFormat, image::Image};
 
@@ -415,7 +520,7 @@ mod test {
 
     #[tokio::test]
     async fn test_parse_mikan_episode() {
-        let test_fn = async || -> color_eyre::eyre::Result<()> {
+        let test_fn = async || -> eyre::Result<()> {
             let url_str =
                 "https://mikanani.me/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a";
             let url = Url::parse(url_str)?;
@@ -459,7 +564,7 @@ mod test {
 
     #[tokio::test]
     async fn test_parse_mikan_bangumi() {
-        let test_fn = async || -> color_eyre::eyre::Result<()> {
+        let test_fn = async || -> eyre::Result<()> {
             let url_str = "https://mikanani.me/Home/Bangumi/3416#370";
             let url = Url::parse(url_str)?;
 
@@ -481,8 +586,6 @@ mod test {
                 bgm_meta.homepage.as_str(),
                 "https://mikanani.me/Home/Bangumi/3416#370"
             );
-
-            assert_eq!(bgm_meta.mikan_fansub_candidates.len(), 6);
 
             Ok(())
         };
