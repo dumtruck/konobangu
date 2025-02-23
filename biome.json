@@ -12,6 +12,9 @@
       "suspicious": {
         "noExplicitAny": "off"
       },
+      "complexity": {
+        "noBannedTypes": "off"
+      },
       "correctness": {
         "noUnusedImports": {
           "fix": "none",

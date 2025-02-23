@@ -1,21 +1,19 @@
-import type { ParsedLocation } from '@tanstack/react-router';
+import { runInInjectionContext } from '@outposts/injection-js';
+import { autoLoginPartialRoutesGuard } from 'oidc-client-rx';
+import { firstValueFrom } from 'rxjs';
 import type { RouterContext } from '../controllers/__root';
-import { PostLoginRedirectUriKey } from './config';
 
 export const beforeLoadGuard = async ({
   context,
-  location,
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-}: { context: RouterContext; location: ParsedLocation<{}> }) => {
+}: { context: RouterContext }) => {
   if (!context.isAuthenticated) {
-    // TODO: FIXME
-    const user = await context.userManager.getUser();
-    if (!user) {
-      try {
-        sessionStorage.setItem(PostLoginRedirectUriKey, location.href);
-        // biome-ignore lint/suspicious/noEmptyBlockStatements: <explanation>
-      } catch {}
-      throw await context.auth.signinRedirect();
+    const guard$ = runInInjectionContext(context.injector, () =>
+      autoLoginPartialRoutesGuard()
+    );
+
+    const isAuthenticated = await firstValueFrom(guard$);
+    if (!isAuthenticated) {
+      throw !isAuthenticated;
     }
   }
 };

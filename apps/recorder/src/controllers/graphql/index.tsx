@@ -1,10 +1,11 @@
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
+import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createFileRoute } from '@tanstack/react-router';
 import GraphiQL from 'graphiql';
 import { useMemo } from 'react';
-import { useAuth } from 'react-oidc-context';
 import { beforeLoadGuard } from '../../auth/guard';
 import 'graphiql/graphiql.css';
+import { firstValueFrom } from 'rxjs';
+import { useAuth } from '../../auth/hooks';
 
 export const Route = createFileRoute('/graphql/')({
   component: RouteComponent,
@@ -12,19 +13,23 @@ export const Route = createFileRoute('/graphql/')({
 });
 
 function RouteComponent() {
-  const auth = useAuth();
+  const { oidcSecurityService } = useAuth();
 
   const fetcher = useMemo(
-    () =>
-      createGraphiQLFetcher({
+    (): Fetcher => async (props) => {
+      const accessToken = oidcSecurityService
+        ? await firstValueFrom(oidcSecurityService.getAccessToken())
+        : undefined;
+      return createGraphiQLFetcher({
         url: '/api/graphql',
-        headers: auth?.user?.access_token
+        headers: accessToken
           ? {
-              Authorization: `Bearer ${auth.user.access_token}`,
+              Authorization: `Bearer ${accessToken}`,
             }
           : undefined,
-      }),
-    [auth]
+      })(props);
+    },
+    [oidcSecurityService]
   );
 
   return <GraphiQL fetcher={fetcher} className="h-svh" />;

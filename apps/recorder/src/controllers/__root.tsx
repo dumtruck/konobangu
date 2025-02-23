@@ -1,22 +1,22 @@
+import type { Injector } from '@outposts/injection-js';
 import {
-  Link,
+  // Link,
   Outlet,
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
-import type { UserManager } from 'oidc-client-ts';
-import type { AuthContextProps } from 'react-oidc-context';
+import type { OidcSecurityService } from 'oidc-client-rx';
 
 export type RouterContext =
   | {
       isAuthenticated: false;
-      auth: AuthContextProps;
-      userManager: UserManager;
+      injector: Injector;
+      oidcSecurityService: OidcSecurityService;
     }
   | {
       isAuthenticated: true;
-      auth?: AuthContextProps;
-      userManager?: UserManager;
+      injector?: Injector;
+      oidcSecurityService?: OidcSecurityService;
     };
 
 export const Route = createRootRouteWithContext<RouterContext>()({

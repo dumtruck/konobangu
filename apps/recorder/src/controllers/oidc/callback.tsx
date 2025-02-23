@@ -1,12 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useEffect } from 'react';
-import { useAuth } from 'react-oidc-context';
-import { PostLoginRedirectUriKey } from '../../auth/config';
+import { EventTypes } from 'oidc-client-rx';
+import { useAuth } from '../../auth/hooks';
 
 export const Route = createFileRoute('/oidc/callback')({
   component: RouteComponent,
   beforeLoad: ({ context }) => {
-    if (!context.auth) {
+    if (!context.oidcSecurityService) {
       throw redirect({
         to: '/',
       });
@@ -17,26 +16,17 @@ export const Route = createFileRoute('/oidc/callback')({
 function RouteComponent() {
   const auth = useAuth();
 
-  useEffect(() => {
-    if (!auth?.isLoading && auth?.isAuthenticated) {
-      try {
-        const redirectUri = sessionStorage.getItem(PostLoginRedirectUriKey);
-        if (redirectUri) {
-          history.replaceState(null, '', redirectUri);
-        }
-        // biome-ignore lint/suspicious/noEmptyBlockStatements: <explanation>
-      } catch {}
-    }
-  }, [auth]);
-
-  if (auth?.isLoading) {
+  if (!auth.checkAuthResultEvent) {
     return <div>Loading...</div>;
   }
 
   return (
     <div>
-      OpenID Connect Auth Callback Result:{' '}
-      {auth.error ? auth.error?.message : 'unknown'}
+      OpenID Connect Auth Callback:{' '}
+      {auth.checkAuthResultEvent?.type ===
+      EventTypes.CheckingAuthFinishedWithError
+        ? auth.checkAuthResultEvent.value
+        : 'success'}
     </div>
   );
 }

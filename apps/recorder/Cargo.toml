@@ -1,7 +1,7 @@
 [package]
 name = "recorder"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -52,7 +52,7 @@ reqwest = { version = "0.12", features = [
 thiserror = "2"
 rss = "2"
 bytes = "1.9"
-itertools = "0.13.0"
+itertools = "0.14"
 url = "2.5"
 fancy-regex = "0.14"
 regex = "1.11"
@@ -92,7 +92,7 @@ async-graphql = { version = "7.0.13", features = [] }
 async-graphql-axum = "7.0.13"
 fastrand = "2.3.0"
 seaography = "1.1.2"
-quirks_path = "0.1.0"
+quirks_path = "0.1.1"
 base64 = "0.22.1"
 tower = "0.5.2"
 axum-extra = "0.10.0"
@@ -112,6 +112,7 @@ http-cache = { version = "0.20.0", features = [
 ], default-features = false }
 http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
+nom = "8.0.0"
 
 [dev-dependencies]
 serial_test = "3"

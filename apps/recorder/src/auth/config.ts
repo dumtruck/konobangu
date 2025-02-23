@@ -1,31 +1,42 @@
-import { type OidcClientSettings, UserManager } from 'oidc-client-ts';
+import { InjectionToken } from '@outposts/injection-js';
+import {
+  type EventTypes,
+  LogLevel,
+  type OpenIdConfiguration,
+} from 'oidc-client-rx';
 
-export const PostLoginRedirectUriKey = 'post_login_redirect_uri';
+export const isBasicAuth = process.env.AUTH_TYPE === 'basic';
 
-export function buildOidcConfig(): OidcClientSettings {
+export function buildOidcConfig(): OpenIdConfiguration {
   const origin = window.location.origin;
 
   const resource = process.env.OIDC_AUDIENCE!;
 
   return {
     authority: process.env.OIDC_ISSUER!,
-    client_id: process.env.OIDC_CLIENT_ID!,
-    client_secret: process.env.OIDC_CLIENT_SECRET!,
-    redirect_uri: `${origin}/api/playground/oidc/callback`,
-    disablePKCE: false,
-    scope: `openid profile email ${process.env.OIDC_EXTRA_SCOPES}`,
-    response_type: 'code',
-    resource,
-    post_logout_redirect_uri: `${origin}/api/playground`,
-    extraQueryParams: {
+    redirectUrl: `${origin}/api/playground/oidc/callback`,
+    postLogoutRedirectUri: `${origin}/api/playground`,
+    clientId: process.env.OIDC_CLIENT_ID!,
+    clientSecret: process.env.OIDC_CLIENT_SECRET,
+    scope: process.env.OIDC_EXTRA_SCOPES
+      ? `openid profile email offline_access ${process.env.OIDC_EXTRA_SCOPES}`
+      : 'openid profile email offline_access',
+    triggerAuthorizationResultEvent: true,
+    responseType: 'code',
+    silentRenew: true,
+    useRefreshToken: true,
+    logLevel: LogLevel.Debug,
+    autoUserInfo: !resource,
+    renewUserInfoAfterTokenRenew: !resource,
+    customParamsAuthRequest: {
+      prompt: 'consent',
       resource,
     },
-    extraTokenParams: {
+    customParamsRefreshTokenRequest: {
+      resource,
+    },
+    customParamsCodeRequest: {
       resource,
     },
   };
-}
-
-export function buildUserManager(): UserManager {
-  return new UserManager(buildOidcConfig());
 }

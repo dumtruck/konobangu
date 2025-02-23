@@ -1,3 +1,6 @@
+/**
+ * @TODO: rewrite with nom
+ */
 use std::borrow::Cow;
 
 use itertools::Itertools;
@@ -322,7 +325,7 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> color_eyre::eyre::Result<Raw
 #[cfg(test)]
 mod tests {
 
-    use super::{parse_episode_meta_from_raw_name, RawEpisodeMeta};
+    use super::{RawEpisodeMeta, parse_episode_meta_from_raw_name};
 
     fn test_raw_ep_parser_case(raw_name: &str, expected: &str) {
         let expected: Option<RawEpisodeMeta> = serde_json::from_str(expected).unwrap_or_default();
