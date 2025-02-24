@@ -3,15 +3,17 @@ use std::ops::Deref;
 use async_trait::async_trait;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
+use url::Url;
 
 use super::AppMikanConfig;
 use crate::{config::AppConfigExt, fetch::HttpClient};
 
 static APP_MIKAN_CLIENT: OnceCell<AppMikanClient> = OnceCell::new();
 
+#[derive(Debug)]
 pub struct AppMikanClient {
     http_client: HttpClient,
-    base_url: String,
+    base_url: Url,
 }
 
 impl AppMikanClient {
@@ -31,7 +33,7 @@ impl AppMikanClient {
             .expect("AppMikanClient is not initialized")
     }
 
-    pub fn base_url(&self) -> &str {
+    pub fn base_url(&self) -> &Url {
         &self.base_url
     }
 }

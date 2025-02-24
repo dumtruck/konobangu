@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc, time::Duration};
+use std::{fmt::Debug, ops::Deref, sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use axum::http::{self, Extensions};
@@ -11,7 +11,7 @@ use reqwest::{ClientBuilder, Request, Response};
 use reqwest_middleware::{
     ClientBuilder as ClientWithMiddlewareBuilder, ClientWithMiddleware, Next,
 };
-use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -99,6 +99,14 @@ pub enum HttpClientError {
 pub struct HttpClient {
     client: ClientWithMiddleware,
     pub config: HttpClientConfig,
+}
+
+impl Debug for HttpClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HttpClient")
+            .field("config", &self.config)
+            .finish()
+    }
 }
 
 impl From<HttpClient> for ClientWithMiddleware {

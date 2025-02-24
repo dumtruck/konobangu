@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
 use chrono::DateTime;
+use color_eyre::eyre;
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
@@ -10,8 +11,8 @@ use crate::{
     extract::{
         errors::ExtractError,
         mikan::{
-            web_parser::{parse_mikan_episode_id_from_homepage, MikanEpisodeHomepage},
             AppMikanClient,
+            web_extract::{MikanEpisodeHomepage, parse_mikan_episode_id_from_homepage},
         },
     },
     fetch::bytes::fetch_bytes,
@@ -163,11 +164,11 @@ pub struct MikanSubscriberAggregationRssLink {
 }
 
 pub fn build_mikan_bangumi_rss_link(
-    mikan_base_url: &str,
+    mikan_base_url: impl IntoUrl,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> color_eyre::eyre::Result<Url> {
-    let mut url = Url::parse(mikan_base_url)?;
+) -> eyre::Result<Url> {
+    let mut url = mikan_base_url.into_url()?;
     url.set_path("/RSS/Bangumi");
     url.query_pairs_mut()
         .append_pair("bangumiId", mikan_bangumi_id);
@@ -181,7 +182,7 @@ pub fn build_mikan_bangumi_rss_link(
 pub fn build_mikan_subscriber_aggregation_rss_link(
     mikan_base_url: &str,
     mikan_aggregation_id: &str,
-) -> color_eyre::eyre::Result<Url> {
+) -> eyre::Result<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path("/RSS/MyBangumi");
     url.query_pairs_mut()
@@ -189,7 +190,7 @@ pub fn build_mikan_subscriber_aggregation_rss_link(
     Ok(url)
 }
 
-pub fn parse_mikan_bangumi_id_from_rss_link(url: &Url) -> Option<MikanBangumiRssLink> {
+pub fn extract_mikan_bangumi_id_from_rss_link(url: &Url) -> Option<MikanBangumiRssLink> {
     if url.path() == "/RSS/Bangumi" {
         url.query_pairs()
             .find(|(k, _)| k == "bangumiId")
@@ -205,7 +206,7 @@ pub fn parse_mikan_bangumi_id_from_rss_link(url: &Url) -> Option<MikanBangumiRss
     }
 }
 
-pub fn parse_mikan_subscriber_aggregation_id_from_rss_link(
+pub fn extract_mikan_subscriber_aggregation_id_from_rss_link(
     url: &Url,
 ) -> Option<MikanSubscriberAggregationRssLink> {
     if url.path() == "/RSS/MyBangumi" {
@@ -222,7 +223,7 @@ pub fn parse_mikan_subscriber_aggregation_id_from_rss_link(
 pub async fn parse_mikan_rss_items_from_rss_link(
     client: Option<&AppMikanClient>,
     url: impl IntoUrl,
-) -> color_eyre::eyre::Result<Vec<MikanRssItem>> {
+) -> eyre::Result<Vec<MikanRssItem>> {
     let channel = parse_mikan_rss_channel_from_rss_link(client, url).await?;
 
     Ok(channel.into_items())
@@ -231,7 +232,7 @@ pub async fn parse_mikan_rss_items_from_rss_link(
 pub async fn parse_mikan_rss_channel_from_rss_link(
     client: Option<&AppMikanClient>,
     url: impl IntoUrl,
-) -> color_eyre::eyre::Result<MikanRssChannel> {
+) -> eyre::Result<MikanRssChannel> {
     let http_client = client.map(|s| s.deref());
     let bytes = fetch_bytes(http_client, url.as_str()).await?;
 
@@ -242,7 +243,7 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
     if let Some(MikanBangumiRssLink {
         mikan_bangumi_id,
         mikan_fansub_id,
-    }) = parse_mikan_bangumi_id_from_rss_link(&channel_link)
+    }) = extract_mikan_bangumi_id_from_rss_link(&channel_link)
     {
         let channel_name = channel.title().replace("Mikan Project - ", "");
 
@@ -274,7 +275,7 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
     } else if let Some(MikanSubscriberAggregationRssLink {
         mikan_aggregation_id,
         ..
-    }) = parse_mikan_subscriber_aggregation_id_from_rss_link(&channel_link)
+    }) = extract_mikan_subscriber_aggregation_id_from_rss_link(&channel_link)
     {
         let items = channel
             .items
@@ -304,8 +305,8 @@ mod tests {
 
     use crate::{
         extract::mikan::{
-            parse_mikan_rss_channel_from_rss_link, MikanBangumiAggregationRssChannel,
-            MikanBangumiRssChannel, MikanRssChannel,
+            MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
+            parse_mikan_rss_channel_from_rss_link,
         },
         sync::core::BITTORRENT_MIME_TYPE,
     };
@@ -333,10 +334,12 @@ mod tests {
 
             assert_eq!(first_sub_item.mime, BITTORRENT_MIME_TYPE);
 
-            assert!(&first_sub_item
-                .homepage
-                .as_str()
-                .starts_with("https://mikanani.me/Home/Episode"));
+            assert!(
+                &first_sub_item
+                    .homepage
+                    .as_str()
+                    .starts_with("https://mikanani.me/Home/Episode")
+            );
 
             let name = first_sub_item.title.as_str();
             assert!(name.contains("葬送的芙莉莲"));

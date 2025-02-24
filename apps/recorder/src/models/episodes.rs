@@ -201,7 +201,7 @@ impl ActiveModel {
             .ok()
             .unwrap_or_default();
         let homepage = build_mikan_episode_homepage(
-            ctx.get_mikan_client().base_url(),
+            ctx.get_mikan_client().base_url().clone(),
             &item.mikan_episode_id,
         )?;
 

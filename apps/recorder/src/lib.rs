@@ -1,4 +1,9 @@
-#![feature(duration_constructors, assert_matches, unboxed_closures)]
+#![feature(
+    duration_constructors,
+    assert_matches,
+    unboxed_closures,
+    impl_trait_in_bindings
+)]
 
 pub mod app;
 pub mod auth;

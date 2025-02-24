@@ -118,3 +118,5 @@ nom = "8.0.0"
 serial_test = "3"
 loco-rs = { version = "0.14", features = ["testing"] }
 insta = { version = "1", features = ["redactions", "yaml", "filters"] }
+mockito = "1.6.1"
+rstest = "0.24.0"
