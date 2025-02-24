@@ -6,7 +6,6 @@ use http_cache_reqwest::{
     CACacheManager, Cache, CacheManager, CacheMode, HttpCache, HttpCacheOptions, MokaManager,
 };
 use leaky_bucket::RateLimiter;
-use once_cell::sync::OnceCell;
 use reqwest::{ClientBuilder, Request, Response};
 use reqwest_middleware::{
     ClientBuilder as ClientWithMiddlewareBuilder, ClientWithMiddleware, Next,
@@ -19,6 +18,23 @@ use thiserror::Error;
 
 use super::get_random_mobile_ua;
 use crate::app::App;
+
+pub struct RateLimiterMiddleware {
+    rate_limiter: RateLimiter,
+}
+
+#[async_trait]
+impl reqwest_middleware::Middleware for RateLimiterMiddleware {
+    async fn handle(
+        &self,
+        req: Request,
+        extensions: &'_ mut Extensions,
+        next: Next<'_>,
+    ) -> reqwest_middleware::Result<Response> {
+        self.rate_limiter.acquire_one().await;
+        next.run(req, extensions).await
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
@@ -96,6 +112,8 @@ pub enum HttpClientError {
     HttpError(#[from] http::Error),
 }
 
+pub trait HttpClientTrait: Deref<Target = ClientWithMiddleware> {}
+
 pub struct HttpClient {
     client: ClientWithMiddleware,
     pub config: HttpClientConfig,
@@ -120,23 +138,6 @@ impl Deref for HttpClient {
 
     fn deref(&self) -> &Self::Target {
         &self.client
-    }
-}
-
-pub struct RateLimiterMiddleware {
-    rate_limiter: RateLimiter,
-}
-
-#[async_trait]
-impl reqwest_middleware::Middleware for RateLimiterMiddleware {
-    async fn handle(
-        &self,
-        req: Request,
-        extensions: &'_ mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        self.rate_limiter.acquire_one().await;
-        next.run(req, extensions).await
     }
 }
 
@@ -234,16 +235,10 @@ impl HttpClient {
     }
 }
 
-static DEFAULT_HTTP_CLIENT: OnceCell<HttpClient> = OnceCell::new();
-
 impl Default for HttpClient {
     fn default() -> Self {
         HttpClient::from_config(Default::default()).expect("Failed to create default HttpClient")
     }
 }
 
-impl Default for &HttpClient {
-    fn default() -> Self {
-        DEFAULT_HTTP_CLIENT.get_or_init(HttpClient::default)
-    }
-}
+impl HttpClientTrait for HttpClient {}

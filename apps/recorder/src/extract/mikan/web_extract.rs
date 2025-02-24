@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::Deref};
+use std::borrow::Cow;
 
 use bytes::Bytes;
 use color_eyre::eyre;
@@ -117,10 +117,9 @@ pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHom
 }
 
 pub async fn extract_mikan_poster_meta_from_src(
-    client: Option<&AppMikanClient>,
+    http_client: &AppMikanClient,
     origin_poster_src_url: Url,
 ) -> eyre::Result<MikanBangumiPosterMeta> {
-    let http_client = client.map(|s| s.deref());
     let poster_data = fetch_image(http_client, origin_poster_src_url.clone()).await?;
     Ok(MikanBangumiPosterMeta {
         origin_poster_src: origin_poster_src_url,
@@ -152,8 +151,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
         });
     }
 
-    let poster_data =
-        fetch_image(Some(mikan_client.deref()), origin_poster_src_url.clone()).await?;
+    let poster_data = fetch_image(mikan_client, origin_poster_src_url.clone()).await?;
 
     let poster_str = dal_client
         .store_object(
@@ -174,10 +172,9 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
 
 #[instrument(skip_all, fields(mikan_episode_homepage_url = mikan_episode_homepage_url.as_str()))]
 pub async fn extract_mikan_episode_meta_from_episode_homepage(
-    client: Option<&AppMikanClient>,
+    http_client: &AppMikanClient,
     mikan_episode_homepage_url: Url,
 ) -> eyre::Result<MikanEpisodeMeta> {
-    let http_client = client.map(|s| s.deref());
     let mikan_base_url = Url::parse(&mikan_episode_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_episode_homepage_url.as_str()).await?;
 
@@ -286,10 +283,9 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
 
 #[instrument(skip_all, fields(mikan_bangumi_homepage_url = mikan_bangumi_homepage_url.as_str()))]
 pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
-    client: Option<&AppMikanClient>,
+    http_client: &AppMikanClient,
     mikan_bangumi_homepage_url: Url,
 ) -> eyre::Result<MikanBangumiMeta> {
-    let http_client = client.map(|s| s.deref());
     let mikan_base_url = Url::parse(&mikan_bangumi_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_bangumi_homepage_url.as_str()).await?;
     let html = Html::parse_document(&content);
@@ -369,10 +365,9 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
  */
 #[instrument(skip_all, fields(my_bangumi_page_url = my_bangumi_page_url.as_str()))]
 pub async fn extract_mikan_bangumis_meta_from_my_bangumi_page(
-    client: Option<&AppMikanClient>,
+    http_client: &AppMikanClient,
     my_bangumi_page_url: Url,
 ) -> eyre::Result<Vec<MikanBangumiMeta>> {
-    let http_client = client.map(|c| c.deref());
     let mikan_base_url = Url::parse(&my_bangumi_page_url.origin().unicode_serialization())?;
 
     let content = fetch_html(http_client, my_bangumi_page_url.clone()).await?;
@@ -506,7 +501,7 @@ mod test {
             .await;
 
         let bgm_poster =
-            extract_mikan_poster_meta_from_src(Some(&mikan_client), bangumi_poster_url).await?;
+            extract_mikan_poster_meta_from_src(&mikan_client, bangumi_poster_url).await?;
         bangumi_poster_mock.expect(1);
         let u8_data = bgm_poster.poster_data.expect("should have poster data");
         let image = Image::read(u8_data.to_vec(), Default::default());
@@ -540,7 +535,7 @@ mod test {
             .await;
 
         let ep_meta = extract_mikan_episode_meta_from_episode_homepage(
-            Some(&mikan_client),
+            &mikan_client,
             episode_homepage_url.clone(),
         )
         .await?;
@@ -579,7 +574,7 @@ mod test {
             .await;
 
         let bgm_meta = extract_mikan_bangumi_meta_from_bangumi_homepage(
-            Some(&mikan_client),
+            &mikan_client,
             bangumi_homepage_url.clone(),
         )
         .await?;
@@ -613,31 +608,29 @@ mod test {
 
         let my_bangumi_page_url = mikan_base_url.join("/Home/MyBangumi")?;
 
-        let mock_my_bangumi = mikan_server
+        let my_bangumi_mock = mikan_server
             .mock("GET", my_bangumi_page_url.path())
             .with_body_from_file("tests/resources/mikan/MyBangumi.htm")
             .create_async()
             .await;
 
-        let mock_expand_bangumi = mikan_server
+        let expand_bangumi_mock = mikan_server
             .mock("GET", "/ExpandBangumi")
             .match_query(mockito::Matcher::Any)
             .with_body_from_file("tests/resources/mikan/ExpandBangumi.htm")
             .create_async()
             .await;
 
-        let bangumi_metas = extract_mikan_bangumis_meta_from_my_bangumi_page(
-            Some(&mikan_client),
-            my_bangumi_page_url,
-        )
-        .await?;
+        let bangumi_metas =
+            extract_mikan_bangumis_meta_from_my_bangumi_page(&mikan_client, my_bangumi_page_url)
+                .await?;
 
         assert!(!bangumi_metas.is_empty());
 
         assert!(bangumi_metas[0].origin_poster_src.is_some());
 
-        mock_my_bangumi.expect(1);
-        mock_expand_bangumi.expect(bangumi_metas.len());
+        my_bangumi_mock.expect(1);
+        expand_bangumi_mock.expect(bangumi_metas.len());
 
         Ok(())
     }

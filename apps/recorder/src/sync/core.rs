@@ -5,7 +5,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use librqbit_core::{
     magnet::Magnet,
-    torrent_metainfo::{torrent_from_bytes, TorrentMetaV1Owned},
+    torrent_metainfo::{TorrentMetaV1Owned, torrent_from_bytes},
 };
 use quirks_path::{Path, PathBuf};
 use regex::Regex;
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::{QbitTorrent, QbitTorrentContent, TorrentDownloadError};
-use crate::fetch::{fetch_bytes, HttpClient};
+use crate::fetch::{HttpClientTrait, fetch_bytes};
 
 pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";
 pub const MAGNET_SCHEMA: &str = "magnet";
@@ -57,7 +57,10 @@ pub enum TorrentSource {
 }
 
 impl TorrentSource {
-    pub async fn parse(client: Option<&HttpClient>, url: &str) -> color_eyre::eyre::Result<Self> {
+    pub async fn parse<H: HttpClientTrait>(
+        client: &H,
+        url: &str,
+    ) -> color_eyre::eyre::Result<Self> {
         let url = Url::parse(url)?;
         let source = if url.scheme() == MAGNET_SCHEMA {
             TorrentSource::from_magnet_url(url)?

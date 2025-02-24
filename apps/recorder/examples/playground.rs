@@ -9,7 +9,6 @@ use loco_rs::{
 };
 use recorder::{
     app::App,
-    extract::mikan::parse_mikan_rss_items_from_rss_link,
     migrations::Migrator,
     models::{
         subscribers::SEED_SUBSCRIBER,

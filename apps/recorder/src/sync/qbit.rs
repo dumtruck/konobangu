@@ -10,8 +10,8 @@ pub use qbit_rs::model::{
     TorrentFilter as QbitTorrentFilter, TorrentSource as QbitTorrentSource,
 };
 use qbit_rs::{
-    model::{AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, SyncData},
     Qbit,
+    model::{AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, SyncData},
 };
 use quirks_path::{Path, PathBuf};
 use tokio::time::sleep;
@@ -19,8 +19,8 @@ use tracing::instrument;
 use url::Url;
 
 use super::{
-    utils::path_equals_as_file_url, Torrent, TorrentDownloadError, TorrentDownloader,
-    TorrentFilter, TorrentSource,
+    Torrent, TorrentDownloadError, TorrentDownloader, TorrentFilter, TorrentSource,
+    utils::path_equals_as_file_url,
 };
 
 impl From<TorrentSource> for QbitTorrentSource {
@@ -490,6 +490,7 @@ pub mod tests {
     use itertools::Itertools;
 
     use super::*;
+    use crate::test_utils::fetch::build_testing_http_client;
 
     fn get_tmp_qbit_test_folder() -> &'static str {
         if cfg!(all(windows, not(feature = "testcontainers"))) {
@@ -500,16 +501,16 @@ pub mod tests {
     }
 
     #[cfg(feature = "testcontainers")]
-    pub async fn create_qbit_testcontainer(
-    ) -> color_eyre::eyre::Result<testcontainers::ContainerRequest<testcontainers::GenericImage>>
+    pub async fn create_qbit_testcontainer()
+    -> color_eyre::eyre::Result<testcontainers::ContainerRequest<testcontainers::GenericImage>>
     {
         use testcontainers::{
+            GenericImage,
             core::{
                 ContainerPort,
                 // ReuseDirective,
                 WaitFor,
             },
-            GenericImage,
         };
         use testcontainers_modules::testcontainers::ImageExt;
 
@@ -590,6 +591,7 @@ pub mod tests {
         username: Option<&str>,
         password: Option<&str>,
     ) -> color_eyre::eyre::Result<()> {
+        let http_client = build_testing_http_client()?;
         let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
         let mut downloader = QBittorrentDownloader::from_creation(QBittorrentDownloaderCreation {
@@ -610,7 +612,7 @@ pub mod tests {
             .await?;
 
         let torrent_source = TorrentSource::parse(
-            None,
+            &http_client,
           "https://mikanani.me/Download/20240301/47ee2d69e7f19af783ad896541a07b012676f858.torrent"
       ).await?;
 

@@ -14,7 +14,7 @@ use crate::{
             build_mikan_bangumi_homepage, build_mikan_bangumi_rss_link,
             extract_mikan_bangumi_meta_from_bangumi_homepage,
             extract_mikan_episode_meta_from_episode_homepage,
-            parse_mikan_rss_channel_from_rss_link,
+            extract_mikan_rss_channel_from_rss_link,
             web_extract::{
                 MikanBangumiPosterMeta, extract_mikan_bangumi_poster_meta_from_src_with_cache,
             },
@@ -220,8 +220,7 @@ impl Model {
             SubscriptionCategory::Mikan => {
                 let mikan_client = ctx.get_mikan_client();
                 let channel =
-                    parse_mikan_rss_channel_from_rss_link(Some(mikan_client), &self.source_url)
-                        .await?;
+                    extract_mikan_rss_channel_from_rss_link(mikan_client, &self.source_url).await?;
 
                 let items = channel.into_items();
 
@@ -257,7 +256,7 @@ impl Model {
                 for new_rss_item in new_rss_items.iter() {
                     new_metas.push(
                         extract_mikan_episode_meta_from_episode_homepage(
-                            Some(mikan_client),
+                            mikan_client,
                             new_rss_item.homepage.clone(),
                         )
                         .await?,
@@ -290,7 +289,7 @@ impl Model {
                             mikan_fansub_id.to_string(),
                             async |am| -> color_eyre::eyre::Result<()> {
                                 let bgm_meta = extract_mikan_bangumi_meta_from_bangumi_homepage(
-                                    Some(mikan_client),
+                                    mikan_client,
                                     bgm_homepage.clone(),
                                 )
                                 .await?;

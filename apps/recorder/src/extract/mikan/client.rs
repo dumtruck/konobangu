@@ -3,10 +3,14 @@ use std::ops::Deref;
 use async_trait::async_trait;
 use loco_rs::app::{AppContext, Initializer};
 use once_cell::sync::OnceCell;
+use reqwest_middleware::ClientWithMiddleware;
 use url::Url;
 
 use super::AppMikanConfig;
-use crate::{config::AppConfigExt, fetch::HttpClient};
+use crate::{
+    config::AppConfigExt,
+    fetch::{HttpClient, HttpClientTrait},
+};
 
 static APP_MIKAN_CLIENT: OnceCell<AppMikanClient> = OnceCell::new();
 
@@ -39,12 +43,14 @@ impl AppMikanClient {
 }
 
 impl Deref for AppMikanClient {
-    type Target = HttpClient;
+    type Target = ClientWithMiddleware;
 
     fn deref(&self) -> &Self::Target {
-        &self.http_client
+        self.http_client.deref()
     }
 }
+
+impl HttpClientTrait for AppMikanClient {}
 
 pub struct AppMikanClientInitializer;
 

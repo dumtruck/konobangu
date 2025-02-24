@@ -1,10 +1,11 @@
-use std::ops::Deref;
+use std::borrow::Cow;
 
 use chrono::DateTime;
 use color_eyre::eyre;
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 use url::Url;
 
 use crate::{
@@ -105,50 +106,55 @@ impl TryFrom<rss::Item> for MikanRssItem {
     type Error = ExtractError;
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
-        let mime_type = item
-            .enclosure()
-            .map(|x| x.mime_type.to_string())
-            .unwrap_or_default();
-        if mime_type == BITTORRENT_MIME_TYPE {
-            let enclosure = item.enclosure.unwrap();
+        let enclosure = item.enclosure.ok_or_else(|| {
+            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure"))
+        })?;
 
-            let homepage = item
-                .link
-                .ok_or_else(|| ExtractError::MikanRssItemFormatError {
-                    reason: String::from("must to have link for homepage"),
-                })?;
+        let mime_type = enclosure.mime_type;
+        if mime_type != BITTORRENT_MIME_TYPE {
+            return Err(ExtractError::MimeError {
+                expected: String::from(BITTORRENT_MIME_TYPE),
+                found: mime_type.to_string(),
+                desc: String::from("MikanRssItem"),
+            });
+        }
 
-            let homepage = Url::parse(&homepage)?;
+        let title = item.title.ok_or_else(|| {
+            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title"))
+        })?;
 
-            let enclosure_url = Url::parse(&enclosure.url)?;
+        let enclosure_url = Url::parse(&enclosure.url).map_err(|inner| {
+            ExtractError::from_mikan_rss_invalid_field_and_source(
+                Cow::Borrowed("enclosure_url:enclosure.link"),
+                Box::new(inner),
+            )
+        })?;
 
-            let MikanEpisodeHomepage {
-                mikan_episode_id, ..
-            } = parse_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
-                ExtractError::MikanRssItemFormatError {
-                    reason: String::from("homepage link format invalid"),
-                }
+        let homepage = item
+            .link
+            .and_then(|link| Url::parse(&link).ok())
+            .ok_or_else(|| {
+                ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
             })?;
 
-            Ok(MikanRssItem {
-                title: item.title.unwrap_or_default(),
-                homepage,
-                url: enclosure_url,
-                content_length: enclosure.length.parse().ok(),
-                mime: enclosure.mime_type,
-                pub_date: item
-                    .pub_date
-                    .and_then(|s| DateTime::parse_from_rfc2822(&s).ok())
-                    .map(|s| s.timestamp_millis()),
-                mikan_episode_id,
-            })
-        } else {
-            Err(ExtractError::MimeError {
-                expected: String::from(BITTORRENT_MIME_TYPE),
-                found: mime_type,
-                desc: String::from("MikanRssItem"),
-            })
-        }
+        let MikanEpisodeHomepage {
+            mikan_episode_id, ..
+        } = parse_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
+            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
+        })?;
+
+        Ok(MikanRssItem {
+            title,
+            homepage,
+            url: enclosure_url,
+            content_length: enclosure.length.parse().ok(),
+            mime: mime_type,
+            pub_date: item
+                .pub_date
+                .and_then(|s| DateTime::parse_from_rfc2822(&s).ok())
+                .map(|s| s.timestamp_millis()),
+            mikan_episode_id,
+        })
     }
 }
 
@@ -220,21 +226,12 @@ pub fn extract_mikan_subscriber_aggregation_id_from_rss_link(
     }
 }
 
-pub async fn parse_mikan_rss_items_from_rss_link(
-    client: Option<&AppMikanClient>,
-    url: impl IntoUrl,
-) -> eyre::Result<Vec<MikanRssItem>> {
-    let channel = parse_mikan_rss_channel_from_rss_link(client, url).await?;
-
-    Ok(channel.into_items())
-}
-
-pub async fn parse_mikan_rss_channel_from_rss_link(
-    client: Option<&AppMikanClient>,
-    url: impl IntoUrl,
+#[instrument(skip_all, fields(channel_rss_link = channel_rss_link.as_str()))]
+pub async fn extract_mikan_rss_channel_from_rss_link(
+    http_client: &AppMikanClient,
+    channel_rss_link: impl IntoUrl,
 ) -> eyre::Result<MikanRssChannel> {
-    let http_client = client.map(|s| s.deref());
-    let bytes = fetch_bytes(http_client, url.as_str()).await?;
+    let bytes = fetch_bytes(http_client, channel_rss_link.as_str()).await?;
 
     let channel = rss::Channel::read_from(&bytes[..])?;
 
@@ -245,16 +242,34 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
         mikan_fansub_id,
     }) = extract_mikan_bangumi_id_from_rss_link(&channel_link)
     {
+        tracing::trace!(
+            mikan_bangumi_id,
+            mikan_fansub_id,
+            "MikanBangumiRssLink extracting..."
+        );
+
         let channel_name = channel.title().replace("Mikan Project - ", "");
 
         let items = channel
             .items
             .into_iter()
-            // @TODO log error
-            .flat_map(MikanRssItem::try_from)
+            .enumerate()
+            .flat_map(|(idx, item)| {
+                MikanRssItem::try_from(item).inspect_err(
+                    |error| tracing::warn!(error = %error, "failed to extract rss item idx = {}", idx),
+                )
+            })
             .collect_vec();
 
         if let Some(mikan_fansub_id) = mikan_fansub_id {
+            tracing::trace!(
+                channel_name,
+                channel_link = channel_link.as_str(),
+                mikan_bangumi_id,
+                mikan_fansub_id,
+                "MikanBangumiRssChannel extracted"
+            );
+
             Ok(MikanRssChannel::Bangumi(MikanBangumiRssChannel {
                 name: channel_name,
                 mikan_bangumi_id,
@@ -263,6 +278,13 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
                 items,
             }))
         } else {
+            tracing::trace!(
+                channel_name,
+                channel_link = channel_link.as_str(),
+                mikan_bangumi_id,
+                "MikanBangumiAggregationRssChannel extracted"
+            );
+
             Ok(MikanRssChannel::BangumiAggregation(
                 MikanBangumiAggregationRssChannel {
                     name: channel_name,
@@ -277,25 +299,41 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
         ..
     }) = extract_mikan_subscriber_aggregation_id_from_rss_link(&channel_link)
     {
+        tracing::trace!(
+            mikan_aggregation_id,
+            "MikanSubscriberAggregationRssLink extracting..."
+        );
+
         let items = channel
             .items
             .into_iter()
-            // @TODO log error
-            .flat_map(MikanRssItem::try_from)
+            .enumerate()
+            .flat_map(|(idx, item)| {
+                MikanRssItem::try_from(item).inspect_err(
+                |error| tracing::warn!(error = %error, "failed to extract rss item idx = {}", idx),
+            )
+            })
             .collect_vec();
 
-        return Ok(MikanRssChannel::SubscriberAggregation(
+        tracing::trace!(
+            channel_link = channel_link.as_str(),
+            mikan_aggregation_id,
+            "MikanSubscriberAggregationRssChannel extracted"
+        );
+
+        Ok(MikanRssChannel::SubscriberAggregation(
             MikanSubscriberAggregationRssChannel {
                 mikan_aggregation_id,
                 items,
                 url: channel_link,
             },
-        ));
+        ))
     } else {
-        return Err(ExtractError::MikanRssFormatError {
-            url: url.as_str().into(),
-        }
-        .into());
+        Err(ExtractError::MikanRssInvalidFormatError)
+            .inspect_err(|error| {
+                tracing::warn!(error = %error);
+            })
+            .map_err(|error| error.into())
     }
 }
 
@@ -303,20 +341,39 @@ pub async fn parse_mikan_rss_channel_from_rss_link(
 mod tests {
     use std::assert_matches::assert_matches;
 
+    use color_eyre::eyre;
+    use rstest::rstest;
+    use url::Url;
+
     use crate::{
         extract::mikan::{
             MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
-            parse_mikan_rss_channel_from_rss_link,
+            extract_mikan_rss_channel_from_rss_link,
         },
         sync::core::BITTORRENT_MIME_TYPE,
+        test_utils::mikan::build_testing_mikan_client,
     };
 
+    #[rstest]
     #[tokio::test]
-    pub async fn test_parse_mikan_rss_channel_from_rss_link() {
-        {
-            let bangumi_url = "https://mikanani.me/RSS/Bangumi?bangumiId=3141&subgroupid=370";
+    async fn test_parse_mikan_rss_channel_from_rss_link() -> eyre::Result<()> {
+        let mut mikan_server = mockito::Server::new_async().await;
 
-            let channel = parse_mikan_rss_channel_from_rss_link(None, bangumi_url)
+        let mikan_base_url = Url::parse(&mikan_server.url())?;
+
+        let mikan_client = build_testing_mikan_client(mikan_base_url.clone())?;
+
+        {
+            let bangumi_rss_url =
+                mikan_base_url.join("/RSS/Bangumi?bangumiId=3141&subgroupid=370")?;
+            let bangumi_rss_mock = mikan_server
+                .mock("GET", bangumi_rss_url.path())
+                .with_body_from_file("tests/resources/mikan/Bangumi-3141-370.rss")
+                .match_query(mockito::Matcher::Any)
+                .create_async()
+                .await;
+
+            let channel = extract_mikan_rss_channel_from_rss_link(&mikan_client, bangumi_rss_url)
                 .await
                 .expect("should get mikan channel from rss url");
 
@@ -343,11 +400,20 @@ mod tests {
 
             let name = first_sub_item.title.as_str();
             assert!(name.contains("葬送的芙莉莲"));
+
+            bangumi_rss_mock.expect(1);
         }
         {
-            let bangumi_url = "https://mikanani.me/RSS/Bangumi?bangumiId=3416";
+            let bangumi_rss_url = mikan_base_url.join("/RSS/Bangumi?bangumiId=3416")?;
 
-            let channel = parse_mikan_rss_channel_from_rss_link(None, bangumi_url)
+            let bangumi_rss_mock = mikan_server
+                .mock("GET", bangumi_rss_url.path())
+                .match_query(mockito::Matcher::Any)
+                .with_body_from_file("tests/resources/mikan/Bangumi-3416.rss")
+                .create_async()
+                .await;
+
+            let channel = extract_mikan_rss_channel_from_rss_link(&mikan_client, bangumi_rss_url)
                 .await
                 .expect("should get mikan channel from rss url");
 
@@ -357,6 +423,9 @@ mod tests {
             );
 
             assert_matches!(&channel.name(), Some("叹气的亡灵想隐退"));
+
+            bangumi_rss_mock.expect(1);
         }
+        Ok(())
     }
 }

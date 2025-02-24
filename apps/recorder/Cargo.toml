@@ -113,6 +113,7 @@ http-cache = { version = "0.20.0", features = [
 http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
 nom = "8.0.0"
+secrecy = "0.10.3"
 
 [dev-dependencies]
 serial_test = "3"

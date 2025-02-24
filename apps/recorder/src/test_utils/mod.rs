@@ -1,3 +1,4 @@
+pub mod fetch;
 pub mod mikan;
 #[cfg(feature = "testcontainers")]
 pub mod testcontainers;
