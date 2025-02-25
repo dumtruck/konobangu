@@ -11,7 +11,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::AppDalConfig;
-use crate::{app::App, config::AppConfigExt};
+use crate::{app::App, config::AppConfigExt, errors::RecorderError};
 
 // TODO: wait app-context-trait to integrate
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -85,7 +85,7 @@ impl AppDalClient {
         bucket: Option<&str>,
         filename: &str,
         data: Bytes,
-    ) -> color_eyre::eyre::Result<DalStoredUrl> {
+    ) -> Result<DalStoredUrl, RecorderError> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [
@@ -122,7 +122,7 @@ impl AppDalClient {
         subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
-    ) -> color_eyre::eyre::Result<Option<DalStoredUrl>> {
+    ) -> Result<Option<DalStoredUrl>, RecorderError> {
         match content_category {
             DalContentCategory::Image => {
                 let fullname = [

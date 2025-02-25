@@ -1,9 +1,8 @@
 use std::borrow::Cow;
 
 use bytes::Bytes;
-use color_eyre::eyre;
+use itertools::Itertools;
 use loco_rs::app::AppContext;
-use reqwest::IntoUrl;
 use scraper::{Html, Selector};
 use tracing::instrument;
 use url::Url;
@@ -14,8 +13,8 @@ use super::{
 use crate::{
     app::AppContextExt,
     dal::DalContentCategory,
+    errors::RecorderError,
     extract::{
-        errors::ExtractError,
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
     },
@@ -63,38 +62,32 @@ pub struct MikanBangumiHomepage {
 }
 
 pub fn build_mikan_bangumi_homepage(
-    mikan_base_url: impl IntoUrl,
+    mikan_base_url: Url,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> eyre::Result<Url> {
-    let mut url = mikan_base_url.into_url()?;
+) -> Url {
+    let mut url = mikan_base_url;
     url.set_path(&format!("/Home/Bangumi/{mikan_bangumi_id}"));
     url.set_fragment(mikan_fansub_id);
-    Ok(url)
+    url
 }
 
-pub fn build_mikan_episode_homepage(
-    mikan_base_url: impl IntoUrl,
-    mikan_episode_id: &str,
-) -> eyre::Result<Url> {
-    let mut url = mikan_base_url.into_url()?;
+pub fn build_mikan_episode_homepage(mikan_base_url: Url, mikan_episode_id: &str) -> Url {
+    let mut url = mikan_base_url;
     url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
-    Ok(url)
+    url
 }
 
-pub fn build_mikan_bangumi_expand_info_url(
-    mikan_base_url: impl IntoUrl,
-    mikan_bangumi_id: &str,
-) -> eyre::Result<Url> {
-    let mut url = mikan_base_url.into_url()?;
+pub fn build_mikan_bangumi_expand_info_url(mikan_base_url: Url, mikan_bangumi_id: &str) -> Url {
+    let mut url = mikan_base_url;
     url.set_path("/ExpandBangumi");
     url.query_pairs_mut()
         .append_pair("bangumiId", mikan_bangumi_id)
         .append_pair("showSubscribed", "true");
-    Ok(url)
+    url
 }
 
-pub fn parse_mikan_bangumi_id_from_homepage(url: &Url) -> Option<MikanBangumiHomepage> {
+pub fn extract_mikan_bangumi_id_from_homepage(url: &Url) -> Option<MikanBangumiHomepage> {
     if url.path().starts_with("/Home/Bangumi/") {
         let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
 
@@ -107,7 +100,7 @@ pub fn parse_mikan_bangumi_id_from_homepage(url: &Url) -> Option<MikanBangumiHom
     }
 }
 
-pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHomepage> {
+pub fn extract_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHomepage> {
     if url.path().starts_with("/Home/Episode/") {
         let mikan_episode_id = url.path().replace("/Home/Episode/", "");
         Some(MikanEpisodeHomepage { mikan_episode_id })
@@ -119,7 +112,7 @@ pub fn parse_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeHom
 pub async fn extract_mikan_poster_meta_from_src(
     http_client: &AppMikanClient,
     origin_poster_src_url: Url,
-) -> eyre::Result<MikanBangumiPosterMeta> {
+) -> Result<MikanBangumiPosterMeta, RecorderError> {
     let poster_data = fetch_image(http_client, origin_poster_src_url.clone()).await?;
     Ok(MikanBangumiPosterMeta {
         origin_poster_src: origin_poster_src_url,
@@ -132,7 +125,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
     ctx: &AppContext,
     origin_poster_src_url: Url,
     subscriber_id: i32,
-) -> eyre::Result<MikanBangumiPosterMeta> {
+) -> Result<MikanBangumiPosterMeta, RecorderError> {
     let dal_client = ctx.get_dal_client();
     let mikan_client = ctx.get_mikan_client();
     if let Some(poster_src) = dal_client
@@ -174,7 +167,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
 pub async fn extract_mikan_episode_meta_from_episode_homepage(
     http_client: &AppMikanClient,
     mikan_episode_homepage_url: Url,
-) -> eyre::Result<MikanEpisodeMeta> {
+) -> Result<MikanEpisodeMeta, RecorderError> {
     let mikan_base_url = Url::parse(&mikan_episode_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_episode_homepage_url.as_str()).await?;
 
@@ -190,7 +183,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -206,13 +199,13 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .and_then(|s| mikan_episode_homepage_url.join(s).ok())
         .and_then(|rss_link_url| extract_mikan_bangumi_id_from_rss_link(&rss_link_url))
         .ok_or_else(|| {
-            ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
         })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let mikan_fansub_id = mikan_fansub_id
         .ok_or_else(|| {
-            ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))
         })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
@@ -220,16 +213,16 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .select(&Selector::parse("title").unwrap())
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
 
     let MikanEpisodeHomepage {
         mikan_episode_id, ..
-    } = parse_mikan_episode_id_from_homepage(&mikan_episode_homepage_url)
+    } = extract_mikan_episode_id_from_homepage(&mikan_episode_homepage_url)
         .ok_or_else(|| {
-            ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
         })
         .inspect_err(|error| {
             tracing::warn!(error = %error);
@@ -242,7 +235,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         )
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -285,7 +278,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
 pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
     http_client: &AppMikanClient,
     mikan_bangumi_homepage_url: Url,
-) -> eyre::Result<MikanBangumiMeta> {
+) -> Result<MikanBangumiMeta, RecorderError> {
     let mikan_base_url = Url::parse(&mikan_bangumi_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_bangumi_homepage_url.as_str()).await?;
     let html = Html::parse_document(&content);
@@ -299,7 +292,7 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| tracing::warn!(error = %error))?;
 
     let mikan_bangumi_id = html
@@ -314,7 +307,7 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
              }| mikan_bangumi_id,
         )
         .ok_or_else(|| {
-            ExtractError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
         })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
@@ -367,97 +360,120 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
 pub async fn extract_mikan_bangumis_meta_from_my_bangumi_page(
     http_client: &AppMikanClient,
     my_bangumi_page_url: Url,
-) -> eyre::Result<Vec<MikanBangumiMeta>> {
+) -> Result<Vec<MikanBangumiMeta>, RecorderError> {
     let mikan_base_url = Url::parse(&my_bangumi_page_url.origin().unicode_serialization())?;
 
     let content = fetch_html(http_client, my_bangumi_page_url.clone()).await?;
 
-    let bangumi_container_selector = &Selector::parse(".sk-bangumi .an-ul>li").unwrap();
-    let bangumi_info_selector = &Selector::parse(".an-info a.an-text").unwrap();
-    let bangumi_poster_selector =
-        &Selector::parse("span[data-src][data-bangumiid], span[data-bangumiid][style]").unwrap();
     let fansub_container_selector =
         &Selector::parse(".js-expand_bangumi-subgroup.js-subscribed").unwrap();
     let fansub_title_selector = &Selector::parse(".tag-res-name[title]").unwrap();
     let fansub_id_selector =
         &Selector::parse(".active[data-subtitlegroupid][data-bangumiid]").unwrap();
 
-    let html = Html::parse_document(&content);
+    let bangumi_iters = {
+        let bangumi_container_selector = &Selector::parse(".sk-bangumi .an-ul>li").unwrap();
+
+        let bangumi_info_selector = &Selector::parse(".an-info a.an-text").unwrap();
+        let bangumi_poster_selector =
+            &Selector::parse("span[data-src][data-bangumiid], span[data-bangumiid][style]")
+                .unwrap();
+        let html = Html::parse_document(&content);
+
+        html.select(bangumi_container_selector)
+            .filter_map(|bangumi_elem| {
+                let title_and_href_elem = bangumi_elem.select(bangumi_info_selector).next();
+                let poster_elem = bangumi_elem.select(bangumi_poster_selector).next();
+                if let (Some(bangumi_home_page_url), Some(bangumi_title)) = (
+                    title_and_href_elem.and_then(|elem| elem.attr("href")),
+                    title_and_href_elem.and_then(|elem| elem.attr("title")),
+                ) {
+                    let origin_poster_src = poster_elem.and_then(|ele| {
+                        ele.attr("data-src")
+                            .and_then(|data_src| {
+                                extract_image_src_from_str(data_src, &mikan_base_url)
+                            })
+                            .or_else(|| {
+                                ele.attr("style").and_then(|style| {
+                                    extract_background_image_src_from_style_attr(
+                                        style,
+                                        &mikan_base_url,
+                                    )
+                                })
+                            })
+                    });
+                    let bangumi_title = bangumi_title.to_string();
+                    let bangumi_home_page_url =
+                        my_bangumi_page_url.join(bangumi_home_page_url).ok()?;
+                    let MikanBangumiHomepage {
+                        mikan_bangumi_id, ..
+                    } = extract_mikan_bangumi_id_from_homepage(&bangumi_home_page_url)?;
+                    if let Some(origin_poster_src) = origin_poster_src.as_ref() {
+                        tracing::trace!(
+                            origin_poster_src = origin_poster_src.as_str(),
+                            bangumi_title,
+                            mikan_bangumi_id,
+                            "bangumi info extracted"
+                        );
+                    } else {
+                        tracing::warn!(
+                            bangumi_title,
+                            mikan_bangumi_id,
+                            "bangumi info extracted, but failed to extract poster_src"
+                        );
+                    }
+                    let bangumi_expand_info_url = build_mikan_bangumi_expand_info_url(
+                        mikan_base_url.clone(),
+                        &mikan_bangumi_id,
+                    );
+                    Some((
+                        bangumi_title,
+                        mikan_bangumi_id,
+                        bangumi_expand_info_url,
+                        origin_poster_src,
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect_vec()
+    };
 
     let mut bangumi_list = vec![];
 
-    for bangumi_elem in html.select(bangumi_container_selector) {
-        let title_and_href_elem = bangumi_elem.select(bangumi_info_selector).next();
-        let poster_elem = bangumi_elem.select(bangumi_poster_selector).next();
-        if let (Some(bangumi_home_page_url), Some(bangumi_title)) = (
-            title_and_href_elem.and_then(|elem| elem.attr("href")),
-            title_and_href_elem.and_then(|elem| elem.attr("title")),
-        ) {
-            let origin_poster_src = poster_elem.and_then(|ele| {
-                ele.attr("data-src")
-                    .and_then(|data_src| extract_image_src_from_str(data_src, &mikan_base_url))
-                    .or_else(|| {
-                        ele.attr("style").and_then(|style| {
-                            extract_background_image_src_from_style_attr(style, &mikan_base_url)
-                        })
-                    })
-            });
-            let bangumi_home_page_url = my_bangumi_page_url.join(bangumi_home_page_url)?;
-            if let Some(MikanBangumiHomepage {
-                ref mikan_bangumi_id,
-                ..
-            }) = parse_mikan_bangumi_id_from_homepage(&bangumi_home_page_url)
-            {
-                if let Some(origin_poster_src) = origin_poster_src.as_ref() {
-                    tracing::trace!(
-                        origin_poster_src = origin_poster_src.as_str(),
-                        bangumi_title,
-                        mikan_bangumi_id,
-                        "bangumi info extracted"
-                    );
-                } else {
-                    tracing::warn!(
-                        bangumi_title,
-                        mikan_bangumi_id,
-                        "bangumi info extracted, but failed to extract poster_src"
-                    );
-                }
-                let bangumi_expand_info_url =
-                    build_mikan_bangumi_expand_info_url(mikan_base_url.clone(), mikan_bangumi_id)?;
-                let bangumi_expand_info_content =
-                    fetch_html(http_client, bangumi_expand_info_url).await?;
-                let bangumi_expand_info_fragment =
-                    Html::parse_fragment(&bangumi_expand_info_content);
-                for fansub_info in bangumi_expand_info_fragment.select(fansub_container_selector) {
-                    if let (Some(fansub_name), Some(mikan_fansub_id)) = (
-                        fansub_info
-                            .select(fansub_title_selector)
-                            .next()
-                            .and_then(|ele| ele.attr("title")),
-                        fansub_info
-                            .select(fansub_id_selector)
-                            .next()
-                            .and_then(|ele| ele.attr("data-subtitlegroupid")),
-                    ) {
-                        tracing::trace!(
-                            fansub_name = &fansub_name,
-                            mikan_fansub_id,
-                            "subscribed fansub extracted"
-                        );
-                        bangumi_list.push(MikanBangumiMeta {
-                            homepage: build_mikan_bangumi_homepage(
-                                mikan_base_url.clone(),
-                                mikan_bangumi_id.as_str(),
-                                Some(mikan_fansub_id),
-                            )?,
-                            bangumi_title: bangumi_title.to_string(),
-                            mikan_bangumi_id: mikan_bangumi_id.to_string(),
-                            mikan_fansub_id: Some(mikan_fansub_id.to_string()),
-                            fansub: Some(fansub_name.to_string()),
-                            origin_poster_src: origin_poster_src.clone(),
-                        })
-                    }
-                }
+    for (bangumi_title, mikan_bangumi_id, bangumi_expand_info_url, origin_poster_src) in
+        bangumi_iters
+    {
+        let bangumi_expand_info_content = fetch_html(http_client, bangumi_expand_info_url).await?;
+        let bangumi_expand_info_fragment = Html::parse_fragment(&bangumi_expand_info_content);
+        for fansub_info in bangumi_expand_info_fragment.select(fansub_container_selector) {
+            if let (Some(fansub_name), Some(mikan_fansub_id)) = (
+                fansub_info
+                    .select(fansub_title_selector)
+                    .next()
+                    .and_then(|ele| ele.attr("title")),
+                fansub_info
+                    .select(fansub_id_selector)
+                    .next()
+                    .and_then(|ele| ele.attr("data-subtitlegroupid")),
+            ) {
+                tracing::trace!(
+                    fansub_name = &fansub_name,
+                    mikan_fansub_id,
+                    "subscribed fansub extracted"
+                );
+                bangumi_list.push(MikanBangumiMeta {
+                    homepage: build_mikan_bangumi_homepage(
+                        mikan_base_url.clone(),
+                        mikan_bangumi_id.as_str(),
+                        Some(mikan_fansub_id),
+                    ),
+                    bangumi_title: bangumi_title.to_string(),
+                    mikan_bangumi_id: mikan_bangumi_id.to_string(),
+                    mikan_fansub_id: Some(mikan_fansub_id.to_string()),
+                    fansub: Some(fansub_name.to_string()),
+                    origin_poster_src: origin_poster_src.clone(),
+                })
             }
         }
     }
@@ -469,14 +485,18 @@ pub async fn extract_mikan_bangumis_meta_from_my_bangumi_page(
 mod test {
     #![allow(unused_variables)]
     use color_eyre::eyre;
+    use http::header;
     use rstest::{fixture, rstest};
+    use secrecy::SecretString;
     use tracing::Level;
     use url::Url;
     use zune_image::{codecs::ImageFormat, image::Image};
 
     use super::*;
     use crate::{
-        extract::mikan::web_extract::extract_mikan_bangumis_meta_from_my_bangumi_page,
+        extract::mikan::{
+            MikanAuthSecrecy, web_extract::extract_mikan_bangumis_meta_from_my_bangumi_page,
+        },
         test_utils::{mikan::build_testing_mikan_client, tracing::init_testing_tracing},
     };
 
@@ -604,33 +624,75 @@ mod test {
 
         let mikan_base_url = Url::parse(&mikan_server.url())?;
 
-        let mikan_client = build_testing_mikan_client(mikan_base_url.clone())?;
-
         let my_bangumi_page_url = mikan_base_url.join("/Home/MyBangumi")?;
 
-        let my_bangumi_mock = mikan_server
-            .mock("GET", my_bangumi_page_url.path())
-            .with_body_from_file("tests/resources/mikan/MyBangumi.htm")
-            .create_async()
-            .await;
+        let mikan_client = build_testing_mikan_client(mikan_base_url.clone())?;
 
-        let expand_bangumi_mock = mikan_server
-            .mock("GET", "/ExpandBangumi")
-            .match_query(mockito::Matcher::Any)
-            .with_body_from_file("tests/resources/mikan/ExpandBangumi.htm")
-            .create_async()
-            .await;
+        {
+            let my_bangumi_without_cookie_mock = mikan_server
+                .mock("GET", my_bangumi_page_url.path())
+                .match_header(header::COOKIE, mockito::Matcher::Missing)
+                .with_body_from_file("tests/resources/mikan/MyBangumi-noauth.htm")
+                .create_async()
+                .await;
 
-        let bangumi_metas =
-            extract_mikan_bangumis_meta_from_my_bangumi_page(&mikan_client, my_bangumi_page_url)
-                .await?;
+            let bangumi_metas = extract_mikan_bangumis_meta_from_my_bangumi_page(
+                &mikan_client,
+                my_bangumi_page_url.clone(),
+            )
+            .await?;
 
-        assert!(!bangumi_metas.is_empty());
+            assert!(bangumi_metas.is_empty());
 
-        assert!(bangumi_metas[0].origin_poster_src.is_some());
+            assert!(my_bangumi_without_cookie_mock.matched_async().await);
+        }
+        {
+            let my_bangumi_with_cookie_mock = mikan_server
+                .mock("GET", my_bangumi_page_url.path())
+                .match_header(
+                    header::COOKIE,
+                    mockito::Matcher::AllOf(vec![
+                        mockito::Matcher::Regex(String::from(".*\\.AspNetCore\\.Antiforgery.*")),
+                        mockito::Matcher::Regex(String::from(
+                            ".*\\.AspNetCore\\.Identity\\.Application.*",
+                        )),
+                    ]),
+                )
+                .with_body_from_file("tests/resources/mikan/MyBangumi.htm")
+                .create_async()
+                .await;
 
-        my_bangumi_mock.expect(1);
-        expand_bangumi_mock.expect(bangumi_metas.len());
+            let expand_bangumi_mock = mikan_server
+                .mock("GET", "/ExpandBangumi")
+                .match_query(mockito::Matcher::Any)
+                .with_body_from_file("tests/resources/mikan/ExpandBangumi.htm")
+                .create_async()
+                .await;
+
+            let mikan_client_with_cookie = mikan_client.fork_with_auth(MikanAuthSecrecy {
+                cookie: SecretString::from(
+                    "mikan-announcement=1; .AspNetCore.Antiforgery.abc=abc;  \
+                     .AspNetCore.Identity.Application=abc; ",
+                ),
+                user_agent: Some(String::from(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like \
+                     Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0",
+                )),
+            })?;
+            let bangumi_metas = extract_mikan_bangumis_meta_from_my_bangumi_page(
+                &mikan_client_with_cookie,
+                my_bangumi_page_url,
+            )
+            .await?;
+
+            assert!(!bangumi_metas.is_empty());
+
+            assert!(bangumi_metas[0].origin_poster_src.is_some());
+
+            assert!(my_bangumi_with_cookie_mock.matched_async().await);
+
+            expand_bangumi_mock.expect(bangumi_metas.len());
+        }
 
         Ok(())
     }

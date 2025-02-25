@@ -1,13 +1,29 @@
 use std::{borrow::Cow, error::Error as StdError};
 
-use thiserror::Error;
+use thiserror::Error as ThisError;
 
-#[derive(Error, Debug)]
-pub enum ExtractError {
-    #[error("Extract bangumi season error: {0}")]
-    BangumiSeasonError(#[from] std::num::ParseIntError),
-    #[error("Extract file url error: {0}")]
-    FileUrlError(#[from] url::ParseError),
+use crate::fetch::HttpClientError;
+
+#[derive(ThisError, Debug)]
+pub enum RecorderError {
+    #[error(transparent)]
+    CookieParseError(#[from] cookie::ParseError),
+    #[error(transparent)]
+    FigmentError(#[from] figment::Error),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
+    #[error(transparent)]
+    ReqwestMiddlewareError(#[from] reqwest_middleware::Error),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+    #[error(transparent)]
+    ParseUrlError(#[from] url::ParseError),
+    #[error(transparent)]
+    OpenDALError(#[from] opendal::Error),
+    #[error(transparent)]
+    InvalidHeaderValueError(#[from] http::header::InvalidHeaderValue),
+    #[error(transparent)]
+    HttpClientError(#[from] HttpClientError),
     #[error("Extract {desc} with mime error, expected {expected}, but got {found}")]
     MimeError {
         desc: String,
@@ -30,7 +46,7 @@ pub enum ExtractError {
     },
 }
 
-impl ExtractError {
+impl RecorderError {
     pub fn from_mikan_meta_missing_field(field: Cow<'static, str>) -> Self {
         Self::MikanMetaMissingFieldError {
             field,
@@ -53,5 +69,11 @@ impl ExtractError {
             field,
             source: Some(source),
         }
+    }
+}
+
+impl From<RecorderError> for loco_rs::Error {
+    fn from(error: RecorderError) -> Self {
+        Self::wrap(error)
     }
 }

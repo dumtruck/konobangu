@@ -274,7 +274,7 @@ impl Model {
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,
                         Some(&mikan_fansub_id),
-                    )?;
+                    );
                     let bgm_rss_link = build_mikan_bangumi_rss_link(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,

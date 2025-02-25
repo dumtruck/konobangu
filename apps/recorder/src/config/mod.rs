@@ -1,12 +1,12 @@
 use figment::{
-    providers::{Format, Json, Yaml},
     Figment,
+    providers::{Format, Json, Yaml},
 };
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 use crate::{
-    auth::AppAuthConfig, dal::config::AppDalConfig, extract::mikan::AppMikanConfig,
-    graphql::config::AppGraphQLConfig,
+    auth::AppAuthConfig, dal::config::AppDalConfig, errors::RecorderError,
+    extract::mikan::AppMikanConfig, graphql::config::AppGraphQLConfig,
 };
 
 const DEFAULT_APP_SETTINGS_MIXIN: &str = include_str!("./settings_mixin.yaml");
@@ -51,7 +51,7 @@ pub fn deserialize_key_path_from_app_config<T: DeserializeOwned>(
 pub trait AppConfigExt {
     fn get_root_conf(&self) -> &loco_rs::config::Config;
 
-    fn get_app_conf(&self) -> loco_rs::Result<AppConfig> {
+    fn get_app_conf(&self) -> Result<AppConfig, RecorderError> {
         let settings_str = self
             .get_root_conf()
             .settings
@@ -61,8 +61,7 @@ pub trait AppConfigExt {
 
         let app_config = Figment::from(Json::string(&settings_str))
             .merge(Yaml::string(DEFAULT_APP_SETTINGS_MIXIN))
-            .extract()
-            .map_err(loco_rs::Error::wrap)?;
+            .extract()?;
 
         Ok(app_config)
     }

@@ -9,12 +9,10 @@ use tracing::instrument;
 use url::Url;
 
 use crate::{
-    extract::{
-        errors::ExtractError,
-        mikan::{
-            AppMikanClient,
-            web_extract::{MikanEpisodeHomepage, parse_mikan_episode_id_from_homepage},
-        },
+    errors::RecorderError,
+    extract::mikan::{
+        AppMikanClient,
+        web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
     },
     fetch::bytes::fetch_bytes,
     sync::core::BITTORRENT_MIME_TYPE,
@@ -103,16 +101,16 @@ impl MikanRssChannel {
 }
 
 impl TryFrom<rss::Item> for MikanRssItem {
-    type Error = ExtractError;
+    type Error = RecorderError;
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
         let enclosure = item.enclosure.ok_or_else(|| {
-            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure"))
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure"))
         })?;
 
         let mime_type = enclosure.mime_type;
         if mime_type != BITTORRENT_MIME_TYPE {
-            return Err(ExtractError::MimeError {
+            return Err(RecorderError::MimeError {
                 expected: String::from(BITTORRENT_MIME_TYPE),
                 found: mime_type.to_string(),
                 desc: String::from("MikanRssItem"),
@@ -120,11 +118,11 @@ impl TryFrom<rss::Item> for MikanRssItem {
         }
 
         let title = item.title.ok_or_else(|| {
-            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title"))
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title"))
         })?;
 
         let enclosure_url = Url::parse(&enclosure.url).map_err(|inner| {
-            ExtractError::from_mikan_rss_invalid_field_and_source(
+            RecorderError::from_mikan_rss_invalid_field_and_source(
                 Cow::Borrowed("enclosure_url:enclosure.link"),
                 Box::new(inner),
             )
@@ -134,13 +132,13 @@ impl TryFrom<rss::Item> for MikanRssItem {
             .link
             .and_then(|link| Url::parse(&link).ok())
             .ok_or_else(|| {
-                ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
+                RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
             })?;
 
         let MikanEpisodeHomepage {
             mikan_episode_id, ..
-        } = parse_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
-            ExtractError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
+        } = extract_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
         Ok(MikanRssItem {
@@ -329,7 +327,7 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
             },
         ))
     } else {
-        Err(ExtractError::MikanRssInvalidFormatError)
+        Err(RecorderError::MikanRssInvalidFormatError)
             .inspect_err(|error| {
                 tracing::warn!(error = %error);
             })

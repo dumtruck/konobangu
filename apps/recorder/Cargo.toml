@@ -48,6 +48,7 @@ reqwest = { version = "0.12", features = [
     "json",
     "macos-system-configuration",
     "rustls-tls",
+    "cookies",
 ] }
 thiserror = "2"
 rss = "2"
@@ -113,7 +114,9 @@ http-cache = { version = "0.20.0", features = [
 http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
 nom = "8.0.0"
-secrecy = "0.10.3"
+secrecy = { version = "0.10.3", features = ["serde"] }
+http = "1.2.0"
+cookie = "0.18.1"
 
 [dev-dependencies]
 serial_test = "3"

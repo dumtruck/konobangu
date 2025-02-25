@@ -1,11 +1,12 @@
 use reqwest::IntoUrl;
 
 use super::client::HttpClientTrait;
+use crate::errors::RecorderError;
 
 pub async fn fetch_html<T: IntoUrl, H: HttpClientTrait>(
     client: &H,
     url: T,
-) -> color_eyre::eyre::Result<String> {
+) -> Result<String, RecorderError> {
     let content = client
         .get(url)
         .send()

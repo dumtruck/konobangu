@@ -203,7 +203,7 @@ impl ActiveModel {
         let homepage = build_mikan_episode_homepage(
             ctx.get_mikan_client().base_url().clone(),
             &item.mikan_episode_id,
-        )?;
+        );
 
         Ok(Self {
             mikan_episode_id: ActiveValue::Set(Some(item.mikan_episode_id)),
