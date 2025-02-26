@@ -10,16 +10,16 @@ use async_trait::async_trait;
 pub use ext::AppContextExt;
 use itertools::Itertools;
 use loco_rs::{
+    Result,
     app::{AppContext, Hooks},
-    boot::{create_app, BootResult, StartMode},
+    boot::{BootResult, StartMode, create_app},
     cache,
     config::Config,
-    controller::{middleware, middleware::MiddlewareLayer, AppRoutes},
+    controller::{AppRoutes, middleware, middleware::MiddlewareLayer},
     db::truncate_table,
     environment::Environment,
     prelude::*,
     task::Tasks,
-    Result,
 };
 use once_cell::sync::OnceCell;
 

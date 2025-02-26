@@ -1,9 +1,9 @@
+use futures::{TryStreamExt, pin_mut};
 use loco_rs::prelude::*;
 
 use crate::{
-    app::AppContextExt,
     extract::mikan::{
-        MikanAuthSecrecy, web_extract::extract_mikan_bangumis_meta_from_my_bangumi_page,
+        MikanAuthSecrecy
     },
 };
 
@@ -31,15 +31,21 @@ impl Task for CreateMikanRSSFromMyBangumiTask {
             .get_mikan_client()
             .fork_with_auth(self.auth_secrecy.clone())?;
 
-        // TODO
-        let _bangumi_metas = extract_mikan_bangumis_meta_from_my_bangumi_page(
-            &mikan_client,
-            mikan_client
-                .base_url()
-                .join("/Home/MyBangumi")
-                .map_err(loco_rs::Error::wrap)?,
-        )
-        .await?;
+        {
+            let bangumi_metas = extract_mikan_bangumis_meta_from_my_bangumi_page(
+                &mikan_client,
+                mikan_client
+                    .base_url()
+                    .join("/Home/MyBangumi")
+                    .map_err(loco_rs::Error::wrap)?,
+            );
+
+            pin_mut!(bangumi_metas);
+
+            let bangumi_metas = bangumi_metas.try_collect::<Vec<_>>().await?;
+
+            tokio::sync::broadcast::
+        }
 
         Ok(())
     }

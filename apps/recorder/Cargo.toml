@@ -42,7 +42,7 @@ axum = "0.8"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 sea-orm-migration = { version = "1.1", features = ["runtime-tokio-rustls"] }
-reqwest = { version = "0.12", features = [
+reqwest = { version = "0.12", default-features = false, features = [
     "charset",
     "http2",
     "json",
@@ -100,7 +100,7 @@ axum-extra = "0.10.0"
 tower-http = "0.6.2"
 serde_yaml = "0.9.34"
 tera = "1.20.0"
-openidconnect = "4"
+openidconnect = { version = "4", features = ["rustls-tls"] }
 http-cache-reqwest = { version = "0.15", features = [
     "manager-cacache",
     "manager-moka",
@@ -117,6 +117,7 @@ nom = "8.0.0"
 secrecy = { version = "0.10.3", features = ["serde"] }
 http = "1.2.0"
 cookie = "0.18.1"
+async-stream = "0.3.6"
 
 [dev-dependencies]
 serial_test = "3"
