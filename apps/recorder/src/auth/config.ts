@@ -1,9 +1,4 @@
-import { InjectionToken } from '@outposts/injection-js';
-import {
-  type EventTypes,
-  LogLevel,
-  type OpenIdConfiguration,
-} from 'oidc-client-rx';
+import { LogLevel, type OpenIdConfiguration } from 'oidc-client-rx';
 
 export const isBasicAuth = process.env.AUTH_TYPE === 'basic';
 

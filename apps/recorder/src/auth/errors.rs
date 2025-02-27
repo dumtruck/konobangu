@@ -6,7 +6,6 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use loco_rs::model::ModelError;
 use openidconnect::{
     ConfigurationError, RequestTokenError, SignatureVerificationError, SigningError,
     StandardErrorResponse, core::CoreErrorResponseType,
@@ -14,7 +13,7 @@ use openidconnect::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{fetch::HttpClientError, models::auth::AuthType};
+use crate::{errors::RError, fetch::HttpClientError, models::auth::AuthType};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -24,7 +23,7 @@ pub enum AuthError {
         current: AuthType,
     },
     #[error("Failed to find auth record")]
-    FindAuthRecordError(ModelError),
+    FindAuthRecordError(RError),
     #[error("Invalid credentials")]
     BasicInvalidCredentials,
     #[error(transparent)]

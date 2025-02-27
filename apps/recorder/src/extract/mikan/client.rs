@@ -1,20 +1,14 @@
 use std::ops::Deref;
 
-use async_trait::async_trait;
-use loco_rs::app::{AppContext, Initializer};
-use once_cell::sync::OnceCell;
 use reqwest_middleware::ClientWithMiddleware;
 use secrecy::{ExposeSecret, SecretString};
 use url::Url;
 
 use super::AppMikanConfig;
 use crate::{
-    config::AppConfigExt,
-    errors::RecorderError,
+    errors::RError,
     fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth},
 };
-
-static APP_MIKAN_CLIENT: OnceCell<AppMikanClient> = OnceCell::new();
 
 #[derive(Debug, Default, Clone)]
 pub struct MikanAuthSecrecy {
@@ -23,19 +17,19 @@ pub struct MikanAuthSecrecy {
 }
 
 impl MikanAuthSecrecy {
-    pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RecorderError> {
+    pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RError> {
         HttpClientCookiesAuth::from_cookies(self.cookie.expose_secret(), url, self.user_agent)
     }
 }
 
 #[derive(Debug)]
-pub struct AppMikanClient {
+pub struct MikanClient {
     http_client: HttpClient,
     base_url: Url,
 }
 
-impl AppMikanClient {
-    pub fn new(config: AppMikanConfig) -> Result<Self, RecorderError> {
+impl MikanClient {
+    pub fn new(config: AppMikanConfig) -> Result<Self, RError> {
         let http_client = HttpClient::from_config(config.http_client)?;
         let base_url = config.base_url;
         Ok(Self {
@@ -44,7 +38,7 @@ impl AppMikanClient {
         })
     }
 
-    pub fn fork_with_auth(&self, secrecy: MikanAuthSecrecy) -> Result<Self, RecorderError> {
+    pub fn fork_with_auth(&self, secrecy: MikanAuthSecrecy) -> Result<Self, RError> {
         let cookie_auth = secrecy.into_cookie_auth(&self.base_url)?;
         let fork = self.http_client.fork().attach_secrecy(cookie_auth);
 
@@ -52,12 +46,6 @@ impl AppMikanClient {
             http_client: HttpClient::from_fork(fork)?,
             base_url: self.base_url.clone(),
         })
-    }
-
-    pub fn app_instance() -> &'static AppMikanClient {
-        APP_MIKAN_CLIENT
-            .get()
-            .expect("AppMikanClient is not initialized")
     }
 
     pub fn base_url(&self) -> &Url {
@@ -69,7 +57,7 @@ impl AppMikanClient {
     }
 }
 
-impl Deref for AppMikanClient {
+impl Deref for MikanClient {
     type Target = ClientWithMiddleware;
 
     fn deref(&self) -> &Self::Target {
@@ -77,22 +65,4 @@ impl Deref for AppMikanClient {
     }
 }
 
-impl HttpClientTrait for AppMikanClient {}
-
-pub struct AppMikanClientInitializer;
-
-#[async_trait]
-impl Initializer for AppMikanClientInitializer {
-    fn name(&self) -> String {
-        "AppMikanClientInitializer".to_string()
-    }
-
-    async fn before_run(&self, app_context: &AppContext) -> loco_rs::Result<()> {
-        let config = &app_context.config;
-        let app_mikan_conf = config.get_app_conf()?.mikan;
-
-        APP_MIKAN_CLIENT.get_or_try_init(|| AppMikanClient::new(app_mikan_conf))?;
-
-        Ok(())
-    }
-}
+impl HttpClientTrait for MikanClient {}

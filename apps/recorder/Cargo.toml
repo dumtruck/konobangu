@@ -23,6 +23,7 @@ testcontainers = [
 
 [dependencies]
 loco-rs = { version = "0.14" }
+zino = { version = "0.33", features = ["axum"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }

@@ -1,26 +1,22 @@
 use std::fmt;
 
-use async_trait::async_trait;
 use bytes::Bytes;
-use loco_rs::app::{AppContext, Initializer};
-use once_cell::sync::OnceCell;
 use opendal::{Buffer, Operator, layers::LoggingLayer, services::Fs};
 use quirks_path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
 
-use super::AppDalConfig;
-use crate::{app::App, config::AppConfigExt, errors::RecorderError};
+use super::StorageConfig;
+use crate::errors::RError;
 
-// TODO: wait app-context-trait to integrate
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum DalContentCategory {
+pub enum StorageContentCategory {
     Image,
 }
 
-impl AsRef<str> for DalContentCategory {
+impl AsRef<str> for StorageContentCategory {
     fn as_ref(&self) -> &str {
         match self {
             Self::Image => "image",
@@ -28,14 +24,12 @@ impl AsRef<str> for DalContentCategory {
     }
 }
 
-static APP_DAL_CLIENT: OnceCell<AppDalClient> = OnceCell::new();
-
-pub enum DalStoredUrl {
+pub enum StorageStoredUrl {
     RelativePath { path: String },
     Absolute { url: Url },
 }
 
-impl AsRef<str> for DalStoredUrl {
+impl AsRef<str> for StorageStoredUrl {
     fn as_ref(&self) -> &str {
         match &self {
             Self::Absolute { url } => url.as_str(),
@@ -44,30 +38,22 @@ impl AsRef<str> for DalStoredUrl {
     }
 }
 
-impl fmt::Display for DalStoredUrl {
+impl fmt::Display for StorageStoredUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_ref())
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct AppDalClient {
+pub struct StorageService {
     pub data_dir: String,
 }
 
-impl AppDalClient {
-    pub fn new(config: AppDalConfig) -> Self {
+impl StorageService {
+    pub fn from_config(config: StorageConfig) -> Self {
         Self {
-            data_dir: App::get_working_root()
-                .join(config.data_dir.as_deref().unwrap_or("./data"))
-                .to_string(),
+            data_dir: config.data_dir,
         }
-    }
-
-    pub fn app_instance() -> &'static AppDalClient {
-        APP_DAL_CLIENT
-            .get()
-            .expect("AppDalClient is not initialized")
     }
 
     pub fn get_fs(&self) -> Fs {
@@ -80,14 +66,14 @@ impl AppDalClient {
 
     pub async fn store_object(
         &self,
-        content_category: DalContentCategory,
+        content_category: StorageContentCategory,
         subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
         data: Bytes,
-    ) -> Result<DalStoredUrl, RecorderError> {
+    ) -> Result<StorageStoredUrl, RError> {
         match content_category {
-            DalContentCategory::Image => {
+            StorageContentCategory::Image => {
                 let fullname = [
                     &subscriber_id.to_string(),
                     content_category.as_ref(),
@@ -109,7 +95,7 @@ impl AppDalClient {
 
                 fs_op.write(fullname.as_str(), data).await?;
 
-                Ok(DalStoredUrl::RelativePath {
+                Ok(StorageStoredUrl::RelativePath {
                     path: fullname.to_string(),
                 })
             }
@@ -118,13 +104,13 @@ impl AppDalClient {
 
     pub async fn exists_object(
         &self,
-        content_category: DalContentCategory,
+        content_category: StorageContentCategory,
         subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
-    ) -> Result<Option<DalStoredUrl>, RecorderError> {
+    ) -> Result<Option<StorageStoredUrl>, RError> {
         match content_category {
-            DalContentCategory::Image => {
+            StorageContentCategory::Image => {
                 let fullname = [
                     &subscriber_id.to_string(),
                     content_category.as_ref(),
@@ -140,7 +126,7 @@ impl AppDalClient {
                     .finish();
 
                 if fs_op.exists(fullname.as_str()).await? {
-                    Ok(Some(DalStoredUrl::RelativePath {
+                    Ok(Some(StorageStoredUrl::RelativePath {
                         path: fullname.to_string(),
                     }))
                 } else {
@@ -152,13 +138,13 @@ impl AppDalClient {
 
     pub async fn load_object(
         &self,
-        content_category: DalContentCategory,
+        content_category: StorageContentCategory,
         subscriber_pid: &str,
         bucket: Option<&str>,
         filename: &str,
     ) -> color_eyre::eyre::Result<Buffer> {
         match content_category {
-            DalContentCategory::Image => {
+            StorageContentCategory::Image => {
                 let fullname = [
                     subscriber_pid,
                     content_category.as_ref(),
@@ -178,23 +164,5 @@ impl AppDalClient {
                 Ok(data)
             }
         }
-    }
-}
-
-pub struct AppDalInitalizer;
-
-#[async_trait]
-impl Initializer for AppDalInitalizer {
-    fn name(&self) -> String {
-        String::from("AppDalInitalizer")
-    }
-
-    async fn before_run(&self, app_context: &AppContext) -> loco_rs::Result<()> {
-        let config = &app_context.config;
-        let app_dal_conf = config.get_app_conf()?.dal;
-
-        APP_DAL_CLIENT.get_or_init(|| AppDalClient::new(app_dal_conf));
-
-        Ok(())
     }
 }

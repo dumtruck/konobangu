@@ -1,0 +1,16 @@
+[storage]
+data_dir = "./data"
+
+[mikan]
+base_url = "https://mikanani.me/"
+
+[mikan.http_client]
+exponential_backoff_max_retries = 3
+leaky_bucket_max_tokens = 2
+leaky_bucket_initial_tokens = 0
+leaky_bucket_refill_tokens = 1
+leaky_bucket_refill_interval = 500
+
+[graphql]
+depth_limit = inf
+complexity_limit = inf

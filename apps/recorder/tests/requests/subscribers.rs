@@ -1,7 +1,6 @@
 #![allow(unused_imports)]
 use insta::{assert_debug_snapshot, with_settings};
-use loco_rs::testing;
-use recorder::app::App;
+use recorder::app::App1;
 use serial_test::serial;
 
 macro_rules! configure_insta {
@@ -17,15 +16,4 @@ macro_rules! configure_insta {
 #[serial]
 async fn can_get_current_user() {
     configure_insta!();
-
-    // testing::request::<App, _, _>(|request, _ctx| async move {
-    //     let response = request.get("/api/user/current").await;
-
-    //     with_settings!({
-    //         filters => testing::cleanup_user_model()
-    //     }, {
-    //         assert_debug_snapshot!((response.status_code(),
-    // response.text()));     });
-    // })
-    // .await;
 }

@@ -1,15 +1,17 @@
 use async_trait::async_trait;
 use axum::http::{HeaderValue, request::Parts};
 use base64::{self, Engine};
-use loco_rs::app::AppContext;
 use reqwest::header::AUTHORIZATION;
 
 use super::{
     config::BasicAuthConfig,
     errors::AuthError,
-    service::{AuthService, AuthUserInfo},
+    service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::models::{auth::AuthType, subscribers::SEED_SUBSCRIBER};
+use crate::{
+    app::AppContext,
+    models::{auth::AuthType, subscribers::SEED_SUBSCRIBER},
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AuthBasic {
@@ -59,7 +61,7 @@ pub struct BasicAuthService {
 }
 
 #[async_trait]
-impl AuthService for BasicAuthService {
+impl AuthServiceTrait for BasicAuthService {
     async fn extract_user_info(
         &self,
         ctx: &AppContext,

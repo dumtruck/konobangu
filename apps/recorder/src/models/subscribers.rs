@@ -1,11 +1,12 @@
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
-use loco_rs::{
-    app::AppContext,
-    model::{ModelError, ModelResult},
-};
 use sea_orm::{ActiveValue, FromJsonQueryResult, TransactionTrait, entity::prelude::*};
 use serde::{Deserialize, Serialize};
+
+use crate::{
+    app::AppContext,
+    errors::{RError, RResult},
+};
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
 
@@ -94,22 +95,22 @@ pub struct SubscriberIdParams {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_seed_subscriber_id(ctx: &AppContext) -> ModelResult<i32> {
+    pub async fn find_seed_subscriber_id(ctx: &AppContext) -> RResult<i32> {
         let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER).await?;
         Ok(subscriber_auth.subscriber_id)
     }
 
-    pub async fn find_by_id(ctx: &AppContext, id: i32) -> ModelResult<Self> {
+    pub async fn find_by_id(ctx: &AppContext, id: i32) -> RResult<Self> {
         let db = &ctx.db;
 
         let subscriber = Entity::find_by_id(id)
             .one(db)
             .await?
-            .ok_or_else(|| ModelError::EntityNotFound)?;
+            .ok_or_else(|| RError::from_db_record_not_found("subscriptions::find_by_id"))?;
         Ok(subscriber)
     }
 
-    pub async fn create_root(ctx: &AppContext) -> ModelResult<Self> {
+    pub async fn create_root(ctx: &AppContext) -> RResult<Self> {
         let db = &ctx.db;
         let txn = db.begin().await?;
 

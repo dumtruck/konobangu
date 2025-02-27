@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use loco_rs::app::AppContext;
 use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
 use serde::{Deserialize, Serialize};
 
 use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
 use crate::{
-    app::AppContextExt,
+    app::AppContext,
+    errors::RResult,
     extract::{
         mikan::{MikanEpisodeMeta, build_mikan_episode_homepage},
         rawname::parse_episode_meta_from_raw_name,
@@ -140,7 +140,7 @@ impl Model {
         subscriber_id: i32,
         subscription_id: i32,
         creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> RResult<()> {
         let db = &ctx.db;
         let new_episode_active_modes = creations
             .into_iter()
@@ -200,10 +200,8 @@ impl ActiveModel {
             })
             .ok()
             .unwrap_or_default();
-        let homepage = build_mikan_episode_homepage(
-            ctx.get_mikan_client().base_url().clone(),
-            &item.mikan_episode_id,
-        );
+        let homepage =
+            build_mikan_episode_homepage(ctx.mikan.base_url().clone(), &item.mikan_episode_id);
 
         Ok(Self {
             mikan_episode_id: ActiveValue::Set(Some(item.mikan_episode_id)),

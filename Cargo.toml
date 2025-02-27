@@ -3,9 +3,6 @@ members = ["apps/recorder"]
 resolver = "2"
 
 [patch.crates-io]
-# loco-rs = { git = "https://github.com/lonelyhentxi/loco.git", rev = "beb890e" }
-# loco-rs = { git = "https://github.com/loco-rs/loco.git" }
-# loco-rs = { path = "./patches/loco" }
 jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }
 
 # [patch."https://github.com/lonelyhentxi/qbit.git"]

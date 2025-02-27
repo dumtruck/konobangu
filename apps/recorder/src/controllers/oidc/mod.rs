@@ -1,24 +1,32 @@
 use std::sync::Arc;
 
-use axum::{extract::Query, http::request::Parts};
-use loco_rs::prelude::*;
+use axum::{
+    Json, Router,
+    extract::{Query, State},
+    http::request::Parts,
+    routing::get,
+};
 
+use super::core::Controller;
 use crate::{
-    app::AppContextExt,
+    app::AppContext,
     auth::{
+        AuthError, AuthService, AuthServiceTrait,
         oidc::{OidcAuthCallbackPayload, OidcAuthCallbackQuery, OidcAuthRequest},
-        AppAuthService, AuthError, AuthService,
     },
+    errors::RResult,
     extract::http::ForwardedRelatedInfo,
     models::auth::AuthType,
 };
+
+pub const CONTROLLER_PREFIX: &str = "/api/oidc";
 
 async fn oidc_callback(
     State(ctx): State<Arc<AppContext>>,
     Query(query): Query<OidcAuthCallbackQuery>,
 ) -> Result<Json<OidcAuthCallbackPayload>, AuthError> {
-    let auth_service = ctx.get_auth_service();
-    if let AppAuthService::Oidc(oidc_auth_service) = auth_service {
+    let auth_service = &ctx.auth;
+    if let AuthService::Oidc(oidc_auth_service) = auth_service {
         let response = oidc_auth_service
             .extract_authorization_request_callback(query)
             .await?;
@@ -35,13 +43,13 @@ async fn oidc_auth(
     State(ctx): State<Arc<AppContext>>,
     parts: Parts,
 ) -> Result<Json<OidcAuthRequest>, AuthError> {
-    let auth_service = ctx.get_auth_service();
-    if let AppAuthService::Oidc(oidc_auth_service) = auth_service {
+    let auth_service = &ctx.auth;
+    if let AuthService::Oidc(oidc_auth_service) = auth_service {
         let mut redirect_uri = ForwardedRelatedInfo::from_request_parts(&parts)
             .resolved_origin()
             .ok_or_else(|| AuthError::OidcRequestRedirectUriError(url::ParseError::EmptyHost))?;
 
-        redirect_uri.set_path("/api/oidc/callback");
+        redirect_uri.set_path(&format!("{CONTROLLER_PREFIX}/callback"));
 
         let auth_request = oidc_auth_service
             .build_authorization_request(redirect_uri.as_str())
@@ -62,9 +70,10 @@ async fn oidc_auth(
     }
 }
 
-pub fn routes(state: Arc<AppContext>) -> Routes {
-    Routes::new()
-        .prefix("/oidc")
-        .add("/auth", get(oidc_auth).with_state(state.clone()))
-        .add("/callback", get(oidc_callback).with_state(state))
+pub async fn create(_context: Arc<AppContext>) -> RResult<Controller> {
+    let router = Router::<Arc<AppContext>>::new()
+        .route("/auth", get(oidc_auth))
+        .route("/callback", get(oidc_callback));
+
+    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
 }

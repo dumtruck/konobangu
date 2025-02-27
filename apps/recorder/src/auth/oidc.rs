@@ -7,13 +7,13 @@ use async_trait::async_trait;
 use axum::http::{HeaderValue, request::Parts};
 use itertools::Itertools;
 use jwt_authorizer::{NumericDate, OneOrArray, authorizer::Authorizer};
-use loco_rs::{app::AppContext, model::ModelError};
 use moka::future::Cache;
 use openidconnect::{
     AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
     OAuth2TokenResponse, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, TokenResponse,
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
 };
+use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use url::Url;
@@ -21,9 +21,9 @@ use url::Url;
 use super::{
     config::OidcAuthConfig,
     errors::AuthError,
-    service::{AuthService, AuthUserInfo},
+    service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::{fetch::HttpClient, models::auth::AuthType};
+use crate::{app::AppContext, errors::RError, fetch::HttpClient, models::auth::AuthType};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OidcAuthClaims {
@@ -258,7 +258,7 @@ impl OidcAuthService {
 }
 
 #[async_trait]
-impl AuthService for OidcAuthService {
+impl AuthServiceTrait for OidcAuthService {
     async fn extract_user_info(
         &self,
         ctx: &AppContext,
@@ -306,7 +306,7 @@ impl AuthService for OidcAuthService {
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {
-            Err(ModelError::EntityNotFound) => {
+            Err(RError::DbError(DbErr::RecordNotFound(..))) => {
                 crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await
             }
             r => r,

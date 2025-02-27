@@ -4,23 +4,22 @@ use async_stream::try_stream;
 use bytes::Bytes;
 use futures::Stream;
 use itertools::Itertools;
-use loco_rs::app::AppContext;
 use scraper::{Html, Selector};
 use tracing::instrument;
 use url::Url;
 
 use super::{
-    AppMikanClient, MIKAN_BUCKET_KEY, MikanBangumiRssLink, extract_mikan_bangumi_id_from_rss_link,
+    MIKAN_BUCKET_KEY, MikanBangumiRssLink, MikanClient, extract_mikan_bangumi_id_from_rss_link,
 };
 use crate::{
-    app::AppContextExt,
-    dal::DalContentCategory,
-    errors::RecorderError,
+    app::AppContext,
+    errors::{RError, RResult},
     extract::{
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
     },
     fetch::{html::fetch_html, image::fetch_image},
+    storage::StorageContentCategory,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -112,9 +111,9 @@ pub fn extract_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeH
 }
 
 pub async fn extract_mikan_poster_meta_from_src(
-    http_client: &AppMikanClient,
+    http_client: &MikanClient,
     origin_poster_src_url: Url,
-) -> Result<MikanBangumiPosterMeta, RecorderError> {
+) -> Result<MikanBangumiPosterMeta, RError> {
     let poster_data = fetch_image(http_client, origin_poster_src_url.clone()).await?;
     Ok(MikanBangumiPosterMeta {
         origin_poster_src: origin_poster_src_url,
@@ -127,12 +126,12 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
     ctx: &AppContext,
     origin_poster_src_url: Url,
     subscriber_id: i32,
-) -> Result<MikanBangumiPosterMeta, RecorderError> {
-    let dal_client = ctx.get_dal_client();
-    let mikan_client = ctx.get_mikan_client();
+) -> RResult<MikanBangumiPosterMeta> {
+    let dal_client = &ctx.storage;
+    let mikan_client = &ctx.mikan;
     if let Some(poster_src) = dal_client
         .exists_object(
-            DalContentCategory::Image,
+            StorageContentCategory::Image,
             subscriber_id,
             Some(MIKAN_BUCKET_KEY),
             &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
@@ -150,7 +149,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
 
     let poster_str = dal_client
         .store_object(
-            DalContentCategory::Image,
+            StorageContentCategory::Image,
             subscriber_id,
             Some(MIKAN_BUCKET_KEY),
             &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
@@ -167,9 +166,9 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
 
 #[instrument(skip_all, fields(mikan_episode_homepage_url = mikan_episode_homepage_url.as_str()))]
 pub async fn extract_mikan_episode_meta_from_episode_homepage(
-    http_client: &AppMikanClient,
+    http_client: &MikanClient,
     mikan_episode_homepage_url: Url,
-) -> Result<MikanEpisodeMeta, RecorderError> {
+) -> Result<MikanEpisodeMeta, RError> {
     let mikan_base_url = Url::parse(&mikan_episode_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_episode_homepage_url.as_str()).await?;
 
@@ -185,7 +184,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -200,22 +199,18 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_episode_homepage_url.join(s).ok())
         .and_then(|rss_link_url| extract_mikan_bangumi_id_from_rss_link(&rss_link_url))
-        .ok_or_else(|| {
-            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
-        })
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id")))
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let mikan_fansub_id = mikan_fansub_id
-        .ok_or_else(|| {
-            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))
-        })
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id")))
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let episode_title = html
         .select(&Selector::parse("title").unwrap())
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -223,9 +218,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
     let MikanEpisodeHomepage {
         mikan_episode_id, ..
     } = extract_mikan_episode_id_from_homepage(&mikan_episode_homepage_url)
-        .ok_or_else(|| {
-            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
-        })
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -237,7 +230,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         )
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -278,9 +271,9 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
 
 #[instrument(skip_all, fields(mikan_bangumi_homepage_url = mikan_bangumi_homepage_url.as_str()))]
 pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
-    http_client: &AppMikanClient,
+    http_client: &MikanClient,
     mikan_bangumi_homepage_url: Url,
-) -> Result<MikanBangumiMeta, RecorderError> {
+) -> Result<MikanBangumiMeta, RError> {
     let mikan_base_url = Url::parse(&mikan_bangumi_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_bangumi_homepage_url.as_str()).await?;
     let html = Html::parse_document(&content);
@@ -294,7 +287,7 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| tracing::warn!(error = %error))?;
 
     let mikan_bangumi_id = html
@@ -308,9 +301,7 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
                  mikan_bangumi_id, ..
              }| mikan_bangumi_id,
         )
-        .ok_or_else(|| {
-            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
-        })
+        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id")))
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let origin_poster_src = html.select(bangumi_poster_selector).next().and_then(|el| {
@@ -360,9 +351,9 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
  */
 #[instrument(skip_all, fields(my_bangumi_page_url = my_bangumi_page_url.as_str()))]
 pub fn extract_mikan_bangumis_meta_from_my_bangumi_page(
-    http_client: &AppMikanClient,
+    http_client: &MikanClient,
     my_bangumi_page_url: Url,
-) -> impl Stream<Item = Result<MikanBangumiMeta, RecorderError>> {
+) -> impl Stream<Item = Result<MikanBangumiMeta, RError>> {
     try_stream! {
         let mikan_base_url = Url::parse(&my_bangumi_page_url.origin().unicode_serialization())?;
 

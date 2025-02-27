@@ -6,16 +6,15 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use loco_rs::prelude::AppContext;
 
-use crate::{app::AppContextExt, auth::AuthService};
+use crate::{app::AppContext, auth::AuthServiceTrait};
 
-pub async fn api_auth_middleware(
+pub async fn header_www_authenticate_middleware(
     State(ctx): State<Arc<AppContext>>,
     request: Request,
     next: Next,
 ) -> Response {
-    let auth_service = ctx.get_auth_service();
+    let auth_service = &ctx.auth;
 
     let (mut parts, body) = request.into_parts();
 

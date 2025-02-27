@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use loco_rs::schema::table_auto;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::*;

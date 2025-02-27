@@ -1,1 +1,2 @@
+pub mod core;
 pub mod create_mikan_bangumi_subscriptions_from_my_bangumi_page;

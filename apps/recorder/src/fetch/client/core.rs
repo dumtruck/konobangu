@@ -3,7 +3,7 @@ use std::{fmt::Debug, ops::Deref, sync::Arc, time::Duration};
 use async_trait::async_trait;
 use axum::http::{self, Extensions};
 use http_cache_reqwest::{
-    CACacheManager, Cache, CacheManager, CacheMode, HttpCache, HttpCacheOptions, MokaManager,
+    Cache, CacheManager, CacheMode, HttpCache, HttpCacheOptions, MokaManager,
 };
 use leaky_bucket::RateLimiter;
 use reqwest::{ClientBuilder, Request, Response};
@@ -17,7 +17,7 @@ use serde_with::serde_as;
 use thiserror::Error;
 
 use super::HttpClientSecrecyDataTrait;
-use crate::{app::App, fetch::get_random_mobile_ua};
+use crate::fetch::get_random_mobile_ua;
 
 pub struct RateLimiterMiddleware {
     rate_limiter: RateLimiter,
@@ -40,7 +40,6 @@ impl Middleware for RateLimiterMiddleware {
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum HttpClientCacheBackendConfig {
     Moka { cache_size: u64 },
-    CACache { cache_path: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -238,12 +237,6 @@ impl HttpClient {
                     .cache_backend
                     .as_ref()
                     .map(|b| match b {
-                        HttpClientCacheBackendConfig::CACache { cache_path } => {
-                            let path = std::path::PathBuf::from(
-                                App::get_working_root().join(cache_path).as_str(),
-                            );
-                            CacheBackend::new(CACacheManager { path })
-                        }
                         HttpClientCacheBackendConfig::Moka { cache_size } => {
                             CacheBackend::new(MokaManager {
                                 cache: Arc::new(moka::future::Cache::new(*cache_size)),

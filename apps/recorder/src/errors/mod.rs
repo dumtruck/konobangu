@@ -5,7 +5,17 @@ use thiserror::Error as ThisError;
 use crate::fetch::HttpClientError;
 
 #[derive(ThisError, Debug)]
-pub enum RecorderError {
+pub enum RError {
+    #[error(transparent)]
+    RSSError(#[from] rss::Error),
+    #[error(transparent)]
+    DotEnvError(#[from] dotenv::Error),
+    #[error(transparent)]
+    TeraError(#[from] tera::Error),
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+    #[error(transparent)]
+    DbError(#[from] sea_orm::DbErr),
     #[error(transparent)]
     CookieParseError(#[from] cookie::ParseError),
     #[error(transparent)]
@@ -44,9 +54,11 @@ pub enum RecorderError {
         #[source]
         source: Option<Box<dyn StdError + Send + Sync>>,
     },
+    #[error("Model Entity {entity} not found")]
+    ModelEntityNotFound { entity: Cow<'static, str> },
 }
 
-impl RecorderError {
+impl RError {
     pub fn from_mikan_meta_missing_field(field: Cow<'static, str>) -> Self {
         Self::MikanMetaMissingFieldError {
             field,
@@ -70,10 +82,10 @@ impl RecorderError {
             source: Some(source),
         }
     }
-}
 
-impl From<RecorderError> for loco_rs::Error {
-    fn from(error: RecorderError) -> Self {
-        Self::wrap(error)
+    pub fn from_db_record_not_found<T: ToString>(detail: T) -> Self {
+        Self::DbError(sea_orm::DbErr::RecordNotFound(detail.to_string()))
     }
 }
+
+pub type RResult<T> = Result<T, RError>;

@@ -1,10 +1,10 @@
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
-use loco_rs::app::AppContext;
 use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
+use crate::{app::AppContext, errors::RResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
@@ -119,9 +119,9 @@ impl Model {
         mikan_bangumi_id: String,
         mikan_fansub_id: String,
         f: F,
-    ) -> color_eyre::eyre::Result<Model>
+    ) -> RResult<Model>
     where
-        F: AsyncFnOnce(&mut ActiveModel) -> color_eyre::eyre::Result<()>,
+        F: AsyncFnOnce(&mut ActiveModel) -> RResult<()>,
     {
         let db = &ctx.db;
         if let Some(existed) = Entity::find()

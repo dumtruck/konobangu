@@ -1,12 +1,12 @@
 use async_trait::async_trait;
-use loco_rs::{
-    app::AppContext,
-    model::{ModelError, ModelResult},
-};
 use sea_orm::{Set, TransactionTrait, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::subscribers::{self, SEED_SUBSCRIBER};
+use crate::{
+    app::AppContext,
+    errors::{RError, RResult},
+};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
@@ -57,17 +57,17 @@ impl Related<super::subscribers::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_by_pid(ctx: &AppContext, pid: &str) -> ModelResult<Self> {
+    pub async fn find_by_pid(ctx: &AppContext, pid: &str) -> RResult<Self> {
         let db = &ctx.db;
         let subscriber_auth = Entity::find()
             .filter(Column::Pid.eq(pid))
             .one(db)
             .await?
-            .ok_or_else(|| ModelError::EntityNotFound)?;
+            .ok_or_else(|| RError::from_db_record_not_found("auth::find_by_pid"))?;
         Ok(subscriber_auth)
     }
 
-    pub async fn create_from_oidc(ctx: &AppContext, sub: String) -> ModelResult<Self> {
+    pub async fn create_from_oidc(ctx: &AppContext, sub: String) -> RResult<Self> {
         let db = &ctx.db;
 
         let txn = db.begin().await?;

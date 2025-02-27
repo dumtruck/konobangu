@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use chrono::DateTime;
-use color_eyre::eyre;
 use itertools::Itertools;
 use reqwest::IntoUrl;
 use serde::{Deserialize, Serialize};
@@ -9,9 +8,9 @@ use tracing::instrument;
 use url::Url;
 
 use crate::{
-    errors::RecorderError,
+    errors::{RError, RResult},
     extract::mikan::{
-        AppMikanClient,
+        MikanClient,
         web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
     },
     fetch::bytes::fetch_bytes,
@@ -101,28 +100,28 @@ impl MikanRssChannel {
 }
 
 impl TryFrom<rss::Item> for MikanRssItem {
-    type Error = RecorderError;
+    type Error = RError;
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
-        let enclosure = item.enclosure.ok_or_else(|| {
-            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure"))
-        })?;
+        let enclosure = item
+            .enclosure
+            .ok_or_else(|| RError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure")))?;
 
         let mime_type = enclosure.mime_type;
         if mime_type != BITTORRENT_MIME_TYPE {
-            return Err(RecorderError::MimeError {
+            return Err(RError::MimeError {
                 expected: String::from(BITTORRENT_MIME_TYPE),
                 found: mime_type.to_string(),
                 desc: String::from("MikanRssItem"),
             });
         }
 
-        let title = item.title.ok_or_else(|| {
-            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title"))
-        })?;
+        let title = item
+            .title
+            .ok_or_else(|| RError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title")))?;
 
         let enclosure_url = Url::parse(&enclosure.url).map_err(|inner| {
-            RecorderError::from_mikan_rss_invalid_field_and_source(
+            RError::from_mikan_rss_invalid_field_and_source(
                 Cow::Borrowed("enclosure_url:enclosure.link"),
                 Box::new(inner),
             )
@@ -131,14 +130,12 @@ impl TryFrom<rss::Item> for MikanRssItem {
         let homepage = item
             .link
             .and_then(|link| Url::parse(&link).ok())
-            .ok_or_else(|| {
-                RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
-            })?;
+            .ok_or_else(|| RError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link")))?;
 
         let MikanEpisodeHomepage {
             mikan_episode_id, ..
         } = extract_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
-            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
+            RError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
         Ok(MikanRssItem {
@@ -171,7 +168,7 @@ pub fn build_mikan_bangumi_rss_link(
     mikan_base_url: impl IntoUrl,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
-) -> eyre::Result<Url> {
+) -> RResult<Url> {
     let mut url = mikan_base_url.into_url()?;
     url.set_path("/RSS/Bangumi");
     url.query_pairs_mut()
@@ -186,7 +183,7 @@ pub fn build_mikan_bangumi_rss_link(
 pub fn build_mikan_subscriber_aggregation_rss_link(
     mikan_base_url: &str,
     mikan_aggregation_id: &str,
-) -> eyre::Result<Url> {
+) -> RResult<Url> {
     let mut url = Url::parse(mikan_base_url)?;
     url.set_path("/RSS/MyBangumi");
     url.query_pairs_mut()
@@ -226,9 +223,9 @@ pub fn extract_mikan_subscriber_aggregation_id_from_rss_link(
 
 #[instrument(skip_all, fields(channel_rss_link = channel_rss_link.as_str()))]
 pub async fn extract_mikan_rss_channel_from_rss_link(
-    http_client: &AppMikanClient,
+    http_client: &MikanClient,
     channel_rss_link: impl IntoUrl,
-) -> eyre::Result<MikanRssChannel> {
+) -> RResult<MikanRssChannel> {
     let bytes = fetch_bytes(http_client, channel_rss_link.as_str()).await?;
 
     let channel = rss::Channel::read_from(&bytes[..])?;
@@ -327,11 +324,9 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
             },
         ))
     } else {
-        Err(RecorderError::MikanRssInvalidFormatError)
-            .inspect_err(|error| {
-                tracing::warn!(error = %error);
-            })
-            .map_err(|error| error.into())
+        Err(RError::MikanRssInvalidFormatError).inspect_err(|error| {
+            tracing::warn!(error = %error);
+        })
     }
 }
 

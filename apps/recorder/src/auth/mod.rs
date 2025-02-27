@@ -5,7 +5,7 @@ pub mod middleware;
 pub mod oidc;
 pub mod service;
 
-pub use config::{AppAuthConfig, BasicAuthConfig, OidcAuthConfig};
+pub use config::{AuthConfig, BasicAuthConfig, OidcAuthConfig};
 pub use errors::AuthError;
-pub use middleware::api_auth_middleware;
-pub use service::{AppAuthService, AuthService, AuthUserInfo};
+pub use middleware::header_www_authenticate_middleware;
+pub use service::{AuthService, AuthServiceTrait, AuthUserInfo};

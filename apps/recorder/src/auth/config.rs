@@ -1,6 +1,6 @@
 use jwt_authorizer::OneOrArray;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, NoneAsEmptyString};
+use serde_with::{NoneAsEmptyString, serde_as};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BasicAuthConfig {
@@ -33,7 +33,7 @@ pub struct OidcAuthConfig {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "auth_type", rename_all = "snake_case")]
-pub enum AppAuthConfig {
+pub enum AuthConfig {
     Basic(BasicAuthConfig),
     Oidc(OidcAuthConfig),
 }

@@ -2,13 +2,13 @@ use std::{collections::HashSet, sync::Arc};
 
 use async_trait::async_trait;
 use itertools::Itertools;
-use loco_rs::app::AppContext;
 use sea_orm::{ActiveValue, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
-    app::AppContextExt,
+    app::AppContext,
+    errors::RResult,
     extract::{
         mikan::{
             build_mikan_bangumi_homepage, build_mikan_bangumi_rss_link,
@@ -182,7 +182,7 @@ impl Model {
         ctx: &AppContext,
         create_dto: SubscriptionCreateDto,
         subscriber_id: i32,
-    ) -> color_eyre::eyre::Result<Self> {
+    ) -> RResult<Self> {
         let db = &ctx.db;
         let subscription = ActiveModel::from_create_dto(create_dto, subscriber_id);
 
@@ -193,7 +193,7 @@ impl Model {
         ctx: &AppContext,
         ids: impl Iterator<Item = i32>,
         enabled: bool,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> RResult<()> {
         let db = &ctx.db;
         Entity::update_many()
             .col_expr(Column::Enabled, Expr::value(enabled))
@@ -203,10 +203,7 @@ impl Model {
         Ok(())
     }
 
-    pub async fn delete_with_ids(
-        ctx: &AppContext,
-        ids: impl Iterator<Item = i32>,
-    ) -> color_eyre::eyre::Result<()> {
+    pub async fn delete_with_ids(ctx: &AppContext, ids: impl Iterator<Item = i32>) -> RResult<()> {
         let db = &ctx.db;
         Entity::delete_many()
             .filter(Column::Id.is_in(ids))
@@ -215,10 +212,10 @@ impl Model {
         Ok(())
     }
 
-    pub async fn pull_subscription(&self, ctx: &AppContext) -> color_eyre::eyre::Result<()> {
+    pub async fn pull_subscription(&self, ctx: &AppContext) -> RResult<()> {
         match &self.category {
             SubscriptionCategory::Mikan => {
-                let mikan_client = ctx.get_mikan_client();
+                let mikan_client = &ctx.mikan;
                 let channel =
                     extract_mikan_rss_channel_from_rss_link(mikan_client, &self.source_url).await?;
 
@@ -269,7 +266,7 @@ impl Model {
 
                 for ((mikan_bangumi_id, mikan_fansub_id), new_ep_metas) in new_mikan_bangumi_groups
                 {
-                    let mikan_base_url = ctx.get_mikan_client().base_url();
+                    let mikan_base_url = ctx.mikan.base_url();
                     let bgm_homepage = build_mikan_bangumi_homepage(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,
@@ -287,7 +284,7 @@ impl Model {
                             self.id,
                             mikan_bangumi_id.to_string(),
                             mikan_fansub_id.to_string(),
-                            async |am| -> color_eyre::eyre::Result<()> {
+                            async |am| -> RResult<()> {
                                 let bgm_meta = extract_mikan_bangumi_meta_from_bangumi_homepage(
                                     mikan_client,
                                     bgm_homepage.clone(),
