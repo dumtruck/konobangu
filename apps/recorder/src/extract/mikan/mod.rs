@@ -5,7 +5,7 @@ pub mod rss_extract;
 pub mod web_extract;
 
 pub use client::{MikanAuthSecrecy, MikanClient};
-pub use config::AppMikanConfig;
+pub use config::MikanConfig;
 pub use constants::MIKAN_BUCKET_KEY;
 pub use rss_extract::{
     MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanBangumiRssLink,

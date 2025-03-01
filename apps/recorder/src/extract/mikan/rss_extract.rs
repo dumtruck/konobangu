@@ -354,7 +354,7 @@ mod tests {
 
         let mikan_base_url = Url::parse(&mikan_server.url())?;
 
-        let mikan_client = build_testing_mikan_client(mikan_base_url.clone())?;
+        let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
 
         {
             let bangumi_rss_url =

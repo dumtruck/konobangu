@@ -1,6 +1,5 @@
 #![allow(unused_imports)]
 use insta::{assert_debug_snapshot, with_settings};
-use recorder::app::App1;
 use serial_test::serial;
 
 macro_rules! configure_insta {

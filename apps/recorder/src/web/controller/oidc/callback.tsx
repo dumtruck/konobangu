@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { EventTypes } from 'oidc-client-rx';
-import { useAuth } from '../../auth/hooks';
+import { useAuth } from '../../../auth/hooks';
 
 export const Route = createFileRoute('/oidc/callback')({
   component: RouteComponent,

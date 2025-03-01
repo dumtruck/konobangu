@@ -2,10 +2,10 @@ import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createFileRoute } from '@tanstack/react-router';
 import GraphiQL from 'graphiql';
 import { useMemo } from 'react';
-import { beforeLoadGuard } from '../../auth/guard';
+import { beforeLoadGuard } from '../../../auth/guard';
 import 'graphiql/graphiql.css';
 import { firstValueFrom } from 'rxjs';
-import { useAuth } from '../../auth/hooks';
+import { useAuth } from '../../../auth/hooks';
 
 export const Route = createFileRoute('/graphql/')({
   component: RouteComponent,

@@ -13,7 +13,7 @@ use openidconnect::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{errors::RError, fetch::HttpClientError, models::auth::AuthType};
+use crate::{fetch::HttpClientError, models::auth::AuthType};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -23,7 +23,7 @@ pub enum AuthError {
         current: AuthType,
     },
     #[error("Failed to find auth record")]
-    FindAuthRecordError(RError),
+    FindAuthRecordError,
     #[error("Invalid credentials")]
     BasicInvalidCredentials,
     #[error(transparent)]

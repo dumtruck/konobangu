@@ -8,7 +8,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::StorageConfig;
-use crate::errors::RError;
+use crate::errors::{RError, RResult};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -50,10 +50,10 @@ pub struct StorageService {
 }
 
 impl StorageService {
-    pub fn from_config(config: StorageConfig) -> Self {
-        Self {
-            data_dir: config.data_dir,
-        }
+    pub async fn from_config(config: StorageConfig) -> RResult<Self> {
+        Ok(Self {
+            data_dir: config.data_dir.to_string(),
+        })
     }
 
     pub fn get_fs(&self) -> Fs {

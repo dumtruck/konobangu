@@ -1,153 +1,136 @@
-use std::{path::Path, sync::Arc};
+use std::sync::Arc;
 
-use figment::Figment;
-use itertools::Itertools;
+use clap::{Parser, command};
 
-use super::{core::App, env::Enviornment};
-use crate::{
-    app::{config::AppConfig, context::create_context, router::create_router},
-    errors::RResult,
-};
+use super::{AppContext, core::App, env::Environment};
+use crate::{app::config::AppConfig, errors::RResult};
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct MainCliArgs {
+    /// Explicit config file path
+    #[arg(short, long)]
+    config_file: Option<String>,
+
+    /// Explicit dotenv file path
+    #[arg(short, long)]
+    dotenv_file: Option<String>,
+
+    /// Explicit working dir
+    #[arg(short, long)]
+    working_dir: Option<String>,
+
+    /// Explicit environment
+    #[arg(short, long)]
+    environment: Option<Environment>,
+}
 
 pub struct AppBuilder {
     dotenv_file: Option<String>,
     config_file: Option<String>,
     working_dir: String,
-    enviornment: Enviornment,
+    enviornment: Environment,
 }
 
 impl AppBuilder {
-    pub async fn load_dotenv(&self) -> RResult<()> {
-        let try_dotenv_file_or_dirs = if self.dotenv_file.is_some() {
-            vec![self.dotenv_file.as_deref()]
-        } else {
-            vec![Some(&self.working_dir as &str)]
-        };
+    pub async fn from_main_cli(environment: Option<Environment>) -> RResult<Self> {
+        let args = MainCliArgs::parse();
 
-        let priority_suffix = &AppConfig::priority_suffix(&self.enviornment);
-        let dotenv_prefix = AppConfig::dotenv_prefix();
-        let try_filenames = priority_suffix
-            .iter()
-            .map(|ps| format!("{}{}", &dotenv_prefix, ps))
-            .collect_vec();
-
-        for try_dotenv_file_or_dir in try_dotenv_file_or_dirs.into_iter().flatten() {
-            let try_dotenv_file_or_dir_path = Path::new(try_dotenv_file_or_dir);
-            if try_dotenv_file_or_dir_path.exists() {
-                if try_dotenv_file_or_dir_path.is_dir() {
-                    for f in try_filenames.iter() {
-                        let p = try_dotenv_file_or_dir_path.join(f);
-                        if p.exists() && p.is_file() {
-                            dotenv::from_path(p)?;
-                            break;
-                        }
-                    }
-                } else if try_dotenv_file_or_dir_path.is_file() {
-                    dotenv::from_path(try_dotenv_file_or_dir_path)?;
-                    break;
+        let environment = environment.unwrap_or_else(|| {
+            args.environment.unwrap_or({
+                if cfg!(test) {
+                    Environment::Testing
+                } else if cfg!(debug_assertions) {
+                    Environment::Development
+                } else {
+                    Environment::Production
                 }
-            }
-        }
-
-        Ok(())
-    }
-
-    pub async fn build_config(&self) -> RResult<AppConfig> {
-        let try_config_file_or_dirs = if self.config_file.is_some() {
-            vec![self.config_file.as_deref()]
-        } else {
-            vec![Some(&self.working_dir as &str)]
-        };
-
-        let allowed_extensions = &AppConfig::allowed_extension();
-        let priority_suffix = &AppConfig::priority_suffix(&self.enviornment);
-        let convention_prefix = &AppConfig::config_prefix();
-
-        let try_filenames = priority_suffix
-            .iter()
-            .flat_map(|ps| {
-                allowed_extensions
-                    .iter()
-                    .map(move |ext| (format!("{}{}{}", convention_prefix, ps, ext), ext))
             })
-            .collect_vec();
+        });
 
-        let mut fig = Figment::from(AppConfig::default_provider());
+        let mut builder = Self::default();
 
-        for try_config_file_or_dir in try_config_file_or_dirs.into_iter().flatten() {
-            let try_config_file_or_dir_path = Path::new(try_config_file_or_dir);
-            if try_config_file_or_dir_path.exists() {
-                if try_config_file_or_dir_path.is_dir() {
-                    for (f, ext) in try_filenames.iter() {
-                        let p = try_config_file_or_dir_path.join(f);
-                        if p.exists() && p.is_file() {
-                            fig = AppConfig::merge_provider_from_file(fig, &p, ext)?;
-                            break;
-                        }
-                    }
-                } else if let Some(ext) = try_config_file_or_dir_path
-                    .extension()
-                    .and_then(|s| s.to_str())
-                    && try_config_file_or_dir_path.is_file()
-                {
-                    fig =
-                        AppConfig::merge_provider_from_file(fig, try_config_file_or_dir_path, ext)?;
-                    break;
-                }
-            }
+        if let Some(working_dir) = args.working_dir {
+            builder = builder.working_dir(working_dir);
+        }
+        if matches!(
+            &environment,
+            Environment::Testing | Environment::Development
+        ) {
+            builder = builder.working_dir_from_manifest_dir();
         }
 
-        let app_config: AppConfig = fig.extract()?;
+        builder = builder
+            .config_file(args.config_file)
+            .dotenv_file(args.dotenv_file)
+            .environment(environment);
 
-        Ok(app_config)
+        Ok(builder)
     }
 
     pub async fn build(self) -> RResult<App> {
-        let _app_name = env!("CARGO_CRATE_NAME");
+        AppConfig::load_dotenv(
+            &self.enviornment,
+            &self.working_dir,
+            self.dotenv_file.as_deref(),
+        )
+        .await?;
 
-        let _app_version = format!(
-            "{} ({})",
-            env!("CARGO_PKG_VERSION"),
-            option_env!("BUILD_SHA")
-                .or(option_env!("GITHUB_SHA"))
-                .unwrap_or("dev")
+        let config = AppConfig::load_config(
+            &self.enviornment,
+            &self.working_dir,
+            self.config_file.as_deref(),
+        )
+        .await?;
+
+        let app_context = Arc::new(
+            AppContext::new(self.enviornment.clone(), config, self.working_dir.clone()).await?,
         );
-
-        self.load_dotenv().await?;
-
-        let config = self.build_config().await?;
-
-        let app_context = Arc::new(create_context(config).await?);
-
-        let router = create_router(app_context.clone()).await?;
 
         Ok(App {
             context: app_context,
-            router,
             builder: self,
         })
     }
 
-    pub fn set_working_dir(self, working_dir: String) -> Self {
+    pub fn working_dir(self, working_dir: String) -> Self {
         let mut ret = self;
         ret.working_dir = working_dir;
         ret
     }
 
-    pub fn set_working_dir_to_manifest_dir(self) -> Self {
-        let manifest_dir = if cfg!(debug_assertions) {
+    pub fn environment(self, environment: Environment) -> Self {
+        let mut ret = self;
+        ret.enviornment = environment;
+        ret
+    }
+
+    pub fn config_file(self, config_file: Option<String>) -> Self {
+        let mut ret = self;
+        ret.config_file = config_file;
+        ret
+    }
+
+    pub fn dotenv_file(self, dotenv_file: Option<String>) -> Self {
+        let mut ret = self;
+        ret.dotenv_file = dotenv_file;
+        ret
+    }
+
+    pub fn working_dir_from_manifest_dir(self) -> Self {
+        let manifest_dir = if cfg!(debug_assertions) || cfg!(test) {
             env!("CARGO_MANIFEST_DIR")
         } else {
             "./apps/recorder"
         };
-        self.set_working_dir(manifest_dir.to_string())
+        self.working_dir(manifest_dir.to_string())
     }
 }
 
 impl Default for AppBuilder {
     fn default() -> Self {
         Self {
-            enviornment: Enviornment::Production,
+            enviornment: Environment::Production,
             dotenv_file: None,
             config_file: None,
             working_dir: String::from("."),

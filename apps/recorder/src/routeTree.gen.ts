@@ -10,10 +10,10 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './controllers/__root'
-import { Route as IndexImport } from './controllers/index'
-import { Route as GraphqlIndexImport } from './controllers/graphql/index'
-import { Route as OidcCallbackImport } from './controllers/oidc/callback'
+import { Route as rootRoute } from './web/controller/__root'
+import { Route as IndexImport } from './web/controller/index'
+import { Route as GraphqlIndexImport } from './web/controller/graphql/index'
+import { Route as OidcCallbackImport } from './web/controller/oidc/callback'
 
 // Create/Update Routes
 

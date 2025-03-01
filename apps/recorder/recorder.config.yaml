@@ -26,12 +26,6 @@ server:
         # Enable Etag cache header middleware
         etag:
             enable: true
-        # Allows to limit the payload size request. payload that bigger than this file will blocked the request.
-        limit_payload:
-            # Enable/Disable the middleware.
-            enable: true
-            # the limit size. can be b,kb,kib,mb,mib,gb,gib
-            body_limit: 5mb
         # Generating a unique request ID and enhancing logging with additional information such as the start and completion of request processing, latency, status code, and other request details.
         logger:
             # Enable/Disable the middleware.
@@ -60,32 +54,6 @@ server:
             #   - POST
             # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
             # max_age: 3600
-        fallback:
-            enable: false
-
-# Worker Configuration
-workers:
-    # specifies the worker mode. Options:
-    #   - BackgroundQueue - Workers operate asynchronously in the background, processing queued.
-    #   - ForegroundBlocking - Workers operate in the foreground and block until tasks are completed.
-    #   - BackgroundAsync - Workers operate asynchronously in the background, processing tasks with async capabilities.
-    mode: BackgroundAsync
-
-# Mailer Configuration.
-mailer:
-    # SMTP mailer configuration.
-    smtp:
-        # Enable/Disable smtp mailer.
-        enable: true
-        # SMTP server host. e.x localhost, smtp.gmail.com
-        host: '{{ get_env(name="MAILER_HOST", default="localhost") }}'
-        # SMTP server port
-        port: 1025
-        # Use secure connection (SSL/TLS).
-        secure: false
-        # auth:
-        #   user:
-        #   password:
 
 # Database Configuration
 database:
@@ -103,43 +71,31 @@ database:
     max_connections: 1
     # Run migration up when application loaded
     auto_migrate: true
-    # Truncate database when application loaded. This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
-    dangerously_truncate: false
-    # Recreating schema when application loaded.  This is a dangerous operation, make sure that you using this flag only on dev environments or test mode
-    dangerously_recreate: false
 
-# Redis Configuration
-redis:
-    # Redis connection URI
-    uri: '{{ get_env(name="REDIS_URL", default="redis://localhost:6379") }}'
-    # Dangerously flush all data in Redis on startup. dangerous operation, make sure that you using this flag only on dev environments or test mode
-    dangerously_flush: false
+storage:
+    data_dir: '{{ get_env(name="STORAGE_DATA_DIR", default="./data") }}'
 
-settings:
-    dal:
-        data_dir: '{{ get_env(name="DAL_DATA_DIR", default="./data") }}'
+mikan:
+    base_url: "https://mikanani.me/"
+    http_client:
+        exponential_backoff_max_retries: 3
+        leaky_bucket_max_tokens: 2
+        leaky_bucket_initial_tokens: 0
+        leaky_bucket_refill_tokens: 1
+        leaky_bucket_refill_interval: 500
 
-    mikan:
-        base_url: "https://mikanani.me/"
-        http_client:
-            exponential_backoff_max_retries: 3
-            leaky_bucket_max_tokens: 2
-            leaky_bucket_initial_tokens: 0
-            leaky_bucket_refill_tokens: 1
-            leaky_bucket_refill_interval: 500
+auth:
+    auth_type: '{{ get_env(name="AUTH_TYPE", default = "basic") }}'
+    basic_user: '{{ get_env(name="BASIC_USER", default = "konobangu") }}'
+    basic_password: '{{ get_env(name="BASIC_PASSWORD", default = "konobangu") }}'
+    oidc_issuer: '{{ get_env(name="OIDC_ISSUER", default = "") }}'
+    oidc_audience: '{{ get_env(name="OIDC_AUDIENCE", default = "") }}'
+    oidc_client_id: '{{ get_env(name="OIDC_CLIENT_ID", default = "") }}'
+    oidc_client_secret: '{{ get_env(name="OIDC_CLIENT_SECRET", default = "") }}'
+    oidc_extra_scopes: '{{ get_env(name="OIDC_EXTRA_SCOPES", default = "") }}'
+    oidc_extra_claim_key: '{{ get_env(name="OIDC_EXTRA_CLAIM_KEY", default = "") }}'
+    oidc_extra_claim_value: '{{ get_env(name="OIDC_EXTRA_CLAIM_VALUE", default = "") }}'
 
-    auth:
-        auth_type: '{{ get_env(name="AUTH_TYPE", default = "basic") }}'
-        basic_user: '{{ get_env(name="BASIC_USER", default = "konobangu") }}'
-        basic_password: '{{ get_env(name="BASIC_PASSWORD", default = "konobangu") }}'
-        oidc_issuer: '{{ get_env(name="OIDC_ISSUER", default = "") }}'
-        oidc_audience: '{{ get_env(name="OIDC_AUDIENCE", default = "") }}'
-        oidc_client_id: '{{ get_env(name="OIDC_CLIENT_ID", default = "") }}'
-        oidc_client_secret: '{{ get_env(name="OIDC_CLIENT_SECRET", default = "") }}'
-        oidc_extra_scopes: '{{ get_env(name="OIDC_EXTRA_SCOPES", default = "") }}'
-        oidc_extra_claim_key: '{{ get_env(name="OIDC_EXTRA_CLAIM_KEY", default = "") }}'
-        oidc_extra_claim_value: '{{ get_env(name="OIDC_EXTRA_CLAIM_VALUE", default = "") }}'
-
-    graphql:
-        depth_limit: null
-        complexity_limit: null
+graphql:
+    depth_limit: null
+    complexity_limit: null

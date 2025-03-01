@@ -14,3 +14,5 @@ leaky_bucket_refill_interval = 500
 [graphql]
 depth_limit = inf
 complexity_limit = inf
+
+[cache]

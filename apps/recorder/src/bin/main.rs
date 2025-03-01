@@ -1,9 +1,15 @@
-use loco_rs::cli;
-use recorder::{app::App1, migrations::Migrator};
+use color_eyre::{self, eyre};
+use recorder::app::AppBuilder;
 
 #[tokio::main]
-async fn main() -> color_eyre::eyre::Result<()> {
+async fn main() -> eyre::Result<()> {
     color_eyre::install()?;
-    cli::main::<App1, Migrator>().await?;
+
+    let builder = AppBuilder::from_main_cli(None).await?;
+
+    let app = builder.build().await?;
+
+    app.serve().await?;
+
     Ok(())
 }

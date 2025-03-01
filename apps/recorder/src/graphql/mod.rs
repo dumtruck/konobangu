@@ -5,5 +5,6 @@ pub mod schema_root;
 pub mod service;
 pub mod util;
 
+pub use config::GraphQLConfig;
 pub use schema_root::schema;
 pub use service::GraphQLService;

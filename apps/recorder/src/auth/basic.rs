@@ -77,7 +77,7 @@ impl AuthServiceTrait for BasicAuthService {
             {
                 let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER)
                     .await
-                    .map_err(AuthError::FindAuthRecordError)?;
+                    .map_err(|_| AuthError::FindAuthRecordError)?;
                 return Ok(AuthUserInfo {
                     subscriber_auth,
                     auth_type: AuthType::Basic,

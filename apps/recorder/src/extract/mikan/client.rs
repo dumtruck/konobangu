@@ -4,7 +4,7 @@ use reqwest_middleware::ClientWithMiddleware;
 use secrecy::{ExposeSecret, SecretString};
 use url::Url;
 
-use super::AppMikanConfig;
+use super::MikanConfig;
 use crate::{
     errors::RError,
     fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth},
@@ -29,7 +29,7 @@ pub struct MikanClient {
 }
 
 impl MikanClient {
-    pub fn new(config: AppMikanConfig) -> Result<Self, RError> {
+    pub async fn from_config(config: MikanConfig) -> Result<Self, RError> {
         let http_client = HttpClient::from_config(config.http_client)?;
         let base_url = config.base_url;
         Ok(Self {

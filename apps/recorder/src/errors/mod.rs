@@ -1,11 +1,23 @@
 use std::{borrow::Cow, error::Error as StdError};
 
+use axum::response::{IntoResponse, Response};
+use http::StatusCode;
 use thiserror::Error as ThisError;
 
-use crate::fetch::HttpClientError;
+use crate::{auth::AuthError, fetch::HttpClientError};
 
 #[derive(ThisError, Debug)]
 pub enum RError {
+    #[error(transparent)]
+    InvalidMethodError(#[from] http::method::InvalidMethod),
+    #[error(transparent)]
+    InvalidHeaderNameError(#[from] http::header::InvalidHeaderName),
+    #[error(transparent)]
+    TracingAppenderInitError(#[from] tracing_appender::rolling::InitError),
+    #[error(transparent)]
+    GraphQLSchemaError(#[from] async_graphql::dynamic::SchemaError),
+    #[error(transparent)]
+    AuthError(#[from] AuthError),
     #[error(transparent)]
     RSSError(#[from] rss::Error),
     #[error(transparent)]
@@ -56,6 +68,10 @@ pub enum RError {
     },
     #[error("Model Entity {entity} not found")]
     ModelEntityNotFound { entity: Cow<'static, str> },
+    #[error("{0}")]
+    CustomMessageStr(&'static str),
+    #[error("{0}")]
+    CustomMessageString(String),
 }
 
 impl RError {
@@ -85,6 +101,15 @@ impl RError {
 
     pub fn from_db_record_not_found<T: ToString>(detail: T) -> Self {
         Self::DbError(sea_orm::DbErr::RecordNotFound(detail.to_string()))
+    }
+}
+
+impl IntoResponse for RError {
+    fn into_response(self) -> Response {
+        match self {
+            Self::AuthError(auth_error) => auth_error.into_response(),
+            err => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
+        }
     }
 }
 

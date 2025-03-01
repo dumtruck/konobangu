@@ -11,11 +11,12 @@
 pub mod app;
 pub mod auth;
 pub mod cache;
-pub mod controllers;
+pub mod database;
 pub mod errors;
 pub mod extract;
 pub mod fetch;
 pub mod graphql;
+pub mod logger;
 pub mod migrations;
 pub mod models;
 pub mod storage;
@@ -24,3 +25,4 @@ pub mod tasks;
 #[cfg(test)]
 pub mod test_utils;
 pub mod views;
+pub mod web;

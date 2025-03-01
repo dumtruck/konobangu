@@ -1,7 +1,8 @@
-use async_graphql::dynamic::{Schema, SchemaError};
+use async_graphql::dynamic::Schema;
 use sea_orm::DatabaseConnection;
 
 use super::{config::GraphQLConfig, schema_root};
+use crate::errors::RResult;
 
 #[derive(Debug)]
 pub struct GraphQLService {
@@ -9,7 +10,10 @@ pub struct GraphQLService {
 }
 
 impl GraphQLService {
-    pub fn new(config: GraphQLConfig, db: DatabaseConnection) -> Result<Self, SchemaError> {
+    pub async fn from_config_and_database(
+        config: GraphQLConfig,
+        db: DatabaseConnection,
+    ) -> RResult<Self> {
         let schema = schema_root::schema(db, config.depth_limit, config.complexity_limit)?;
         Ok(Self { schema })
     }

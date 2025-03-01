@@ -311,7 +311,7 @@ impl AuthServiceTrait for OidcAuthService {
             }
             r => r,
         }
-        .map_err(AuthError::FindAuthRecordError)?;
+        .map_err(|_| AuthError::FindAuthRecordError)?;
 
         Ok(AuthUserInfo {
             subscriber_auth,
