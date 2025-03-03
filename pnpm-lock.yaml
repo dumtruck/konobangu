@@ -39,11 +39,11 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       tailwindcss:
-        specifier: ^4.0.9
-        version: 4.0.9
+        specifier: 3.4.17
+        version: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@4.0.9)
+        version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2)))
     devDependencies:
       '@auto-it/all-contributors':
         specifier: ^11.3.0
@@ -197,7 +197,7 @@ importers:
         specifier: ^0.2.8
         version: 0.2.8(solid-js@1.9.5)
       tailwindcss:
-        specifier: ^3
+        specifier: 3.4.17
         version: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
     devDependencies:
       '@rsbuild/plugin-solid':
@@ -11595,9 +11595,9 @@ snapshots:
 
   tailwind-merge@3.0.2: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@4.0.9):
+  tailwindcss-animate@1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))):
     dependencies:
-      tailwindcss: 4.0.9
+      tailwindcss: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
 
   tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2)):
     dependencies:

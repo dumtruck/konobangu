@@ -27,7 +27,7 @@
     "clsx": "^2.1.1",
     "class-variance-authority": "^0.7.1",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss": "^4.0.9",
+    "tailwindcss": "3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "@tanstack/router-devtools": "^1.112.6",
     "@tanstack/react-router": "^1.112.0",
@@ -53,7 +53,6 @@
     "ultracite": "^4.1.15",
     "@tanstack/router-devtools": "^1.112.6",
     "typescript": "^5.8.2",
-    "tailwindcss": "^4.0.9",
     "@types/node": "^22.13.8"
   }
 }
