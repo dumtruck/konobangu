@@ -1,6 +1,6 @@
-import type { JSX } from "react";
+import type { JSX } from 'react';
 
-export interface SendOptions { 
+export interface SendOptions {
   from: string;
   to: string;
   subject: string;
@@ -12,6 +12,6 @@ export const konosend = {
   emails: {
     send: async (_props: SendOptions) => {
       throw new Error('unimplemented');
-    }
-  }
-}
+    },
+  },
+};

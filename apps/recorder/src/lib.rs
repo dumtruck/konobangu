@@ -24,5 +24,5 @@ pub mod sync;
 pub mod tasks;
 #[cfg(test)]
 pub mod test_utils;
-pub mod views;
+pub mod utils;
 pub mod web;

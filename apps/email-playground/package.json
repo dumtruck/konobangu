@@ -10,15 +10,11 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@konobangu/email": "workspace:*",
     "@react-email/components": "0.0.31",
     "react": "^19.0.0",
     "react-email": "3.0.4"
   },
   "devDependencies": {
-    "@konobangu/typescript-config": "workspace:*",
-    "@types/node": "22.10.1",
-    "@types/react": "19.0.1",
-    "typescript": "^5.7.3"
+    "@types/react": "19.0.1"
   }
 }

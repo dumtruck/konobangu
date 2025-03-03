@@ -2,10 +2,10 @@ import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createFileRoute } from '@tanstack/react-router';
 import GraphiQL from 'graphiql';
 import { useMemo } from 'react';
-import { beforeLoadGuard } from '../../../auth/guard';
-import 'graphiql/graphiql.css';
 import { firstValueFrom } from 'rxjs';
+import { beforeLoadGuard } from '../../../auth/guard';
 import { useAuth } from '../../../auth/hooks';
+import 'graphiql/graphiql.css';
 
 export const Route = createFileRoute('/graphql/')({
   component: RouteComponent,
@@ -32,5 +32,5 @@ function RouteComponent() {
     [oidcSecurityService]
   );
 
-  return <GraphiQL fetcher={fetcher} className="h-svh" />;
+  return <GraphiQL fetcher={fetcher} className="!h-svh" />;
 }

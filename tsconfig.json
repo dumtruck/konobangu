@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "references": [
+    {
+      "path": "./apps/email-playground"
+    },
+    {
+      "path": "./apps/recorder"
+    },
+    {
+      "path": "./apps/webui"
+    },
+    {
+      "path": "./packages/email"
+    },
+    {
+      "path": "./packages/seo"
+    },
+    {
+      "path": "./packages/testing"
+    }
+  ]
+}

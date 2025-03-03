@@ -1,5 +1,9 @@
 {
-  "extends": "@konobangu/typescript-config/nextjs.json",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "jsx": "react-jsx"
+  },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

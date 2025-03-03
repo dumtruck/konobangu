@@ -14,7 +14,11 @@ impl GraphQLService {
         config: GraphQLConfig,
         db: DatabaseConnection,
     ) -> RResult<Self> {
-        let schema = schema_root::schema(db, config.depth_limit, config.complexity_limit)?;
+        let schema = schema_root::schema(
+            db,
+            config.depth_limit.and_then(|l| l.into()),
+            config.complexity_limit.and_then(|l| l.into()),
+        )?;
         Ok(Self { schema })
     }
 }

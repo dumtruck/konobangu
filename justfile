@@ -6,7 +6,7 @@ prepare-dev-recorder:
   cargo install cargo-watch
 
 dev-webui:
-  pnpm run dev
+  pnpm run --filter=webui dev
 
 dev-proxy:
   pnpm run --filter=proxy dev
@@ -17,5 +17,5 @@ dev-recorder:
 dev-playground:
   pnpm run --filter=recorder dev
 
-play-recorder:
-  cargo recorder-playground
+# play-recorder:
+#   cargo recorder-playground

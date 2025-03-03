@@ -1,12 +1,11 @@
 {
-  "extends": "@konobangu/typescript-config/base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["DOM", "ES2024", "DOM.AsyncIterable", "DOM.Iterable"],
+    "rootDir": ".",
+    "composite": true,
     "jsx": "react-jsx",
-    "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strict": true,
