@@ -39,11 +39,11 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       tailwindcss:
-        specifier: 3.4.17
-        version: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
+        specifier: ^4.0.9
+        version: 4.0.9
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2)))
+        version: 1.0.7(tailwindcss@4.0.9)
     devDependencies:
       '@auto-it/all-contributors':
         specifier: ^11.3.0
@@ -178,6 +178,9 @@ importers:
       '@solid-primitives/refs':
         specifier: ^1.1.0
         version: 1.1.0(solid-js@1.9.5)
+      '@tailwindcss/postcss':
+        specifier: ^4.0.9
+        version: 4.0.9
       '@tanstack/solid-router':
         specifier: ^1.112.2
         version: 1.112.2(solid-js@1.9.5)
@@ -190,6 +193,9 @@ importers:
       embla-carousel-solid:
         specifier: ^8.5.2
         version: 8.5.2(solid-js@1.9.5)
+      lucide-solid:
+        specifier: ^0.477.0
+        version: 0.477.0(solid-js@1.9.5)
       solid-js:
         specifier: ^1.9.5
         version: 1.9.5
@@ -197,7 +203,7 @@ importers:
         specifier: ^0.2.8
         version: 0.2.8(solid-js@1.9.5)
       tailwindcss:
-        specifier: 3.4.17
+        specifier: ^3
         version: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
     devDependencies:
       '@rsbuild/plugin-solid':
@@ -4267,6 +4273,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-solid@0.477.0:
+    resolution: {integrity: sha512-YshJtVmqCghkI0cur+/PgL48kXEhIh1fMLy6pDwex7heMqXS962eNcb/e+mIiTzSFsjg9r2dBKAWT9tX7Ci6mg==}
+    peerDependencies:
+      solid-js: ^1.4.7
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -10440,6 +10451,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lucide-solid@0.477.0(solid-js@1.9.5):
+    dependencies:
+      solid-js: 1.9.5
+
   magic-string@0.30.17:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
@@ -11595,9 +11610,9 @@ snapshots:
 
   tailwind-merge@3.0.2: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))):
+  tailwindcss-animate@1.0.7(tailwindcss@4.0.9):
     dependencies:
-      tailwindcss: 3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2))
+      tailwindcss: 4.0.9
 
   tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.8)(typescript@5.8.2)):
     dependencies:

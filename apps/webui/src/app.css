@@ -93,6 +93,23 @@
 
     --radius: 0.5rem;
   }
+
+  /* custom start */
+  ::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    border: 4px solid transparent;
+    background-clip: content-box;
+    @apply bg-accent;
+  }
+
+  ::-webkit-scrollbar-corner {
+    display: none;
+  }
+  /* custom end */
 }
 
 @layer base {
