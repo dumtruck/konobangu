@@ -18,10 +18,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '~/components/ui/sidebar';
+import { AppIcon } from './app-icon';
 import { NavMain } from './nav-main';
 import { NavProjects } from './nav-projects';
 import { NavUser } from './nav-user';
-import { TeamSwitcher } from './team-switcher';
 // This is sample data.
 
 const data = {
@@ -30,23 +30,6 @@ const data = {
     email: 'm@example.com',
     avatar: '/avatars/shadcn.jpg',
   },
-  teams: [
-    {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
-    },
-  ],
   navMain: [
     {
       title: 'Playground',
@@ -159,7 +142,7 @@ export const AppSidebar = (props: AppSidebarRootProps) => {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <AppIcon />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
