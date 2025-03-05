@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/solid-router';
+import { Outlet } from '@tanstack/solid-router';
 import { AppSidebar } from '~/components/layout/app-sidebar';
 import {
   Breadcrumb,
@@ -14,12 +14,7 @@ import {
   SidebarTrigger,
 } from '~/components/ui/sidebar';
 
-export const Route = createFileRoute('/')({
-  component: Home,
-  beforeLoad: async () => {},
-});
-
-function Home() {
+export function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -43,13 +38,8 @@ function Home() {
             </Breadcrumb>
           </div>
         </header>
-        <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="aspect-video rounded-xl bg-muted/50" />
-            <div class="aspect-video rounded-xl bg-muted/50" />
-            <div class="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div class="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        <div class="p-4 pt-0">
+          <Outlet />
         </div>
       </SidebarInset>
     </SidebarProvider>

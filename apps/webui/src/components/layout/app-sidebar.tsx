@@ -1,14 +1,10 @@
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
-  ChartPie,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map as LucideMap,
+  Folders,
   Settings2,
   SquareTerminal,
+  Telescope,
 } from 'lucide-solid';
 import type { ComponentProps } from 'solid-js';
 import {
@@ -20,9 +16,113 @@ import {
 } from '~/components/ui/sidebar';
 import { AppIcon } from './app-icon';
 import { NavMain } from './nav-main';
-import { NavProjects } from './nav-projects';
 import { NavUser } from './nav-user';
-// This is sample data.
+
+const navMain = [
+  {
+    group: 'Dashboard',
+    items: [
+      {
+        title: 'Explore',
+        link: {
+          to: '/explore',
+        },
+        icon: Telescope,
+      },
+      {
+        title: 'Subscriptions',
+        link: {
+          to: '/subscriptions',
+        },
+        icon: Folders,
+        children: [
+          {
+            title: 'Manage',
+            link: {
+              to: '/subscriptions/manage',
+            },
+          },
+          {
+            title: 'Create',
+            link: {
+              to: '/subscriptions/create',
+            },
+          },
+        ],
+      },
+      {
+        title: 'Playground',
+        href: '#',
+        icon: SquareTerminal,
+        isActive: true,
+        items: [
+          {
+            title: 'History',
+            href: '#',
+          },
+          {
+            title: 'Starred',
+            href: '#',
+          },
+          {
+            title: 'Settings',
+            href: '#',
+          },
+        ],
+      },
+      {
+        title: 'Models',
+        href: '#',
+        icon: Bot,
+        items: [
+          {
+            title: 'Genesis',
+            href: '#',
+          },
+          {
+            title: 'Explorer',
+            href: '#',
+          },
+          {
+            title: 'Quantum',
+            href: '#',
+          },
+        ],
+      },
+      {
+        title: 'Documentation',
+        link: {
+          href: 'https://github.com/dumtruck/konobangu/wiki',
+          target: '_blank',
+        },
+        icon: BookOpen,
+      },
+      {
+        title: 'Settings',
+        href: '#',
+        icon: Settings2,
+        items: [
+          {
+            title: 'General',
+            href: '#',
+          },
+          {
+            title: 'Team',
+            href: '#',
+          },
+          {
+            title: 'Billing',
+            href: '#',
+          },
+          {
+            title: 'Limits',
+            href: '#',
+          },
+        ],
+      },
+    ],
+  },
+];
 
 const data = {
   user: {
@@ -30,110 +130,6 @@ const data = {
     email: 'm@example.com',
     avatar: '/avatars/shadcn.jpg',
   },
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#',
-        },
-        {
-          title: 'Starred',
-          url: '#',
-        },
-        {
-          title: 'Settings',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Models',
-      url: '#',
-      icon: Bot,
-      items: [
-        {
-          title: 'Genesis',
-          url: '#',
-        },
-        {
-          title: 'Explorer',
-          url: '#',
-        },
-        {
-          title: 'Quantum',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Documentation',
-      url: '#',
-      icon: BookOpen,
-      items: [
-        {
-          title: 'Introduction',
-          url: '#',
-        },
-        {
-          title: 'Get Started',
-          url: '#',
-        },
-        {
-          title: 'Tutorials',
-          url: '#',
-        },
-        {
-          title: 'Changelog',
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: 'General',
-          url: '#',
-        },
-        {
-          title: 'Team',
-          url: '#',
-        },
-        {
-          title: 'Billing',
-          url: '#',
-        },
-        {
-          title: 'Limits',
-          url: '#',
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: 'Design Engineering',
-      url: '#',
-      icon: Frame,
-    },
-    {
-      name: 'Sales & Marketing',
-      url: '#',
-      icon: ChartPie,
-    },
-    {
-      name: 'Travel',
-      url: '#',
-      icon: LucideMap,
-    },
-  ],
 };
 
 type AppSidebarRootProps = Omit<ComponentProps<typeof Sidebar>, 'collapsible'>;
@@ -145,8 +141,7 @@ export const AppSidebar = (props: AppSidebarRootProps) => {
         <AppIcon />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain groups={navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

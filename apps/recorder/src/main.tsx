@@ -4,17 +4,17 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 import {
   OidcSecurityService,
   provideAuth,
+  withCheckAuthResultEvent,
   withDefaultFeatures,
 } from 'oidc-client-rx';
+import { withTanstackRouter } from 'oidc-client-rx/adapters/@tanstack/react-router';
 import {
   InjectorContextVoidInjector,
   InjectorProvider,
 } from 'oidc-client-rx/adapters/react';
-import { withTanstackRouter } from 'oidc-client-rx/adapters/tanstack-router';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { buildOidcConfig, isBasicAuth } from './auth/config';
-import { withCheckAuthResultEvent } from './auth/event';
 import { useAuth } from './auth/hooks';
 import { routeTree } from './routeTree.gen';
 import './main.css';

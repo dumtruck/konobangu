@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/solid-router';
 import {
   Folder,
   Forward,
@@ -5,7 +6,7 @@ import {
   MoreHorizontal,
   Trash2,
 } from 'lucide-solid';
-import { For } from 'solid-js';
+import { type ComponentProps, For } from 'solid-js';
 
 import {
   DropdownMenu,
@@ -28,8 +29,8 @@ export function NavProjects({
 }: {
   projects: {
     name: string;
-    url: string;
     icon: LucideIcon;
+    link: ComponentProps<typeof Link>;
   }[];
 }) {
   return (
@@ -39,7 +40,7 @@ export function NavProjects({
         <For each={projects}>
           {(item) => (
             <SidebarMenuItem>
-              <SidebarMenuButton as="a" href={item.url}>
+              <SidebarMenuButton as={Link} {...item?.link}>
                 <item.icon />
                 <span>{item.name}</span>
               </SidebarMenuButton>

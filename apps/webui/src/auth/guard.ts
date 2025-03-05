@@ -1,12 +1,12 @@
 import { runInInjectionContext } from '@outposts/injection-js';
 import { autoLoginPartialRoutesGuard } from 'oidc-client-rx';
 import { firstValueFrom } from 'rxjs';
-import type { RouterContext } from '../web/controller/__root';
+import type { RouterContext } from './context';
 
 export const beforeLoadGuard = async ({
   context,
 }: { context: RouterContext }) => {
-  if (!context.isAuthenticated) {
+  if (!context.isAuthenticated()) {
     const guard$ = runInInjectionContext(context.injector, () =>
       autoLoginPartialRoutesGuard()
     );

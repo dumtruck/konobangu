@@ -37,6 +37,38 @@ export default defineConfig({
       ),
     },
   },
+  dev: {
+    client: {
+      path: '/rsbuild-hmr',
+    },
+    setupMiddlewares: [
+      (middlewares) => {
+        middlewares.unshift((req, res, next) => {
+          if (process.env.AUTH_TYPE === 'basic') {
+            res.setHeader('WWW-Authenticate', 'Basic realm="konobangu"');
+
+            const authorization =
+              (req.headers.authorization || '').split(' ')[1] || '';
+            const [user, password] = Buffer.from(authorization, 'base64')
+              .toString()
+              .split(':');
+
+            if (
+              user !== process.env.BASIC_USER ||
+              password !== process.env.BASIC_PASSWORD
+            ) {
+              res.statusCode = 401;
+              res.write('Unauthorized');
+              res.end();
+              return;
+            }
+          }
+          next();
+        });
+        return middlewares;
+      },
+    ],
+  },
   server: {
     host: '0.0.0.0',
     port: 5000,

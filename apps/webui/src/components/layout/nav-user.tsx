@@ -21,7 +21,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '~/components/ui/sidebar';
 
 export function NavUser({
@@ -33,8 +32,6 @@ export function NavUser({
     avatar: string;
   };
 }) {
-  const { isMobile } = useSidebar();
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -54,11 +51,7 @@ export function NavUser({
             </div>
             <ChevronsUpDown class="ml-auto size-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            align="end"
-            sideOffset={4}
-          >
+          <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg">
             <DropdownMenuLabel class="p-0 font-normal">
               <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar class="h-8 w-8 rounded-lg">
