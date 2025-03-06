@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  Bot,
   Folders,
   Settings2,
   SquareTerminal,
@@ -52,40 +51,16 @@ const navMain = [
       },
       {
         title: 'Playground',
-        href: '#',
         icon: SquareTerminal,
-        isActive: true,
-        items: [
+        link: {
+          to: '/playground',
+        },
+        children: [
           {
-            title: 'History',
-            href: '#',
-          },
-          {
-            title: 'Starred',
-            href: '#',
-          },
-          {
-            title: 'Settings',
-            href: '#',
-          },
-        ],
-      },
-      {
-        title: 'Models',
-        href: '#',
-        icon: Bot,
-        items: [
-          {
-            title: 'Genesis',
-            href: '#',
-          },
-          {
-            title: 'Explorer',
-            href: '#',
-          },
-          {
-            title: 'Quantum',
-            href: '#',
+            title: 'GraphQL Api',
+            link: {
+              to: '/playground/graphql-api',
+            },
           },
         ],
       },
@@ -99,24 +74,16 @@ const navMain = [
       },
       {
         title: 'Settings',
-        href: '#',
+        link: {
+          to: '/settings',
+        },
         icon: Settings2,
-        items: [
+        children: [
           {
-            title: 'General',
-            href: '#',
-          },
-          {
-            title: 'Team',
-            href: '#',
-          },
-          {
-            title: 'Billing',
-            href: '#',
-          },
-          {
-            title: 'Limits',
-            href: '#',
+            title: 'Downloader',
+            link: {
+              to: '/settings/downloader',
+            },
           },
         ],
       },

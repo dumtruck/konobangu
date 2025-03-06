@@ -35,7 +35,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '~/components/ui/tooltip';
-import { cn } from '~/styles/utils';
+import { cn } from '~/utils/styles';
 
 const MOBILE_BREAKPOINT = 768;
 const SIDEBAR_COOKIE_NAME = 'sidebar:state';

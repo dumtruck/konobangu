@@ -3,21 +3,14 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "workspaces": ["packages/*", "apps/*"],
   "repository": {
     "type": "git",
     "url": "https://github.com/dumtruck/konobangu.git"
   },
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
     "lint": "ultracite lint",
     "format": "ultracite format",
-    "test": "turbo test",
-    "analyze": "turbo analyze",
     "bump-deps": "npx --yes npm-check-updates --deep -u -x react-day-picker && pnpm install",
     "clean": "git clean -xdf node_modules"
   },
@@ -25,34 +18,11 @@
   "engines": {
     "node": ">=22"
   },
-  "dependencies": {
-    "@abraham/reflection": "^0.12.0",
-    "@outposts/injection-js": "^2.5.1",
-    "@tanstack/react-router": "^1.112.0",
-    "@tanstack/router-devtools": "^1.112.6",
-    "arktype": "^2.1.2",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "oidc-client-rx": "0.1.0-alpha.8",
-    "rxjs": "^7.8.2",
-    "tailwind-merge": "^3.0.2",
-    "tailwindcss": "^4.0.9",
-    "tailwindcss-animate": "^1.0.7"
-  },
   "devDependencies": {
     "@auto-it/all-contributors": "^11.3.0",
     "@auto-it/first-time-contributor": "^11.3.0",
     "@biomejs/biome": "1.9.4",
-    "@rsbuild/core": "^1.2.14",
-    "@rsbuild/plugin-babel": "^1.0.4",
-    "@tailwindcss/postcss": "^4.0.9",
-    "@tanstack/router-devtools": "^1.112.6",
-    "@tanstack/router-plugin": "^1.112.3",
-    "@types/jsdom": "^21.1.7",
     "@types/node": "^22.13.8",
-    "chalk": "^5.4.1",
-    "commander": "^13.1.0",
-    "postcss": "^8.5.3",
     "shx": "^0.3.4",
     "tsx": "^4.19.2",
     "typescript": "^5.8.2",

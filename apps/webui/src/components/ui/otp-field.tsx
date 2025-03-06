@@ -1,55 +1,63 @@
-import type { Component, ComponentProps, ValidComponent } from "solid-js"
-import { Show, splitProps } from "solid-js"
+import type { Component, ComponentProps, ValidComponent } from 'solid-js';
+import { Show, splitProps } from 'solid-js';
 
-import type { DynamicProps, RootProps } from "@corvu/otp-field"
-import OtpField from "@corvu/otp-field"
+import type { DynamicProps, RootProps } from '@corvu/otp-field';
+import OtpField from '@corvu/otp-field';
 
-import { cn } from "~/styles/utils"
+import { cn } from '~/utils/styles';
 
-export const REGEXP_ONLY_DIGITS = "^\\d*$"
-export const REGEXP_ONLY_CHARS = "^[a-zA-Z]*$"
-export const REGEXP_ONLY_DIGITS_AND_CHARS = "^[a-zA-Z0-9]*$"
+export const REGEXP_ONLY_DIGITS = '^\\d*$';
+export const REGEXP_ONLY_CHARS = '^[a-zA-Z]*$';
+export const REGEXP_ONLY_DIGITS_AND_CHARS = '^[a-zA-Z0-9]*$';
 
-type OTPFieldProps<T extends ValidComponent = "div"> = RootProps<T> & { class?: string }
+type OTPFieldProps<T extends ValidComponent = 'div'> = RootProps<T> & {
+  class?: string;
+};
 
-const OTPField = <T extends ValidComponent = "div">(props: DynamicProps<T, OTPFieldProps<T>>) => {
-  const [local, others] = splitProps(props as OTPFieldProps, ["class"])
+const OTPField = <T extends ValidComponent = 'div'>(
+  props: DynamicProps<T, OTPFieldProps<T>>
+) => {
+  const [local, others] = splitProps(props as OTPFieldProps, ['class']);
   return (
     <OtpField
       class={cn(
-        "flex items-center gap-2 disabled:cursor-not-allowed has-[:disabled]:opacity-50",
+        'flex items-center gap-2 disabled:cursor-not-allowed has-[:disabled]:opacity-50',
         local.class
       )}
       {...others}
     />
-  )
-}
+  );
+};
 
-const OTPFieldInput = OtpField.Input
+const OTPFieldInput = OtpField.Input;
 
-const OTPFieldGroup: Component<ComponentProps<"div">> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
-  return <div class={cn("flex items-center", local.class)} {...others} />
-}
+const OTPFieldGroup: Component<ComponentProps<'div'>> = (props) => {
+  const [local, others] = splitProps(props, ['class']);
+  return <div class={cn('flex items-center', local.class)} {...others} />;
+};
 
-const OTPFieldSlot: Component<ComponentProps<"div"> & { index: number }> = (props) => {
-  const [local, others] = splitProps(props, ["class", "index"])
-  const context = OtpField.useContext()
-  const char = () => context.value()[local.index]
-  const showFakeCaret = () => context.value().length === local.index && context.isInserting()
+const OTPFieldSlot: Component<ComponentProps<'div'> & { index: number }> = (
+  props
+) => {
+  const [local, others] = splitProps(props, ['class', 'index']);
+  const context = OtpField.useContext();
+  const char = () => context.value()[local.index];
+  const showFakeCaret = () =>
+    context.value().length === local.index && context.isInserting();
 
   return (
     <div
       class={cn(
-        "group relative flex size-10 items-center justify-center border-y border-r border-input text-sm first:rounded-l-md first:border-l last:rounded-r-md",
+        'group relative flex size-10 items-center justify-center border-input border-y border-r text-sm first:rounded-l-md first:border-l last:rounded-r-md',
         local.class
       )}
       {...others}
     >
       <div
         class={cn(
-          "absolute inset-0 z-10 transition-all group-first:rounded-l-md group-last:rounded-r-md",
-          context.activeSlots().includes(local.index) && "ring-2 ring-ring ring-offset-background"
+          'absolute inset-0 z-10 transition-all group-first:rounded-l-md group-last:rounded-r-md',
+          context.activeSlots().includes(local.index) &&
+            'ring-2 ring-ring ring-offset-background'
         )}
       />
       {char()}
@@ -59,10 +67,10 @@ const OTPFieldSlot: Component<ComponentProps<"div"> & { index: number }> = (prop
         </div>
       </Show>
     </div>
-  )
-}
+  );
+};
 
-const OTPFieldSeparator: Component<ComponentProps<"div">> = (props) => {
+const OTPFieldSeparator: Component<ComponentProps<'div'>> = (props) => {
   return (
     <div {...props}>
       <svg
@@ -78,7 +86,13 @@ const OTPFieldSeparator: Component<ComponentProps<"div">> = (props) => {
         <circle cx="12.1" cy="12.1" r="1" />
       </svg>
     </div>
-  )
-}
+  );
+};
 
-export { OTPField, OTPFieldInput, OTPFieldGroup, OTPFieldSlot, OTPFieldSeparator }
+export {
+  OTPField,
+  OTPFieldInput,
+  OTPFieldGroup,
+  OTPFieldSlot,
+  OTPFieldSeparator,
+};

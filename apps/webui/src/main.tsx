@@ -18,11 +18,12 @@ import {
   InjectorProvider,
 } from 'oidc-client-rx/adapters/solid-js';
 import { Dynamic, render } from 'solid-js/web';
-import { buildOidcConfig, isBasicAuth } from './auth/config';
+import { buildOidcConfig, isBasicAuth, isOidcAuth } from './auth/config';
 import { isAuthenticated } from './auth/context';
 import { useAuth } from './auth/hooks';
 import { routeTree } from './routeTree.gen';
 import './app.css';
+import { AppNotFoundComponent } from './components/layout/app-not-found';
 
 // Create a new router instance
 const router = createRouter({
@@ -30,6 +31,8 @@ const router = createRouter({
   defaultPreload: 'intent',
   defaultStaleTime: 5000,
   scrollRestoration: true,
+  defaultNotFoundComponent: AppNotFoundComponent,
+  notFoundMode: 'root',
   context: {
     isAuthenticated: isAuthenticated,
     injector: InjectorContextVoidInjector,
@@ -62,7 +65,7 @@ const injector: Injector = isBasicAuth
 
 // if needed, check when init
 let oidcSecurityService: OidcSecurityService | undefined;
-if (!isBasicAuth) {
+if (isOidcAuth) {
   oidcSecurityService = injector.get(OidcSecurityService);
   oidcSecurityService.checkAuth().subscribe();
 }

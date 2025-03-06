@@ -1,5 +1,11 @@
 import { type LinkComponent, createLink } from '@tanstack/solid-router';
-import { type Component, type ComponentProps, type JSX, Show } from 'solid-js';
+import {
+  type Component,
+  type ComponentProps,
+  type JSX,
+  Show,
+  splitProps,
+} from 'solid-js';
 
 type BasicLinkProps = JSX.IntrinsicElements['a'];
 
@@ -10,12 +16,13 @@ const BasicLinkComponent: Component<BasicLinkProps> = (props) => (
 const CreatedLinkComponent = createLink(BasicLinkComponent);
 
 export const ProLink: LinkComponent<typeof BasicLinkComponent> = (props) => {
+  const [local, other] = splitProps(props, ['href']);
   return (
     <Show
-      when={props.href}
-      fallback={<CreatedLinkComponent preload={'intent'} {...props} />}
+      when={!props.href}
+      fallback={<BasicLinkComponent {...(other as any)} href={local.href} />}
     >
-      <BasicLinkComponent {...(props as any)} />
+      <CreatedLinkComponent preload={'intent'} {...(other as typeof props)} />
     </Show>
   );
 };

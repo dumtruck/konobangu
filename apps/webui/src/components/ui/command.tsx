@@ -1,28 +1,35 @@
-import type { Component, ComponentProps, ParentProps, VoidProps } from "solid-js"
-import { splitProps } from "solid-js"
+import type {
+  Component,
+  ComponentProps,
+  ParentProps,
+  VoidProps,
+} from 'solid-js';
+import { splitProps } from 'solid-js';
 
-import type { DialogRootProps } from "@kobalte/core/dialog"
-import * as CommandPrimitive from "cmdk-solid"
+import type { DialogRootProps } from '@kobalte/core/dialog';
+import * as CommandPrimitive from 'cmdk-solid';
 
-import { cn } from "~/styles/utils"
-import { Dialog, DialogContent } from "~/components/ui/dialog"
+import { Dialog, DialogContent } from '~/components/ui/dialog';
+import { cn } from '~/utils/styles';
 
-const Command: Component<ParentProps<CommandPrimitive.CommandRootProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const Command: Component<ParentProps<CommandPrimitive.CommandRootProps>> = (
+  props
+) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <CommandPrimitive.CommandRoot
       class={cn(
-        "flex size-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground blur-none",
+        'flex size-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground blur-none',
         local.class
       )}
       {...others}
     />
-  )
-}
+  );
+};
 
 const CommandDialog: Component<ParentProps<DialogRootProps>> = (props) => {
-  const [local, others] = splitProps(props, ["children"])
+  const [local, others] = splitProps(props, ['children']);
 
   return (
     <Dialog {...others}>
@@ -32,11 +39,13 @@ const CommandDialog: Component<ParentProps<DialogRootProps>> = (props) => {
         </Command>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-const CommandInput: Component<VoidProps<CommandPrimitive.CommandInputProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandInput: Component<VoidProps<CommandPrimitive.CommandInputProps>> = (
+  props
+) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <div class="flex items-center border-b px-3" cmdk-input-wrapper="">
@@ -55,82 +64,100 @@ const CommandInput: Component<VoidProps<CommandPrimitive.CommandInputProps>> = (
       </svg>
       <CommandPrimitive.CommandInput
         class={cn(
-          "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+          'flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
           local.class
         )}
         {...others}
       />
     </div>
-  )
-}
+  );
+};
 
-const CommandList: Component<ParentProps<CommandPrimitive.CommandListProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandList: Component<ParentProps<CommandPrimitive.CommandListProps>> = (
+  props
+) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <CommandPrimitive.CommandList
-      class={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", local.class)}
+      class={cn('max-h-[300px] overflow-y-auto overflow-x-hidden', local.class)}
       {...others}
     />
-  )
-}
+  );
+};
 
-const CommandEmpty: Component<ParentProps<CommandPrimitive.CommandEmptyProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandEmpty: Component<
+  ParentProps<CommandPrimitive.CommandEmptyProps>
+> = (props) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <CommandPrimitive.CommandEmpty
-      class={cn("py-6 text-center text-sm", local.class)}
+      class={cn('py-6 text-center text-sm', local.class)}
       {...others}
     />
-  )
-}
+  );
+};
 
-const CommandGroup: Component<ParentProps<CommandPrimitive.CommandGroupProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandGroup: Component<
+  ParentProps<CommandPrimitive.CommandGroupProps>
+> = (props) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <CommandPrimitive.CommandGroup
       class={cn(
-        "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+        'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:text-xs',
         local.class
       )}
       {...others}
     />
-  )
-}
+  );
+};
 
-const CommandSeparator: Component<VoidProps<CommandPrimitive.CommandSeparatorProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandSeparator: Component<
+  VoidProps<CommandPrimitive.CommandSeparatorProps>
+> = (props) => {
+  const [local, others] = splitProps(props, ['class']);
 
-  return <CommandPrimitive.CommandSeparator class={cn("h-px bg-border", local.class)} {...others} />
-}
+  return (
+    <CommandPrimitive.CommandSeparator
+      class={cn('h-px bg-border', local.class)}
+      {...others}
+    />
+  );
+};
 
-const CommandItem: Component<ParentProps<CommandPrimitive.CommandItemProps>> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandItem: Component<ParentProps<CommandPrimitive.CommandItemProps>> = (
+  props
+) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <CommandPrimitive.CommandItem
       cmdk-item=""
       class={cn(
-        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50',
         local.class
       )}
       {...others}
     />
-  )
-}
+  );
+};
 
-const CommandShortcut: Component<ComponentProps<"span">> = (props) => {
-  const [local, others] = splitProps(props, ["class"])
+const CommandShortcut: Component<ComponentProps<'span'>> = (props) => {
+  const [local, others] = splitProps(props, ['class']);
 
   return (
     <span
-      class={cn("ml-auto text-xs tracking-widest text-muted-foreground", local.class)}
+      class={cn(
+        'ml-auto text-muted-foreground text-xs tracking-widest',
+        local.class
+      )}
       {...others}
     />
-  )
-}
+  );
+};
 
 export {
   Command,
@@ -141,5 +168,5 @@ export {
   CommandGroup,
   CommandItem,
   CommandShortcut,
-  CommandSeparator
-}
+  CommandSeparator,
+};

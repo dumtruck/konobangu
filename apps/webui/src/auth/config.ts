@@ -1,6 +1,7 @@
 import { LogLevel, type OpenIdConfiguration } from 'oidc-client-rx';
 
 export const isBasicAuth = process.env.AUTH_TYPE === 'basic';
+export const isOidcAuth = process.env.AUTH_TYPE === 'oidc';
 
 export function buildOidcConfig(): OpenIdConfiguration {
   const origin = window.location.origin;

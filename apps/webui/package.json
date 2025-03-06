@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@ark-ui/solid": "^4.10.2",
-    "@codemirror/language": "^6.10.8",
+    "@codemirror/language": "6.0.0",
     "@corvu/drawer": "^0.2.3",
     "@corvu/otp-field": "^0.1.4",
     "@corvu/resizable": "^0.2.4",
@@ -26,14 +26,35 @@
     "embla-carousel-solid": "^8.5.2",
     "graphiql": "^3.8.3",
     "lucide-solid": "^0.477.0",
-    "react": "^18",
-    "react-dom": "^18",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "solid-js": "^1.9.5",
     "solid-sonner": "^0.2.8",
-    "tailwindcss": "^3"
+    "tailwindcss": "^3.4.17",
+    "tailwind-merge": "^3.0.2",
+    "tailwindcss-animate": "^1.0.7",
+    "@tanstack/react-router": "^1.112.0",
+    "@tanstack/router-devtools": "^1.112.6",
+    "class-variance-authority": "^0.7.1",
+    "@abraham/reflection": "^0.12.0",
+    "@outposts/injection-js": "^2.5.1",
+    "arktype": "^2.1.2",
+    "clsx": "^2.1.1",
+    "oidc-client-rx": "0.1.0-alpha.8",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@rsbuild/core": "^1.2.14",
+    "@rsbuild/plugin-babel": "^1.0.4",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "postcss": "^8.5.3",
     "@rsbuild/plugin-solid": "^1.0.5",
-    "@tanstack/react-router": "^1.112.0"
+    "@tanstack/react-router": "^1.112.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@tailwindcss/postcss": "^4.0.9",
+    "@tanstack/router-devtools": "^1.112.6",
+    "@tanstack/router-plugin": "^1.112.3"
   }
 }

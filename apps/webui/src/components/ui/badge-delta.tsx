@@ -1,27 +1,36 @@
-import type { Component, JSXElement } from "solid-js"
-import { createEffect, on, splitProps } from "solid-js"
+import type { Component, JSXElement } from 'solid-js';
+import { createEffect, on, splitProps } from 'solid-js';
 
-import type { VariantProps } from "class-variance-authority"
-import { cva } from "class-variance-authority"
+import type { VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 
-import { cn } from "~/styles/utils"
-import type { BadgeProps } from "~/components/ui/badge"
-import { Badge } from "~/components/ui/badge"
+import type { BadgeProps } from '~/components/ui/badge';
+import { Badge } from '~/components/ui/badge';
+import { cn } from '~/utils/styles';
 
-type DeltaType = "increase" | "moderateIncrease" | "unchanged" | "moderateDecrease" | "decrease"
+type DeltaType =
+  | 'increase'
+  | 'moderateIncrease'
+  | 'unchanged'
+  | 'moderateDecrease'
+  | 'decrease';
 
-const badgeDeltaVariants = cva("", {
+const badgeDeltaVariants = cva('', {
   variants: {
     variant: {
-      success: "bg-success text-success-foreground hover:bg-success",
-      warning: "bg-warning text-warning-foreground hover:bg-warning",
-      error: "bg-error text-error-foreground hover:bg-error"
-    }
-  }
-})
-type DeltaVariant = NonNullable<VariantProps<typeof badgeDeltaVariants>["variant"]>
+      success: 'bg-success text-success-foreground hover:bg-success',
+      warning: 'bg-warning text-warning-foreground hover:bg-warning',
+      error: 'bg-error text-error-foreground hover:bg-error',
+    },
+  },
+});
+type DeltaVariant = NonNullable<
+  VariantProps<typeof badgeDeltaVariants>['variant']
+>;
 
-const iconMap: { [key in DeltaType]: (props: { class?: string }) => JSXElement } = {
+const iconMap: {
+  [key in DeltaType]: (props: { class?: string }) => JSXElement;
+} = {
   increase: (props) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -99,38 +108,41 @@ const iconMap: { [key in DeltaType]: (props: { class?: string }) => JSXElement }
       <path d="M18 13l-6 6" />
       <path d="M6 13l6 6" />
     </svg>
-  )
-}
+  ),
+};
 
 const variantMap: { [key in DeltaType]: DeltaVariant } = {
-  increase: "success",
-  moderateIncrease: "success",
-  unchanged: "warning",
-  moderateDecrease: "error",
-  decrease: "error"
-}
+  increase: 'success',
+  moderateIncrease: 'success',
+  unchanged: 'warning',
+  moderateDecrease: 'error',
+  decrease: 'error',
+};
 
-type BadgeDeltaProps = Omit<BadgeProps, "variant"> & {
-  deltaType: DeltaType
-}
+type BadgeDeltaProps = Omit<BadgeProps, 'variant'> & {
+  deltaType: DeltaType;
+};
 
 const BadgeDelta: Component<BadgeDeltaProps> = (props) => {
-  const [local, others] = splitProps(props, ["class", "children", "deltaType"])
+  const [local, others] = splitProps(props, ['class', 'children', 'deltaType']);
 
   // eslint-disable-next-line solid/reactivity
-  let Icon = iconMap[local.deltaType]
+  let Icon = iconMap[local.deltaType];
   createEffect(
     on(
       () => local.deltaType,
       () => {
-        Icon = iconMap[local.deltaType]
+        Icon = iconMap[local.deltaType];
       }
     )
-  )
+  );
 
   return (
     <Badge
-      class={cn(badgeDeltaVariants({ variant: variantMap[local.deltaType] }), local.class)}
+      class={cn(
+        badgeDeltaVariants({ variant: variantMap[local.deltaType] }),
+        local.class
+      )}
       {...others}
     >
       <span class="flex gap-1">
@@ -138,7 +150,7 @@ const BadgeDelta: Component<BadgeDeltaProps> = (props) => {
         {local.children}
       </span>
     </Badge>
-  )
-}
+  );
+};
 
-export { BadgeDelta }
+export { BadgeDelta };

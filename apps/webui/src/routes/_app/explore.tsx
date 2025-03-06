@@ -1,9 +1,15 @@
 import { createFileRoute } from '@tanstack/solid-router';
+import type { RouteStateDataOption } from '~/traits/router';
 
 export const Route = createFileRoute('/_app/explore')({
-  component: RouteComponent,
+  component: ExploreRouteComponent,
+  staticData: {
+    breadcrumb: {
+      label: 'Explore',
+    },
+  } satisfies RouteStateDataOption,
 });
 
-function RouteComponent() {
+function ExploreRouteComponent() {
   return <div>Hello "/_app/explore"!</div>;
 }

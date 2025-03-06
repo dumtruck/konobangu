@@ -14,8 +14,3 @@ dev-proxy:
 dev-recorder:
   bacon recorder
 
-dev-playground:
-  pnpm run --filter=recorder dev
-
-# play-recorder:
-#   cargo recorder-playground

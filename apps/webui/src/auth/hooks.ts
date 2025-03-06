@@ -5,7 +5,7 @@ import {
 } from 'oidc-client-rx/adapters/solid-js';
 import { NEVER, of } from 'rxjs';
 import { createMemo, from } from 'solid-js';
-import { isBasicAuth } from './config';
+import { isBasicAuth, isOidcAuth } from './config';
 
 const BASIC_AUTH_IS_AUTHENTICATED$ = of({
   isAuthenticated: true,
@@ -17,11 +17,10 @@ const BASIC_AUTH_USER_DATA$ = of({
   allUserData: [],
 });
 
+const useOidcClientExt = isOidcAuth ? useOidcClient : () => ({ oidcSecurityService: undefined, injector: InjectorContextVoidInjector })
+
 export function useAuth() {
-  const { oidcSecurityService, injector } = isBasicAuth
-    ? { oidcSecurityService: undefined, injector: InjectorContextVoidInjector }
-    : // biome-ignore lint/correctness/useHookAtTopLevel: <explanation>
-      useOidcClient();
+  const { oidcSecurityService, injector } = useOidcClientExt();
 
   const isAuthenticatedObj = from(
     oidcSecurityService?.isAuthenticated$ ?? BASIC_AUTH_IS_AUTHENTICATED$

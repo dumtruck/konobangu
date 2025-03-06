@@ -5,6 +5,7 @@ import { TanStackRouterRspack } from '@tanstack/router-plugin/rspack';
 
 export default defineConfig({
   html: {
+    title: 'Konobangu',
     favicon: './public/assets/favicon.ico',
   },
   plugins: [

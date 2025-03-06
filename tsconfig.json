@@ -5,9 +5,6 @@
       "path": "./apps/email-playground"
     },
     {
-      "path": "./apps/recorder"
-    },
-    {
       "path": "./apps/webui"
     },
     {
