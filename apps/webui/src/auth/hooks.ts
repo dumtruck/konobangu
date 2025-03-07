@@ -3,8 +3,8 @@ import {
   InjectorContextVoidInjector,
   useOidcClient,
 } from 'oidc-client-rx/adapters/solid-js';
-import { NEVER, of } from 'rxjs';
-import { createMemo, from } from 'solid-js';
+import { NEVER, map, of } from 'rxjs';
+import { from } from 'solid-js';
 import { isBasicAuth, isOidcAuth } from './config';
 
 const BASIC_AUTH_IS_AUTHENTICATED$ = of({
@@ -17,34 +17,39 @@ const BASIC_AUTH_USER_DATA$ = of({
   allUserData: [],
 });
 
-const useOidcClientExt = isOidcAuth ? useOidcClient : () => ({ oidcSecurityService: undefined, injector: InjectorContextVoidInjector })
+const useOidcClientExt = isOidcAuth
+  ? useOidcClient
+  : () => ({
+      oidcSecurityService: undefined,
+      injector: InjectorContextVoidInjector,
+    });
 
 export function useAuth() {
   const { oidcSecurityService, injector } = useOidcClientExt();
 
-  const isAuthenticatedObj = from(
+  const isAuthenticated$ = (
     oidcSecurityService?.isAuthenticated$ ?? BASIC_AUTH_IS_AUTHENTICATED$
-  );
+  ).pipe(map((s) => s.isAuthenticated));
 
-  const userDataObj = from(
+  const userData$ = (
     oidcSecurityService?.userData$ ?? BASIC_AUTH_USER_DATA$
-  );
+  ).pipe(map((s) => s.userData));
 
-  const isAuthenticated = createMemo(
-    () => isAuthenticatedObj()?.isAuthenticated ?? false
-  );
+  const isAuthenticated = from(isAuthenticated$);
 
-  const userData = createMemo(() => userDataObj()?.userData ?? {});
+  const userData = from(userData$);
 
-  const checkAuthResultEvent = isBasicAuth
+  const checkAuthResultEvent$ = isBasicAuth
     ? NEVER
     : injector.get(CHECK_AUTH_RESULT_EVENT);
 
   return {
     oidcSecurityService,
+    isAuthenticated$,
     isAuthenticated,
+    userData$,
     userData,
     injector,
-    checkAuthResultEvent,
+    checkAuthResultEvent$,
   };
 }

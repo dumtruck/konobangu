@@ -21,7 +21,7 @@ export function guardRouteIndexAsNotFound(
 
 export function AppNotFoundComponent() {
   return (
-    <div class="flex min-h-screen items-center px-4 py-12 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+    <div class="flex h-svh items-center px-4 py-12 sm:px-6 md:px-8 lg:px-12 xl:px-16">
       <div class="w-full space-y-6 text-center">
         <div class="space-y-3">
           <h1 class="font-bold text-4xl tracking-tighter sm:text-5xl">

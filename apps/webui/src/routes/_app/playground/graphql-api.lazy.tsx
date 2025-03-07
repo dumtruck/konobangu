@@ -1,7 +1,7 @@
 import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createLazyFileRoute } from '@tanstack/solid-router';
 import GraphiQL from 'graphiql';
-import React from 'react';
+import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { onCleanup, onMount } from 'solid-js';
 import { isOidcAuth } from '~/auth/config';
@@ -34,10 +34,10 @@ function PlaygroundGraphQLApiRouteComponent() {
               : undefined,
           })(props);
         };
-        const g = React.createElement(GraphiQL, {
+        const graphiql = createElement(GraphiQL, {
           fetcher,
         });
-        reactRoot.render(g);
+        reactRoot.render(graphiql);
 
         onCleanup(() => reactRoot.unmount());
       }
@@ -47,7 +47,7 @@ function PlaygroundGraphQLApiRouteComponent() {
   return (
     <div
       data-id="graphiql-playground-container"
-      class="h-full"
+      class="h-full overflow-hidden rounded-lg"
       ref={containerRef}
     />
   );

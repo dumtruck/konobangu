@@ -1,4 +1,4 @@
-import { FileRoutesByPath, Outlet } from '@tanstack/solid-router';
+import { Outlet } from '@tanstack/solid-router';
 import { guardRouteIndexAsNotFound } from '~/components/layout/app-not-found';
 import type { RouteStateDataOption } from '~/traits/router';
 

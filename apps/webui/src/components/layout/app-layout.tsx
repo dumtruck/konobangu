@@ -94,9 +94,9 @@ export function AppAside(props: AppAsideProps) {
 
                       return (
                         <>
-                          {index() > 0 && (
+                          <Show when={index() > 0}>
                             <BreadcrumbSeparator class="hidden md:block" />
-                          )}
+                          </Show>
                           <BreadcrumbItem class="hidden md:block">
                             <BreadcrumbLink
                               class="text-[var(--foreground)] hover:text-inherit"
@@ -117,7 +117,10 @@ export function AppAside(props: AppAsideProps) {
             </Show>
           </div>
         </header>
-        <div {...other} class={cn('min-h-0 flex-1 p-4 pt-0', local.class)}>
+        <div
+          {...other}
+          class={cn('flex min-h-0 flex-1 flex-col p-4 pt-0', local.class)}
+        >
           {local.children}
         </div>
       </SidebarInset>

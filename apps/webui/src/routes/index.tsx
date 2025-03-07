@@ -8,7 +8,7 @@ export const Route = createFileRoute('/')({
 
 function HomeRouteComponent() {
   return (
-    <AppAside class="flex flex-1 flex-col gap-4" extractBreadcrumbFromRoutes>
+    <AppAside extractBreadcrumbFromRoutes>
       <AppSkeleton />
     </AppAside>
   );

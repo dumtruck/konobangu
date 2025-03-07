@@ -1,15 +1,15 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import type { RouteStateDataOption } from '~/traits/router';
 
-export const Route = createFileRoute('/_app/explore')({
-  component: ExploreRouteComponent,
+export const Route = createFileRoute('/_app/_explore/feed')({
+  component: FeedRouteComponent,
   staticData: {
     breadcrumb: {
-      label: 'Explore',
+      label: 'Feed',
     },
   } satisfies RouteStateDataOption,
 });
 
-function ExploreRouteComponent() {
-  return <div>Hello "/_app/explore"!</div>;
+function FeedRouteComponent() {
+  return <div>Hello "/_app/feed"!</div>;
 }

@@ -12,19 +12,21 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as AboutImport } from './routes/about'
-import { Route as AppImport } from './routes/_app'
 import { Route as R404Import } from './routes/404'
+import { Route as AppRouteImport } from './routes/_app/route'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthSignUpImport } from './routes/auth/sign-up'
 import { Route as AuthSignInImport } from './routes/auth/sign-in'
-import { Route as AppExploreImport } from './routes/_app/explore'
 import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions/route'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings/route'
 import { Route as AppPlaygroundRouteImport } from './routes/_app/playground/route'
 import { Route as AuthOidcCallbackImport } from './routes/auth/oidc/callback'
 import { Route as AppSubscriptionsManageImport } from './routes/_app/subscriptions/manage'
 import { Route as AppSubscriptionsCreateImport } from './routes/_app/subscriptions/create'
+import { Route as AppSettingsDownloaderImport } from './routes/_app/settings/downloader'
 import { Route as AppPlaygroundGraphqlApiImport } from './routes/_app/playground/graphql-api'
+import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
+import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
 import { Route as AppSubscriptionsEditSubscriptionIdImport } from './routes/_app/subscriptions/edit.$subscription-id'
 
 // Create/Update Routes
@@ -35,14 +37,14 @@ const AboutRoute = AboutImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppRoute = AppImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const R404Route = R404Import.update({
   id: '/404',
   path: '/404',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AppRouteRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -64,28 +66,22 @@ const AuthSignInRoute = AuthSignInImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppExploreRoute = AppExploreImport.update({
-  id: '/explore',
-  path: '/explore',
-  getParentRoute: () => AppRoute,
-} as any)
-
 const AppSubscriptionsRouteRoute = AppSubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 
 const AppSettingsRouteRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 
 const AppPlaygroundRouteRoute = AppPlaygroundRouteImport.update({
   id: '/playground',
   path: '/playground',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
 
 const AuthOidcCallbackRoute = AuthOidcCallbackImport.update({
@@ -106,6 +102,12 @@ const AppSubscriptionsCreateRoute = AppSubscriptionsCreateImport.update({
   getParentRoute: () => AppSubscriptionsRouteRoute,
 } as any)
 
+const AppSettingsDownloaderRoute = AppSettingsDownloaderImport.update({
+  id: '/downloader',
+  path: '/downloader',
+  getParentRoute: () => AppSettingsRouteRoute,
+} as any)
+
 const AppPlaygroundGraphqlApiRoute = AppPlaygroundGraphqlApiImport.update({
   id: '/graphql-api',
   path: '/graphql-api',
@@ -113,6 +115,18 @@ const AppPlaygroundGraphqlApiRoute = AppPlaygroundGraphqlApiImport.update({
 } as any).lazy(() =>
   import('./routes/_app/playground/graphql-api.lazy').then((d) => d.Route),
 )
+
+const AppExploreFeedRoute = AppExploreFeedImport.update({
+  id: '/_explore/feed',
+  path: '/feed',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+
+const AppExploreExploreRoute = AppExploreExploreImport.update({
+  id: '/_explore/explore',
+  path: '/explore',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 const AppSubscriptionsEditSubscriptionIdRoute =
   AppSubscriptionsEditSubscriptionIdImport.update({
@@ -132,18 +146,18 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/404': {
       id: '/404'
       path: '/404'
       fullPath: '/404'
       preLoaderRoute: typeof R404Import
-      parentRoute: typeof rootRoute
-    }
-    '/_app': {
-      id: '/_app'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
     '/about': {
@@ -158,28 +172,21 @@ declare module '@tanstack/solid-router' {
       path: '/playground'
       fullPath: '/playground'
       preLoaderRoute: typeof AppPlaygroundRouteImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof AppRouteImport
     }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof AppRouteImport
     }
     '/_app/subscriptions': {
       id: '/_app/subscriptions'
       path: '/subscriptions'
       fullPath: '/subscriptions'
       preLoaderRoute: typeof AppSubscriptionsRouteImport
-      parentRoute: typeof AppImport
-    }
-    '/_app/explore': {
-      id: '/_app/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof AppExploreImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof AppRouteImport
     }
     '/auth/sign-in': {
       id: '/auth/sign-in'
@@ -195,12 +202,33 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof AuthSignUpImport
       parentRoute: typeof rootRoute
     }
+    '/_app/_explore/explore': {
+      id: '/_app/_explore/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof AppExploreExploreImport
+      parentRoute: typeof AppRouteImport
+    }
+    '/_app/_explore/feed': {
+      id: '/_app/_explore/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppExploreFeedImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/playground/graphql-api': {
       id: '/_app/playground/graphql-api'
       path: '/graphql-api'
       fullPath: '/playground/graphql-api'
       preLoaderRoute: typeof AppPlaygroundGraphqlApiImport
       parentRoute: typeof AppPlaygroundRouteImport
+    }
+    '/_app/settings/downloader': {
+      id: '/_app/settings/downloader'
+      path: '/downloader'
+      fullPath: '/settings/downloader'
+      preLoaderRoute: typeof AppSettingsDownloaderImport
+      parentRoute: typeof AppSettingsRouteImport
     }
     '/_app/subscriptions/create': {
       id: '/_app/subscriptions/create'
@@ -246,6 +274,17 @@ const AppPlaygroundRouteRouteChildren: AppPlaygroundRouteRouteChildren = {
 const AppPlaygroundRouteRouteWithChildren =
   AppPlaygroundRouteRoute._addFileChildren(AppPlaygroundRouteRouteChildren)
 
+interface AppSettingsRouteRouteChildren {
+  AppSettingsDownloaderRoute: typeof AppSettingsDownloaderRoute
+}
+
+const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
+  AppSettingsDownloaderRoute: AppSettingsDownloaderRoute,
+}
+
+const AppSettingsRouteRouteWithChildren =
+  AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
+
 interface AppSubscriptionsRouteRouteChildren {
   AppSubscriptionsCreateRoute: typeof AppSubscriptionsCreateRoute
   AppSubscriptionsManageRoute: typeof AppSubscriptionsManageRoute
@@ -264,34 +303,40 @@ const AppSubscriptionsRouteRouteWithChildren =
     AppSubscriptionsRouteRouteChildren,
   )
 
-interface AppRouteChildren {
+interface AppRouteRouteChildren {
   AppPlaygroundRouteRoute: typeof AppPlaygroundRouteRouteWithChildren
-  AppSettingsRouteRoute: typeof AppSettingsRouteRoute
+  AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
   AppSubscriptionsRouteRoute: typeof AppSubscriptionsRouteRouteWithChildren
-  AppExploreRoute: typeof AppExploreRoute
+  AppExploreExploreRoute: typeof AppExploreExploreRoute
+  AppExploreFeedRoute: typeof AppExploreFeedRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
+const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppPlaygroundRouteRoute: AppPlaygroundRouteRouteWithChildren,
-  AppSettingsRouteRoute: AppSettingsRouteRoute,
+  AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppSubscriptionsRouteRoute: AppSubscriptionsRouteRouteWithChildren,
-  AppExploreRoute: AppExploreRoute,
+  AppExploreExploreRoute: AppExploreExploreRoute,
+  AppExploreFeedRoute: AppExploreFeedRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '': typeof AppRouteRouteWithChildren
   '/404': typeof R404Route
-  '': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/playground': typeof AppPlaygroundRouteRouteWithChildren
-  '/settings': typeof AppSettingsRouteRoute
+  '/settings': typeof AppSettingsRouteRouteWithChildren
   '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
-  '/explore': typeof AppExploreRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/explore': typeof AppExploreExploreRoute
+  '/feed': typeof AppExploreFeedRoute
   '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/settings/downloader': typeof AppSettingsDownloaderRoute
   '/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
@@ -300,16 +345,18 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '': typeof AppRouteRouteWithChildren
   '/404': typeof R404Route
-  '': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/playground': typeof AppPlaygroundRouteRouteWithChildren
-  '/settings': typeof AppSettingsRouteRoute
+  '/settings': typeof AppSettingsRouteRouteWithChildren
   '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
-  '/explore': typeof AppExploreRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/explore': typeof AppExploreExploreRoute
+  '/feed': typeof AppExploreFeedRoute
   '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/settings/downloader': typeof AppSettingsDownloaderRoute
   '/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
@@ -319,16 +366,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
   '/404': typeof R404Route
-  '/_app': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/_app/playground': typeof AppPlaygroundRouteRouteWithChildren
-  '/_app/settings': typeof AppSettingsRouteRoute
+  '/_app/settings': typeof AppSettingsRouteRouteWithChildren
   '/_app/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
-  '/_app/explore': typeof AppExploreRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/_app/_explore/explore': typeof AppExploreExploreRoute
+  '/_app/_explore/feed': typeof AppExploreFeedRoute
   '/_app/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/_app/settings/downloader': typeof AppSettingsDownloaderRoute
   '/_app/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/_app/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
@@ -339,16 +388,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/404'
     | ''
+    | '/404'
     | '/about'
     | '/playground'
     | '/settings'
     | '/subscriptions'
-    | '/explore'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/explore'
+    | '/feed'
     | '/playground/graphql-api'
+    | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
@@ -356,16 +407,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/404'
     | ''
+    | '/404'
     | '/about'
     | '/playground'
     | '/settings'
     | '/subscriptions'
-    | '/explore'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/explore'
+    | '/feed'
     | '/playground/graphql-api'
+    | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
@@ -373,16 +426,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/404'
     | '/_app'
+    | '/404'
     | '/about'
     | '/_app/playground'
     | '/_app/settings'
     | '/_app/subscriptions'
-    | '/_app/explore'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/_app/_explore/explore'
+    | '/_app/_explore/feed'
     | '/_app/playground/graphql-api'
+    | '/_app/settings/downloader'
     | '/_app/subscriptions/create'
     | '/_app/subscriptions/manage'
     | '/auth/oidc/callback'
@@ -392,8 +447,8 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
   R404Route: typeof R404Route
-  AppRoute: typeof AppRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -402,8 +457,8 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
   R404Route: R404Route,
-  AppRoute: AppRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
@@ -421,8 +476,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/404",
         "/_app",
+        "/404",
         "/about",
         "/auth/sign-in",
         "/auth/sign-up",
@@ -432,17 +487,18 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
-    "/404": {
-      "filePath": "404.tsx"
-    },
     "/_app": {
-      "filePath": "_app.tsx",
+      "filePath": "_app/route.tsx",
       "children": [
         "/_app/playground",
         "/_app/settings",
         "/_app/subscriptions",
-        "/_app/explore"
+        "/_app/_explore/explore",
+        "/_app/_explore/feed"
       ]
+    },
+    "/404": {
+      "filePath": "404.tsx"
     },
     "/about": {
       "filePath": "about.tsx"
@@ -456,7 +512,10 @@ export const routeTree = rootRoute
     },
     "/_app/settings": {
       "filePath": "_app/settings/route.tsx",
-      "parent": "/_app"
+      "parent": "/_app",
+      "children": [
+        "/_app/settings/downloader"
+      ]
     },
     "/_app/subscriptions": {
       "filePath": "_app/subscriptions/route.tsx",
@@ -467,19 +526,27 @@ export const routeTree = rootRoute
         "/_app/subscriptions/edit/$subscription-id"
       ]
     },
-    "/_app/explore": {
-      "filePath": "_app/explore.tsx",
-      "parent": "/_app"
-    },
     "/auth/sign-in": {
       "filePath": "auth/sign-in.tsx"
     },
     "/auth/sign-up": {
       "filePath": "auth/sign-up.tsx"
     },
+    "/_app/_explore/explore": {
+      "filePath": "_app/_explore/explore.tsx",
+      "parent": "/_app"
+    },
+    "/_app/_explore/feed": {
+      "filePath": "_app/_explore/feed.tsx",
+      "parent": "/_app"
+    },
     "/_app/playground/graphql-api": {
       "filePath": "_app/playground/graphql-api.tsx",
       "parent": "/_app/playground"
+    },
+    "/_app/settings/downloader": {
+      "filePath": "_app/settings/downloader.tsx",
+      "parent": "/_app/settings"
     },
     "/_app/subscriptions/create": {
       "filePath": "_app/subscriptions/create.tsx",
