@@ -1,6 +1,9 @@
 use std::{borrow::Cow, error::Error as StdError};
 
-use axum::response::{IntoResponse, Response};
+use axum::{
+    Json,
+    response::{IntoResponse, Response},
+};
 use http::StatusCode;
 use serde::{Deserialize, Deserializer, Serialize};
 use thiserror::Error as ThisError;
@@ -105,11 +108,33 @@ impl RError {
     }
 }
 
+#[derive(Serialize, Debug, Clone)]
+pub struct StandardErrorResponse<T = ()> {
+    pub success: bool,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<T>,
+}
+
+impl<T> From<String> for StandardErrorResponse<T> {
+    fn from(value: String) -> Self {
+        StandardErrorResponse {
+            success: false,
+            message: value,
+            result: None,
+        }
+    }
+}
+
 impl IntoResponse for RError {
     fn into_response(self) -> Response {
         match self {
             Self::AuthError(auth_error) => auth_error.into_response(),
-            err => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
+            err => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json::<StandardErrorResponse>(StandardErrorResponse::from(err.to_string())),
+            )
+                .into_response(),
         }
     }
 }

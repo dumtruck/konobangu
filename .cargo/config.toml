@@ -1,5 +1,4 @@
 [alias]
-recorder = "run -p recorder --bin recorder_cli -- --environment development"
 recorder-playground = "run -p recorder  --example playground -- --environment development"
 
 [build]

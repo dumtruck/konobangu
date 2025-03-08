@@ -22,7 +22,6 @@ use crate::{
     },
     fetch::{html::fetch_html, image::fetch_image},
     storage::StorageContentCategory,
-    tasks::core::{StandardStreamTaskReplayLayout, StreamTaskRunnerTrait},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -349,24 +348,15 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
     })
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExtractMikanBangumisMetaFromMyBangumiRequest {
-    pub my_bangumi_page_url: Url,
-    pub auth_securcy: Option<MikanAuthSecrecy>,
-}
-
-pub type ExtractMikanBangumisMetaFromMyBangumiTask =
-    StandardStreamTaskReplayLayout<ExtractMikanBangumisMetaFromMyBangumiRequest, MikanBangumiMeta>;
-
-#[instrument(skip_all, fields(my_bangumi_page_url, auth_securcy = ?auth_securcy, history = history.len()))]
+#[instrument(skip_all, fields(my_bangumi_page_url, auth_secrecy = ?auth_secrecy, history = history.len()))]
 pub fn extract_mikan_bangumis_meta_from_my_bangumi_page(
     context: Arc<dyn AppContextTrait>,
     my_bangumi_page_url: Url,
-    auth_securcy: Option<MikanAuthSecrecy>,
+    auth_secrecy: Option<MikanAuthSecrecy>,
     history: &[Arc<RResult<MikanBangumiMeta>>],
 ) -> impl Stream<Item = RResult<MikanBangumiMeta>> {
     try_stream! {
-        let http_client = &context.mikan().fork_with_auth(auth_securcy.clone())?;
+        let http_client = &context.mikan().fork_with_auth(auth_secrecy.clone())?;
 
         let mikan_base_url = Url::parse(&my_bangumi_page_url.origin().unicode_serialization())?;
 
@@ -495,22 +485,6 @@ pub fn extract_mikan_bangumis_meta_from_my_bangumi_page(
                 yield item;
             }
         }
-    }
-}
-
-impl StreamTaskRunnerTrait for ExtractMikanBangumisMetaFromMyBangumiTask {
-    fn run(
-        context: Arc<dyn AppContextTrait>,
-        request: &Self::Request,
-        history: &[Arc<RResult<Self::Item>>],
-    ) -> impl Stream<Item = RResult<Self::Item>> {
-        let context = context.clone();
-        extract_mikan_bangumis_meta_from_my_bangumi_page(
-            context,
-            request.my_bangumi_page_url.clone(),
-            request.auth_securcy.clone(),
-            history,
-        )
     }
 }
 

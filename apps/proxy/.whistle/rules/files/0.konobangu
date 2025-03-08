@@ -5,8 +5,6 @@
 }
 ```
 
-^https://konobangu.com/api/playground*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5002/api/playground$1
-^wss://konobangu.com/api/playground*** reqHeaders://{x-forwarded.json} ws://127.0.0.1:5002/api/playground$1
-^https://konobangu.com/api*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5001/api$1 excludeFilter://^^https://konobangu.com/api/playground***
+^https://konobangu.com/api*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5001/api$1
 ^https://konobangu.com/*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5000/$1 excludeFilter://^https://konobangu.com/api***
-^wss://konobangu.com/*** reqHeaders://{x-forwarded.json} ws://127.0.0.1:5000/$1 excludeFilter://^wss://konobangu.com/api/playground***
+^wss://konobangu.com/*** reqHeaders://{x-forwarded.json} ws://127.0.0.1:5000/$1 excludeFilter://^wss://konobangu.com/api

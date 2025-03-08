@@ -1,3 +1,9 @@
 packages:
-  - "packages/*"
-  - "apps/*"
+  - packages/*
+  - apps/*
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - bufferutil
+  - core-js
+  - esbuild
+  - sharp

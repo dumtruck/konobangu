@@ -34,12 +34,13 @@ impl App {
 
         let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 
-        let (graphqlc, oidcc) = try_join!(
+        let (graphql_c, oidc_c, metadata_c) = try_join!(
             controller::graphql::create(context.clone()),
             controller::oidc::create(context.clone()),
+            controller::metadata::create(context.clone())
         )?;
 
-        for c in [graphqlc, oidcc] {
+        for c in [graphql_c, oidc_c, metadata_c] {
             router = c.apply_to(router);
         }
 

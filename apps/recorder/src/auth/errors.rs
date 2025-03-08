@@ -45,7 +45,7 @@ pub enum AuthError {
     #[error("Invalid oidc request callback code")]
     OidcInvalidCodeError,
     #[error(transparent)]
-    OidcCallbackTokenConfigrationError(#[from] ConfigurationError),
+    OidcCallbackTokenConfigurationError(#[from] ConfigurationError),
     #[error(transparent)]
     OidcRequestTokenError(
         #[from] RequestTokenError<HttpClientError, StandardErrorResponse<CoreErrorResponseType>>,
@@ -120,22 +120,26 @@ fn display_graphql_permission_error(
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AuthErrorBody {
-    pub error_code: i32,
-    pub error_msg: String,
+pub struct AuthErrorResponse {
+    pub success: bool,
+    pub message: String,
 }
 
-impl From<AuthError> for AuthErrorBody {
+impl From<AuthError> for AuthErrorResponse {
     fn from(value: AuthError) -> Self {
-        AuthErrorBody {
-            error_code: StatusCode::UNAUTHORIZED.as_u16() as i32,
-            error_msg: value.to_string(),
+        AuthErrorResponse {
+            success: false,
+            message: value.to_string(),
         }
     }
 }
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        (StatusCode::UNAUTHORIZED, Json(AuthErrorBody::from(self))).into_response()
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(AuthErrorResponse::from(self)),
+        )
+            .into_response()
     }
 }

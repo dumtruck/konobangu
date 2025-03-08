@@ -29,7 +29,7 @@ pub struct AppBuilder {
     dotenv_file: Option<String>,
     config_file: Option<String>,
     working_dir: String,
-    enviornment: Environment,
+    environment: Environment,
 }
 
 impl AppBuilder {
@@ -70,21 +70,21 @@ impl AppBuilder {
 
     pub async fn build(self) -> RResult<App> {
         AppConfig::load_dotenv(
-            &self.enviornment,
+            &self.environment,
             &self.working_dir,
             self.dotenv_file.as_deref(),
         )
         .await?;
 
         let config = AppConfig::load_config(
-            &self.enviornment,
+            &self.environment,
             &self.working_dir,
             self.config_file.as_deref(),
         )
         .await?;
 
         let app_context = Arc::new(
-            AppContext::new(self.enviornment.clone(), config, self.working_dir.clone()).await?,
+            AppContext::new(self.environment.clone(), config, self.working_dir.clone()).await?,
         );
 
         Ok(App {
@@ -101,7 +101,7 @@ impl AppBuilder {
 
     pub fn environment(self, environment: Environment) -> Self {
         let mut ret = self;
-        ret.enviornment = environment;
+        ret.environment = environment;
         ret
     }
 
@@ -130,7 +130,7 @@ impl AppBuilder {
 impl Default for AppBuilder {
     fn default() -> Self {
         Self {
-            enviornment: Environment::Production,
+            environment: Environment::Production,
             dotenv_file: None,
             config_file: None,
             working_dir: String::from("."),
