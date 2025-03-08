@@ -2,12 +2,11 @@ use std::sync::Arc;
 
 use cookie::Cookie;
 use reqwest::{ClientBuilder, cookie::Jar};
-use secrecy::zeroize::Zeroize;
 use url::Url;
 
 use crate::errors::RError;
 
-pub trait HttpClientSecrecyDataTrait: Zeroize {
+pub trait HttpClientSecrecyDataTrait {
     fn attach_secrecy_to_client(&self, client_builder: ClientBuilder) -> ClientBuilder {
         client_builder
     }
@@ -34,13 +33,6 @@ impl HttpClientCookiesAuth {
             cookie_jar,
             user_agent,
         })
-    }
-}
-
-impl Zeroize for HttpClientCookiesAuth {
-    fn zeroize(&mut self) {
-        self.cookie_jar = Arc::new(Jar::default());
-        self.user_agent = None;
     }
 }
 

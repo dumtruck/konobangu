@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     errors::RResult,
     extract::{
         mikan::{
@@ -179,22 +179,22 @@ impl ActiveModel {
 
 impl Model {
     pub async fn add_subscription(
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         create_dto: SubscriptionCreateDto,
         subscriber_id: i32,
     ) -> RResult<Self> {
-        let db = &ctx.db;
+        let db = ctx.db();
         let subscription = ActiveModel::from_create_dto(create_dto, subscriber_id);
 
         Ok(subscription.insert(db).await?)
     }
 
     pub async fn toggle_with_ids(
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         ids: impl Iterator<Item = i32>,
         enabled: bool,
     ) -> RResult<()> {
-        let db = &ctx.db;
+        let db = ctx.db();
         Entity::update_many()
             .col_expr(Column::Enabled, Expr::value(enabled))
             .filter(Column::Id.is_in(ids))
@@ -203,8 +203,11 @@ impl Model {
         Ok(())
     }
 
-    pub async fn delete_with_ids(ctx: &AppContext, ids: impl Iterator<Item = i32>) -> RResult<()> {
-        let db = &ctx.db;
+    pub async fn delete_with_ids(
+        ctx: &dyn AppContextTrait,
+        ids: impl Iterator<Item = i32>,
+    ) -> RResult<()> {
+        let db = ctx.db();
         Entity::delete_many()
             .filter(Column::Id.is_in(ids))
             .exec(db)
@@ -212,16 +215,16 @@ impl Model {
         Ok(())
     }
 
-    pub async fn pull_subscription(&self, ctx: &AppContext) -> RResult<()> {
+    pub async fn pull_subscription(&self, ctx: &dyn AppContextTrait) -> RResult<()> {
         match &self.category {
             SubscriptionCategory::Mikan => {
-                let mikan_client = &ctx.mikan;
+                let mikan_client = ctx.mikan();
                 let channel =
                     extract_mikan_rss_channel_from_rss_link(mikan_client, &self.source_url).await?;
 
                 let items = channel.into_items();
 
-                let db = &ctx.db;
+                let db = ctx.db();
                 let items = items.into_iter().collect_vec();
 
                 let mut stmt = filter_values_in(
@@ -266,7 +269,7 @@ impl Model {
 
                 for ((mikan_bangumi_id, mikan_fansub_id), new_ep_metas) in new_mikan_bangumi_groups
                 {
-                    let mikan_base_url = ctx.mikan.base_url();
+                    let mikan_base_url = ctx.mikan().base_url();
                     let bgm_homepage = build_mikan_bangumi_homepage(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,

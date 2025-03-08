@@ -3,6 +3,7 @@ pub mod filter;
 pub mod guard;
 pub mod schema_root;
 pub mod service;
+pub mod subscriptions;
 pub mod util;
 
 pub use config::GraphQLConfig;

@@ -7,18 +7,21 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use crate::{app::AppContext, auth::AuthServiceTrait};
+use crate::{app::AppContextTrait, auth::AuthServiceTrait};
 
 pub async fn header_www_authenticate_middleware(
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<Arc<dyn AppContextTrait>>,
     request: Request,
     next: Next,
 ) -> Response {
-    let auth_service = &ctx.auth;
+    let auth_service = ctx.auth();
 
     let (mut parts, body) = request.into_parts();
 
-    let mut response = match auth_service.extract_user_info(&ctx, &mut parts).await {
+    let mut response = match auth_service
+        .extract_user_info(ctx.as_ref() as &dyn AppContextTrait, &mut parts)
+        .await
+    {
         Ok(auth_user_info) => {
             let mut request = Request::from_parts(parts, body);
             request.extensions_mut().insert(auth_user_info);

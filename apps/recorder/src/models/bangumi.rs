@@ -4,7 +4,7 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::O
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
-use crate::{app::AppContext, errors::RResult};
+use crate::{app::AppContextTrait, errors::RResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
@@ -113,7 +113,7 @@ pub enum RelatedEntity {
 
 impl Model {
     pub async fn get_or_insert_from_mikan<F>(
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         subscriber_id: i32,
         subscription_id: i32,
         mikan_bangumi_id: String,
@@ -123,7 +123,7 @@ impl Model {
     where
         F: AsyncFnOnce(&mut ActiveModel) -> RResult<()>,
     {
-        let db = &ctx.db;
+        let db = ctx.db();
         if let Some(existed) = Entity::find()
             .filter(
                 Column::MikanBangumiId

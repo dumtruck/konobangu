@@ -19,7 +19,7 @@
 // use sea_orm::ColumnTrait;
 // use sea_orm_migration::MigratorTrait;
 
-// async fn pull_mikan_bangumi_rss(ctx: &AppContext) -> RResult<()> {
+// async fn pull_mikan_bangumi_rss(ctx: &dyn AppContextTrait) -> RResult<()> {
 //     let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
 
 //     // let rss_link =
@@ -27,7 +27,7 @@
 //     let subscription = if let Some(subscription) =
 // subscriptions::Entity::find()
 //         .filter(subscriptions::Column::SourceUrl.eq(String::from(rss_link)))
-//         .one(&ctx.db)
+//         .one(ctx.db())
 //         .await?
 //     {
 //         subscription
@@ -55,7 +55,7 @@
 //     let BootResult {
 //         app_context: ctx, ..
 //     } = loco_rs::boot::run_app::<App1>(&StartMode::ServerOnly, ctx).await?;
-//     Migrator::up(&ctx.db, None).await?;
+//     Migrator::up(ctx.db(), None).await?;
 //     Ok(ctx)
 // }
 

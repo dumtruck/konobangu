@@ -2,6 +2,7 @@ use std::{borrow::Cow, error::Error as StdError};
 
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
+use serde::{Deserialize, Deserializer, Serialize};
 use thiserror::Error as ThisError;
 
 use crate::{auth::AuthError, fetch::HttpClientError};
@@ -110,6 +111,25 @@ impl IntoResponse for RError {
             Self::AuthError(auth_error) => auth_error.into_response(),
             err => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
         }
+    }
+}
+
+impl Serialize for RError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for RError {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(Self::CustomMessageString(s))
     }
 }
 

@@ -31,7 +31,7 @@ use tower::{Layer, Service};
 use tracing::error;
 
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     errors::{RError, RResult},
     web::middleware::MiddlewareLayer,
 };
@@ -123,7 +123,10 @@ impl MiddlewareLayer for RemoteIpMiddleware {
     }
 
     /// Applies the Remote IP middleware to the given Axum router.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(RemoteIPLayer::new(self)?))
     }
 }

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
 
 use crate::{
-    app::{AppContext, Environment},
+    app::{AppContextTrait, Environment},
     errors::RResult,
     web::middleware::{MiddlewareLayer, request_id::LocoRequestId},
 };
@@ -35,10 +35,10 @@ pub struct Middleware {
 /// Creates a new instance of [`Middleware`] by cloning the [`Config`]
 /// configuration.
 #[must_use]
-pub fn new(config: &Config, context: Arc<AppContext>) -> Middleware {
+pub fn new(config: &Config, context: Arc<dyn AppContextTrait>) -> Middleware {
     Middleware {
         config: config.clone(),
-        environment: context.environment.clone(),
+        environment: context.environment().clone(),
     }
 }
 
@@ -67,7 +67,10 @@ impl MiddlewareLayer for Middleware {
     /// The `TraceLayer` is customized with `make_span_with` to extract
     /// request-specific details like method, URI, version, user agent, and
     /// request ID, then create a tracing span for the request.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app
             .layer(
                 TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {

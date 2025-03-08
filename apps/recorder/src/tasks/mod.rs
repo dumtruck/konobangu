@@ -1,2 +1,4 @@
 pub mod core;
-pub mod create_mikan_bangumi_subscriptions_from_my_bangumi_page;
+pub mod mikan;
+pub mod service;
+pub mod registry;

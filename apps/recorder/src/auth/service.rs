@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use async_trait::async_trait;
 use axum::{
@@ -17,7 +17,7 @@ use super::{
     oidc::{OidcAuthClaims, OidcAuthService},
 };
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     fetch::{
         HttpClient, HttpClientConfig,
         client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
@@ -31,17 +31,17 @@ pub struct AuthUserInfo {
     pub auth_type: AuthType,
 }
 
-impl FromRequestParts<AppContext> for AuthUserInfo {
+impl FromRequestParts<Arc<dyn AppContextTrait>> for AuthUserInfo {
     type Rejection = Response;
 
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &AppContext,
+        state: &Arc<dyn AppContextTrait>,
     ) -> Result<Self, Self::Rejection> {
-        let auth_service = &state.auth;
+        let auth_service = state.auth();
 
         auth_service
-            .extract_user_info(state, parts)
+            .extract_user_info(state.as_ref(), parts)
             .await
             .map_err(|err| err.into_response())
     }
@@ -51,7 +51,7 @@ impl FromRequestParts<AppContext> for AuthUserInfo {
 pub trait AuthServiceTrait {
     async fn extract_user_info(
         &self,
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError>;
     fn www_authenticate_header_value(&self) -> Option<HeaderValue>;
@@ -104,7 +104,7 @@ impl AuthService {
 impl AuthServiceTrait for AuthService {
     async fn extract_user_info(
         &self,
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError> {
         match self {

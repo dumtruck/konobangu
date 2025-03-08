@@ -5,17 +5,30 @@ use crate::{
     storage::StorageService,
 };
 
+pub trait AppContextTrait: Send + Sync {
+    fn logger(&self) -> &LoggerService;
+    fn db(&self) -> &DatabaseService;
+    fn config(&self) -> &AppConfig;
+    fn cache(&self) -> &CacheService;
+    fn mikan(&self) -> &MikanClient;
+    fn auth(&self) -> &AuthService;
+    fn graphql(&self) -> &GraphQLService;
+    fn storage(&self) -> &StorageService;
+    fn working_dir(&self) -> &String;
+    fn environment(&self) -> &Environment;
+}
+
 pub struct AppContext {
-    pub logger: LoggerService,
-    pub db: DatabaseService,
-    pub config: AppConfig,
-    pub cache: CacheService,
-    pub mikan: MikanClient,
-    pub auth: AuthService,
-    pub graphql: GraphQLService,
-    pub storage: StorageService,
-    pub working_dir: String,
-    pub environment: Environment,
+    logger: LoggerService,
+    db: DatabaseService,
+    config: AppConfig,
+    cache: CacheService,
+    mikan: MikanClient,
+    auth: AuthService,
+    graphql: GraphQLService,
+    storage: StorageService,
+    working_dir: String,
+    environment: Environment,
 }
 
 impl AppContext {
@@ -46,5 +59,37 @@ impl AppContext {
             working_dir: working_dir.to_string(),
             graphql,
         })
+    }
+}
+impl AppContextTrait for AppContext {
+    fn logger(&self) -> &LoggerService {
+        &self.logger
+    }
+    fn db(&self) -> &DatabaseService {
+        &self.db
+    }
+    fn config(&self) -> &AppConfig {
+        &self.config
+    }
+    fn cache(&self) -> &CacheService {
+        &self.cache
+    }
+    fn mikan(&self) -> &MikanClient {
+        &self.mikan
+    }
+    fn auth(&self) -> &AuthService {
+        &self.auth
+    }
+    fn graphql(&self) -> &GraphQLService {
+        &self.graphql
+    }
+    fn storage(&self) -> &StorageService {
+        &self.storage
+    }
+    fn working_dir(&self) -> &String {
+        &self.working_dir
+    }
+    fn environment(&self) -> &Environment {
+        &self.environment
     }
 }

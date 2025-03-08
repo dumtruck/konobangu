@@ -9,7 +9,7 @@ use axum::{
 
 use super::core::Controller;
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     auth::{
         AuthError, AuthService, AuthServiceTrait,
         oidc::{OidcAuthCallbackPayload, OidcAuthCallbackQuery, OidcAuthRequest},
@@ -22,10 +22,10 @@ use crate::{
 pub const CONTROLLER_PREFIX: &str = "/api/oidc";
 
 async fn oidc_callback(
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<Arc<dyn AppContextTrait>>,
     Query(query): Query<OidcAuthCallbackQuery>,
 ) -> Result<Json<OidcAuthCallbackPayload>, AuthError> {
-    let auth_service = &ctx.auth;
+    let auth_service = ctx.auth();
     if let AuthService::Oidc(oidc_auth_service) = auth_service {
         let response = oidc_auth_service
             .extract_authorization_request_callback(query)
@@ -40,10 +40,10 @@ async fn oidc_callback(
 }
 
 async fn oidc_auth(
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<Arc<dyn AppContextTrait>>,
     parts: Parts,
 ) -> Result<Json<OidcAuthRequest>, AuthError> {
-    let auth_service = &ctx.auth;
+    let auth_service = ctx.auth();
     if let AuthService::Oidc(oidc_auth_service) = auth_service {
         let mut redirect_uri = ForwardedRelatedInfo::from_request_parts(&parts)
             .resolved_origin()
@@ -70,8 +70,8 @@ async fn oidc_auth(
     }
 }
 
-pub async fn create(_context: Arc<AppContext>) -> RResult<Controller> {
-    let router = Router::<Arc<AppContext>>::new()
+pub async fn create(_context: Arc<dyn AppContextTrait>) -> RResult<Controller> {
+    let router = Router::<Arc<dyn AppContextTrait>>::new()
         .route("/auth", get(oidc_auth))
         .route("/callback", get(oidc_callback));
 

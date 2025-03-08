@@ -14,7 +14,7 @@ use std::sync::Arc;
 use axum::Router;
 use serde::{Deserialize, Serialize};
 
-use crate::{app::AppContext, errors::RResult};
+use crate::{app::AppContextTrait, errors::RResult};
 
 /// Trait representing the behavior of middleware components in the application.
 /// When implementing a new middleware, make sure to go over this checklist:
@@ -52,14 +52,17 @@ pub trait MiddlewareLayer {
     /// # Errors
     ///
     /// If there is an issue when adding the middleware to the router.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>>;
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>>;
 }
 
 #[allow(clippy::unnecessary_lazy_evaluations)]
 #[must_use]
-pub fn default_middleware_stack(ctx: Arc<AppContext>) -> Vec<Box<dyn MiddlewareLayer>> {
+pub fn default_middleware_stack(ctx: Arc<dyn AppContextTrait>) -> Vec<Box<dyn MiddlewareLayer>> {
     // Shortened reference to middlewares
-    let middlewares = &ctx.config.server.middlewares;
+    let middlewares = &ctx.config().server.middlewares;
 
     vec![
         // CORS middleware with a default if none

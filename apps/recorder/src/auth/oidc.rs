@@ -23,7 +23,7 @@ use super::{
     errors::AuthError,
     service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::{app::AppContext, errors::RError, fetch::HttpClient, models::auth::AuthType};
+use crate::{app::AppContextTrait, errors::RError, fetch::HttpClient, models::auth::AuthType};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OidcAuthClaims {
@@ -261,7 +261,7 @@ impl OidcAuthService {
 impl AuthServiceTrait for OidcAuthService {
     async fn extract_user_info(
         &self,
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError> {
         let config = &self.config;

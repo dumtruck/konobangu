@@ -4,7 +4,7 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, TransactionTrait, entity::prelud
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     errors::{RError, RResult},
 };
 
@@ -95,13 +95,13 @@ pub struct SubscriberIdParams {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_seed_subscriber_id(ctx: &AppContext) -> RResult<i32> {
+    pub async fn find_seed_subscriber_id(ctx: &dyn AppContextTrait) -> RResult<i32> {
         let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER).await?;
         Ok(subscriber_auth.subscriber_id)
     }
 
-    pub async fn find_by_id(ctx: &AppContext, id: i32) -> RResult<Self> {
-        let db = &ctx.db;
+    pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RResult<Self> {
+        let db = ctx.db();
 
         let subscriber = Entity::find_by_id(id)
             .one(db)
@@ -110,8 +110,8 @@ impl Model {
         Ok(subscriber)
     }
 
-    pub async fn create_root(ctx: &AppContext) -> RResult<Self> {
-        let db = &ctx.db;
+    pub async fn create_root(ctx: &dyn AppContextTrait) -> RResult<Self> {
+        let db = ctx.db();
         let txn = db.begin().await?;
 
         let user = ActiveModel {

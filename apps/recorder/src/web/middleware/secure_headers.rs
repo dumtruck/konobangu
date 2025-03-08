@@ -21,7 +21,7 @@ use serde_json::{self, json};
 use tower::{Layer, Service};
 
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     web::middleware::MiddlewareLayer,
     errors::{RError, RResult},
 };
@@ -115,7 +115,7 @@ impl MiddlewareLayer for SecureHeader {
     }
 
     /// Applies the secure headers layer to the application router
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(&self, app: Router<Arc<dyn AppContextTrait>>) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(SecureHeaders::new(self)?))
     }
 }

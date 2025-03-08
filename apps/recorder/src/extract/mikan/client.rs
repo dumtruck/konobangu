@@ -1,7 +1,7 @@
-use std::ops::Deref;
+use std::{fmt::Debug, ops::Deref};
 
 use reqwest_middleware::ClientWithMiddleware;
-use secrecy::{ExposeSecret, SecretString};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::MikanConfig;
@@ -10,15 +10,24 @@ use crate::{
     fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth},
 };
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone, Deserialize, Serialize)]
 pub struct MikanAuthSecrecy {
-    pub cookie: SecretString,
+    pub cookie: String,
     pub user_agent: Option<String>,
+}
+
+impl Debug for MikanAuthSecrecy {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MikanAuthSecrecy")
+            .field("cookie", &String::from("[secrecy]"))
+            .field("user_agent", &String::from("[secrecy]"))
+            .finish()
+    }
 }
 
 impl MikanAuthSecrecy {
     pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RError> {
-        HttpClientCookiesAuth::from_cookies(self.cookie.expose_secret(), url, self.user_agent)
+        HttpClientCookiesAuth::from_cookies(&self.cookie, url, self.user_agent)
     }
 }
 
@@ -38,9 +47,13 @@ impl MikanClient {
         })
     }
 
-    pub fn fork_with_auth(&self, secrecy: MikanAuthSecrecy) -> Result<Self, RError> {
-        let cookie_auth = secrecy.into_cookie_auth(&self.base_url)?;
-        let fork = self.http_client.fork().attach_secrecy(cookie_auth);
+    pub fn fork_with_auth(&self, secrecy: Option<MikanAuthSecrecy>) -> Result<Self, RError> {
+        let mut fork = self.http_client.fork();
+
+        if let Some(secrecy) = secrecy {
+            let cookie_auth = secrecy.into_cookie_auth(&self.base_url)?;
+            fork = fork.attach_secrecy(cookie_auth);
+        }
 
         Ok(Self {
             http_client: HttpClient::from_fork(fork)?,

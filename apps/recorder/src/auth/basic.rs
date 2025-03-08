@@ -9,7 +9,7 @@ use super::{
     service::{AuthServiceTrait, AuthUserInfo},
 };
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     models::{auth::AuthType, subscribers::SEED_SUBSCRIBER},
 };
 
@@ -64,7 +64,7 @@ pub struct BasicAuthService {
 impl AuthServiceTrait for BasicAuthService {
     async fn extract_user_info(
         &self,
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError> {
         if let Ok(AuthBasic {

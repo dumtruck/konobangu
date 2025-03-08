@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::timeout::TimeoutLayer;
 
-use crate::{app::AppContext, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
 
 /// Timeout middleware configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -58,7 +58,10 @@ impl MiddlewareLayer for TimeOut {
     /// This method wraps the provided [`AXRouter`] in a [`TimeoutLayer`],
     /// ensuring that requests exceeding the specified timeout duration will
     /// be interrupted.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(TimeoutLayer::new(Duration::from_millis(self.timeout))))
     }
 }

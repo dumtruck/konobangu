@@ -121,7 +121,6 @@ http-cache = { version = "0.20.0", features = [
 http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
 nom = "8.0.0"
-secrecy = { version = "0.10.3", features = ["serde"] }
 http = "1.2.0"
 cookie = "0.18.1"
 async-stream = "0.3.6"
@@ -130,6 +129,10 @@ tracing-appender = "0.2.3"
 clap = "4.5.31"
 futures-util = "0.3.31"
 ipnetwork = "0.21.1"
+kanal = "0.1.0-pre8"
+append-only-vec = "0.1.7"
+typed-builder = "0.20.0"
+ctor = "0.4.0"
 
 [dev-dependencies]
 serial_test = "3"

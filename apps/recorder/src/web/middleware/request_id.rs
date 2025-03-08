@@ -11,7 +11,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{web::middleware::MiddlewareLayer, app::AppContext, errors::RResult};
+use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
 
 const X_REQUEST_ID: &str = "x-request-id";
 const MAX_LEN: usize = 255;
@@ -52,7 +52,10 @@ impl MiddlewareLayer for RequestId {
     ///
     /// # Errors
     /// This function returns an error if the middleware cannot be applied.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(axum::middleware::from_fn(request_id_middleware)))
     }
 }

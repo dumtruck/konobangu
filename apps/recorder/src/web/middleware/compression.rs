@@ -11,7 +11,7 @@ use axum::Router;
 use serde::{Deserialize, Serialize};
 use tower_http::compression::CompressionLayer;
 
-use crate::{app::AppContext, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Compression {
@@ -35,7 +35,10 @@ impl MiddlewareLayer for Compression {
     }
 
     /// Applies the Compression middleware layer to the Axum router.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(CompressionLayer::new()))
     }
 }

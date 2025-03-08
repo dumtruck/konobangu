@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     errors::RResult,
     extract::{
         mikan::{MikanEpisodeMeta, build_mikan_episode_homepage},
@@ -136,12 +136,12 @@ pub struct MikanEpsiodeCreation {
 
 impl Model {
     pub async fn add_episodes(
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         subscriber_id: i32,
         subscription_id: i32,
         creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
     ) -> RResult<()> {
-        let db = &ctx.db;
+        let db = ctx.db();
         let new_episode_active_modes = creations
             .into_iter()
             .map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr))
@@ -189,7 +189,7 @@ impl Model {
 
 impl ActiveModel {
     pub fn from_mikan_episode_meta(
-        ctx: &AppContext,
+        ctx: &dyn AppContextTrait,
         creation: MikanEpsiodeCreation,
     ) -> color_eyre::eyre::Result<Self> {
         let item = creation.episode;
@@ -201,7 +201,7 @@ impl ActiveModel {
             .ok()
             .unwrap_or_default();
         let homepage =
-            build_mikan_episode_homepage(ctx.mikan.base_url().clone(), &item.mikan_episode_id);
+            build_mikan_episode_homepage(ctx.mikan().base_url().clone(), &item.mikan_episode_id);
 
         Ok(Self {
             mikan_episode_id: ActiveValue::Set(Some(item.mikan_episode_id)),

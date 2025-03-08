@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::subscribers::{self, SEED_SUBSCRIBER};
 use crate::{
-    app::AppContext,
+    app::AppContextTrait,
     errors::{RError, RResult},
 };
 
@@ -57,8 +57,8 @@ impl Related<super::subscribers::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_by_pid(ctx: &AppContext, pid: &str) -> RResult<Self> {
-        let db = &ctx.db;
+    pub async fn find_by_pid(ctx: &dyn AppContextTrait, pid: &str) -> RResult<Self> {
+        let db = ctx.db();
         let subscriber_auth = Entity::find()
             .filter(Column::Pid.eq(pid))
             .one(db)
@@ -67,8 +67,8 @@ impl Model {
         Ok(subscriber_auth)
     }
 
-    pub async fn create_from_oidc(ctx: &AppContext, sub: String) -> RResult<Self> {
-        let db = &ctx.db;
+    pub async fn create_from_oidc(ctx: &dyn AppContextTrait, sub: String) -> RResult<Self> {
+        let db = ctx.db();
 
         let txn = db.begin().await?;
 

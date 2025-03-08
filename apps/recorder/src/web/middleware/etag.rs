@@ -25,7 +25,7 @@ use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use tower::{Layer, Service};
 
-use crate::{app::AppContext, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Etag {
@@ -49,7 +49,10 @@ impl MiddlewareLayer for Etag {
     }
 
     /// Applies the `ETag` middleware to the application router.
-    fn apply(&self, app: Router<Arc<AppContext>>) -> RResult<Router<Arc<AppContext>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(EtagLayer))
     }
 }

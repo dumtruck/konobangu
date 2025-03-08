@@ -4,7 +4,7 @@ use axum::Router;
 use futures::try_join;
 use tokio::signal;
 
-use super::{builder::AppBuilder, context::AppContext};
+use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
     errors::RResult,
     web::{
@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub struct App {
-    pub context: Arc<AppContext>,
+    pub context: Arc<dyn AppContextTrait>,
     pub builder: AppBuilder,
 }
 
@@ -25,14 +25,14 @@ impl App {
 
     pub async fn serve(&self) -> RResult<()> {
         let context = &self.context;
-        let config = &context.config;
+        let config = context.config();
         let listener = tokio::net::TcpListener::bind(&format!(
             "{}:{}",
             config.server.binding, config.server.port
         ))
         .await?;
 
-        let mut router = Router::<Arc<AppContext>>::new();
+        let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 
         let (graphqlc, oidcc) = try_join!(
             controller::graphql::create(context.clone()),
