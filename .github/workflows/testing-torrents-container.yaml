@@ -1,4 +1,4 @@
-name: Build and Push Testing Torrents Container
+name: Testing Torrents Container
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: 'packages/testing-torrents'
-          file: './Dockerfile'
+          file: 'packages/testing-torrents/Dockerfile'
           push: true
           tags: 'ghcr.io/${{ env.ORG }}/${{ env.PROJECT }}-testing-torrents:latest'
           cache-from: type=gha
