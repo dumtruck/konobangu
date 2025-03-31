@@ -1,11 +1,12 @@
 pub mod core;
 pub mod error;
 pub mod qbit;
-mod utils;
+pub mod rqbit;
+pub mod utils;
 
 pub use core::{
-    Torrent, TorrentContent, TorrentDownloader, TorrentFilter, TorrentSource, BITTORRENT_MIME_TYPE,
-    MAGNET_SCHEMA,
+    BITTORRENT_MIME_TYPE, MAGNET_SCHEMA, Torrent, TorrentContent, TorrentDownloader, TorrentFilter,
+    TorrentSource,
 };
 
 pub use error::TorrentDownloadError;

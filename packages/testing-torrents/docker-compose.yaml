@@ -1,0 +1,5 @@
+services:
+  konobangu-testing-torrents:
+    build: .
+    network_mode: host
+    container_name: konobangu-testing-torrents

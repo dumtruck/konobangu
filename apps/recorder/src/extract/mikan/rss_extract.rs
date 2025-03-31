@@ -8,13 +8,13 @@ use tracing::instrument;
 use url::Url;
 
 use crate::{
+    download::core::BITTORRENT_MIME_TYPE,
     errors::{RError, RResult},
     extract::mikan::{
         MikanClient,
         web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
     },
     fetch::bytes::fetch_bytes,
-    sync::core::BITTORRENT_MIME_TYPE,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -339,11 +339,11 @@ mod tests {
     use url::Url;
 
     use crate::{
+        download::core::BITTORRENT_MIME_TYPE,
         extract::mikan::{
             MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
             extract_mikan_rss_channel_from_rss_link,
         },
-        sync::core::BITTORRENT_MIME_TYPE,
         test_utils::mikan::build_testing_mikan_client,
     };
 
