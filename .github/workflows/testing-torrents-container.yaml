@@ -11,6 +11,9 @@ env:
 jobs:
   build-container:
     runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,6 +31,6 @@ jobs:
           context: 'packages/testing-torrents'
           file: 'packages/testing-torrents/Dockerfile'
           push: true
-          tags: 'ghcr.io/${{ env.ORG }}/${{ env.PROJECT }}-testing-torrents:latest'
+          tags: '${{ env.REGISTRY }}/${{ env.ORG }}/${{ env.PROJECT }}-testing-torrents:latest'
           cache-from: type=gha
           cache-to: type=gha,mode=max
