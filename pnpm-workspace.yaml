@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - apps/*
+  - '!packages/testing-torrents'
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - bufferutil

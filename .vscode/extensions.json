@@ -5,7 +5,6 @@
     "unifiedjs.vscode-mdx",
     "mikestead.dotenv",
     "christian-kohler.npm-intellisense",
-    "skellock.just",
-    "charliermarsh.ruff"
+    "skellock.just"
   ]
 }

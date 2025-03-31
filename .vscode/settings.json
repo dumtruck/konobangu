@@ -28,8 +28,5 @@
   "emmet.showExpandedAbbreviation": "never",
   "prettier.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "rust-analyzer.cargo.features": ["testcontainers"],
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff" 
-  }
+  "rust-analyzer.cargo.features": ["testcontainers"]
 }

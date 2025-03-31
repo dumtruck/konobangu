@@ -10,7 +10,9 @@
         "noNonNullAssertion": "off"
       },
       "suspicious": {
-        "noExplicitAny": "off"
+        "noExplicitAny": "off",
+        "noConsole": "off",
+        "noConsoleLog": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
@@ -27,14 +29,6 @@
     }
   },
   "files": {
-    "ignore": [
-      "packages/design-system/components/ui/**",
-      "packages/design-system/lib/**",
-      "packages/design-system/hooks/**",
-      "packages/collaboration/config.ts",
-      "apps/docs/**/*.json",
-      "apps/email/.react-email/**",
-      ".vscode/*.json"
-    ]
+    "ignore": [".vscode/*.json"]
   }
 }

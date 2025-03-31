@@ -3,6 +3,11 @@ name: Build and Push Testing Torrents Container
 on:
   workflow_dispatch:
 
+env:
+    REGISTRY: ghcr.io
+    ORG: dumtruck
+    PROJECT: konobangu
+
 jobs:
   build-container:
     runs-on: ubuntu-latest
@@ -18,11 +23,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push Docker image
-              uses: docker/build-push-action@v5
-              with:
-                context: 'packages/testing-torrents'
-                file: './Dockerfile'
-                push: true
-                tags: 'ghcr.io/${{ env.ORG }}/konobangu-testing-torrents:latest'
-                cache-from: type=gha
-                cache-to: type=gha,mode=max
+        uses: docker/build-push-action@v5
+        with:
+          context: 'packages/testing-torrents'
+          file: './Dockerfile'
+          push: true
+          tags: 'ghcr.io/${{ env.ORG }}/${{ env.PROJECT }}-testing-torrents:latest'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
