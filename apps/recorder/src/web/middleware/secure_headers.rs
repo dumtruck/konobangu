@@ -18,13 +18,10 @@ use axum::{
 use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use serde_json::{self, json};
+use snafu::whatever;
 use tower::{Layer, Service};
 
-use crate::{
-    app::AppContextTrait,
-    web::middleware::MiddlewareLayer,
-    errors::{RError, RResult},
-};
+use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
 
 static PRESETS: OnceLock<HashMap<String, BTreeMap<String, String>>> = OnceLock::new();
 fn get_presets() -> &'static HashMap<String, BTreeMap<String, String>> {
@@ -115,7 +112,10 @@ impl MiddlewareLayer for SecureHeader {
     }
 
     /// Applies the secure headers layer to the application router
-    fn apply(&self, app: Router<Arc<dyn AppContextTrait>>) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(SecureHeaders::new(self)?))
     }
 }
@@ -128,17 +128,15 @@ impl SecureHeader {
         let mut headers = vec![];
 
         let preset = &self.preset;
-        let p = get_presets().get(preset).ok_or_else(|| {
-            RError::CustomMessageString(format!(
-                "secure_headers: a preset named `{preset}` does not exist"
-            ))
-        })?;
-
-        Self::push_headers(&mut headers, p)?;
-        if let Some(overrides) = &self.overrides {
-            Self::push_headers(&mut headers, overrides)?;
+        if let Some(p) = get_presets().get(preset) {
+            Self::push_headers(&mut headers, p)?;
+            if let Some(overrides) = &self.overrides {
+                Self::push_headers(&mut headers, overrides)?;
+            }
+            Ok(headers)
+        } else {
+            whatever!("secure_headers: a preset named `{preset}` does not exist")
         }
-        Ok(headers)
     }
 
     /// Helper function to push headers into a mutable vector.

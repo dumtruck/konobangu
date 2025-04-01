@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use snafu::prelude::*;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     EnvFilter, Layer, Registry,
@@ -9,7 +10,7 @@ use tracing_subscriber::{
 };
 
 use super::{LogFormat, LogLevel, LogRotation, LoggerConfig};
-use crate::errors::{RError, RResult};
+use crate::errors::RResult;
 
 // Function to initialize the logger based on the provided configuration
 const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sqlx::query", "sidekiq"];
@@ -119,9 +120,9 @@ impl LoggerService {
                 let file_appender_layer = if file_appender_config.non_blocking {
                     let (non_blocking_file_appender, work_guard) =
                         tracing_appender::non_blocking(file_appender);
-                    NONBLOCKING_WORK_GUARD_KEEP
-                        .set(work_guard)
-                        .map_err(|_| RError::CustomMessageStr("cannot lock for appender"))?;
+                    if NONBLOCKING_WORK_GUARD_KEEP.set(work_guard).is_err() {
+                        whatever!("cannot lock for appender");
+                    };
                     Self::init_layer(
                         non_blocking_file_appender,
                         &file_appender_config.format,

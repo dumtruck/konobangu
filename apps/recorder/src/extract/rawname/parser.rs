@@ -7,8 +7,12 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use snafu::whatever;
 
-use crate::extract::defs::{DIGIT_1PLUS_REG, ZH_NUM_MAP, ZH_NUM_RE};
+use crate::{
+    errors::RResult,
+    extract::defs::{DIGIT_1PLUS_REG, ZH_NUM_MAP, ZH_NUM_RE},
+};
 
 const NAME_EXTRACT_REPLACE_ADHOC1_REPLACED: &str = "$1/$2";
 
@@ -71,10 +75,7 @@ fn replace_ch_bracket_to_en(raw_name: &str) -> String {
     raw_name.replace('【', "[").replace('】', "]")
 }
 
-fn title_body_pre_process(
-    title_body: &str,
-    fansub: Option<&str>,
-) -> color_eyre::eyre::Result<String> {
+fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> RResult<String> {
     let raw_without_fansub = if let Some(fansub) = fansub {
         let fan_sub_re = Regex::new(&format!(".{fansub}."))?;
         fan_sub_re.replace_all(title_body, "")
@@ -262,7 +263,7 @@ pub fn check_is_movie(title: &str) -> bool {
     MOVIE_TITLE_RE.is_match(title)
 }
 
-pub fn parse_episode_meta_from_raw_name(s: &str) -> color_eyre::eyre::Result<RawEpisodeMeta> {
+pub fn parse_episode_meta_from_raw_name(s: &str) -> RResult<RawEpisodeMeta> {
     let raw_title = s.trim();
     let raw_title_without_ch_brackets = replace_ch_bracket_to_en(raw_title);
     let fansub = extract_fansub(&raw_title_without_ch_brackets);
@@ -315,10 +316,7 @@ pub fn parse_episode_meta_from_raw_name(s: &str) -> color_eyre::eyre::Result<Raw
             resolution,
         })
     } else {
-        Err(color_eyre::eyre::eyre!(
-            "Can not parse episode meta from raw filename {}",
-            raw_title
-        ))
+        whatever!("Can not parse episode meta from raw filename {}", raw_title)
     }
 }
 

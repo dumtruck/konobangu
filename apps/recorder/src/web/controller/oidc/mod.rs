@@ -6,12 +6,14 @@ use axum::{
     http::request::Parts,
     routing::get,
 };
+use snafu::prelude::*;
 
 use super::core::Controller;
 use crate::{
     app::AppContextTrait,
     auth::{
         AuthError, AuthService, AuthServiceTrait,
+        errors::OidcRequestRedirectUriSnafu,
         oidc::{OidcAuthCallbackPayload, OidcAuthCallbackQuery, OidcAuthRequest},
     },
     errors::RResult,
@@ -47,7 +49,8 @@ async fn oidc_auth(
     if let AuthService::Oidc(oidc_auth_service) = auth_service {
         let mut redirect_uri = ForwardedRelatedInfo::from_request_parts(&parts)
             .resolved_origin()
-            .ok_or_else(|| AuthError::OidcRequestRedirectUriError(url::ParseError::EmptyHost))?;
+            .ok_or(url::ParseError::EmptyHost)
+            .context(OidcRequestRedirectUriSnafu)?;
 
         redirect_uri.set_path(&format!("{CONTROLLER_PREFIX}/callback"));
 

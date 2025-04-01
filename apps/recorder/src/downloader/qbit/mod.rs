@@ -3,7 +3,6 @@ use std::{
 };
 
 use async_trait::async_trait;
-use color_eyre::eyre::OptionExt;
 use futures::future::try_join_all;
 pub use qbit_rs::model::{
     Torrent as QbitTorrent, TorrentContent as QbitTorrentContent, TorrentFile as QbitTorrentFile,
@@ -14,12 +13,13 @@ use qbit_rs::{
     model::{AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, SyncData},
 };
 use quirks_path::{Path, PathBuf};
+use snafu::prelude::*;
 use tokio::time::sleep;
 use tracing::instrument;
 use url::Url;
 
 use super::{
-    Torrent, TorrentDownloadError, TorrentDownloader, TorrentFilter, TorrentSource,
+    DownloaderError, Torrent, TorrentDownloader, TorrentFilter, TorrentSource,
     utils::path_equals_as_file_url,
 };
 
@@ -83,18 +83,14 @@ pub struct QBittorrentDownloader {
 impl QBittorrentDownloader {
     pub async fn from_creation(
         creation: QBittorrentDownloaderCreation,
-    ) -> Result<Self, TorrentDownloadError> {
-        let endpoint_url =
-            Url::parse(&creation.endpoint).map_err(TorrentDownloadError::InvalidUrlParse)?;
+    ) -> Result<Self, DownloaderError> {
+        let endpoint_url = Url::parse(&creation.endpoint)?;
 
         let credential = Credential::new(creation.username, creation.password);
 
         let client = Qbit::new(endpoint_url.clone(), credential);
 
-        client
-            .login(false)
-            .await
-            .map_err(TorrentDownloadError::QBitAPIError)?;
+        client.login(false).await?;
 
         client.sync(None).await?;
 
@@ -108,7 +104,7 @@ impl QBittorrentDownloader {
     }
 
     #[instrument(level = "debug")]
-    pub async fn api_version(&self) -> color_eyre::eyre::Result<String> {
+    pub async fn api_version(&self) -> Result<String, DownloaderError> {
         let result = self.client.get_webapi_version().await?;
         Ok(result)
     }
@@ -119,11 +115,11 @@ impl QBittorrentDownloader {
         fetch_data_fn: G,
         mut stop_wait_fn: F,
         timeout: Option<Duration>,
-    ) -> color_eyre::eyre::Result<()>
+    ) -> Result<(), DownloaderError>
     where
         H: FnOnce() -> E,
         G: Fn(Arc<Qbit>, E) -> Fut,
-        Fut: Future<Output = color_eyre::eyre::Result<D>>,
+        Fut: Future<Output = Result<D, DownloaderError>>,
         F: FnMut(&D) -> bool,
         E: Clone,
         D: Debug + serde::Serialize,
@@ -142,11 +138,10 @@ impl QBittorrentDownloader {
                     break;
                 } else {
                     tracing::warn!(name = "wait_until timeout", sync_data = serde_json::to_string(&sync_data).unwrap(), timeout = ?timeout);
-                    return Err(TorrentDownloadError::TimeoutError {
+                    return Err(DownloaderError::DownloadTimeoutError {
                         action: Cow::Borrowed("QBittorrentDownloader::wait_unit"),
                         timeout,
-                    }
-                    .into());
+                    });
                 }
             }
             let sync_data = fetch_data_fn(self.client.clone(), env.clone()).await?;
@@ -164,7 +159,7 @@ impl QBittorrentDownloader {
         arg: GetTorrentListArg,
         stop_wait_fn: F,
         timeout: Option<Duration>,
-    ) -> color_eyre::eyre::Result<()>
+    ) -> Result<(), DownloaderError>
     where
         F: FnMut(&Vec<QbitTorrent>) -> bool,
     {
@@ -172,7 +167,7 @@ impl QBittorrentDownloader {
             || arg,
             async move |client: Arc<Qbit>,
                         arg: GetTorrentListArg|
-                        -> color_eyre::eyre::Result<Vec<QbitTorrent>> {
+                        -> Result<Vec<QbitTorrent>, DownloaderError> {
                 let data = client.get_torrent_list(arg).await?;
                 Ok(data)
             },
@@ -187,10 +182,10 @@ impl QBittorrentDownloader {
         &self,
         stop_wait_fn: F,
         timeout: Option<Duration>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         self.wait_until(
             || (),
-            async move |client: Arc<Qbit>, _| -> color_eyre::eyre::Result<SyncData> {
+            async move |client: Arc<Qbit>, _| -> Result<SyncData, DownloaderError> {
                 let data = client.sync(None).await?;
                 Ok(data)
             },
@@ -206,12 +201,12 @@ impl QBittorrentDownloader {
         hash: &str,
         stop_wait_fn: F,
         timeout: Option<Duration>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         self.wait_until(
             || Arc::new(hash.to_string()),
             async move |client: Arc<Qbit>,
                         hash_arc: Arc<String>|
-                        -> color_eyre::eyre::Result<Vec<QbitTorrentContent>> {
+                        -> Result<Vec<QbitTorrentContent>, DownloaderError> {
                 let data = client.get_torrent_contents(hash_arc.as_str(), None).await?;
                 Ok(data)
             },
@@ -230,7 +225,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         status_filter: TorrentFilter,
         category: Option<String>,
         tag: Option<String>,
-    ) -> color_eyre::eyre::Result<Vec<Torrent>> {
+    ) -> Result<Vec<Torrent>, DownloaderError> {
         let arg = GetTorrentListArg {
             filter: Some(status_filter.into()),
             category,
@@ -259,7 +254,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         source: TorrentSource,
         save_path: String,
         category: Option<&str>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         let arg = AddTorrentArg {
             source: source.clone().into(),
             savepath: Some(save_path),
@@ -293,7 +288,7 @@ impl TorrentDownloader for QBittorrentDownloader {
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn delete_torrents(&self, hashes: Vec<String>) -> color_eyre::eyre::Result<()> {
+    async fn delete_torrents(&self, hashes: Vec<String>) -> Result<(), DownloaderError> {
         self.client
             .delete_torrents(hashes.clone(), Some(true))
             .await?;
@@ -314,7 +309,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         hash: &str,
         old_path: &str,
         new_path: &str,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         self.client.rename_file(hash, old_path, new_path).await?;
         let new_path = self.save_path.join(new_path);
         let save_path = self.save_path.as_path();
@@ -340,7 +335,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         &self,
         hashes: Vec<String>,
         new_path: &str,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         self.client
             .set_torrent_location(hashes.clone(), new_path)
             .await?;
@@ -364,7 +359,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
-    async fn get_torrent_path(&self, hashes: String) -> color_eyre::eyre::Result<Option<String>> {
+    async fn get_torrent_path(&self, hashes: String) -> Result<Option<String>, DownloaderError> {
         let mut torrent_list = self
             .client
             .get_torrent_list(GetTorrentListArg {
@@ -372,12 +367,14 @@ impl TorrentDownloader for QBittorrentDownloader {
                 ..Default::default()
             })
             .await?;
-        let torrent = torrent_list.first_mut().ok_or_eyre("No torrent found")?;
+        let torrent = torrent_list
+            .first_mut()
+            .whatever_context::<_, DownloaderError>("No torrent found")?;
         Ok(torrent.save_path.take())
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn check_connection(&self) -> color_eyre::eyre::Result<()> {
+    async fn check_connection(&self) -> Result<(), DownloaderError> {
         self.api_version().await?;
         Ok(())
     }
@@ -387,7 +384,7 @@ impl TorrentDownloader for QBittorrentDownloader {
         &self,
         hashes: Vec<String>,
         category: &str,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         let result = self
             .client
             .set_torrent_category(hashes.clone(), category)
@@ -420,9 +417,9 @@ impl TorrentDownloader for QBittorrentDownloader {
         &self,
         hashes: Vec<String>,
         tags: Vec<String>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> Result<(), DownloaderError> {
         if tags.is_empty() {
-            return Err(color_eyre::eyre::eyre!("add torrent tags can not be empty"));
+            whatever!("add torrent tags can not be empty");
         }
         self.client
             .add_torrent_tags(hashes.clone(), tags.clone())
@@ -450,10 +447,11 @@ impl TorrentDownloader for QBittorrentDownloader {
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn add_category(&self, category: &str) -> color_eyre::eyre::Result<()> {
+    async fn add_category(&self, category: &str) -> Result<(), DownloaderError> {
         self.client
             .add_category(
-                NonEmptyStr::new(category).ok_or_eyre("category can not be empty")?,
+                NonEmptyStr::new(category)
+                    .whatever_context::<_, DownloaderError>("category can not be empty")?,
                 self.save_path.as_str(),
             )
             .await?;
@@ -490,7 +488,7 @@ pub mod tests {
     use itertools::Itertools;
 
     use super::*;
-    use crate::test_utils::fetch::build_testing_http_client;
+    use crate::{errors::RResult, test_utils::fetch::build_testing_http_client};
 
     fn get_tmp_qbit_test_folder() -> &'static str {
         if cfg!(all(windows, not(feature = "testcontainers"))) {
@@ -502,8 +500,7 @@ pub mod tests {
 
     #[cfg(feature = "testcontainers")]
     pub async fn create_qbit_testcontainer()
-    -> color_eyre::eyre::Result<testcontainers::ContainerRequest<testcontainers::GenericImage>>
-    {
+    -> RResult<testcontainers::ContainerRequest<testcontainers::GenericImage>> {
         use testcontainers::{
             GenericImage,
             core::{
@@ -539,7 +536,7 @@ pub mod tests {
 
     #[cfg(feature = "testcontainers")]
     #[tokio::test(flavor = "multi_thread")]
-    async fn test_qbittorrent_downloader() -> color_eyre::eyre::Result<()> {
+    async fn test_qbittorrent_downloader() -> RResult<()> {
         use testcontainers::runners::AsyncRunner;
         use tokio::io::AsyncReadExt;
 
@@ -590,7 +587,7 @@ pub mod tests {
     async fn test_qbittorrent_downloader_impl(
         username: Option<&str>,
         password: Option<&str>,
-    ) -> color_eyre::eyre::Result<()> {
+    ) -> RResult<()> {
         let http_client = build_testing_http_client()?;
         let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
@@ -625,7 +622,7 @@ pub mod tests {
             .add_torrents(torrent_source, save_path.to_string(), Some("bangumi"))
             .await?;
 
-        let get_torrent = async || -> color_eyre::eyre::Result<Torrent> {
+        let get_torrent = async || -> Result<Torrent, DownloaderError> {
             let torrent_infos = downloader
                 .get_torrents_info(TorrentFilter::All, None, None)
                 .await?;
@@ -633,7 +630,7 @@ pub mod tests {
             let result = torrent_infos
                 .into_iter()
                 .find(|t| (t.get_hash() == Some("47ee2d69e7f19af783ad896541a07b012676f858")))
-                .ok_or_eyre("no torrent")?;
+                .whatever_context::<_, DownloaderError>("no torrent")?;
 
             Ok(result)
         };

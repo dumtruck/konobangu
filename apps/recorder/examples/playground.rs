@@ -1,14 +1,7 @@
+use recorder::errors::RResult;
 // #![allow(unused_imports)]
-// use color_eyre::eyre::Context;
-// use itertools::Itertools;
-// use loco_rs::{
-//     app::Hooks,
-//     boot::{BootResult, StartMode},
-//     environment::Environment,
-//     prelude::AppContext as LocoContext,
-// };
 // use recorder::{
-//     app::{App1, AppContext},
+//     app::{AppContext, AppContextTrait},
 //     errors::RResult,
 //     migrations::Migrator,
 //     models::{
@@ -16,7 +9,7 @@
 //         subscriptions::{self, SubscriptionCreateFromRssDto},
 //     },
 // };
-// use sea_orm::ColumnTrait;
+// use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 // use sea_orm_migration::MigratorTrait;
 
 // async fn pull_mikan_bangumi_rss(ctx: &dyn AppContextTrait) -> RResult<()> {
@@ -50,19 +43,14 @@
 //     Ok(())
 // }
 
-// async fn init() -> RResult<LocoContext> {
-//     let ctx = loco_rs::cli::playground::<App1>().await?;
-//     let BootResult {
-//         app_context: ctx, ..
-//     } = loco_rs::boot::run_app::<App1>(&StartMode::ServerOnly, ctx).await?;
-//     Migrator::up(ctx.db(), None).await?;
-//     Ok(ctx)
-// }
-
 // #[tokio::main]
-// async fn main() -> color_eyre::eyre::Result<()> {
+// async fn main() -> RResult<()> {
 //     pull_mikan_bangumi_rss(&ctx).await?;
 
 //     Ok(())
 // }
-fn main() {}
+
+#[tokio::main]
+async fn main() -> RResult<()> {
+    Ok(())
+}

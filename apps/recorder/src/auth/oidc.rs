@@ -16,11 +16,12 @@ use openidconnect::{
 use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use snafu::ResultExt;
 use url::Url;
 
 use super::{
     config::OidcAuthConfig,
-    errors::AuthError,
+    errors::{AuthError, OidcProviderUrlSnafu, OidcRequestRedirectUriSnafu},
     service::{AuthServiceTrait, AuthUserInfo},
 };
 use crate::{app::AppContextTrait, errors::RError, fetch::HttpClient, models::auth::AuthType};
@@ -125,13 +126,13 @@ impl OidcAuthService {
         redirect_uri: &str,
     ) -> Result<OidcAuthRequest, AuthError> {
         let provider_metadata = CoreProviderMetadata::discover_async(
-            IssuerUrl::new(self.config.issuer.clone()).map_err(AuthError::OidcProviderUrlError)?,
+            IssuerUrl::new(self.config.issuer.clone()).context(OidcProviderUrlSnafu)?,
             &self.oidc_provider_client,
         )
         .await?;
 
-        let redirect_uri = RedirectUrl::new(redirect_uri.to_string())
-            .map_err(AuthError::OidcRequestRedirectUriError)?;
+        let redirect_uri =
+            RedirectUrl::new(redirect_uri.to_string()).context(OidcRequestRedirectUriSnafu)?;
 
         let oidc_client = CoreClient::from_provider_metadata(
             provider_metadata,
@@ -207,7 +208,7 @@ impl OidcAuthService {
         let request_cache = self.load_authorization_request(&csrf_token).await?;
 
         let provider_metadata = CoreProviderMetadata::discover_async(
-            IssuerUrl::new(self.config.issuer.clone()).map_err(AuthError::OidcProviderUrlError)?,
+            IssuerUrl::new(self.config.issuer.clone()).context(OidcProviderUrlSnafu)?,
             &self.oidc_provider_client,
         )
         .await?;
@@ -265,9 +266,10 @@ impl AuthServiceTrait for OidcAuthService {
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError> {
         let config = &self.config;
-        let token = self.api_authorizer.extract_token(&request.headers).ok_or(
-            AuthError::OidcJwtAuthError(jwt_authorizer::AuthError::MissingToken()),
-        )?;
+        let token = self
+            .api_authorizer
+            .extract_token(&request.headers)
+            .ok_or(jwt_authorizer::AuthError::MissingToken())?;
 
         let token_data = self.api_authorizer.check_auth(&token).await?;
         let claims = token_data.claims;
@@ -277,7 +279,9 @@ impl AuthServiceTrait for OidcAuthService {
             return Err(AuthError::OidcSubMissingError);
         };
         if !claims.contains_audience(&config.audience) {
-            return Err(AuthError::OidcAudMissingError(config.audience.clone()));
+            return Err(AuthError::OidcAudMissingError {
+                aud: config.audience.clone(),
+            });
         }
         if let Some(expected_scopes) = config.extra_scopes.as_ref() {
             let found_scopes = claims.scopes().collect::<HashSet<_>>();
@@ -293,7 +297,7 @@ impl AuthServiceTrait for OidcAuthService {
         }
         if let Some(key) = config.extra_claim_key.as_ref() {
             if !claims.has_claim(key) {
-                return Err(AuthError::OidcExtraClaimMissingError(key.clone()));
+                return Err(AuthError::OidcExtraClaimMissingError { claim: key.clone() });
             }
             if let Some(value) = config.extra_claim_value.as_ref() {
                 if claims.get_claim(key).is_none_or(|v| &v != value) {
@@ -306,9 +310,9 @@ impl AuthServiceTrait for OidcAuthService {
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {
-            Err(RError::DbError(DbErr::RecordNotFound(..))) => {
-                crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await
-            }
+            Err(RError::DbError {
+                source: DbErr::RecordNotFound(..),
+            }) => crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await,
             r => r,
         }
         .map_err(|_| AuthError::FindAuthRecordError)?;

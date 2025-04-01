@@ -10,9 +10,10 @@ use librqbit_core::{
 use quirks_path::{Path, PathBuf};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use snafu::prelude::*;
 use url::Url;
 
-use super::{QbitTorrent, QbitTorrentContent, TorrentDownloadError};
+use super::{DownloaderError, QbitTorrent, QbitTorrentContent, errors::DownloadFetchSnafu};
 use crate::fetch::{HttpClientTrait, fetch_bytes};
 
 pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";
@@ -57,10 +58,7 @@ pub enum TorrentSource {
 }
 
 impl TorrentSource {
-    pub async fn parse<H: HttpClientTrait>(
-        client: &H,
-        url: &str,
-    ) -> color_eyre::eyre::Result<Self> {
+    pub async fn parse<H: HttpClientTrait>(client: &H, url: &str) -> Result<Self, DownloaderError> {
         let url = Url::parse(url)?;
         let source = if url.scheme() == MAGNET_SCHEMA {
             TorrentSource::from_magnet_url(url)?
@@ -75,22 +73,25 @@ impl TorrentSource {
             ) {
                 TorrentSource::from_torrent_url(url, match_hash.as_str().to_string())?
             } else {
-                let contents = fetch_bytes(client, url).await?;
+                let contents = fetch_bytes(client, url)
+                    .await
+                    .boxed()
+                    .context(DownloadFetchSnafu)?;
                 TorrentSource::from_torrent_file(contents.to_vec(), Some(basename.to_string()))?
             }
         } else {
-            let contents = fetch_bytes(client, url).await?;
+            let contents = fetch_bytes(client, url)
+                .await
+                .boxed()
+                .context(DownloadFetchSnafu)?;
             TorrentSource::from_torrent_file(contents.to_vec(), None)?
         };
         Ok(source)
     }
 
-    pub fn from_torrent_file(
-        file: Vec<u8>,
-        name: Option<String>,
-    ) -> color_eyre::eyre::Result<Self> {
-        let torrent: TorrentMetaV1Owned = torrent_from_bytes(&file)
-            .map_err(|_| TorrentDownloadError::InvalidTorrentFileFormat)?;
+    pub fn from_torrent_file(file: Vec<u8>, name: Option<String>) -> Result<Self, DownloaderError> {
+        let torrent: TorrentMetaV1Owned =
+            torrent_from_bytes(&file).map_err(|_| DownloaderError::TorrentFileFormatError)?;
         let hash = torrent.info_hash.as_string();
         Ok(TorrentSource::TorrentFile {
             torrent: file,
@@ -99,23 +100,21 @@ impl TorrentSource {
         })
     }
 
-    pub fn from_magnet_url(url: Url) -> color_eyre::eyre::Result<Self> {
+    pub fn from_magnet_url(url: Url) -> Result<Self, DownloaderError> {
         if url.scheme() != MAGNET_SCHEMA {
-            Err(TorrentDownloadError::InvalidUrlSchema {
+            Err(DownloaderError::DownloadSchemaError {
                 found: url.scheme().to_string(),
                 expected: MAGNET_SCHEMA.to_string(),
-            }
-            .into())
+            })
         } else {
-            let magnet = Magnet::parse(url.as_str()).map_err(|_| {
-                TorrentDownloadError::InvalidMagnetFormat {
+            let magnet =
+                Magnet::parse(url.as_str()).map_err(|_| DownloaderError::MagnetFormatError {
                     url: url.as_str().to_string(),
-                }
-            })?;
+                })?;
 
             let hash = magnet
                 .as_id20()
-                .ok_or_else(|| TorrentDownloadError::InvalidMagnetFormat {
+                .ok_or_else(|| DownloaderError::MagnetFormatError {
                     url: url.as_str().to_string(),
                 })?
                 .as_string();
@@ -123,7 +122,7 @@ impl TorrentSource {
         }
     }
 
-    pub fn from_torrent_url(url: Url, hash: String) -> color_eyre::eyre::Result<Self> {
+    pub fn from_torrent_url(url: Url, hash: String) -> Result<Self, DownloaderError> {
         Ok(TorrentSource::TorrentUrl { url, hash })
     }
 
@@ -252,47 +251,47 @@ pub trait TorrentDownloader {
         status_filter: TorrentFilter,
         category: Option<String>,
         tag: Option<String>,
-    ) -> color_eyre::eyre::Result<Vec<Torrent>>;
+    ) -> Result<Vec<Torrent>, DownloaderError>;
 
     async fn add_torrents(
         &self,
         source: TorrentSource,
         save_path: String,
         category: Option<&str>,
-    ) -> color_eyre::eyre::Result<()>;
+    ) -> Result<(), DownloaderError>;
 
-    async fn delete_torrents(&self, hashes: Vec<String>) -> color_eyre::eyre::Result<()>;
+    async fn delete_torrents(&self, hashes: Vec<String>) -> Result<(), DownloaderError>;
 
     async fn rename_torrent_file(
         &self,
         hash: &str,
         old_path: &str,
         new_path: &str,
-    ) -> color_eyre::eyre::Result<()>;
+    ) -> Result<(), DownloaderError>;
 
     async fn move_torrents(
         &self,
         hashes: Vec<String>,
         new_path: &str,
-    ) -> color_eyre::eyre::Result<()>;
+    ) -> Result<(), DownloaderError>;
 
-    async fn get_torrent_path(&self, hashes: String) -> color_eyre::eyre::Result<Option<String>>;
+    async fn get_torrent_path(&self, hashes: String) -> Result<Option<String>, DownloaderError>;
 
-    async fn check_connection(&self) -> color_eyre::eyre::Result<()>;
+    async fn check_connection(&self) -> Result<(), DownloaderError>;
 
     async fn set_torrents_category(
         &self,
         hashes: Vec<String>,
         category: &str,
-    ) -> color_eyre::eyre::Result<()>;
+    ) -> Result<(), DownloaderError>;
 
     async fn add_torrent_tags(
         &self,
         hashes: Vec<String>,
         tags: Vec<String>,
-    ) -> color_eyre::eyre::Result<()>;
+    ) -> Result<(), DownloaderError>;
 
-    async fn add_category(&self, category: &str) -> color_eyre::eyre::Result<()>;
+    async fn add_category(&self, category: &str) -> Result<(), DownloaderError>;
 
     fn get_save_path(&self, sub_path: &Path) -> PathBuf;
 }

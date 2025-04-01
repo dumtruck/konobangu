@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use bollard::container::ListContainersOptions;
 use itertools::Itertools;
 use testcontainers::{
-    core::logs::consumer::logging_consumer::LoggingConsumer, ContainerRequest, Image, ImageExt,
+    ContainerRequest, Image, ImageExt, TestcontainersError,
+    core::logs::consumer::logging_consumer::LoggingConsumer,
 };
 
 pub const TESTCONTAINERS_PROJECT_KEY: &str = "tech.enfw.testcontainers.project";
@@ -19,7 +20,7 @@ where
         container_label: &str,
         prune: bool,
         force: bool,
-    ) -> color_eyre::eyre::Result<Self>;
+    ) -> Result<Self, TestcontainersError>;
 
     fn with_default_log_consumer(self) -> Self;
 }
@@ -34,7 +35,7 @@ where
         container_label: &str,
         prune: bool,
         force: bool,
-    ) -> color_eyre::eyre::Result<Self> {
+    ) -> Result<Self, TestcontainersError> {
         use std::collections::HashMap;
 
         use bollard::container::PruneContainersOptions;
@@ -61,7 +62,8 @@ where
                         filters: filters.clone(),
                         ..Default::default()
                     }))
-                    .await?;
+                    .await
+                    .map_err(|err| TestcontainersError::Other(Box::new(err)))?;
 
                 let remove_containers = result
                     .iter()
@@ -74,14 +76,16 @@ where
                         .iter()
                         .map(|c| client.stop_container(c, None)),
                 )
-                .await?;
+                .await
+                .map_err(|error| TestcontainersError::Other(Box::new(error)))?;
 
                 tracing::warn!(name = "stop running containers", result = ?remove_containers);
             }
 
             let result = client
                 .prune_containers(Some(PruneContainersOptions { filters }))
-                .await?;
+                .await
+                .map_err(|err| TestcontainersError::Other(Box::new(err)))?;
 
             tracing::warn!(name = "prune existed containers", result = ?result);
         }

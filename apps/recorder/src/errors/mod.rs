@@ -1,4 +1,5 @@
-use std::{borrow::Cow, error::Error as StdError};
+pub mod whatever;
+use std::borrow::Cow;
 
 use axum::{
     Json,
@@ -6,105 +7,157 @@ use axum::{
 };
 use http::StatusCode;
 use serde::{Deserialize, Deserializer, Serialize};
-use thiserror::Error as ThisError;
+use snafu::prelude::*;
+pub use whatever::OptionWhateverAsync;
 
-use crate::{auth::AuthError, fetch::HttpClientError};
+use crate::{auth::AuthError, downloader::DownloaderError, fetch::HttpClientError};
 
-#[derive(ThisError, Debug)]
+#[derive(Snafu, Debug)]
+#[snafu(visibility(pub(crate)))]
 pub enum RError {
-    #[error(transparent)]
-    InvalidMethodError(#[from] http::method::InvalidMethod),
-    #[error(transparent)]
-    InvalidHeaderNameError(#[from] http::header::InvalidHeaderName),
-    #[error(transparent)]
-    TracingAppenderInitError(#[from] tracing_appender::rolling::InitError),
-    #[error(transparent)]
-    GraphQLSchemaError(#[from] async_graphql::dynamic::SchemaError),
-    #[error(transparent)]
-    AuthError(#[from] AuthError),
-    #[error(transparent)]
-    RSSError(#[from] rss::Error),
-    #[error(transparent)]
-    DotEnvError(#[from] dotenv::Error),
-    #[error(transparent)]
-    TeraError(#[from] tera::Error),
-    #[error(transparent)]
-    IOError(#[from] std::io::Error),
-    #[error(transparent)]
-    DbError(#[from] sea_orm::DbErr),
-    #[error(transparent)]
-    CookieParseError(#[from] cookie::ParseError),
-    #[error(transparent)]
-    FigmentError(#[from] figment::Error),
-    #[error(transparent)]
-    SerdeJsonError(#[from] serde_json::Error),
-    #[error(transparent)]
-    ReqwestMiddlewareError(#[from] reqwest_middleware::Error),
-    #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
-    #[error(transparent)]
-    ParseUrlError(#[from] url::ParseError),
-    #[error(transparent)]
-    OpenDALError(#[from] opendal::Error),
-    #[error(transparent)]
-    InvalidHeaderValueError(#[from] http::header::InvalidHeaderValue),
-    #[error(transparent)]
-    HttpClientError(#[from] HttpClientError),
-    #[error("Extract {desc} with mime error, expected {expected}, but got {found}")]
+    #[snafu(transparent, context(false))]
+    FancyRegexError {
+        #[snafu(source(from(fancy_regex::Error, Box::new)))]
+        source: Box<fancy_regex::Error>,
+    },
+    #[snafu(transparent)]
+    RegexError { source: regex::Error },
+    #[snafu(transparent)]
+    InvalidMethodError { source: http::method::InvalidMethod },
+    #[snafu(transparent)]
+    InvalidHeaderNameError {
+        source: http::header::InvalidHeaderName,
+    },
+    #[snafu(transparent)]
+    TracingAppenderInitError {
+        source: tracing_appender::rolling::InitError,
+    },
+    #[snafu(transparent)]
+    GraphQLSchemaError {
+        source: async_graphql::dynamic::SchemaError,
+    },
+    #[snafu(transparent)]
+    AuthError { source: AuthError },
+    #[snafu(transparent)]
+    DownloadError { source: DownloaderError },
+    #[snafu(transparent)]
+    RSSError { source: rss::Error },
+    #[snafu(transparent)]
+    DotEnvError { source: dotenv::Error },
+    #[snafu(transparent)]
+    TeraError { source: tera::Error },
+    #[snafu(transparent)]
+    IOError { source: std::io::Error },
+    #[snafu(transparent)]
+    DbError { source: sea_orm::DbErr },
+    #[snafu(transparent)]
+    CookieParseError { source: cookie::ParseError },
+    #[snafu(transparent, context(false))]
+    FigmentError {
+        #[snafu(source(from(figment::Error, Box::new)))]
+        source: Box<figment::Error>,
+    },
+    #[snafu(transparent)]
+    SerdeJsonError { source: serde_json::Error },
+    #[snafu(transparent)]
+    ReqwestMiddlewareError { source: reqwest_middleware::Error },
+    #[snafu(transparent)]
+    ReqwestError { source: reqwest::Error },
+    #[snafu(transparent)]
+    ParseUrlError { source: url::ParseError },
+    #[snafu(display("{source}"), context(false))]
+    OpenDALError {
+        #[snafu(source(from(opendal::Error, Box::new)))]
+        source: Box<opendal::Error>,
+    },
+    #[snafu(transparent)]
+    InvalidHeaderValueError {
+        source: http::header::InvalidHeaderValue,
+    },
+    #[snafu(transparent)]
+    HttpClientError { source: HttpClientError },
+    #[cfg(all(feature = "testcontainers", test))]
+    #[snafu(transparent)]
+    TestcontainersError {
+        source: testcontainers::TestcontainersError,
+    },
+    #[snafu(display("Extract {desc} with mime error, expected {expected}, but got {found}"))]
     MimeError {
         desc: String,
         expected: String,
         found: String,
     },
-    #[error("Invalid or unknown format in extracting mikan rss")]
+    #[snafu(display("Invalid or unknown format in extracting mikan rss"))]
     MikanRssInvalidFormatError,
-    #[error("Invalid field {field} in extracting mikan rss")]
+    #[snafu(display("Invalid field {field} in extracting mikan rss"))]
     MikanRssInvalidFieldError {
         field: Cow<'static, str>,
-        #[source]
-        source: Option<Box<dyn StdError + Send + Sync>>,
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptionWhateverAsync::some)))]
+        source: OptionWhateverAsync,
     },
-    #[error("Missing field {field} in extracting mikan meta")]
+    #[snafu(display("Missing field {field} in extracting mikan meta"))]
     MikanMetaMissingFieldError {
         field: Cow<'static, str>,
-        #[source]
-        source: Option<Box<dyn StdError + Send + Sync>>,
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptionWhateverAsync::some)))]
+        source: OptionWhateverAsync,
     },
-    #[error("Model Entity {entity} not found")]
+    #[snafu(display("Model Entity {entity} not found"))]
     ModelEntityNotFound { entity: Cow<'static, str> },
-    #[error("{0}")]
-    CustomMessageStr(&'static str),
-    #[error("{0}")]
-    CustomMessageString(String),
+    #[snafu(display("{message}"))]
+    Whatever {
+        message: String,
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptionWhateverAsync::some)))]
+        source: OptionWhateverAsync,
+    },
 }
 
 impl RError {
     pub fn from_mikan_meta_missing_field(field: Cow<'static, str>) -> Self {
         Self::MikanMetaMissingFieldError {
             field,
-            source: None,
+            source: None.into(),
         }
     }
 
     pub fn from_mikan_rss_invalid_field(field: Cow<'static, str>) -> Self {
         Self::MikanRssInvalidFieldError {
             field,
-            source: None,
+            source: None.into(),
         }
     }
 
     pub fn from_mikan_rss_invalid_field_and_source(
         field: Cow<'static, str>,
-        source: Box<dyn StdError + Send + Sync>,
+        source: impl std::error::Error + Send + Sync + 'static,
     ) -> Self {
         Self::MikanRssInvalidFieldError {
             field,
-            source: Some(source),
+            source: OptionWhateverAsync::some_boxed(source),
         }
     }
 
     pub fn from_db_record_not_found<T: ToString>(detail: T) -> Self {
-        Self::DbError(sea_orm::DbErr::RecordNotFound(detail.to_string()))
+        Self::DbError {
+            source: sea_orm::DbErr::RecordNotFound(detail.to_string()),
+        }
+    }
+}
+
+impl snafu::FromString for RError {
+    type Source = Box<dyn std::error::Error + Send + Sync>;
+
+    fn without_source(message: String) -> Self {
+        Self::Whatever {
+            message,
+            source: OptionWhateverAsync::none(),
+        }
+    }
+
+    fn with_source(source: Self::Source, message: String) -> Self {
+        Self::Whatever {
+            message,
+            source: OptionWhateverAsync::some(source),
+        }
     }
 }
 
@@ -129,7 +182,7 @@ impl<T> From<String> for StandardErrorResponse<T> {
 impl IntoResponse for RError {
     fn into_response(self) -> Response {
         match self {
-            Self::AuthError(auth_error) => auth_error.into_response(),
+            Self::AuthError { source: auth_error } => auth_error.into_response(),
             err => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json::<StandardErrorResponse>(StandardErrorResponse::from(err.to_string())),
@@ -154,7 +207,10 @@ impl<'de> Deserialize<'de> for RError {
         D: Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        Ok(Self::CustomMessageString(s))
+        Ok(Self::Whatever {
+            message: s,
+            source: None.into(),
+        })
     }
 }
 

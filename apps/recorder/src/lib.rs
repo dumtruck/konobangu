@@ -5,14 +5,15 @@
     impl_trait_in_bindings,
     iterator_try_collect,
     async_fn_traits,
-    let_chains
+    let_chains,
+    error_generic_member_access
 )]
 
 pub mod app;
 pub mod auth;
 pub mod cache;
 pub mod database;
-pub mod download;
+pub mod downloader;
 pub mod errors;
 pub mod extract;
 pub mod fetch;

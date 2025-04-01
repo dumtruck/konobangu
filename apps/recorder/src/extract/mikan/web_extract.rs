@@ -491,7 +491,6 @@ pub fn extract_mikan_bangumis_meta_from_my_bangumi_page(
 #[cfg(test)]
 mod test {
     #![allow(unused_variables)]
-    use color_eyre::eyre;
     use futures::{TryStreamExt, pin_mut};
     use http::header;
     use rstest::{fixture, rstest};
@@ -512,7 +511,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_poster_from_src(before_each: ()) -> eyre::Result<()> {
+    async fn test_extract_mikan_poster_from_src(before_each: ()) -> RResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -543,7 +542,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_episode(before_each: ()) -> eyre::Result<()> {
+    async fn test_extract_mikan_episode(before_each: ()) -> RResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -583,9 +582,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_bangumi_meta_from_bangumi_homepage(
-        before_each: (),
-    ) -> eyre::Result<()> {
+    async fn test_extract_mikan_bangumi_meta_from_bangumi_homepage(before_each: ()) -> RResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -622,9 +619,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_bangumis_meta_from_my_bangumi_page(
-        before_each: (),
-    ) -> eyre::Result<()> {
+    async fn test_extract_mikan_bangumis_meta_from_my_bangumi_page(before_each: ()) -> RResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
 
         let mikan_base_url = Url::parse(&mikan_server.url())?;

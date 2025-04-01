@@ -27,6 +27,7 @@ use axum::{
 use futures_util::future::BoxFuture;
 use ipnetwork::IpNetwork;
 use serde::{Deserialize, Serialize};
+use snafu::ResultExt;
 use tower::{Layer, Service};
 use tracing::error;
 
@@ -233,12 +234,14 @@ impl RemoteIPLayer {
                     proxies
                         .iter()
                         .map(|proxy| {
-                            IpNetwork::from_str(proxy).map_err(|err| {
-                                RError::CustomMessageString(format!(
-                                    "remote ip middleare cannot parse trusted proxy \
-                                     configuration: `{proxy}`, reason: `{err}`",
-                                ))
-                            })
+                            IpNetwork::from_str(proxy)
+                                .boxed()
+                                .with_whatever_context::<_, _, RError>(|_| {
+                                    format!(
+                                        "remote ip middleare cannot parse trusted proxy \
+                                         configuration: `{proxy}`"
+                                    )
+                                })
                         })
                         .collect::<RResult<Vec<_>>>()
                 })
@@ -284,8 +287,7 @@ where
         let xff_ip = maybe_get_forwarded(req.headers(), layer.trusted_proxies.as_ref());
         let remote_ip = xff_ip.map_or_else(
             || {
-                let ip = req
-                    .extensions()
+                req.extensions()
                     .get::<ConnectInfo<SocketAddr>>()
                     .map_or_else(
                         || {
@@ -296,8 +298,7 @@ where
                             RemoteIP::None
                         },
                         |info| RemoteIP::Socket(info.ip()),
-                    );
-                ip
+                    )
             },
             RemoteIP::Forwarded,
         );

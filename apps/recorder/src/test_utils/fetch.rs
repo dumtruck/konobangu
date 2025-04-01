@@ -1,8 +1,6 @@
-use color_eyre::eyre;
+use crate::{errors::RResult, fetch::HttpClient};
 
-use crate::fetch::HttpClient;
-
-pub fn build_testing_http_client() -> eyre::Result<HttpClient> {
+pub fn build_testing_http_client() -> RResult<HttpClient> {
     let mikan_client = HttpClient::default();
     Ok(mikan_client)
 }

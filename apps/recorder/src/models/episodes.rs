@@ -191,7 +191,7 @@ impl ActiveModel {
     pub fn from_mikan_episode_meta(
         ctx: &dyn AppContextTrait,
         creation: MikanEpsiodeCreation,
-    ) -> color_eyre::eyre::Result<Self> {
+    ) -> RResult<Self> {
         let item = creation.episode;
         let bgm = creation.bangumi;
         let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)

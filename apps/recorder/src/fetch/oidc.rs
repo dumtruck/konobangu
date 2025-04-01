@@ -2,7 +2,7 @@ use std::{future::Future, pin::Pin};
 
 use axum::http;
 
-use super::{client::HttpClientError, HttpClient};
+use super::{HttpClient, client::HttpClientError};
 
 impl<'c> openidconnect::AsyncHttpClient<'c> for HttpClient {
     type Error = HttpClientError;
@@ -30,7 +30,7 @@ impl<'c> openidconnect::AsyncHttpClient<'c> for HttpClient {
 
             builder
                 .body(response.bytes().await?.to_vec())
-                .map_err(HttpClientError::HttpError)
+                .map_err(HttpClientError::from)
         })
     }
 }

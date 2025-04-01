@@ -142,7 +142,7 @@ impl StorageService {
         subscriber_pid: &str,
         bucket: Option<&str>,
         filename: &str,
-    ) -> color_eyre::eyre::Result<Buffer> {
+    ) -> RResult<Buffer> {
         match content_category {
             StorageContentCategory::Image => {
                 let fullname = [

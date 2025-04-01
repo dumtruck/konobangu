@@ -1,10 +1,7 @@
-use color_eyre::{self, eyre};
-use recorder::app::AppBuilder;
+use recorder::{app::AppBuilder, errors::RResult};
 
 #[tokio::main]
-async fn main() -> eyre::Result<()> {
-    color_eyre::install()?;
-
+async fn main() -> RResult<()> {
     let builder = AppBuilder::from_main_cli(None).await?;
 
     let app = builder.build().await?;

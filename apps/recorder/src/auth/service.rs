@@ -9,11 +9,12 @@ use axum::{
 use jwt_authorizer::{JwtAuthorizer, Validation};
 use moka::future::Cache;
 use reqwest::header::HeaderValue;
+use snafu::prelude::*;
 
 use super::{
     AuthConfig,
     basic::BasicAuthService,
-    errors::AuthError,
+    errors::{AuthError, OidcProviderHttpClientSnafu},
     oidc::{OidcAuthClaims, OidcAuthService},
 };
 use crate::{
@@ -59,14 +60,14 @@ pub trait AuthServiceTrait {
 }
 
 pub enum AuthService {
-    Basic(BasicAuthService),
-    Oidc(OidcAuthService),
+    Basic(Box<BasicAuthService>),
+    Oidc(Box<OidcAuthService>),
 }
 
 impl AuthService {
     pub async fn from_conf(config: AuthConfig) -> Result<Self, AuthError> {
         let result = match config {
-            AuthConfig::Basic(config) => AuthService::Basic(BasicAuthService { config }),
+            AuthConfig::Basic(config) => AuthService::Basic(Box::new(BasicAuthService { config })),
             AuthConfig::Oidc(config) => {
                 let validation = Validation::new()
                     .iss(&[&config.issuer])
@@ -78,14 +79,14 @@ impl AuthService {
                     cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
                     ..Default::default()
                 })
-                .map_err(AuthError::OidcProviderHttpClientError)?;
+                .context(OidcProviderHttpClientSnafu)?;
 
                 let api_authorizer = JwtAuthorizer::<OidcAuthClaims>::from_oidc(&config.issuer)
                     .validation(validation)
                     .build()
                     .await?;
 
-                AuthService::Oidc(OidcAuthService {
+                AuthService::Oidc(Box::new(OidcAuthService {
                     config,
                     api_authorizer,
                     oidc_provider_client,
@@ -93,7 +94,7 @@ impl AuthService {
                         .time_to_live(Duration::from_mins(5))
                         .name("oidc_request_cache")
                         .build(),
-                })
+                }))
             }
         };
         Ok(result)

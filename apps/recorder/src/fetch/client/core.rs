@@ -14,7 +14,7 @@ use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use thiserror::Error;
+use snafu::Snafu;
 
 use super::HttpClientSecrecyDataTrait;
 use crate::fetch::get_random_mobile_ua;
@@ -101,14 +101,14 @@ impl CacheManager for CacheBackend {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Snafu)]
 pub enum HttpClientError {
-    #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
-    #[error(transparent)]
-    ReqwestMiddlewareError(#[from] reqwest_middleware::Error),
-    #[error(transparent)]
-    HttpError(#[from] http::Error),
+    #[snafu(transparent)]
+    ReqwestError { source: reqwest::Error },
+    #[snafu(transparent)]
+    ReqwestMiddlewareError { source: reqwest_middleware::Error },
+    #[snafu(transparent)]
+    HttpError { source: http::Error },
 }
 
 pub trait HttpClientTrait: Deref<Target = ClientWithMiddleware> + Debug {}

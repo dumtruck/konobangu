@@ -8,7 +8,7 @@ use tracing::instrument;
 use url::Url;
 
 use crate::{
-    download::core::BITTORRENT_MIME_TYPE,
+    downloader::core::BITTORRENT_MIME_TYPE,
     errors::{RError, RResult},
     extract::mikan::{
         MikanClient,
@@ -120,10 +120,10 @@ impl TryFrom<rss::Item> for MikanRssItem {
             .title
             .ok_or_else(|| RError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title")))?;
 
-        let enclosure_url = Url::parse(&enclosure.url).map_err(|inner| {
+        let enclosure_url = Url::parse(&enclosure.url).map_err(|err| {
             RError::from_mikan_rss_invalid_field_and_source(
-                Cow::Borrowed("enclosure_url:enclosure.link"),
-                Box::new(inner),
+                "enclosure_url:enclosure.link".into(),
+                err,
             )
         })?;
 
@@ -334,12 +334,12 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
 mod tests {
     use std::assert_matches::assert_matches;
 
-    use color_eyre::eyre;
     use rstest::rstest;
     use url::Url;
 
     use crate::{
-        download::core::BITTORRENT_MIME_TYPE,
+        downloader::core::BITTORRENT_MIME_TYPE,
+        errors::RResult,
         extract::mikan::{
             MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
             extract_mikan_rss_channel_from_rss_link,
@@ -349,7 +349,7 @@ mod tests {
 
     #[rstest]
     #[tokio::test]
-    async fn test_parse_mikan_rss_channel_from_rss_link() -> eyre::Result<()> {
+    async fn test_parse_mikan_rss_channel_from_rss_link() -> RResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
 
         let mikan_base_url = Url::parse(&mikan_server.url())?;
