@@ -84,7 +84,7 @@ async function generateMockFile(filePath: string, size: number) {
   await fsp.truncate(filePath, size);
 }
 
-// Generate torrent file
+// Generate bittorrent file
 function generateTorrent(folderPath: string, torrentPath: string) {
   return new Promise<void>((resolve, reject) => {
     createTorrent(
@@ -113,7 +113,7 @@ function generateTorrent(folderPath: string, torrentPath: string) {
   });
 }
 
-// Add torrent and seed
+// Add bittorrent and seed
 async function seedTorrent(torrentPath: string): Promise<Torrent> {
   return new Promise((resolve) => {
     const torrent = webTorrent.seed(

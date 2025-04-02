@@ -7,7 +7,7 @@ use super::core::Controller;
 use crate::{
     app::AppContextTrait,
     auth::{AuthUserInfo, header_www_authenticate_middleware},
-    errors::RResult,
+    errors::app_error::RResult,
 };
 
 pub const CONTROLLER_PREFIX: &str = "/api/graphql";

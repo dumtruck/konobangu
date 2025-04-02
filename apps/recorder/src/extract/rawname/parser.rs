@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use snafu::whatever;
 
 use crate::{
-    errors::RResult,
+    errors::app_error::RResult,
     extract::defs::{DIGIT_1PLUS_REG, ZH_NUM_MAP, ZH_NUM_RE},
 };
 

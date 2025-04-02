@@ -1,4 +1,4 @@
-use recorder::errors::RResult;
+use recorder::errors::app_error::RResult;
 // #![allow(unused_imports)]
 // use recorder::{
 //     app::{AppContext, AppContextTrait},

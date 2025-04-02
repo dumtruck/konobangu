@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{app::AppContextTrait, errors::RResult};
+use crate::{app::AppContextTrait, errors::app_error::RResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,

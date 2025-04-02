@@ -6,7 +6,7 @@ use url::Url;
 
 use super::MikanConfig;
 use crate::{
-    errors::RError,
+    errors::app_error::RError,
     fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth},
 };
 

@@ -8,7 +8,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::StorageConfig;
-use crate::errors::{RError, RResult};
+use crate::errors::app_error::{RError, RResult};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

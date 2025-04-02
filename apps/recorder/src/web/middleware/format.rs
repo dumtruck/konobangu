@@ -8,7 +8,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::errors::RError as Error;
+use crate::errors::app_error::RError as Error;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Format(pub RespondTo);

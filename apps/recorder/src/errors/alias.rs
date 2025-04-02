@@ -1,15 +1,15 @@
 use std::fmt::Display;
 
 #[derive(Debug)]
-pub struct OptionWhateverAsync(Option<Box<dyn std::error::Error + Send + Sync>>);
+pub struct OptDynErr(Option<Box<dyn std::error::Error + Send + Sync>>);
 
-impl AsRef<dyn snafu::Error> for OptionWhateverAsync {
+impl AsRef<dyn snafu::Error> for OptDynErr {
     fn as_ref(&self) -> &(dyn snafu::Error + 'static) {
         self
     }
 }
 
-impl OptionWhateverAsync {
+impl OptDynErr {
     pub fn some_boxed<E: std::error::Error + Send + Sync + 'static>(e: E) -> Self {
         Self(Some(Box::new(e)))
     }
@@ -23,7 +23,7 @@ impl OptionWhateverAsync {
     }
 }
 
-impl Display for OptionWhateverAsync {
+impl Display for OptDynErr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.0 {
             Some(e) => e.fmt(f),
@@ -32,7 +32,7 @@ impl Display for OptionWhateverAsync {
     }
 }
 
-impl snafu::Error for OptionWhateverAsync {
+impl snafu::Error for OptDynErr {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
     }
@@ -42,13 +42,13 @@ impl snafu::Error for OptionWhateverAsync {
     }
 }
 
-impl From<Option<Box<dyn std::error::Error + Send + Sync>>> for OptionWhateverAsync {
+impl From<Option<Box<dyn std::error::Error + Send + Sync>>> for OptDynErr {
     fn from(value: Option<Box<dyn std::error::Error + Send + Sync>>) -> Self {
         Self(value)
     }
 }
 
-impl From<Box<dyn std::error::Error + Send + Sync>> for OptionWhateverAsync {
+impl From<Box<dyn std::error::Error + Send + Sync>> for OptDynErr {
     fn from(value: Box<dyn std::error::Error + Send + Sync>) -> Self {
         Self::some(value)
     }

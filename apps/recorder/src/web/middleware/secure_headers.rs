@@ -21,7 +21,7 @@ use serde_json::{self, json};
 use snafu::whatever;
 use tower::{Layer, Service};
 
-use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
 
 static PRESETS: OnceLock<HashMap<String, BTreeMap<String, String>>> = OnceLock::new();
 fn get_presets() -> &'static HashMap<String, BTreeMap<String, String>> {

@@ -10,7 +10,7 @@ use tracing_subscriber::{
 };
 
 use super::{LogFormat, LogLevel, LogRotation, LoggerConfig};
-use crate::errors::RResult;
+use crate::errors::app_error::RResult;
 
 // Function to initialize the logger based on the provided configuration
 const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sqlx::query", "sidekiq"];

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, whatever};
 
 use crate::{
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
     extract::defs::SUBTITLE_LANG,
 };
 

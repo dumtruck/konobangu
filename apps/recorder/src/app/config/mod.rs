@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::env::Environment;
 use crate::{
-    auth::AuthConfig, cache::CacheConfig, database::DatabaseConfig, errors::RResult,
+    auth::AuthConfig, cache::CacheConfig, database::DatabaseConfig, errors::app_error::RResult,
     extract::mikan::MikanConfig, graphql::GraphQLConfig, logger::LoggerConfig,
     storage::StorageConfig, web::WebServerConfig,
 };

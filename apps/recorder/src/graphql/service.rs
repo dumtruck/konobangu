@@ -2,7 +2,7 @@ use async_graphql::dynamic::Schema;
 use sea_orm::DatabaseConnection;
 
 use super::{config::GraphQLConfig, schema_root};
-use crate::errors::RResult;
+use crate::errors::app_error::RResult;
 
 #[derive(Debug)]
 pub struct GraphQLService {

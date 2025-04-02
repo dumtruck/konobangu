@@ -3,7 +3,7 @@ use std::sync::Arc;
 use clap::{Parser, command};
 
 use super::{AppContext, core::App, env::Environment};
-use crate::{app::config::AppConfig, errors::RResult};
+use crate::{app::config::AppConfig, errors::app_error::RResult};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
     app::AppContextTrait,
-    errors::RResult,
+    errors::app_error::RResult,
     extract::{
         mikan::{
             build_mikan_bangumi_homepage, build_mikan_bangumi_rss_link,

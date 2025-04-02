@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
 use crate::{
     app::AppContextTrait,
-    errors::RResult,
+    errors::app_error::RResult,
     extract::{
         mikan::{MikanEpisodeMeta, build_mikan_episode_homepage},
         rawname::parse_episode_meta_from_raw_name,

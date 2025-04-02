@@ -16,7 +16,7 @@ use crate::{
         errors::OidcRequestRedirectUriSnafu,
         oidc::{OidcAuthCallbackPayload, OidcAuthCallbackQuery, OidcAuthRequest},
     },
-    errors::RResult,
+    errors::app_error::RResult,
     extract::http::ForwardedRelatedInfo,
     models::auth::AuthType,
 };

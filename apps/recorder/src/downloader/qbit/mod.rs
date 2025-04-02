@@ -1,8 +1,14 @@
 use std::{
-    borrow::Cow, collections::HashSet, fmt::Debug, future::Future, sync::Arc, time::Duration,
+    borrow::Cow,
+    collections::{HashMap, HashSet},
+    fmt::Debug,
+    io,
+    sync::Arc,
+    time::Duration,
 };
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use futures::future::try_join_all;
 pub use qbit_rs::model::{
     Torrent as QbitTorrent, TorrentContent as QbitTorrentContent, TorrentFile as QbitTorrentFile,
@@ -10,57 +16,185 @@ pub use qbit_rs::model::{
 };
 use qbit_rs::{
     Qbit,
-    model::{AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, SyncData},
+    model::{
+        AddTorrentArg, Credential, GetTorrentListArg, NonEmptyStr, Sep, State, TorrentFile,
+        TorrentSource,
+    },
 };
 use quirks_path::{Path, PathBuf};
+use seaography::itertools::Itertools;
 use snafu::prelude::*;
-use tokio::time::sleep;
+use tokio::sync::watch;
 use tracing::instrument;
 use url::Url;
 
-use super::{
-    DownloaderError, Torrent, TorrentDownloader, TorrentFilter, TorrentSource,
-    utils::path_equals_as_file_url,
+use super::{DownloaderError, utils::path_equals_as_file_url};
+use crate::downloader::{
+    bittorrent::{
+        downloader::TorrentDownloaderTrait,
+        source::{HashTorrentSource, HashTorrentSourceTrait, MagnetUrlSource, TorrentFileSource},
+        task::{
+            TORRENT_TAG_NAME, TorrentCreationTrait, TorrentHashTrait, TorrentStateTrait,
+            TorrentTaskTrait,
+        },
+    },
+    core::{
+        DownloadCreationTrait, DownloadIdSelector, DownloadIdTrait, DownloadSelectorTrait,
+        DownloadStateTrait, DownloadTaskTrait, DownloaderTrait,
+    },
 };
 
-impl From<TorrentSource> for QbitTorrentSource {
-    fn from(value: TorrentSource) -> Self {
-        match value {
-            TorrentSource::MagnetUrl { url, .. } => QbitTorrentSource::Urls {
-                urls: qbit_rs::model::Sep::from([url]),
-            },
-            TorrentSource::TorrentUrl { url, .. } => QbitTorrentSource::Urls {
-                urls: qbit_rs::model::Sep::from([url]),
-            },
-            TorrentSource::TorrentFile {
-                torrent: torrents,
-                name,
-                ..
-            } => QbitTorrentSource::TorrentFiles {
-                torrents: vec![QbitTorrentFile {
-                    filename: name.unwrap_or_default(),
-                    data: torrents,
-                }],
-            },
-        }
+pub type QBittorrentHash = String;
+
+impl DownloadIdTrait for QBittorrentHash {}
+
+impl TorrentHashTrait for QBittorrentHash {}
+
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct QBittorrentState(Option<State>);
+
+impl DownloadStateTrait for QBittorrentState {}
+
+impl TorrentStateTrait for QBittorrentState {}
+
+impl From<Option<State>> for QBittorrentState {
+    fn from(value: Option<State>) -> Self {
+        Self(value)
     }
 }
 
-impl From<TorrentFilter> for QbitTorrentFilter {
-    fn from(val: TorrentFilter) -> Self {
-        match val {
-            TorrentFilter::All => QbitTorrentFilter::All,
-            TorrentFilter::Downloading => QbitTorrentFilter::Downloading,
-            TorrentFilter::Completed => QbitTorrentFilter::Completed,
-            TorrentFilter::Paused => QbitTorrentFilter::Paused,
-            TorrentFilter::Active => QbitTorrentFilter::Active,
-            TorrentFilter::Inactive => QbitTorrentFilter::Inactive,
-            TorrentFilter::Resumed => QbitTorrentFilter::Resumed,
-            TorrentFilter::Stalled => QbitTorrentFilter::Stalled,
-            TorrentFilter::StalledUploading => QbitTorrentFilter::StalledUploading,
-            TorrentFilter::StalledDownloading => QbitTorrentFilter::StalledDownloading,
-            TorrentFilter::Errored => QbitTorrentFilter::Errored,
-        }
+#[derive(Debug)]
+pub struct QBittorrentTask {
+    pub hash_info: QBittorrentHash,
+    pub torrent: QbitTorrent,
+    pub contents: Vec<QbitTorrentContent>,
+    pub state: QBittorrentState,
+}
+
+impl QBittorrentTask {
+    fn from_query(
+        torrent: QbitTorrent,
+        contents: Vec<QbitTorrentContent>,
+    ) -> Result<Self, DownloaderError> {
+        let hash = torrent
+            .hash
+            .clone()
+            .ok_or_else(|| DownloaderError::TorrentMetaError {
+                message: "missing hash".to_string(),
+                source: None.into(),
+            })?;
+        let state = QBittorrentState(torrent.state.clone());
+        Ok(Self {
+            hash_info: hash,
+            contents,
+            state,
+            torrent,
+        })
+    }
+}
+
+impl DownloadTaskTrait for QBittorrentTask {
+    type State = QBittorrentState;
+    type Id = QBittorrentHash;
+
+    fn id(&self) -> &Self::Id {
+        &self.hash_info
+    }
+
+    fn into_id(self) -> Self::Id {
+        self.hash_info
+    }
+
+    fn name(&self) -> Cow<'_, str> {
+        self.torrent
+            .name
+            .as_deref()
+            .map(Cow::Borrowed)
+            .unwrap_or_else(|| DownloadTaskTrait::name(self))
+    }
+
+    fn speed(&self) -> Option<u64> {
+        self.torrent.dlspeed.and_then(|s| u64::try_from(s).ok())
+    }
+
+    fn state(&self) -> &Self::State {
+        &self.state
+    }
+
+    fn dl_bytes(&self) -> Option<u64> {
+        self.torrent.downloaded.and_then(|v| u64::try_from(v).ok())
+    }
+
+    fn total_bytes(&self) -> Option<u64> {
+        self.torrent.size.and_then(|v| u64::try_from(v).ok())
+    }
+
+    fn left_bytes(&self) -> Option<u64> {
+        self.torrent.amount_left.and_then(|v| u64::try_from(v).ok())
+    }
+
+    fn et(&self) -> Option<Duration> {
+        self.torrent
+            .time_active
+            .and_then(|v| u64::try_from(v).ok())
+            .map(Duration::from_secs)
+    }
+
+    fn eta(&self) -> Option<Duration> {
+        self.torrent
+            .eta
+            .and_then(|v| u64::try_from(v).ok())
+            .map(Duration::from_secs)
+    }
+
+    fn progress(&self) -> Option<f32> {
+        self.torrent.progress.as_ref().map(|s| *s as f32)
+    }
+}
+
+impl TorrentTaskTrait for QBittorrentTask {
+    fn hash_info(&self) -> &str {
+        &self.hash_info
+    }
+
+    fn tags(&self) -> impl Iterator<Item = Cow<'_, str>> {
+        self.torrent
+            .tags
+            .as_deref()
+            .unwrap_or("")
+            .split(',')
+            .filter(|s| !s.is_empty())
+            .map(Cow::Borrowed)
+    }
+
+    fn category(&self) -> Option<Cow<'_, str>> {
+        self.torrent.category.as_deref().map(Cow::Borrowed)
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct QBittorrentCreation {
+    pub save_path: PathBuf,
+    pub tags: Vec<String>,
+    pub category: Option<String>,
+    pub sources: Vec<HashTorrentSource>,
+}
+
+impl DownloadCreationTrait for QBittorrentCreation {
+    type Task = QBittorrentTask;
+}
+
+impl TorrentCreationTrait for QBittorrentCreation {
+    fn save_path(&self) -> &Path {
+        self.save_path.as_ref()
+    }
+
+    fn save_path_mut(&mut self) -> &mut PathBuf {
+        &mut self.save_path
+    }
+
+    fn sources_mut(&mut self) -> &mut Vec<HashTorrentSource> {
+        &mut self.sources
     }
 }
 
@@ -70,14 +204,72 @@ pub struct QBittorrentDownloaderCreation {
     pub password: String,
     pub save_path: String,
     pub subscriber_id: i32,
+    pub downloader_id: i32,
+}
+
+pub type QBittorrentHashSelector = DownloadIdSelector<QBittorrentTask>;
+
+pub struct QBittorrentComplexSelector {
+    pub query: GetTorrentListArg,
+}
+
+impl From<QBittorrentHashSelector> for QBittorrentComplexSelector {
+    fn from(value: QBittorrentHashSelector) -> Self {
+        Self {
+            query: GetTorrentListArg {
+                hashes: Some(value.ids.join("|")),
+                ..Default::default()
+            },
+        }
+    }
+}
+
+impl DownloadSelectorTrait for QBittorrentComplexSelector {
+    type Id = QBittorrentHash;
+    type Task = QBittorrentTask;
+}
+
+pub enum QBittorrentSelector {
+    Hash(QBittorrentHashSelector),
+    Complex(QBittorrentComplexSelector),
+}
+
+impl DownloadSelectorTrait for QBittorrentSelector {
+    type Id = QBittorrentHash;
+    type Task = QBittorrentTask;
+
+    fn try_into_ids_only(self) -> Result<Vec<Self::Id>, Self> {
+        match self {
+            QBittorrentSelector::Complex(c) => {
+                c.try_into_ids_only().map_err(QBittorrentSelector::Complex)
+            }
+            QBittorrentSelector::Hash(h) => {
+                let result = h
+                    .try_into_ids_only()
+                    .unwrap_or_else(|_| unreachable!("hash selector must contains hash"))
+                    .into_iter();
+                Ok(result.collect_vec())
+            }
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct QBittorrentSyncData {
+    pub torrents: HashMap<String, QbitTorrent>,
+    pub categories: HashSet<String>,
+    pub tags: HashSet<String>,
 }
 
 pub struct QBittorrentDownloader {
     pub subscriber_id: i32,
+    pub downloader_id: i32,
     pub endpoint_url: Url,
     pub client: Arc<Qbit>,
     pub save_path: PathBuf,
     pub wait_sync_timeout: Duration,
+    pub sync_watch: watch::Sender<DateTime<Utc>>,
+    pub sync_data: QBittorrentSyncData,
 }
 
 impl QBittorrentDownloader {
@@ -100,6 +292,9 @@ impl QBittorrentDownloader {
             subscriber_id: creation.subscriber_id,
             save_path: creation.save_path.into(),
             wait_sync_timeout: Duration::from_millis(10000),
+            downloader_id: creation.downloader_id,
+            sync_watch: watch::channel(Utc::now()).0,
+            sync_data: QBittorrentSyncData::default(),
         })
     }
 
@@ -109,302 +304,79 @@ impl QBittorrentDownloader {
         Ok(result)
     }
 
-    pub async fn wait_until<G, Fut, F, D, H, E>(
+    pub async fn wait_sync_until<S>(
         &self,
-        capture_fn: H,
-        fetch_data_fn: G,
-        mut stop_wait_fn: F,
+        stop_wait_fn: S,
         timeout: Option<Duration>,
     ) -> Result<(), DownloaderError>
     where
-        H: FnOnce() -> E,
-        G: Fn(Arc<Qbit>, E) -> Fut,
-        Fut: Future<Output = Result<D, DownloaderError>>,
-        F: FnMut(&D) -> bool,
-        E: Clone,
-        D: Debug + serde::Serialize,
+        S: Fn(&QBittorrentSyncData) -> bool,
     {
-        let mut next_wait_ms = 32u64;
-        let mut all_wait_ms = 0u64;
+        let mut receiver = self.sync_watch.subscribe();
         let timeout = timeout.unwrap_or(self.wait_sync_timeout);
-        let env = capture_fn();
-        loop {
-            sleep(Duration::from_millis(next_wait_ms)).await;
-            all_wait_ms += next_wait_ms;
-            if all_wait_ms >= timeout.as_millis() as u64 {
-                // full update
-                let sync_data = fetch_data_fn(self.client.clone(), env.clone()).await?;
-                if stop_wait_fn(&sync_data) {
-                    break;
-                } else {
-                    tracing::warn!(name = "wait_until timeout", sync_data = serde_json::to_string(&sync_data).unwrap(), timeout = ?timeout);
-                    return Err(DownloaderError::DownloadTimeoutError {
-                        action: Cow::Borrowed("QBittorrentDownloader::wait_unit"),
-                        timeout,
-                    });
-                }
+        let start_time = Utc::now();
+
+        while let Ok(()) = receiver.changed().await {
+            let sync_time = receiver.borrow();
+            if sync_time
+                .signed_duration_since(start_time)
+                .num_milliseconds()
+                > timeout.as_millis() as i64
+            {
+                tracing::warn!(name = "wait_until timeout", timeout = ?timeout);
+                return Err(DownloaderError::DownloadTimeoutError {
+                    action: Cow::Borrowed("QBittorrentDownloader::wait_unit"),
+                    timeout,
+                });
             }
-            let sync_data = fetch_data_fn(self.client.clone(), env.clone()).await?;
-            if stop_wait_fn(&sync_data) {
+            if stop_wait_fn(&self.sync_data) {
                 break;
             }
-            next_wait_ms *= 2;
         }
         Ok(())
     }
 
-    #[instrument(level = "trace", skip(self, stop_wait_fn))]
-    pub async fn wait_torrents_until<F>(
-        &self,
-        arg: GetTorrentListArg,
-        stop_wait_fn: F,
-        timeout: Option<Duration>,
-    ) -> Result<(), DownloaderError>
-    where
-        F: FnMut(&Vec<QbitTorrent>) -> bool,
-    {
-        self.wait_until(
-            || arg,
-            async move |client: Arc<Qbit>,
-                        arg: GetTorrentListArg|
-                        -> Result<Vec<QbitTorrent>, DownloaderError> {
-                let data = client.get_torrent_list(arg).await?;
-                Ok(data)
-            },
-            stop_wait_fn,
-            timeout,
-        )
-        .await
-    }
-
-    #[instrument(level = "debug", skip(self, stop_wait_fn))]
-    pub async fn wait_sync_until<F: FnMut(&SyncData) -> bool>(
-        &self,
-        stop_wait_fn: F,
-        timeout: Option<Duration>,
-    ) -> Result<(), DownloaderError> {
-        self.wait_until(
-            || (),
-            async move |client: Arc<Qbit>, _| -> Result<SyncData, DownloaderError> {
-                let data = client.sync(None).await?;
-                Ok(data)
-            },
-            stop_wait_fn,
-            timeout,
-        )
-        .await
-    }
-
-    #[instrument(level = "debug", skip(self, stop_wait_fn))]
-    async fn wait_torrent_contents_until<F: FnMut(&Vec<QbitTorrentContent>) -> bool>(
-        &self,
-        hash: &str,
-        stop_wait_fn: F,
-        timeout: Option<Duration>,
-    ) -> Result<(), DownloaderError> {
-        self.wait_until(
-            || Arc::new(hash.to_string()),
-            async move |client: Arc<Qbit>,
-                        hash_arc: Arc<String>|
-                        -> Result<Vec<QbitTorrentContent>, DownloaderError> {
-                let data = client.get_torrent_contents(hash_arc.as_str(), None).await?;
-                Ok(data)
-            },
-            stop_wait_fn,
-            timeout,
-        )
-        .await
-    }
-}
-
-#[async_trait]
-impl TorrentDownloader for QBittorrentDownloader {
     #[instrument(level = "debug", skip(self))]
-    async fn get_torrents_info(
-        &self,
-        status_filter: TorrentFilter,
-        category: Option<String>,
-        tag: Option<String>,
-    ) -> Result<Vec<Torrent>, DownloaderError> {
-        let arg = GetTorrentListArg {
-            filter: Some(status_filter.into()),
-            category,
-            tag,
-            ..Default::default()
-        };
-        let torrent_list = self.client.get_torrent_list(arg).await?;
-        let torrent_contents = try_join_all(torrent_list.iter().map(|s| async {
-            if let Some(hash) = &s.hash {
-                self.client.get_torrent_contents(hash as &str, None).await
-            } else {
-                Ok(vec![])
-            }
-        }))
-        .await?;
-        Ok(torrent_list
-            .into_iter()
-            .zip(torrent_contents)
-            .map(|(torrent, contents)| Torrent::Qbit { torrent, contents })
-            .collect::<Vec<_>>())
-    }
-
-    #[instrument(level = "debug", skip(self))]
-    async fn add_torrents(
-        &self,
-        source: TorrentSource,
-        save_path: String,
-        category: Option<&str>,
-    ) -> Result<(), DownloaderError> {
-        let arg = AddTorrentArg {
-            source: source.clone().into(),
-            savepath: Some(save_path),
-            category: category.map(String::from),
-            auto_torrent_management: Some(false),
-            ..Default::default()
-        };
-        let add_result = self.client.add_torrent(arg.clone()).await;
-        if let (
-            Err(qbit_rs::Error::ApiError(qbit_rs::ApiError::CategoryNotFound)),
-            Some(category),
-        ) = (&add_result, category)
-        {
-            self.add_category(category).await?;
-            self.client.add_torrent(arg).await?;
-        } else {
-            add_result?;
-        }
-        let source_hash = source.hash();
-        self.wait_sync_until(
-            |sync_data| {
-                sync_data
-                    .torrents
-                    .as_ref()
-                    .is_some_and(|t| t.contains_key(source_hash))
-            },
-            None,
-        )
-        .await?;
-        Ok(())
-    }
-
-    #[instrument(level = "debug", skip(self))]
-    async fn delete_torrents(&self, hashes: Vec<String>) -> Result<(), DownloaderError> {
+    pub async fn add_category(&self, category: &str) -> Result<(), DownloaderError> {
         self.client
-            .delete_torrents(hashes.clone(), Some(true))
+            .add_category(
+                NonEmptyStr::new(category)
+                    .whatever_context::<_, DownloaderError>("category can not be empty")?,
+                self.save_path.as_str(),
+            )
             .await?;
-        self.wait_torrents_until(
-            GetTorrentListArg::builder()
-                .hashes(hashes.join("|"))
-                .build(),
-            |torrents| -> bool { torrents.is_empty() },
-            None,
-        )
-        .await?;
+        self.wait_sync_until(|sync_data| sync_data.categories.contains(category), None)
+            .await?;
+
         Ok(())
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn rename_torrent_file(
-        &self,
-        hash: &str,
-        old_path: &str,
-        new_path: &str,
-    ) -> Result<(), DownloaderError> {
-        self.client.rename_file(hash, old_path, new_path).await?;
-        let new_path = self.save_path.join(new_path);
-        let save_path = self.save_path.as_path();
-        self.wait_torrent_contents_until(
-            hash,
-            |contents| -> bool {
-                contents.iter().any(|c| {
-                    path_equals_as_file_url(save_path.join(&c.name), &new_path)
-                        .inspect_err(|error| {
-                            tracing::warn!(name = "path_equals_as_file_url", error = ?error);
-                        })
-                        .unwrap_or(false)
-                })
-            },
-            None,
-        )
-        .await?;
-        Ok(())
-    }
-
-    #[instrument(level = "debug", skip(self))]
-    async fn move_torrents(
-        &self,
-        hashes: Vec<String>,
-        new_path: &str,
-    ) -> Result<(), DownloaderError> {
-        self.client
-            .set_torrent_location(hashes.clone(), new_path)
-            .await?;
-
-        self.wait_torrents_until(
-            GetTorrentListArg::builder()
-                .hashes(hashes.join("|"))
-                .build(),
-            |torrents| -> bool {
-                torrents.iter().flat_map(|t| t.save_path.as_ref()).any(|p| {
-                    path_equals_as_file_url(p, new_path)
-                        .inspect_err(|error| {
-                            tracing::warn!(name = "path_equals_as_file_url", error = ?error);
-                        })
-                        .unwrap_or(false)
-                })
-            },
-            None,
-        )
-        .await?;
-        Ok(())
-    }
-
-    async fn get_torrent_path(&self, hashes: String) -> Result<Option<String>, DownloaderError> {
-        let mut torrent_list = self
-            .client
-            .get_torrent_list(GetTorrentListArg {
-                hashes: Some(hashes),
-                ..Default::default()
-            })
-            .await?;
-        let torrent = torrent_list
-            .first_mut()
-            .whatever_context::<_, DownloaderError>("No torrent found")?;
-        Ok(torrent.save_path.take())
-    }
-
-    #[instrument(level = "debug", skip(self))]
-    async fn check_connection(&self) -> Result<(), DownloaderError> {
+    pub async fn check_connection(&self) -> Result<(), DownloaderError> {
         self.api_version().await?;
         Ok(())
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn set_torrents_category(
+    pub async fn set_torrents_category(
         &self,
         hashes: Vec<String>,
         category: &str,
     ) -> Result<(), DownloaderError> {
-        let result = self
-            .client
-            .set_torrent_category(hashes.clone(), category)
-            .await;
-        if let Err(qbit_rs::Error::ApiError(qbit_rs::ApiError::CategoryNotFound)) = &result {
+        if !self.sync_data.categories.contains(category) {
             self.add_category(category).await?;
-            self.client
-                .set_torrent_category(hashes.clone(), category)
-                .await?;
-        } else {
-            result?;
         }
-        self.wait_torrents_until(
-            GetTorrentListArg::builder()
-                .hashes(hashes.join("|"))
-                .build(),
-            |torrents| {
-                torrents
-                    .iter()
-                    .all(|t| t.category.as_ref().is_some_and(|c| c == category))
+        self.client
+            .set_torrent_category(hashes.clone(), category)
+            .await?;
+        self.wait_sync_until(
+            |sync_data| {
+                let torrents = &sync_data.torrents;
+                hashes.iter().all(|h| {
+                    torrents
+                        .get(h)
+                        .is_some_and(|t| t.category.as_deref().is_some_and(|c| c == category))
+                })
             },
             None,
         )
@@ -412,31 +384,77 @@ impl TorrentDownloader for QBittorrentDownloader {
         Ok(())
     }
 
+    pub fn get_save_path(&self, sub_path: &Path) -> PathBuf {
+        self.save_path.join(sub_path)
+    }
+
     #[instrument(level = "debug", skip(self))]
-    async fn add_torrent_tags(
+    pub async fn add_torrent_tags(
         &self,
         hashes: Vec<String>,
         tags: Vec<String>,
     ) -> Result<(), DownloaderError> {
         if tags.is_empty() {
-            whatever!("add torrent tags can not be empty");
+            whatever!("add bittorrent tags can not be empty");
         }
         self.client
             .add_torrent_tags(hashes.clone(), tags.clone())
             .await?;
         let tag_sets = tags.iter().map(|s| s.as_str()).collect::<HashSet<&str>>();
-        self.wait_torrents_until(
-            GetTorrentListArg::builder()
-                .hashes(hashes.join("|"))
-                .build(),
-            |torrents| {
-                torrents.iter().all(|t| {
-                    t.tags.as_ref().is_some_and(|t| {
-                        t.split(',')
-                            .map(|s| s.trim())
-                            .filter(|s| !s.is_empty())
-                            .collect::<HashSet<&str>>()
-                            .is_superset(&tag_sets)
+        self.wait_sync_until(
+            |sync_data| {
+                let torrents = &sync_data.torrents;
+
+                hashes.iter().all(|h| {
+                    torrents.get(h).is_some_and(|t| {
+                        t.tags.as_ref().is_some_and(|t| {
+                            t.split(',')
+                                .map(|s| s.trim())
+                                .filter(|s| !s.is_empty())
+                                .collect::<HashSet<&str>>()
+                                .is_superset(&tag_sets)
+                        })
+                    })
+                })
+            },
+            None,
+        )
+        .await?;
+        Ok(())
+    }
+
+    #[instrument(level = "debug", skip(self, replacer))]
+    pub async fn move_torrent_contents<F: FnOnce(String) -> String>(
+        &self,
+        hash: &str,
+        replacer: F,
+    ) -> Result<(), DownloaderError> {
+        let old_path = self
+            .sync_data
+            .torrents
+            .get(hash)
+            .and_then(|t| t.content_path.as_deref())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::NotFound,
+                    "no torrent or torrent does not contain content path",
+                )
+            })?
+            .to_string();
+        let new_path = replacer(old_path.clone());
+        self.client
+            .rename_file(hash, old_path.clone(), new_path.to_string())
+            .await?;
+        self.wait_sync_until(
+            |sync_data| {
+                let torrents = &sync_data.torrents;
+                torrents.get(hash).is_some_and(|t| {
+                    t.content_path.as_deref().is_some_and(|p| {
+                        path_equals_as_file_url(p, &new_path)
+                            .inspect_err(|error| {
+                                tracing::warn!(name = "path_equals_as_file_url", error = ?error);
+                            })
+                            .unwrap_or(false)
                     })
                 })
             },
@@ -447,30 +465,234 @@ impl TorrentDownloader for QBittorrentDownloader {
     }
 
     #[instrument(level = "debug", skip(self))]
-    async fn add_category(&self, category: &str) -> Result<(), DownloaderError> {
+    pub async fn move_torrents(
+        &self,
+        hashes: Vec<String>,
+        new_path: &str,
+    ) -> Result<(), DownloaderError> {
         self.client
-            .add_category(
-                NonEmptyStr::new(category)
-                    .whatever_context::<_, DownloaderError>("category can not be empty")?,
-                self.save_path.as_str(),
-            )
+            .set_torrent_location(hashes.clone(), new_path)
             .await?;
+
         self.wait_sync_until(
-            |sync_data| {
-                sync_data
-                    .categories
-                    .as_ref()
-                    .is_some_and(|s| s.contains_key(category))
+            |sync_data| -> bool {
+                let torrents = &sync_data.torrents;
+
+                hashes.iter().all(|h| {
+                    torrents.get(h).is_some_and(|t| {
+                        t.save_path.as_deref().is_some_and(|p| {
+                            path_equals_as_file_url(p, new_path)
+                            .inspect_err(|error| {
+                                tracing::warn!(name = "path_equals_as_file_url", error = ?error);
+                            })
+                            .unwrap_or(false)
+                        })
+                    })
+                })
             },
             None,
         )
         .await?;
-
         Ok(())
     }
 
-    fn get_save_path(&self, sub_path: &Path) -> PathBuf {
-        self.save_path.join(sub_path)
+    pub async fn get_torrent_path(
+        &self,
+        hashes: String,
+    ) -> Result<Option<String>, DownloaderError> {
+        let mut torrent_list = self
+            .client
+            .get_torrent_list(GetTorrentListArg {
+                hashes: Some(hashes),
+                ..Default::default()
+            })
+            .await?;
+        let torrent = torrent_list
+            .first_mut()
+            .whatever_context::<_, DownloaderError>("No bittorrent found")?;
+        Ok(torrent.save_path.take())
+    }
+}
+
+#[async_trait]
+impl DownloaderTrait for QBittorrentDownloader {
+    type State = QBittorrentState;
+    type Id = QBittorrentHash;
+    type Task = QBittorrentTask;
+    type Creation = QBittorrentCreation;
+    type Selector = QBittorrentSelector;
+
+    async fn add_downloads(
+        &self,
+        creation: Self::Creation,
+    ) -> Result<HashSet<Self::Id>, DownloaderError> {
+        let tag = {
+            let mut tags = vec![TORRENT_TAG_NAME.to_string()];
+            tags.extend(creation.tags);
+            Some(tags.into_iter().filter(|s| !s.is_empty()).join(","))
+        };
+
+        let save_path = Some(creation.save_path.into_string());
+
+        let sources = creation.sources;
+        let ids = HashSet::from_iter(sources.iter().map(|s| s.hash_info().to_string()));
+        let (urls_source, files_source) = {
+            let mut urls = vec![];
+            let mut files = vec![];
+            for s in sources {
+                match s {
+                    HashTorrentSource::MagnetUrl(MagnetUrlSource { url, .. }) => {
+                        urls.push(Url::parse(&url)?)
+                    }
+                    HashTorrentSource::TorrentFile(TorrentFileSource {
+                        payload, filename, ..
+                    }) => files.push(TorrentFile {
+                        filename,
+                        data: payload.into(),
+                    }),
+                }
+            }
+            (
+                if urls.is_empty() {
+                    None
+                } else {
+                    Some(TorrentSource::Urls {
+                        urls: Sep::from(urls),
+                    })
+                },
+                if files.is_empty() {
+                    None
+                } else {
+                    Some(TorrentSource::TorrentFiles { torrents: files })
+                },
+            )
+        };
+
+        let category = TORRENT_TAG_NAME.to_string();
+
+        if let Some(source) = urls_source {
+            self.client
+                .add_torrent(AddTorrentArg {
+                    source,
+                    savepath: save_path.clone(),
+                    auto_torrent_management: Some(false),
+                    category: Some(category.clone()),
+                    tags: tag.clone(),
+                    ..Default::default()
+                })
+                .await?;
+        }
+
+        if let Some(source) = files_source {
+            self.client
+                .add_torrent(AddTorrentArg {
+                    source,
+                    savepath: save_path.clone(),
+                    auto_torrent_management: Some(false),
+                    category: Some(category.clone()),
+                    tags: tag,
+                    ..Default::default()
+                })
+                .await?;
+        }
+        self.wait_sync_until(
+            |sync_data| {
+                let torrents = &sync_data.torrents;
+                ids.iter().all(|id| torrents.contains_key(id))
+            },
+            None,
+        )
+        .await?;
+        Ok(ids)
+    }
+
+    async fn pause_downloads(
+        &self,
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
+        <Self as TorrentDownloaderTrait>::pause_downloads(self, selector).await
+    }
+
+    async fn resume_downloads(
+        &self,
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
+        <Self as TorrentDownloaderTrait>::resume_downloads(self, selector).await
+    }
+
+    async fn remove_downloads(
+        &self,
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
+        <Self as TorrentDownloaderTrait>::remove_downloads(self, selector).await
+    }
+
+    async fn query_downloads(
+        &self,
+        selector: QBittorrentSelector,
+    ) -> Result<Vec<Self::Task>, DownloaderError> {
+        let selector = match selector {
+            QBittorrentSelector::Hash(h) => h.into(),
+            QBittorrentSelector::Complex(c) => c,
+        };
+
+        let torrent_list = self.client.get_torrent_list(selector.query).await?;
+
+        let torrent_contents = try_join_all(torrent_list.iter().map(|s| async {
+            if let Some(hash) = &s.hash {
+                self.client.get_torrent_contents(hash as &str, None).await
+            } else {
+                Ok(vec![])
+            }
+        }))
+        .await?;
+        let tasks = torrent_list
+            .into_iter()
+            .zip(torrent_contents)
+            .map(|(t, c)| Self::Task::from_query(t, c))
+            .collect::<Result<Vec<Self::Task>, _>>()?;
+        Ok(tasks)
+    }
+}
+
+#[async_trait]
+impl TorrentDownloaderTrait for QBittorrentDownloader {
+    type IdSelector = DownloadIdSelector<Self::Task>;
+    #[instrument(level = "debug", skip(self))]
+    async fn pause_torrents(
+        &self,
+        hashes: Self::IdSelector,
+    ) -> Result<Self::IdSelector, DownloaderError> {
+        self.client.pause_torrents(hashes.clone()).await?;
+        Ok(hashes)
+    }
+
+    #[instrument(level = "debug", skip(self))]
+    async fn resume_torrents(
+        &self,
+        hashes: Self::IdSelector,
+    ) -> Result<Self::IdSelector, DownloaderError> {
+        self.client.resume_torrents(hashes.clone()).await?;
+        Ok(hashes)
+    }
+
+    #[instrument(level = "debug", skip(self))]
+    async fn remove_torrents(
+        &self,
+        hashes: Self::IdSelector,
+    ) -> Result<Self::IdSelector, DownloaderError> {
+        self.client
+            .delete_torrents(hashes.clone(), Some(true))
+            .await?;
+        self.wait_sync_until(
+            |sync_data| -> bool {
+                let torrents = &sync_data.torrents;
+                hashes.iter().all(|h| !torrents.contains_key(h))
+            },
+            None,
+        )
+        .await?;
+        Ok(hashes)
     }
 }
 
@@ -485,10 +707,12 @@ impl Debug for QBittorrentDownloader {
 
 #[cfg(test)]
 pub mod tests {
-    use itertools::Itertools;
-
     use super::*;
-    use crate::{errors::RResult, test_utils::fetch::build_testing_http_client};
+    use crate::{
+        downloader::core::DownloadIdSelectorTrait,
+        errors::{RError, app_error::RResult},
+        test_utils::fetch::build_testing_http_client,
+    };
 
     fn get_tmp_qbit_test_folder() -> &'static str {
         if cfg!(all(windows, not(feature = "testcontainers"))) {
@@ -531,7 +755,7 @@ pub mod tests {
     #[cfg(not(feature = "testcontainers"))]
     #[tokio::test]
     async fn test_qbittorrent_downloader() {
-        test_qbittorrent_downloader_impl(None, None).await;
+        let _ = test_qbittorrent_downloader_impl(None, None).await;
     }
 
     #[cfg(feature = "testcontainers")]
@@ -591,12 +815,15 @@ pub mod tests {
         let http_client = build_testing_http_client()?;
         let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
+        let hash = "47ee2d69e7f19af783ad896541a07b012676f858".to_string();
+
         let mut downloader = QBittorrentDownloader::from_creation(QBittorrentDownloaderCreation {
             endpoint: "http://127.0.0.1:8080".to_string(),
             password: password.unwrap_or_default().to_string(),
             username: username.unwrap_or_default().to_string(),
             subscriber_id: 0,
             save_path: base_save_path.to_string(),
+            downloader_id: 0,
         })
         .await?;
 
@@ -605,111 +832,129 @@ pub mod tests {
         downloader.check_connection().await?;
 
         downloader
-            .delete_torrents(vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()])
+            .remove_torrents(vec![hash.clone()].into())
             .await?;
 
-        let torrent_source = TorrentSource::parse(
+        let torrent_source = HashTorrentSource::from_url_and_http_client(
             &http_client,
-          "https://mikanani.me/Download/20240301/47ee2d69e7f19af783ad896541a07b012676f858.torrent"
-      ).await?;
+            format!("https://mikanani.me/Download/20240301/{}.torrent", &hash),
+        )
+        .await?;
 
-        let save_path = base_save_path.join(format!(
-            "test_add_torrents_{}",
-            chrono::Utc::now().timestamp()
-        ));
+        let folder_name = format!("torrent_test_{}", Utc::now().timestamp());
+        let save_path = base_save_path.join(&folder_name);
 
-        downloader
-            .add_torrents(torrent_source, save_path.to_string(), Some("bangumi"))
-            .await?;
+        let torrent_creation = QBittorrentCreation {
+            save_path,
+            tags: vec![],
+            sources: vec![torrent_source],
+            category: None,
+        };
 
-        let get_torrent = async || -> Result<Torrent, DownloaderError> {
+        downloader.add_downloads(torrent_creation).await?;
+
+        let get_torrent = async || -> Result<QBittorrentTask, DownloaderError> {
             let torrent_infos = downloader
-                .get_torrents_info(TorrentFilter::All, None, None)
+                .query_downloads(QBittorrentSelector::Hash(QBittorrentHashSelector::from_id(
+                    hash.clone(),
+                )))
                 .await?;
 
             let result = torrent_infos
                 .into_iter()
-                .find(|t| (t.get_hash() == Some("47ee2d69e7f19af783ad896541a07b012676f858")))
-                .whatever_context::<_, DownloaderError>("no torrent")?;
+                .find(|t| t.hash_info() == hash)
+                .whatever_context::<_, DownloaderError>("no bittorrent")?;
 
             Ok(result)
         };
 
         let target_torrent = get_torrent().await?;
 
-        let files = target_torrent.iter_files().collect_vec();
+        let files = target_torrent.contents;
         assert!(!files.is_empty());
 
-        let first_file = files[0];
+        let first_file = files.first().expect("should have first file");
         assert_eq!(
-            first_file.get_name(),
+            &first_file.name,
             r#"[Nekomoe kissaten&LoliHouse] Boku no Kokoro no Yabai Yatsu - 20 [WebRip 1080p HEVC-10bit AAC ASSx2].mkv"#
         );
 
-        let test_tag = format!("test_tag_{}", chrono::Utc::now().timestamp());
+        let test_tag = format!("test_tag_{}", Utc::now().timestamp());
 
         downloader
-            .add_torrent_tags(
-                vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
-                vec![test_tag.clone()],
-            )
+            .add_torrent_tags(vec![hash.clone()], vec![test_tag.clone()])
             .await?;
 
         let target_torrent = get_torrent().await?;
 
-        assert!(target_torrent.get_tags().iter().any(|s| s == &test_tag));
+        assert!(target_torrent.tags().any(|s| s == test_tag));
 
-        let test_category = format!("test_category_{}", chrono::Utc::now().timestamp());
+        let test_category = format!("test_category_{}", Utc::now().timestamp());
 
         downloader
-            .set_torrents_category(
-                vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
-                &test_category,
-            )
+            .set_torrents_category(vec![hash.clone()], &test_category)
             .await?;
 
         let target_torrent = get_torrent().await?;
 
-        assert_eq!(Some(test_category.as_str()), target_torrent.get_category());
+        assert_eq!(
+            Some(test_category.as_str()),
+            target_torrent.category().as_deref()
+        );
 
-        let moved_save_path = base_save_path.join(format!(
-            "moved_test_add_torrents_{}",
-            chrono::Utc::now().timestamp()
-        ));
+        let moved_torrent_path = base_save_path.join(format!("moved_{}", Utc::now().timestamp()));
 
         downloader
-            .move_torrents(
-                vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()],
-                moved_save_path.as_str(),
-            )
+            .move_torrents(vec![hash.clone()], moved_torrent_path.as_str())
             .await?;
 
         let target_torrent = get_torrent().await?;
 
-        let content_path = target_torrent.iter_files().next().unwrap().get_name();
+        let actual_content_path = &target_torrent
+            .torrent
+            .save_path
+            .expect("failed to get actual save path");
 
-        let new_content_path = &format!("new_{}", content_path);
+        assert!(
+            path_equals_as_file_url(actual_content_path, moved_torrent_path)
+                .whatever_context::<_, RError>(
+                    "failed to compare actual torrent path and found expected torrent path"
+                )?
+        );
 
         downloader
-            .rename_torrent_file(
-                "47ee2d69e7f19af783ad896541a07b012676f858",
-                content_path,
-                new_content_path,
-            )
+            .move_torrent_contents(&hash, |f| {
+                f.replace(&folder_name, &format!("moved_{}", &folder_name))
+            })
             .await?;
 
         let target_torrent = get_torrent().await?;
 
-        let content_path = target_torrent.iter_files().next().unwrap().get_name();
+        let actual_content_path = &target_torrent
+            .torrent
+            .content_path
+            .expect("failed to get actual content path");
 
-        assert_eq!(content_path, new_content_path);
+        assert!(
+            path_equals_as_file_url(
+                actual_content_path,
+                base_save_path.join(actual_content_path)
+            )
+            .whatever_context::<_, RError>(
+                "failed to compare actual content path and found expected content path"
+            )?
+        );
 
         downloader
-            .delete_torrents(vec!["47ee2d69e7f19af783ad896541a07b012676f858".to_string()])
+            .remove_torrents(vec![hash.clone()].into())
             .await?;
 
         let torrent_infos1 = downloader
-            .get_torrents_info(TorrentFilter::All, None, None)
+            .query_downloads(QBittorrentSelector::Complex(QBittorrentComplexSelector {
+                query: GetTorrentListArg::builder()
+                    .filter(QbitTorrentFilter::All)
+                    .build(),
+            }))
             .await?;
 
         assert!(torrent_infos1.is_empty());

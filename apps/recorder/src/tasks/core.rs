@@ -7,7 +7,7 @@ use tokio::sync::{RwLock, mpsc};
 
 use crate::{
     app::AppContextTrait,
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
     models,
 };
 

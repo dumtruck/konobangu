@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::cors::{self, Any};
 
-use crate::{app::AppContextTrait, web::middleware::MiddlewareLayer, errors::RResult};
+use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
 
 /// CORS middleware configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -157,7 +157,10 @@ impl MiddlewareLayer for Cors {
     }
 
     /// Applies the CORS middleware layer to the Axum router.
-    fn apply(&self, app: Router<Arc<dyn AppContextTrait>>) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    fn apply(
+        &self,
+        app: Router<Arc<dyn AppContextTrait>>,
+    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(self.cors()?))
     }
 }

@@ -4780,6 +4780,7 @@ dependencies = [
 name = "recorder"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "async-graphql",
  "async-graphql-axum",
  "async-stream",
@@ -4793,6 +4794,7 @@ dependencies = [
  "clap",
  "cookie",
  "ctor",
+ "dashmap 6.1.0",
  "dotenv",
  "fancy-regex",
  "fastrand",

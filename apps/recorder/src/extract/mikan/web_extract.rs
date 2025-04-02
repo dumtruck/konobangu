@@ -15,7 +15,7 @@ use super::{
 };
 use crate::{
     app::AppContextTrait,
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
     extract::{
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,

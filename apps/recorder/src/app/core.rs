@@ -6,7 +6,7 @@ use tokio::signal;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-    errors::RResult,
+    errors::app_error::RResult,
     web::{
         controller::{self, core::ControllerTrait},
         middleware::default_middleware_stack,

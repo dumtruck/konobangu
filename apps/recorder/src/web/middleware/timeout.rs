@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::timeout::TimeoutLayer;
 
-use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
 
 /// Timeout middleware configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]

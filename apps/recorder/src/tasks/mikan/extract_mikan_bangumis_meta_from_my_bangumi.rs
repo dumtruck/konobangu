@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::{
     app::AppContextTrait,
-    errors::RResult,
+    errors::app_error::RResult,
     extract::mikan::{MikanAuthSecrecy, MikanBangumiMeta, web_extract},
     tasks::core::{StandardStreamTaskReplayLayout, StreamTaskRunnerTrait},
 };

@@ -1,6 +1,6 @@
 use super::{Environment, config::AppConfig};
 use crate::{
-    auth::AuthService, cache::CacheService, database::DatabaseService, errors::RResult,
+    auth::AuthService, cache::CacheService, database::DatabaseService, errors::app_error::RResult,
     extract::mikan::MikanClient, graphql::GraphQLService, logger::LoggerService,
     storage::StorageService,
 };

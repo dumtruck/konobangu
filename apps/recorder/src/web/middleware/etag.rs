@@ -25,7 +25,7 @@ use futures_util::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use tower::{Layer, Service};
 
-use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Etag {

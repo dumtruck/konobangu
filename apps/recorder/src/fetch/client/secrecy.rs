@@ -4,7 +4,7 @@ use cookie::Cookie;
 use reqwest::{ClientBuilder, cookie::Jar};
 use url::Url;
 
-use crate::errors::RError;
+use crate::errors::app_error::RError;
 
 pub trait HttpClientSecrecyDataTrait {
     fn attach_secrecy_to_client(&self, client_builder: ClientBuilder) -> ClientBuilder {

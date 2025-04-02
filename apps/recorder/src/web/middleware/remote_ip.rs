@@ -33,7 +33,7 @@ use tracing::error;
 
 use crate::{
     app::AppContextTrait,
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
     web::middleware::MiddlewareLayer,
 };
 

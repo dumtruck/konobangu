@@ -8,6 +8,7 @@
     let_chains,
     error_generic_member_access
 )]
+#![feature(associated_type_defaults)]
 
 pub mod app;
 pub mod auth;

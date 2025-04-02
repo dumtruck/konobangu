@@ -7,7 +7,7 @@ use sea_orm::{
 use sea_orm_migration::MigratorTrait;
 
 use super::DatabaseConfig;
-use crate::{errors::RResult, migrations::Migrator};
+use crate::{errors::app_error::RResult, migrations::Migrator};
 
 pub struct DatabaseService {
     connection: DatabaseConnection,

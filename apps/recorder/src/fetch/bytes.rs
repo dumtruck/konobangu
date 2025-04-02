@@ -2,7 +2,7 @@ use bytes::Bytes;
 use reqwest::IntoUrl;
 
 use super::client::HttpClientTrait;
-use crate::errors::RError;
+use crate::errors::app_error::RError;
 
 pub async fn fetch_bytes<T: IntoUrl, H: HttpClientTrait>(
     client: &H,

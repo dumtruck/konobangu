@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::subscribers::{self, SEED_SUBSCRIBER};
 use crate::{
     app::AppContextTrait,
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
 };
 
 #[derive(

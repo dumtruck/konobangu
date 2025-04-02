@@ -11,12 +11,14 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{app::AppContextTrait, errors::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, web::middleware::MiddlewareLayer};
 
 const X_REQUEST_ID: &str = "x-request-id";
 const MAX_LEN: usize = 255;
 
 use std::sync::{Arc, OnceLock};
+
+use crate::errors::app_error::RResult;
 
 static ID_CLEANUP: OnceLock<Regex> = OnceLock::new();
 

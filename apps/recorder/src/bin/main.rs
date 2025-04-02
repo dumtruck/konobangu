@@ -1,4 +1,4 @@
-use recorder::{app::AppBuilder, errors::RResult};
+use recorder::{app::AppBuilder, errors::app_error::RResult};
 
 #[tokio::main]
 async fn main() -> RResult<()> {

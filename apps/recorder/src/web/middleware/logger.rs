@@ -15,7 +15,7 @@ use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
 
 use crate::{
     app::{AppContextTrait, Environment},
-    errors::RResult,
+    errors::app_error::RResult,
     web::middleware::{MiddlewareLayer, request_id::LocoRequestId},
 };
 

@@ -8,11 +8,13 @@ use tracing::instrument;
 use url::Url;
 
 use crate::{
-    downloader::core::BITTORRENT_MIME_TYPE,
-    errors::{RError, RResult},
-    extract::mikan::{
-        MikanClient,
-        web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
+    errors::app_error::{RError, RResult},
+    extract::{
+        bittorrent::BITTORRENT_MIME_TYPE,
+        mikan::{
+            MikanClient,
+            web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
+        },
     },
     fetch::bytes::fetch_bytes,
 };
@@ -338,11 +340,13 @@ mod tests {
     use url::Url;
 
     use crate::{
-        downloader::core::BITTORRENT_MIME_TYPE,
-        errors::RResult,
-        extract::mikan::{
-            MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
-            extract_mikan_rss_channel_from_rss_link,
+        errors::app_error::RResult,
+        extract::{
+            bittorrent::BITTORRENT_MIME_TYPE,
+            mikan::{
+                MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
+                extract_mikan_rss_channel_from_rss_link,
+            },
         },
         test_utils::mikan::build_testing_mikan_client,
     };

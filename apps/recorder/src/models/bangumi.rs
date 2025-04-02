@@ -4,7 +4,7 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::O
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
-use crate::{app::AppContextTrait, errors::RResult};
+use crate::{app::AppContextTrait, errors::app_error::RResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,

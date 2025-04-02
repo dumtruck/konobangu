@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     app::AppContextTrait,
-    errors::{RError, RResult},
+    errors::app_error::{RError, RResult},
 };
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";

@@ -4,4 +4,4 @@ pub mod http;
 pub mod media;
 pub mod mikan;
 pub mod rawname;
-pub mod torrent;
+pub mod bittorrent;

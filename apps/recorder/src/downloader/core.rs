@@ -1,297 +1,218 @@
-use std::fmt::Debug;
+use std::{
+    any::Any, borrow::Cow, fmt::Debug, hash::Hash, marker::PhantomData, ops::Deref, time::Duration,
+    vec::IntoIter,
+};
 
 use async_trait::async_trait;
-use itertools::Itertools;
-use lazy_static::lazy_static;
-use librqbit_core::{
-    magnet::Magnet,
-    torrent_metainfo::{TorrentMetaV1Owned, torrent_from_bytes},
-};
-use quirks_path::{Path, PathBuf};
-use regex::Regex;
-use serde::{Deserialize, Serialize};
-use snafu::prelude::*;
-use url::Url;
 
-use super::{DownloaderError, QbitTorrent, QbitTorrentContent, errors::DownloadFetchSnafu};
-use crate::fetch::{HttpClientTrait, fetch_bytes};
+use super::DownloaderError;
 
-pub const BITTORRENT_MIME_TYPE: &str = "application/x-bittorrent";
-pub const MAGNET_SCHEMA: &str = "magnet";
+pub trait DownloadStateTrait: Sized + Debug {}
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TorrentFilter {
-    All,
-    Downloading,
-    Completed,
-    Paused,
-    Active,
-    Inactive,
-    Resumed,
-    Stalled,
-    StalledUploading,
-    StalledDownloading,
-    Errored,
-}
+pub trait DownloadIdTrait: Hash + Sized + Clone + Send + Debug {}
 
-lazy_static! {
-    static ref TORRENT_HASH_RE: Regex = Regex::new(r"[a-fA-F0-9]{40}").unwrap();
-    static ref TORRENT_EXT_RE: Regex = Regex::new(r"\.torrent$").unwrap();
-}
+pub trait DownloadTaskTrait: Sized + Send + Debug {
+    type State: DownloadStateTrait;
+    type Id: DownloadIdTrait;
 
-#[derive(Clone, PartialEq, Eq)]
-pub enum TorrentSource {
-    MagnetUrl {
-        url: Url,
-        hash: String,
-    },
-    TorrentUrl {
-        url: Url,
-        hash: String,
-    },
-    TorrentFile {
-        torrent: Vec<u8>,
-        hash: String,
-        name: Option<String>,
-    },
-}
-
-impl TorrentSource {
-    pub async fn parse<H: HttpClientTrait>(client: &H, url: &str) -> Result<Self, DownloaderError> {
-        let url = Url::parse(url)?;
-        let source = if url.scheme() == MAGNET_SCHEMA {
-            TorrentSource::from_magnet_url(url)?
-        } else if let Some(basename) = url
-            .clone()
-            .path_segments()
-            .and_then(|mut segments| segments.next_back())
-        {
-            if let (Some(match_hash), true) = (
-                TORRENT_HASH_RE.find(basename),
-                TORRENT_EXT_RE.is_match(basename),
-            ) {
-                TorrentSource::from_torrent_url(url, match_hash.as_str().to_string())?
+    fn id(&self) -> &Self::Id;
+    fn into_id(self) -> Self::Id;
+    fn name(&self) -> Cow<'_, str>;
+    fn speed(&self) -> Option<u64>;
+    fn state(&self) -> &Self::State;
+    fn dl_bytes(&self) -> Option<u64>;
+    fn total_bytes(&self) -> Option<u64>;
+    fn left_bytes(&self) -> Option<u64> {
+        if let (Some(tt), Some(dl)) = (self.total_bytes(), self.dl_bytes()) {
+            tt.checked_sub(dl)
+        } else {
+            None
+        }
+    }
+    fn et(&self) -> Option<Duration>;
+    fn eta(&self) -> Option<Duration> {
+        if let (Some(left_bytes), Some(speed)) = (self.left_bytes(), self.speed()) {
+            if speed > 0 {
+                Some(Duration::from_secs_f64(left_bytes as f64 / speed as f64))
             } else {
-                let contents = fetch_bytes(client, url)
-                    .await
-                    .boxed()
-                    .context(DownloadFetchSnafu)?;
-                TorrentSource::from_torrent_file(contents.to_vec(), Some(basename.to_string()))?
+                None
             }
         } else {
-            let contents = fetch_bytes(client, url)
-                .await
-                .boxed()
-                .context(DownloadFetchSnafu)?;
-            TorrentSource::from_torrent_file(contents.to_vec(), None)?
-        };
-        Ok(source)
+            None
+        }
     }
+    fn average_speed(&self) -> Option<f64> {
+        if let (Some(et), Some(dl_bytes)) = (self.et(), self.dl_bytes()) {
+            let secs = et.as_secs_f64();
 
-    pub fn from_torrent_file(file: Vec<u8>, name: Option<String>) -> Result<Self, DownloaderError> {
-        let torrent: TorrentMetaV1Owned =
-            torrent_from_bytes(&file).map_err(|_| DownloaderError::TorrentFileFormatError)?;
-        let hash = torrent.info_hash.as_string();
-        Ok(TorrentSource::TorrentFile {
-            torrent: file,
-            hash,
-            name,
-        })
-    }
-
-    pub fn from_magnet_url(url: Url) -> Result<Self, DownloaderError> {
-        if url.scheme() != MAGNET_SCHEMA {
-            Err(DownloaderError::DownloadSchemaError {
-                found: url.scheme().to_string(),
-                expected: MAGNET_SCHEMA.to_string(),
-            })
+            if secs > 0.0 {
+                Some(dl_bytes as f64 / secs)
+            } else {
+                None
+            }
         } else {
-            let magnet =
-                Magnet::parse(url.as_str()).map_err(|_| DownloaderError::MagnetFormatError {
-                    url: url.as_str().to_string(),
-                })?;
-
-            let hash = magnet
-                .as_id20()
-                .ok_or_else(|| DownloaderError::MagnetFormatError {
-                    url: url.as_str().to_string(),
-                })?
-                .as_string();
-            Ok(TorrentSource::MagnetUrl { url, hash })
+            None
         }
     }
-
-    pub fn from_torrent_url(url: Url, hash: String) -> Result<Self, DownloaderError> {
-        Ok(TorrentSource::TorrentUrl { url, hash })
-    }
-
-    pub fn hash(&self) -> &str {
-        match self {
-            TorrentSource::MagnetUrl { hash, .. } => hash,
-            TorrentSource::TorrentUrl { hash, .. } => hash,
-            TorrentSource::TorrentFile { hash, .. } => hash,
-        }
-    }
-}
-
-impl Debug for TorrentSource {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TorrentSource::MagnetUrl { url, .. } => {
-                write!(f, "MagnetUrl {{ url: {} }}", url.as_str())
+    fn progress(&self) -> Option<f32> {
+        if let (Some(dl), Some(tt)) = (self.dl_bytes(), self.total_bytes()) {
+            if dl > 0 {
+                if tt > 0 {
+                    Some(dl as f32 / tt as f32)
+                } else {
+                    None
+                }
+            } else {
+                Some(0.0)
             }
-            TorrentSource::TorrentUrl { url, .. } => {
-                write!(f, "TorrentUrl {{ url: {} }}", url.as_str())
-            }
-            TorrentSource::TorrentFile { name, hash, .. } => write!(
-                f,
-                "TorrentFile {{ name: \"{}\", hash: \"{hash}\" }}",
-                name.as_deref().unwrap_or_default()
-            ),
+        } else {
+            None
         }
     }
 }
 
-pub trait TorrentContent {
-    fn get_name(&self) -> &str;
-
-    fn get_all_size(&self) -> u64;
-
-    fn get_progress(&self) -> f64;
-
-    fn get_curr_size(&self) -> u64;
+pub trait DownloadCreationTrait: Sized {
+    type Task: DownloadTaskTrait;
 }
 
-impl TorrentContent for QbitTorrentContent {
-    fn get_name(&self) -> &str {
-        self.name.as_str()
-    }
+pub trait DownloadSelectorTrait: Sized + Any + Send {
+    type Id: DownloadIdTrait;
+    type Task: DownloadTaskTrait<Id = Self::Id>;
 
-    fn get_all_size(&self) -> u64 {
-        self.size
-    }
-
-    fn get_progress(&self) -> f64 {
-        self.progress
-    }
-
-    fn get_curr_size(&self) -> u64 {
-        u64::clamp(
-            f64::round(self.get_all_size() as f64 * self.get_progress()) as u64,
-            0,
-            self.get_all_size(),
-        )
+    fn try_into_ids_only(self) -> Result<Vec<Self::Id>, Self> {
+        Err(self)
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum Torrent {
-    Qbit {
-        torrent: QbitTorrent,
-        contents: Vec<QbitTorrentContent>,
-    },
+pub trait DownloadIdSelectorTrait:
+    DownloadSelectorTrait
+    + IntoIterator<Item = Self::Id>
+    + FromIterator<Self::Id>
+    + Into<Vec<Self::Id>>
+    + From<Vec<Self::Id>>
+{
+    fn try_into_ids_only(self) -> Result<Vec<Self::Id>, Self> {
+        Ok(Vec::from_iter(self))
+    }
+
+    fn from_id(id: Self::Id) -> Self;
 }
 
-impl Torrent {
-    pub fn iter_files(&self) -> impl Iterator<Item = &dyn TorrentContent> {
-        match self {
-            Torrent::Qbit { contents, .. } => {
-                contents.iter().map(|item| item as &dyn TorrentContent)
-            }
+#[derive(Debug)]
+pub struct DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait,
+{
+    pub ids: Vec<Task::Id>,
+    pub marker: PhantomData<Task>,
+}
+
+impl<Task> Deref for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait,
+{
+    type Target = Vec<Task::Id>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.ids
+    }
+}
+
+impl<Task> IntoIterator for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait,
+{
+    type Item = Task::Id;
+    type IntoIter = IntoIter<Task::Id>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.ids.into_iter()
+    }
+}
+
+impl<Task> FromIterator<Task::Id> for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait,
+{
+    fn from_iter<T: IntoIterator<Item = Task::Id>>(iter: T) -> Self {
+        Self {
+            ids: Vec::from_iter(iter),
+            marker: PhantomData,
         }
     }
+}
 
-    pub fn get_name(&self) -> Option<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.name.as_deref(),
+impl<Task> DownloadSelectorTrait for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait + 'static,
+{
+    type Id = Task::Id;
+    type Task = Task;
+}
+
+impl<Task> From<Vec<Task::Id>> for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait + 'static,
+{
+    fn from(value: Vec<Task::Id>) -> Self {
+        Self {
+            ids: value,
+            marker: PhantomData,
         }
     }
+}
 
-    pub fn get_hash(&self) -> Option<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.hash.as_deref(),
-        }
+impl<Task> From<DownloadIdSelector<Task>> for Vec<Task::Id>
+where
+    Task: DownloadTaskTrait + 'static,
+{
+    fn from(value: DownloadIdSelector<Task>) -> Self {
+        value.ids
+    }
+}
+
+impl<Task> DownloadIdSelectorTrait for DownloadIdSelector<Task>
+where
+    Task: DownloadTaskTrait + 'static,
+{
+    fn try_into_ids_only(self) -> Result<Vec<Self::Id>, Self> {
+        Ok(self.ids)
     }
 
-    pub fn get_save_path(&self) -> Option<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.save_path.as_deref(),
-        }
-    }
-
-    pub fn get_content_path(&self) -> Option<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.content_path.as_deref(),
-        }
-    }
-
-    pub fn get_tags(&self) -> Vec<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.tags.as_deref().map_or_else(Vec::new, |s| {
-                s.split(',')
-                    .map(|s| s.trim())
-                    .filter(|s| !s.is_empty())
-                    .collect_vec()
-            }),
-        }
-    }
-
-    pub fn get_category(&self) -> Option<&str> {
-        match self {
-            Torrent::Qbit { torrent, .. } => torrent.category.as_deref(),
+    fn from_id(id: Self::Id) -> Self {
+        Self {
+            ids: vec![id],
+            marker: PhantomData,
         }
     }
 }
 
 #[async_trait]
-pub trait TorrentDownloader {
-    async fn get_torrents_info(
+pub trait DownloaderTrait {
+    type State: DownloadStateTrait;
+    type Id: DownloadIdTrait;
+    type Task: DownloadTaskTrait<State = Self::State, Id = Self::Id>;
+    type Creation: DownloadCreationTrait<Task = Self::Task>;
+    type Selector: DownloadSelectorTrait<Task = Self::Task>;
+
+    async fn add_downloads(
         &self,
-        status_filter: TorrentFilter,
-        category: Option<String>,
-        tag: Option<String>,
-    ) -> Result<Vec<Torrent>, DownloaderError>;
-
-    async fn add_torrents(
+        creation: Self::Creation,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError>;
+    async fn pause_downloads(
         &self,
-        source: TorrentSource,
-        save_path: String,
-        category: Option<&str>,
-    ) -> Result<(), DownloaderError>;
-
-    async fn delete_torrents(&self, hashes: Vec<String>) -> Result<(), DownloaderError>;
-
-    async fn rename_torrent_file(
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError>;
+    async fn resume_downloads(
         &self,
-        hash: &str,
-        old_path: &str,
-        new_path: &str,
-    ) -> Result<(), DownloaderError>;
-
-    async fn move_torrents(
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError>;
+    async fn remove_downloads(
         &self,
-        hashes: Vec<String>,
-        new_path: &str,
-    ) -> Result<(), DownloaderError>;
-
-    async fn get_torrent_path(&self, hashes: String) -> Result<Option<String>, DownloaderError>;
-
-    async fn check_connection(&self) -> Result<(), DownloaderError>;
-
-    async fn set_torrents_category(
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError>;
+    async fn query_downloads(
         &self,
-        hashes: Vec<String>,
-        category: &str,
-    ) -> Result<(), DownloaderError>;
-
-    async fn add_torrent_tags(
-        &self,
-        hashes: Vec<String>,
-        tags: Vec<String>,
-    ) -> Result<(), DownloaderError>;
-
-    async fn add_category(&self, category: &str) -> Result<(), DownloaderError>;
-
-    fn get_save_path(&self, sub_path: &Path) -> PathBuf;
+        selector: Self::Selector,
+    ) -> Result<impl IntoIterator<Item = Self::Task>, DownloaderError>;
 }

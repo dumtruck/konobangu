@@ -1,7 +1,7 @@
 use reqwest::IntoUrl;
 
 use crate::{
-    errors::RResult,
+    errors::app_error::RResult,
     extract::mikan::{MikanClient, MikanConfig},
     fetch::HttpClientConfig,
 };

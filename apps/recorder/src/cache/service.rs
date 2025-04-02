@@ -1,5 +1,5 @@
 use super::CacheConfig;
-use crate::errors::RResult;
+use crate::errors::app_error::RResult;
 
 pub struct CacheService {}
 

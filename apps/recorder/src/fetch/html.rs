@@ -1,7 +1,7 @@
 use reqwest::IntoUrl;
 
 use super::client::HttpClientTrait;
-use crate::errors::RError;
+use crate::errors::app_error::RError;
 
 pub async fn fetch_html<T: IntoUrl, H: HttpClientTrait>(
     client: &H,

@@ -24,7 +24,9 @@ use super::{
     errors::{AuthError, OidcProviderUrlSnafu, OidcRequestRedirectUriSnafu},
     service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::{app::AppContextTrait, errors::RError, fetch::HttpClient, models::auth::AuthType};
+use crate::{
+    app::AppContextTrait, errors::app_error::RError, fetch::HttpClient, models::auth::AuthType,
+};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OidcAuthClaims {

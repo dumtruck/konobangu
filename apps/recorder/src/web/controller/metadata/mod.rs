@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{Json, Router, extract::State, routing::get};
 use serde::Serialize;
 
-use crate::{app::AppContextTrait, errors::RResult, web::controller::Controller};
+use crate::{app::AppContextTrait, errors::app_error::RResult, web::controller::Controller};
 
 pub const CONTROLLER_PREFIX: &str = "/api/metadata";
 

@@ -14,7 +14,7 @@ use std::sync::Arc;
 use axum::Router;
 use serde::{Deserialize, Serialize};
 
-use crate::{app::AppContextTrait, errors::RResult};
+use crate::{app::AppContextTrait, errors::app_error::RResult};
 
 /// Trait representing the behavior of middleware components in the application.
 /// When implementing a new middleware, make sure to go over this checklist:
