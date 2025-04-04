@@ -12,6 +12,7 @@ import WebTorrent, { type Torrent } from 'webtorrent';
 // Configuration
 const API_PORT = 6080;
 const TRACKER_PORT = 6081;
+const SEEDING_PORT = 6082;
 const STATIC_API_PATH = '/api/static';
 const LOCAL_IP = '127.0.0.1';
 const WORKSPACE_PATH = 'workspace';
@@ -72,7 +73,10 @@ async function startTracker(): Promise<void> {
 }
 
 // Tracker and WebTorrent client
-const webTorrent = new WebTorrent({});
+const webTorrent = new WebTorrent({
+  // @ts-ignore
+  torrentPort: SEEDING_PORT,
+});
 
 // Generate mock file
 async function generateMockFile(filePath: string, size: number) {

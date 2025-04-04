@@ -8,6 +8,7 @@ FROM nodebt AS deps
 RUN mkdir -p /app/workspace
 WORKDIR /app
 COPY package.json /app/
+RUN pnpm approve-builds utf-8-validate node-datachannel utp-native
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --no-frozen-lockfile
 
 FROM deps AS app

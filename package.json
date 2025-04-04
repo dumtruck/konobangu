@@ -3,10 +3,7 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "workspaces": ["packages/*", "apps/*"],
   "repository": {
     "type": "git",
     "url": "https://github.com/dumtruck/konobangu.git"

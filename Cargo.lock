@@ -3543,6 +3543,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "merge-struct"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d82012d21e24135b839b6b9bebd622b7ff0cb40071498bc2d066d3a6d04dd4a"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "miette"
 version = "5.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4794,7 +4804,6 @@ dependencies = [
  "clap",
  "cookie",
  "ctor",
- "dashmap 6.1.0",
  "dotenv",
  "fancy-regex",
  "fastrand",
@@ -4817,9 +4826,9 @@ dependencies = [
  "lightningcss",
  "log",
  "maplit",
+ "merge-struct",
  "mockito",
  "moka",
- "nom",
  "once_cell",
  "opendal",
  "openidconnect",
@@ -4837,6 +4846,7 @@ dependencies = [
  "sea-orm-migration",
  "seaography",
  "serde",
+ "serde-value",
  "serde_json",
  "serde_variant",
  "serde_with",

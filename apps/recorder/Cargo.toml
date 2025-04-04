@@ -103,7 +103,6 @@ tower-http = { version = "0.6", features = [
     "set-header",
     "compression-full",
 ] }
-serde_yaml = "0.9.34"
 tera = "1.20.0"
 openidconnect = { version = "4", features = ["rustls-tls"] }
 http-cache-reqwest = { version = "0.15", features = [
@@ -118,7 +117,6 @@ http-cache = { version = "0.20.0", features = [
 ], default-features = false }
 http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
-nom = "8.0.0"
 http = "1.2.0"
 cookie = "0.18.1"
 async-stream = "0.3.6"
@@ -127,14 +125,17 @@ tracing-appender = "0.2.3"
 clap = "4.5.31"
 futures-util = "0.3.31"
 ipnetwork = "0.21.1"
-ctor = "0.4.0"
 librqbit = "8.0.0"
 typed-builder = "0.21.0"
 snafu = { version = "0.8.5", features = ["futures"] }
 anyhow = "1.0.97"
-dashmap = "6.1.0"
+serde_yaml = "0.9.34"
+merge-struct = "0.1.0"
+serde-value = "0.7.0"
+
 [dev-dependencies]
 serial_test = "3"
 insta = { version = "1", features = ["redactions", "yaml", "filters"] }
 mockito = "1.6.1"
 rstest = "0.25"
+ctor = "0.4.0"
