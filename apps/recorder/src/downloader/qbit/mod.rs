@@ -587,6 +587,7 @@ impl QBittorrentDownloader {
         Ok(torrent.save_path.take())
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn sync_data(&self) -> Result<(), DownloaderError> {
         let rid = { self.sync_data.read().await.rid };
         let sync_data_patch = self.client.sync(Some(rid)).await?;
@@ -649,7 +650,7 @@ impl DownloaderTrait for QBittorrentDownloader {
         &self,
         creation: Self::Creation,
     ) -> Result<HashSet<Self::Id>, DownloaderError> {
-        let tag = {
+        let tags = {
             let mut tags = vec![TORRENT_TAG_NAME.to_string()];
             tags.extend(creation.tags);
             Some(tags.into_iter().filter(|s| !s.is_empty()).join(","))
@@ -658,7 +659,7 @@ impl DownloaderTrait for QBittorrentDownloader {
         let save_path = Some(creation.save_path.into_string());
 
         let sources = creation.sources;
-        let ids = HashSet::from_iter(sources.iter().map(|s| s.hash_info().to_string()));
+        let hashes = HashSet::from_iter(sources.iter().map(|s| s.hash_info().to_string()));
         let (urls_source, files_source) = {
             let mut urls = vec![];
             let mut files = vec![];
@@ -691,7 +692,20 @@ impl DownloaderTrait for QBittorrentDownloader {
             )
         };
 
-        let category = TORRENT_TAG_NAME.to_string();
+        let category = creation.category;
+
+        if let Some(category) = category.as_deref() {
+            let has_caetgory = {
+                self.sync_data
+                    .read()
+                    .await
+                    .categories
+                    .contains_key(category)
+            };
+            if !has_caetgory {
+                self.add_category(category).await?;
+            }
+        }
 
         if let Some(source) = urls_source {
             self.client
@@ -699,8 +713,8 @@ impl DownloaderTrait for QBittorrentDownloader {
                     source,
                     savepath: save_path.clone(),
                     auto_torrent_management: Some(false),
-                    category: Some(category.clone()),
-                    tags: tag.clone(),
+                    category: category.clone(),
+                    tags: tags.clone(),
                     ..Default::default()
                 })
                 .await?;
@@ -710,10 +724,10 @@ impl DownloaderTrait for QBittorrentDownloader {
             self.client
                 .add_torrent(AddTorrentArg {
                     source,
-                    savepath: save_path.clone(),
+                    savepath: save_path,
                     auto_torrent_management: Some(false),
-                    category: Some(category.clone()),
-                    tags: tag,
+                    category,
+                    tags,
                     ..Default::default()
                 })
                 .await?;
@@ -721,12 +735,12 @@ impl DownloaderTrait for QBittorrentDownloader {
         self.wait_sync_until(
             |sync_data| {
                 let torrents = &sync_data.torrents;
-                ids.iter().all(|id| torrents.contains_key(id))
+                hashes.iter().all(|hash| torrents.contains_key(hash))
             },
             None,
         )
         .await?;
-        Ok(ids)
+        Ok(hashes)
     }
 
     async fn pause_downloads(
@@ -769,6 +783,7 @@ impl DownloaderTrait for QBittorrentDownloader {
             }
         }))
         .await?;
+
         let tasks = torrent_list
             .into_iter()
             .zip(torrent_contents)
@@ -938,7 +953,7 @@ pub mod tests {
         use tokio::io::AsyncReadExt;
 
         tracing_subscriber::fmt()
-            .with_max_level(tracing::Level::TRACE)
+            .with_max_level(tracing::Level::DEBUG)
             .with_test_writer()
             .init();
 
@@ -946,16 +961,16 @@ pub mod tests {
         let torrents_container = torrents_image.start().await?;
 
         let torrents_req = MockRequest {
-            id: "test".into(),
+            id: "f10ebdda-dd2e-43f8-b80c-bf0884d071c4".into(),
             file_list: vec![MockFileItem {
-                path: "test.torrent".into(),
+                path: "[Nekomoe kissaten&LoliHouse] Boku no Kokoro no Yabai Yatsu - 20 [WebRip \
+                       1080p HEVC-10bit AAC ASSx2].mkv"
+                    .into(),
                 size: 1024,
             }],
         };
 
-        let torrent_res: MockResponse = reqwest::Client::builder()
-            .pool_max_idle_per_host(0)
-            .build()?
+        let torrent_res: MockResponse = reqwest::Client::new()
             .post("http://127.0.0.1:6080/api/torrents/mock")
             .json(&torrents_req)
             .send()
@@ -988,10 +1003,7 @@ pub mod tests {
         let password = logs
             .lines()
             .find_map(|line| {
-                if line.contains(
-                    "A temporary password is provided for this
-        session",
-                ) {
+                if line.contains("A temporary password is provided for") {
                     line.split_whitespace().last()
                 } else {
                     None
@@ -1074,6 +1086,7 @@ pub mod tests {
         let target_torrent = get_torrent().await?;
 
         let files = target_torrent.contents;
+
         assert!(!files.is_empty());
 
         let first_file = files.first().expect("should have first file");

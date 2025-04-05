@@ -14,9 +14,6 @@ importers:
       bittorrent-tracker:
         specifier: ^11.2.1
         version: 11.2.1
-      create-torrent:
-        specifier: ^6.1.0
-        version: 6.1.0
       fastify:
         specifier: ^5.2.2
         version: 5.2.2
