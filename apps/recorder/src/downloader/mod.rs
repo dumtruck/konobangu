@@ -6,7 +6,3 @@ pub mod rqbit;
 pub mod utils;
 
 pub use errors::DownloaderError;
-pub use qbit::{
-    QBittorrentDownloader, QBittorrentDownloaderCreation, QbitTorrent, QbitTorrentContent,
-    QbitTorrentFile, QbitTorrentFilter, QbitTorrentSource,
-};

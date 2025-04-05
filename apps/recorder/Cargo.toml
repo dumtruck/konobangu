@@ -18,7 +18,8 @@ default = []
 testcontainers = [
     "dep:testcontainers",
     "dep:testcontainers-modules",
-    "dep:bollard",
+    "dep:testcontainers-ext",
+    "dep:testing-torrents",
 ]
 
 [dependencies]
@@ -75,16 +76,12 @@ qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe
     "default",
     "builder",
 ] }
-testcontainers = { version = "0.23.3", features = [
-    "default",
-    "properties-config",
-    "watchdog",
-    "http_wait",
-    "reusable-containers",
-], optional = true }
+testcontainers = { version = "0.23.3", optional = true }
 testcontainers-modules = { version = "0.11.4", optional = true }
+testcontainers-ext = { version = "0.1.0", optional = true, features = [
+    "tracing",
+] }
 log = "0.4.22"
-bollard = { version = "0.18", optional = true }
 async-graphql = { version = "7", features = [] }
 async-graphql-axum = "7"
 fastrand = "2.3.0"
@@ -132,6 +129,7 @@ anyhow = "1.0.97"
 serde_yaml = "0.9.34"
 merge-struct = "0.1.0"
 serde-value = "0.7.0"
+testing-torrents = { path = "../../packages/testing-torrents", optional = true }
 
 [dev-dependencies]
 serial_test = "3"
