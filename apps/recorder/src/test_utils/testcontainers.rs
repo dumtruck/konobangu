@@ -79,7 +79,9 @@ where
                 .await
                 .map_err(|error| TestcontainersError::Other(Box::new(error)))?;
 
-                tracing::warn!(name = "stop running containers", result = ?remove_containers);
+                if !remove_containers.is_empty() {
+                    tracing::warn!(name = "stop running containers", result = ?remove_containers);
+                }
             }
 
             let result = client
@@ -87,7 +89,13 @@ where
                 .await
                 .map_err(|err| TestcontainersError::Other(Box::new(err)))?;
 
-            tracing::warn!(name = "prune existed containers", result = ?result);
+            if result
+                .containers_deleted
+                .as_ref()
+                .is_some_and(|c| !c.is_empty())
+            {
+                tracing::warn!(name = "prune existed containers", result = ?result);
+            }
         }
 
         let result = self.with_labels([

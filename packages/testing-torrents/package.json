@@ -18,5 +18,14 @@
   "devDependencies": {
     "@types/create-torrent": "^5.0.2",
     "@types/webtorrent": "^0.110.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "node-datachannel",
+      "utf-8-validate",
+      "utp-native"
+    ]
   }
 }

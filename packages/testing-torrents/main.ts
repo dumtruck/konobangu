@@ -29,9 +29,9 @@ app.register(fastifyStatic, {
 });
 
 const tracker = new TrackerServer({
-  udp: true, // enable udp server? [default=true]
+  udp: false, // enable udp server? [default=true]
   http: true, // enable http server? [default=true]
-  ws: true, // enable websocket server? [default=true]
+  ws: false, // enable websocket server? [default=true]
   stats: true, // enable web-based statistics? [default=true]
   trustProxy: true, // enable trusting x-forwarded-for header for remote IP [default=false]
 });
@@ -50,12 +50,13 @@ interface RequestSchema {
 interface ResponseSchema {
   torrentUrl: string;
   magnetUrl: string;
+  hash: string;
 }
 
 // Start local Tracker
 async function startTracker(): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    tracker.listen(TRACKER_PORT, 'localhost', () => {
+    tracker.listen(TRACKER_PORT, '0.0.0.0', () => {
       console.log(`Tracker listening on port ${TRACKER_PORT}`);
       resolve();
     });
@@ -85,6 +86,7 @@ async function generateMockFile(filePath: string, size: number) {
     await fsp.mkdir(dir, { recursive: true });
   }
 
+  await fsp.writeFile(filePath, Buffer.alloc(0));
   await fsp.truncate(filePath, size);
 }
 
@@ -162,6 +164,7 @@ app.post<{ Body: RequestSchema }>('/api/torrents/mock', async (req, _reply) => {
   return {
     torrentUrl: `${API_BASE_URL}${id}.torrent`,
     magnetUrl,
+    hash: torrent.infoHash,
   } as ResponseSchema;
 });
 
@@ -169,7 +172,8 @@ app.post<{ Body: RequestSchema }>('/api/torrents/mock', async (req, _reply) => {
 async function main() {
   try {
     await startTracker();
-    await app.listen({ port: API_PORT, host: LOCAL_IP });
+    const address = await app.listen({ port: API_PORT, host: '0.0.0.0' });
+    console.log('Listening on:', address);
   } catch (err) {
     console.error('Startup error:', err);
     webTorrent.destroy();

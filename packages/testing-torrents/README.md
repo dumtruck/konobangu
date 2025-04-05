@@ -1,5 +1,11 @@
 # Konobangu Testing Torrents Container
 
+## Development
+
+```bash
+pnpm install --ignore-workspace
+```
+
 ## Build
 
 ```bash

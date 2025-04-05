@@ -1,3 +1,11 @@
 packages:
-    - packages/*
-    - apps/*
+  - packages/*
+  - apps/*
+  - '!packages/testing-torrents'
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - bufferutil
+  - core-js
+  - esbuild
+  - sharp
+  - utf-8-validate
