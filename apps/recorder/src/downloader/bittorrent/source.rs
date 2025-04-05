@@ -131,7 +131,7 @@ impl TorrentFileSource {
             .boxed()
             .and_then(|s| {
                 s.path_segments()
-                    .and_then(|p| p.last())
+                    .and_then(|mut p| p.next_back())
                     .map(String::from)
                     .ok_or_else(|| anyhow::anyhow!("invalid url"))
                     .to_dyn_boxed()

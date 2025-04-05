@@ -15,7 +15,7 @@ docker buildx build --platform linux/amd64 --tag konobangu-testing-torrents:late
 ## Run
 
 ```bash
-docker run --network_mode=host --name konobangu-testing-torrents konobangu-testing-torrents:latest
+docker run -p 6080:6080 -p 6081:6081 -p 6082:6082 --name konobangu-testing-torrents  konobangu-testing-torrents:latest
 ```
 
 ## Publish

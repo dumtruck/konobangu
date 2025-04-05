@@ -23,8 +23,7 @@ where
         &self,
         selector: Self::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
-        let hashes =
-            <Self as TorrentDownloaderTrait>::query_torrent_hashes(&self, selector).await?;
+        let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.pause_torrents(hashes).await
     }
 
@@ -32,16 +31,14 @@ where
         &self,
         selector: Self::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
-        let hashes =
-            <Self as TorrentDownloaderTrait>::query_torrent_hashes(&self, selector).await?;
+        let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.resume_torrents(hashes).await
     }
     async fn remove_downloads(
         &self,
         selector: Self::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
-        let hashes =
-            <Self as TorrentDownloaderTrait>::query_torrent_hashes(&self, selector).await?;
+        let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.remove_torrents(hashes).await
     }
 

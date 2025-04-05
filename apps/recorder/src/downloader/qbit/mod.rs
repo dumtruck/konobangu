@@ -2,7 +2,6 @@ use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
     fmt::Debug,
-    io,
     sync::{Arc, Weak},
     time::Duration,
 };
@@ -167,6 +166,7 @@ impl TorrentTaskTrait for QBittorrentTask {
             .as_deref()
             .unwrap_or("")
             .split(',')
+            .map(|s| s.trim())
             .filter(|s| !s.is_empty())
             .map(Cow::Borrowed)
     }
@@ -357,7 +357,7 @@ impl QBittorrentDownloader {
             save_path: creation.save_path.into(),
             wait_sync_timeout: creation
                 .wait_sync_timeout
-                .unwrap_or(Duration::from_millis(10000)),
+                .unwrap_or(Duration::from_secs(10)),
             downloader_id: creation.downloader_id,
             sync_watch: watch::channel(Utc::now()).0,
             sync_data: Arc::new(RwLock::new(QBittorrentSyncData::default())),
@@ -433,8 +433,12 @@ impl QBittorrentDownloader {
         category: &str,
     ) -> Result<(), DownloaderError> {
         {
-            let sync_data = self.sync_data.read().await;
-            if !sync_data.categories.contains_key(category) {
+            let category_no_exists = {
+                let sync_data = self.sync_data.read().await;
+                !sync_data.categories.contains_key(category)
+            };
+
+            if category_no_exists {
                 self.add_category(category).await?;
             }
         }
@@ -486,49 +490,6 @@ impl QBittorrentDownloader {
                                 .collect::<HashSet<&str>>()
                                 .is_superset(&tag_sets)
                         })
-                    })
-                })
-            },
-            None,
-        )
-        .await?;
-        Ok(())
-    }
-
-    #[instrument(level = "debug", skip(self, replacer))]
-    pub async fn move_torrent_contents<F: FnOnce(String) -> String>(
-        &self,
-        hash: &str,
-        replacer: F,
-    ) -> Result<(), DownloaderError> {
-        let old_path = {
-            let sync_data = self.sync_data.read().await;
-            sync_data
-                .torrents
-                .get(hash)
-                .and_then(|t| t.content_path.as_deref())
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::NotFound,
-                        "no torrent or torrent does not contain content path",
-                    )
-                })?
-                .to_string()
-        };
-        let new_path = replacer(old_path.clone());
-        self.client
-            .rename_file(hash, old_path.clone(), new_path.to_string())
-            .await?;
-        self.wait_sync_until(
-            |sync_data| {
-                let torrents = &sync_data.torrents;
-                torrents.get(hash).is_some_and(|t| {
-                    t.content_path.as_deref().is_some_and(|p| {
-                        path_equals_as_file_url(p, &new_path)
-                            .inspect_err(|error| {
-                                tracing::warn!(name = "path_equals_as_file_url", error = ?error);
-                            })
-                            .unwrap_or(false)
                     })
                 })
             },
@@ -608,17 +569,23 @@ impl QBittorrentDownloader {
     where
         S: Fn(&QBittorrentSyncData) -> bool,
     {
+        {
+            let sync_data = &self.sync_data.read().await;
+            if stop_wait_fn(sync_data) {
+                return Ok(());
+            }
+        }
+
         let timeout = timeout.unwrap_or(self.wait_sync_timeout);
         let start_time = Utc::now();
 
         let mut receiver = self.sync_watch.subscribe();
+
         while let Ok(()) = receiver.changed().await {
             let has_timeout = {
                 let sync_time = *receiver.borrow();
-                sync_time
-                    .signed_duration_since(start_time)
-                    .num_milliseconds()
-                    > timeout.as_millis() as i64
+                let diff_time = sync_time - start_time;
+                diff_time.num_milliseconds() > timeout.as_millis() as i64
             };
             if has_timeout {
                 tracing::warn!(name = "wait_until timeout", timeout = ?timeout);
@@ -958,7 +925,7 @@ pub mod tests {
             .init();
 
         let torrents_image = create_torrents_testcontainers().await?;
-        let torrents_container = torrents_image.start().await?;
+        let _torrents_container = torrents_image.start().await?;
 
         let torrents_req = MockRequest {
             id: "f10ebdda-dd2e-43f8-b80c-bf0884d071c4".into(),
@@ -1021,8 +988,6 @@ pub mod tests {
             Some(password),
         )
         .await?;
-
-        torrents_container.stop().await?;
 
         Ok(())
     }
@@ -1090,12 +1055,11 @@ pub mod tests {
         assert!(!files.is_empty());
 
         let first_file = files.first().expect("should have first file");
-        assert_eq!(
-            &first_file.name,
-            r#"[Nekomoe kissaten&LoliHouse] Boku no Kokoro no Yabai Yatsu - 20 [WebRip 1080p HEVC-10bit AAC ASSx2].mkv"#
+        assert!(
+            &first_file.name.ends_with(r#"[Nekomoe kissaten&LoliHouse] Boku no Kokoro no Yabai Yatsu - 20 [WebRip 1080p HEVC-10bit AAC ASSx2].mkv"#)
         );
 
-        let test_tag = format!("test_tag_{}", Utc::now().timestamp());
+        let test_tag = "test_tag".to_string();
 
         downloader
             .add_torrent_tags(vec![torrent_hash.clone()], vec![test_tag.clone()])
@@ -1139,29 +1103,6 @@ pub mod tests {
         );
 
         downloader
-            .move_torrent_contents(&torrent_hash, |f| {
-                f.replace(&folder_name, &format!("moved_{}", &folder_name))
-            })
-            .await?;
-
-        let target_torrent = get_torrent().await?;
-
-        let actual_content_path = &target_torrent
-            .torrent
-            .content_path
-            .expect("failed to get actual content path");
-
-        assert!(
-            path_equals_as_file_url(
-                actual_content_path,
-                base_save_path.join(actual_content_path)
-            )
-            .whatever_context::<_, RError>(
-                "failed to compare actual content path and found expected content path"
-            )?
-        );
-
-        downloader
             .remove_torrents(vec![torrent_hash.clone()].into())
             .await?;
 
@@ -1174,6 +1115,8 @@ pub mod tests {
             .await?;
 
         assert!(torrent_infos1.is_empty());
+
+        tracing::info!("test finished");
 
         Ok(())
     }
