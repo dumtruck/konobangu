@@ -1,12 +1,12 @@
 use reqwest::IntoUrl;
 
 use super::client::HttpClientTrait;
-use crate::errors::app_error::RError;
+use crate::FetchError;
 
 pub async fn fetch_html<T: IntoUrl, H: HttpClientTrait>(
     client: &H,
     url: T,
-) -> Result<String, RError> {
+) -> Result<String, FetchError> {
     let content = client
         .get(url)
         .send()

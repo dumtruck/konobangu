@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use axum::http::{HeaderValue, request::Parts};
 use base64::{self, Engine};
-use reqwest::header::AUTHORIZATION;
+use http::header::AUTHORIZATION;
 
 use super::{
     config::BasicAuthConfig,

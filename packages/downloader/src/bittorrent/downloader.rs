@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::downloader::{
+use crate::{
     DownloaderError,
     bittorrent::task::{
         TorrentCreationTrait, TorrentHashTrait, TorrentStateTrait, TorrentTaskTrait,
@@ -21,7 +21,7 @@ where
 
     async fn pause_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
         let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.pause_torrents(hashes).await
@@ -29,14 +29,14 @@ where
 
     async fn resume_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
         let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.resume_torrents(hashes).await
     }
     async fn remove_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
         let hashes = <Self as TorrentDownloaderTrait>::query_torrent_hashes(self, selector).await?;
         self.remove_torrents(hashes).await
@@ -44,7 +44,7 @@ where
 
     async fn query_torrent_hashes(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<Self::IdSelector, DownloaderError> {
         let hashes = match selector.try_into_ids_only() {
             Ok(hashes) => Self::IdSelector::from_iter(hashes),

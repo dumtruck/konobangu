@@ -6,7 +6,7 @@ use url::Url;
 
 use crate::{
     app::AppContextTrait,
-    errors::app_error::RResult,
+    errors::RecorderResult,
     extract::mikan::{MikanAuthSecrecy, MikanBangumiMeta, web_extract},
     tasks::core::{StandardStreamTaskReplayLayout, StreamTaskRunnerTrait},
 };
@@ -24,8 +24,8 @@ impl StreamTaskRunnerTrait for ExtractMikanBangumisMetaFromMyBangumiTask {
     fn run(
         context: Arc<dyn AppContextTrait>,
         request: &Self::Request,
-        history: &[Arc<RResult<Self::Item>>],
-    ) -> impl Stream<Item = RResult<Self::Item>> {
+        history: &[Arc<RecorderResult<Self::Item>>],
+    ) -> impl Stream<Item = RecorderResult<Self::Item>> {
         let context = context.clone();
         web_extract::extract_mikan_bangumis_meta_from_my_bangumi_page(
             context,

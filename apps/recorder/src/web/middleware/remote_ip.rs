@@ -24,7 +24,7 @@ use axum::{
     http::{header::HeaderMap, request::Parts},
     response::Response,
 };
-use futures_util::future::BoxFuture;
+use futures::future::BoxFuture;
 use ipnetwork::IpNetwork;
 use serde::{Deserialize, Serialize};
 use snafu::ResultExt;
@@ -33,7 +33,7 @@ use tracing::error;
 
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderError, RecorderResult},
     web::middleware::MiddlewareLayer,
 };
 
@@ -127,7 +127,7 @@ impl MiddlewareLayer for RemoteIpMiddleware {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(RemoteIPLayer::new(self)?))
     }
 }
@@ -225,7 +225,7 @@ impl RemoteIPLayer {
     ///
     /// # Errors
     /// Fails if invalid header values found
-    pub fn new(config: &RemoteIpMiddleware) -> RResult<Self> {
+    pub fn new(config: &RemoteIpMiddleware) -> RecorderResult<Self> {
         Ok(Self {
             trusted_proxies: config
                 .trusted_proxies
@@ -236,14 +236,14 @@ impl RemoteIPLayer {
                         .map(|proxy| {
                             IpNetwork::from_str(proxy)
                                 .boxed()
-                                .with_whatever_context::<_, _, RError>(|_| {
+                                .with_whatever_context::<_, _, RecorderError>(|_| {
                                     format!(
                                         "remote ip middleare cannot parse trusted proxy \
                                          configuration: `{proxy}`"
                                     )
                                 })
                         })
-                        .collect::<RResult<Vec<_>>>()
+                        .collect::<RecorderResult<Vec<_>>>()
                 })
                 .transpose()?,
         })

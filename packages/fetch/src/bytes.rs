@@ -2,12 +2,12 @@ use bytes::Bytes;
 use reqwest::IntoUrl;
 
 use super::client::HttpClientTrait;
-use crate::errors::app_error::RError;
+use crate::FetchError;
 
 pub async fn fetch_bytes<T: IntoUrl, H: HttpClientTrait>(
     client: &H,
     url: T,
-) -> Result<Bytes, RError> {
+) -> Result<Bytes, FetchError> {
     let bytes = client
         .get(url)
         .send()

@@ -10,7 +10,7 @@ use tracing_subscriber::{
 };
 
 use super::{LogFormat, LogLevel, LogRotation, LoggerConfig};
-use crate::errors::app_error::RResult;
+use crate::errors::RecorderResult;
 
 // Function to initialize the logger based on the provided configuration
 const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sqlx::query", "sidekiq"];
@@ -74,7 +74,7 @@ impl LoggerService {
             .expect("logger initialization failed")
     }
 
-    pub async fn from_config(config: LoggerConfig) -> RResult<Self> {
+    pub async fn from_config(config: LoggerConfig) -> RecorderResult<Self> {
         let mut layers: Vec<Box<dyn Layer<Registry> + Sync + Send>> = Vec::new();
 
         if let Some(file_appender_config) = config.file_appender.as_ref() {

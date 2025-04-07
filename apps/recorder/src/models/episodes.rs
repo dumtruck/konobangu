@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
 use crate::{
     app::AppContextTrait,
-    errors::app_error::RResult,
+    errors::RecorderResult,
     extract::{
         mikan::{MikanEpisodeMeta, build_mikan_episode_homepage},
         rawname::parse_episode_meta_from_raw_name,
@@ -140,7 +140,7 @@ impl Model {
         subscriber_id: i32,
         subscription_id: i32,
         creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
-    ) -> RResult<()> {
+    ) -> RecorderResult<()> {
         let db = ctx.db();
         let new_episode_active_modes = creations
             .into_iter()
@@ -191,7 +191,7 @@ impl ActiveModel {
     pub fn from_mikan_episode_meta(
         ctx: &dyn AppContextTrait,
         creation: MikanEpsiodeCreation,
-    ) -> RResult<Self> {
+    ) -> RecorderResult<Self> {
         let item = creation.episode;
         let bgm = creation.bangumi;
         let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)

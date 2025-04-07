@@ -1,4 +1,3 @@
-//! Detect a content type and format and responds accordingly
 use axum::{
     extract::FromRequestParts,
     http::{
@@ -8,7 +7,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::errors::app_error::RError as Error;
+use crate::errors::RecorderError as Error;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Format(pub RespondTo);

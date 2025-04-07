@@ -15,13 +15,13 @@ use axum::{
     http::{HeaderName, HeaderValue, Request},
     response::Response,
 };
-use futures_util::future::BoxFuture;
+use futures::future::BoxFuture;
 use serde::{Deserialize, Serialize};
 use serde_json::{self, json};
 use snafu::whatever;
 use tower::{Layer, Service};
 
-use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RecorderResult, web::middleware::MiddlewareLayer};
 
 static PRESETS: OnceLock<HashMap<String, BTreeMap<String, String>>> = OnceLock::new();
 fn get_presets() -> &'static HashMap<String, BTreeMap<String, String>> {
@@ -115,7 +115,7 @@ impl MiddlewareLayer for SecureHeader {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(SecureHeaders::new(self)?))
     }
 }
@@ -124,7 +124,7 @@ impl SecureHeader {
     /// Converts the configuration into a list of headers.
     ///
     /// Applies the preset headers and any custom overrides.
-    fn as_headers(&self) -> RResult<Vec<(HeaderName, HeaderValue)>> {
+    fn as_headers(&self) -> RecorderResult<Vec<(HeaderName, HeaderValue)>> {
         let mut headers = vec![];
 
         let preset = &self.preset;
@@ -147,7 +147,7 @@ impl SecureHeader {
     fn push_headers(
         headers: &mut Vec<(HeaderName, HeaderValue)>,
         hm: &BTreeMap<String, String>,
-    ) -> RResult<()> {
+    ) -> RecorderResult<()> {
         for (k, v) in hm {
             headers.push((
                 HeaderName::from_bytes(k.clone().as_bytes())?,
@@ -171,7 +171,7 @@ impl SecureHeaders {
     ///
     /// # Errors
     /// Returns an error if any header values are invalid.
-    pub fn new(config: &SecureHeader) -> RResult<Self> {
+    pub fn new(config: &SecureHeader) -> RecorderResult<Self> {
         Ok(Self {
             headers: config.as_headers()?,
         })

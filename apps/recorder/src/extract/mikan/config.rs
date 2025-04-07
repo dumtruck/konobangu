@@ -1,7 +1,6 @@
+use fetch::HttpClientConfig;
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-use crate::fetch::HttpClientConfig;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MikanConfig {

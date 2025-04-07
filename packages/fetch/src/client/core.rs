@@ -17,7 +17,7 @@ use serde_with::serde_as;
 use snafu::Snafu;
 
 use super::HttpClientSecrecyDataTrait;
-use crate::fetch::get_random_mobile_ua;
+use crate::get_random_mobile_ua;
 
 pub struct RateLimiterMiddleware {
     rate_limiter: RateLimiter,

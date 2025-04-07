@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use fetch::HttpClientError;
 use openidconnect::{
     ConfigurationError, RequestTokenError, SignatureVerificationError, SigningError,
     StandardErrorResponse, core::CoreErrorResponseType,
@@ -11,7 +12,7 @@ use openidconnect::{
 use serde::{Deserialize, Serialize};
 use snafu::prelude::*;
 
-use crate::{fetch::HttpClientError, models::auth::AuthType};
+use crate::models::auth::AuthType;
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]

@@ -2,13 +2,11 @@ use std::sync::Arc;
 
 use axum::{
     Json, Router,
-    extract::{Query, State},
-    http::request::Parts,
+    extract::{Query, Request, State},
     routing::get,
 };
-use snafu::prelude::*;
+use snafu::ResultExt;
 
-use super::core::Controller;
 use crate::{
     app::AppContextTrait,
     auth::{
@@ -16,9 +14,10 @@ use crate::{
         errors::OidcRequestRedirectUriSnafu,
         oidc::{OidcAuthCallbackPayload, OidcAuthCallbackQuery, OidcAuthRequest},
     },
-    errors::app_error::RResult,
+    errors::RecorderResult,
     extract::http::ForwardedRelatedInfo,
     models::auth::AuthType,
+    web::controller::core::Controller,
 };
 
 pub const CONTROLLER_PREFIX: &str = "/api/oidc";
@@ -43,10 +42,11 @@ async fn oidc_callback(
 
 async fn oidc_auth(
     State(ctx): State<Arc<dyn AppContextTrait>>,
-    parts: Parts,
+    request: Request,
 ) -> Result<Json<OidcAuthRequest>, AuthError> {
     let auth_service = ctx.auth();
     if let AuthService::Oidc(oidc_auth_service) = auth_service {
+        let (parts, _) = request.into_parts();
         let mut redirect_uri = ForwardedRelatedInfo::from_request_parts(&parts)
             .resolved_origin()
             .ok_or(url::ParseError::EmptyHost)
@@ -73,7 +73,7 @@ async fn oidc_auth(
     }
 }
 
-pub async fn create(_context: Arc<dyn AppContextTrait>) -> RResult<Controller> {
+pub async fn create(_context: Arc<dyn AppContextTrait>) -> RecorderResult<Controller> {
     let router = Router::<Arc<dyn AppContextTrait>>::new()
         .route("/auth", get(oidc_auth))
         .route("/callback", get(oidc_callback));

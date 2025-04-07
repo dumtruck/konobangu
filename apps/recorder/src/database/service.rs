@@ -7,14 +7,14 @@ use sea_orm::{
 use sea_orm_migration::MigratorTrait;
 
 use super::DatabaseConfig;
-use crate::{errors::app_error::RResult, migrations::Migrator};
+use crate::{errors::RecorderResult, migrations::Migrator};
 
 pub struct DatabaseService {
     connection: DatabaseConnection,
 }
 
 impl DatabaseService {
-    pub async fn from_config(config: DatabaseConfig) -> RResult<Self> {
+    pub async fn from_config(config: DatabaseConfig) -> RecorderResult<Self> {
         let mut opt = ConnectOptions::new(&config.uri);
         opt.max_connections(config.max_connections)
             .min_connections(config.min_connections)

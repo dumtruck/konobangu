@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::subscribers::{self, SEED_SUBSCRIBER};
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderError, RecorderResult},
 };
 
 #[derive(
@@ -57,17 +57,17 @@ impl Related<super::subscribers::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_by_pid(ctx: &dyn AppContextTrait, pid: &str) -> RResult<Self> {
+    pub async fn find_by_pid(ctx: &dyn AppContextTrait, pid: &str) -> RecorderResult<Self> {
         let db = ctx.db();
         let subscriber_auth = Entity::find()
             .filter(Column::Pid.eq(pid))
             .one(db)
             .await?
-            .ok_or_else(|| RError::from_db_record_not_found("auth::find_by_pid"))?;
+            .ok_or_else(|| RecorderError::from_db_record_not_found("auth::find_by_pid"))?;
         Ok(subscriber_auth)
     }
 
-    pub async fn create_from_oidc(ctx: &dyn AppContextTrait, sub: String) -> RResult<Self> {
+    pub async fn create_from_oidc(ctx: &dyn AppContextTrait, sub: String) -> RecorderResult<Self> {
         let db = ctx.db();
 
         let txn = db.begin().await?;

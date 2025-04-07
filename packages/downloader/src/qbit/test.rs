@@ -3,26 +3,22 @@ use std::time::Duration;
 use chrono::Utc;
 use qbit_rs::model::{GetTorrentListArg, TorrentFilter as QbitTorrentFilter};
 use quirks_path::Path;
-use snafu::{OptionExt, ResultExt};
+use snafu::OptionExt;
 
 use crate::{
-    downloader::{
-        DownloaderError,
-        bittorrent::{
-            downloader::TorrentDownloaderTrait, source::HashTorrentSource, task::TorrentTaskTrait,
-        },
-        core::{DownloadIdSelectorTrait, DownloaderTrait},
-        qbit::{
-            QBittorrentDownloader, QBittorrentDownloaderCreation,
-            task::{
-                QBittorrentComplexSelector, QBittorrentCreation, QBittorrentHashSelector,
-                QBittorrentSelector, QBittorrentTask,
-            },
-        },
-        utils::path_equals_as_file_url,
+    DownloaderError,
+    bittorrent::{
+        downloader::TorrentDownloaderTrait, source::HashTorrentSource, task::TorrentTaskTrait,
     },
-    errors::{RError, RResult},
-    test_utils::fetch::build_testing_http_client,
+    core::{DownloadIdSelectorTrait, DownloaderTrait},
+    qbit::{
+        QBittorrentDownloader, QBittorrentDownloaderCreation,
+        task::{
+            QBittorrentComplexSelector, QBittorrentCreation, QBittorrentHashSelector,
+            QBittorrentSelector, QBittorrentTask,
+        },
+    },
+    utils::path_equals_as_file_url,
 };
 
 fn get_tmp_qbit_test_folder() -> &'static str {
@@ -35,7 +31,7 @@ fn get_tmp_qbit_test_folder() -> &'static str {
 
 #[cfg(feature = "testcontainers")]
 pub async fn create_qbit_testcontainers()
--> RResult<testcontainers::ContainerRequest<testcontainers::GenericImage>> {
+-> anyhow::Result<testcontainers::ContainerRequest<testcontainers::GenericImage>> {
     use testcontainers::{
         GenericImage,
         core::{
@@ -66,13 +62,13 @@ pub async fn create_qbit_testcontainers()
 #[tokio::test]
 async fn test_qbittorrent_downloader() {
     let hash = "47ee2d69e7f19af783ad896541a07b012676f858".to_string();
-    let torrent_url = "https://mikanani.me/Download/20240301/{}.torrent";
+    let torrent_url = format!("https://mikanani.me/Download/20240301/{}.torrent", hash);
     let _ = test_qbittorrent_downloader_impl(torrent_url, hash, None, None).await;
 }
 
 #[cfg(feature = "testcontainers")]
 #[tokio::test(flavor = "multi_thread")]
-async fn test_qbittorrent_downloader() -> RResult<()> {
+async fn test_qbittorrent_downloader() -> anyhow::Result<()> {
     use testcontainers::runners::AsyncRunner;
     use testing_torrents::{TestTorrentRequest, TestTorrentResponse, TestingTorrentFileItem};
     use tokio::io::AsyncReadExt;
@@ -155,8 +151,8 @@ async fn test_qbittorrent_downloader_impl(
     torrent_hash: String,
     username: Option<&str>,
     password: Option<&str>,
-) -> RResult<()> {
-    let http_client = build_testing_http_client()?;
+) -> anyhow::Result<()> {
+    let http_client = fetch::test_util::build_testing_http_client()?;
     let base_save_path = Path::new(get_tmp_qbit_test_folder());
 
     let downloader = QBittorrentDownloader::from_creation(QBittorrentDownloaderCreation {
@@ -255,9 +251,7 @@ async fn test_qbittorrent_downloader_impl(
 
     assert!(
         path_equals_as_file_url(actual_content_path, moved_torrent_path)
-            .whatever_context::<_, RError>(
-                "failed to compare actual torrent path and found expected torrent path"
-            )?
+            .expect("failed to compare actual torrent path and found expected torrent path")
     );
 
     downloader

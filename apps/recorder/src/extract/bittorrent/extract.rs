@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, whatever};
 
 use crate::{
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderError, RecorderResult},
     extract::defs::SUBTITLE_LANG,
 };
 
@@ -104,10 +104,10 @@ pub fn parse_episode_media_meta_from_torrent(
     torrent_path: &Path,
     torrent_name: Option<&str>,
     season: Option<i32>,
-) -> RResult<TorrentEpisodeMediaMeta> {
+) -> RecorderResult<TorrentEpisodeMediaMeta> {
     let media_name = torrent_path
         .file_name()
-        .with_whatever_context::<_, _, RError>(|| {
+        .with_whatever_context::<_, _, RecorderError>(|| {
             format!("failed to get file name of {}", torrent_path)
         })?;
     let mut match_obj = None;
@@ -124,7 +124,7 @@ pub fn parse_episode_media_meta_from_torrent(
     if let Some(match_obj) = match_obj {
         let group_season_and_title = match_obj
             .get(1)
-            .whatever_context::<_, RError>("should have 1 group")?
+            .whatever_context::<_, RecorderError>("should have 1 group")?
             .as_str();
         let (fansub, season_and_title) = get_fansub(group_season_and_title);
         let (title, season) = if let Some(season) = season {
@@ -135,7 +135,7 @@ pub fn parse_episode_media_meta_from_torrent(
         };
         let episode_index = match_obj
             .get(2)
-            .whatever_context::<_, RError>("should have 2 group")?
+            .whatever_context::<_, RecorderError>("should have 2 group")?
             .as_str()
             .parse::<i32>()
             .unwrap_or(1);
@@ -163,11 +163,11 @@ pub fn parse_episode_subtitle_meta_from_torrent(
     torrent_path: &Path,
     torrent_name: Option<&str>,
     season: Option<i32>,
-) -> RResult<TorrentEpisodeSubtitleMeta> {
+) -> RecorderResult<TorrentEpisodeSubtitleMeta> {
     let media_meta = parse_episode_media_meta_from_torrent(torrent_path, torrent_name, season)?;
     let media_name = torrent_path
         .file_name()
-        .with_whatever_context::<_, _, RError>(|| {
+        .with_whatever_context::<_, _, RecorderError>(|| {
             format!("failed to get file name of {}", torrent_path)
         })?;
 

@@ -18,7 +18,7 @@ const MAX_LEN: usize = 255;
 
 use std::sync::{Arc, OnceLock};
 
-use crate::errors::app_error::RResult;
+use crate::errors::RecorderResult;
 
 static ID_CLEANUP: OnceLock<Regex> = OnceLock::new();
 
@@ -57,7 +57,7 @@ impl MiddlewareLayer for RequestId {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(axum::middleware::from_fn(request_id_middleware)))
     }
 }

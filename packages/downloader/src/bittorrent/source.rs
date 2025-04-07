@@ -4,18 +4,14 @@ use std::{
 };
 
 use bytes::Bytes;
+use fetch::{bytes::fetch_bytes, client::core::HttpClientTrait};
 use librqbit_core::{magnet::Magnet, torrent_metainfo, torrent_metainfo::TorrentMetaV1Owned};
 use snafu::ResultExt;
 use url::Url;
+use util::errors::AnyhowResultExt;
 
-use crate::{
-    downloader::errors::{
-        DownloadFetchSnafu, DownloaderError, MagnetFormatSnafu, TorrentMetaSnafu,
-    },
-    errors::RAnyhowResultExt,
-    extract::bittorrent::core::MAGNET_SCHEMA,
-    fetch::{bytes::fetch_bytes, client::core::HttpClientTrait},
-};
+use super::defs::MAGNET_SCHEMA;
+use crate::errors::{DownloadFetchSnafu, DownloaderError, MagnetFormatSnafu, TorrentMetaSnafu};
 
 pub trait HashTorrentSourceTrait: Sized {
     fn hash_info(&self) -> Cow<'_, str>;
@@ -90,7 +86,7 @@ impl TorrentUrlSource {
 pub struct TorrentFileSource {
     pub url: Option<String>,
     pub payload: Bytes,
-    pub meta: TorrentMetaV1Owned,
+    pub meta: Box<TorrentMetaV1Owned>,
     pub filename: String,
 }
 
@@ -114,7 +110,7 @@ impl TorrentFileSource {
         Ok(TorrentFileSource {
             url,
             payload: bytes,
-            meta,
+            meta: Box::new(meta),
             filename,
         })
     }

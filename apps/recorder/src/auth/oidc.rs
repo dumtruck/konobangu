@@ -1,10 +1,17 @@
 use std::{
     collections::{HashMap, HashSet},
+    future::Future,
+    ops::Deref,
+    pin::Pin,
     sync::Arc,
 };
 
 use async_trait::async_trait;
-use axum::http::{HeaderValue, request::Parts};
+use axum::{
+    http,
+    http::{HeaderValue, request::Parts},
+};
+use fetch::{HttpClient, client::HttpClientError};
 use itertools::Itertools;
 use jwt_authorizer::{NumericDate, OneOrArray, authorizer::Authorizer};
 use moka::future::Cache;
@@ -24,9 +31,49 @@ use super::{
     errors::{AuthError, OidcProviderUrlSnafu, OidcRequestRedirectUriSnafu},
     service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::{
-    app::AppContextTrait, errors::app_error::RError, fetch::HttpClient, models::auth::AuthType,
-};
+use crate::{app::AppContextTrait, errors::RecorderError, models::auth::AuthType};
+
+pub struct OidcHttpClient(pub Arc<HttpClient>);
+
+impl<'a> Deref for OidcHttpClient {
+    type Target = HttpClient;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<'c> openidconnect::AsyncHttpClient<'c> for OidcHttpClient {
+    type Error = HttpClientError;
+
+    #[cfg(target_arch = "wasm32")]
+    type Future =
+        Pin<Box<dyn Future<Output = Result<openidconnect::HttpResponse, Self::Error>> + 'c>>;
+    #[cfg(not(target_arch = "wasm32"))]
+    type Future =
+        Pin<Box<dyn Future<Output = Result<openidconnect::HttpResponse, Self::Error>> + Send + 'c>>;
+
+    fn call(&'c self, request: openidconnect::HttpRequest) -> Self::Future {
+        Box::pin(async move {
+            let response = self.execute(request.try_into()?).await?;
+
+            let mut builder = http::Response::builder().status(response.status());
+
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                builder = builder.version(response.version());
+            }
+
+            for (name, value) in response.headers().iter() {
+                builder = builder.header(name, value);
+            }
+
+            builder
+                .body(response.bytes().await?.to_vec())
+                .map_err(HttpClientError::from)
+        })
+    }
+}
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OidcAuthClaims {
@@ -118,18 +165,19 @@ pub struct OidcAuthCallbackPayload {
 pub struct OidcAuthService {
     pub config: OidcAuthConfig,
     pub api_authorizer: Authorizer<OidcAuthClaims>,
-    pub oidc_provider_client: HttpClient,
+    pub oidc_provider_client: Arc<HttpClient>,
     pub oidc_request_cache: Cache<String, OidcAuthRequest>,
 }
 
 impl OidcAuthService {
-    pub async fn build_authorization_request(
-        &self,
+    pub async fn build_authorization_request<'a>(
+        &'a self,
         redirect_uri: &str,
     ) -> Result<OidcAuthRequest, AuthError> {
+        let oidc_provider_client = OidcHttpClient(self.oidc_provider_client.clone());
         let provider_metadata = CoreProviderMetadata::discover_async(
             IssuerUrl::new(self.config.issuer.clone()).context(OidcProviderUrlSnafu)?,
-            &self.oidc_provider_client,
+            &oidc_provider_client,
         )
         .await?;
 
@@ -199,10 +247,11 @@ impl OidcAuthService {
         Ok(result)
     }
 
-    pub async fn extract_authorization_request_callback(
-        &self,
+    pub async fn extract_authorization_request_callback<'a>(
+        &'a self,
         query: OidcAuthCallbackQuery,
     ) -> Result<OidcAuthCallbackPayload, AuthError> {
+        let oidc_http_client = OidcHttpClient(self.oidc_provider_client.clone());
         let csrf_token = query.state.ok_or(AuthError::OidcInvalidStateError)?;
 
         let code = query.code.ok_or(AuthError::OidcInvalidCodeError)?;
@@ -211,7 +260,7 @@ impl OidcAuthService {
 
         let provider_metadata = CoreProviderMetadata::discover_async(
             IssuerUrl::new(self.config.issuer.clone()).context(OidcProviderUrlSnafu)?,
-            &self.oidc_provider_client,
+            &oidc_http_client,
         )
         .await?;
 
@@ -227,7 +276,7 @@ impl OidcAuthService {
         let token_response = oidc_client
             .exchange_code(AuthorizationCode::new(code))?
             .set_pkce_verifier(pkce_verifier)
-            .request_async(&HttpClient::default())
+            .request_async(&oidc_http_client)
             .await?;
 
         let id_token = token_response
@@ -312,7 +361,7 @@ impl AuthServiceTrait for OidcAuthService {
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {
-            Err(RError::DbError {
+            Err(RecorderError::DbError {
                 source: DbErr::RecordNotFound(..),
             }) => crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await,
             r => r,

@@ -2,7 +2,7 @@
 recorder-playground = "run -p recorder  --example playground -- --environment development"
 
 [build]
-rustflags = ["-Zthreads=8"]
+rustflags = ["-Zthreads=8", "--cfg", "feature=\"testcontainers\""]
 
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"

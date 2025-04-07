@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use super::env::Environment;
 use crate::{
-    auth::AuthConfig, cache::CacheConfig, database::DatabaseConfig, errors::app_error::RResult,
+    auth::AuthConfig, cache::CacheConfig, database::DatabaseConfig, errors::RecorderResult,
     extract::mikan::MikanConfig, graphql::GraphQLConfig, logger::LoggerConfig,
     storage::StorageConfig, web::WebServerConfig,
 };
@@ -64,7 +64,7 @@ impl AppConfig {
         fig: Figment,
         filepath: impl AsRef<Path>,
         ext: &str,
-    ) -> RResult<Figment> {
+    ) -> RecorderResult<Figment> {
         let content = fs::read_to_string(filepath)?;
 
         let rendered = tera::Tera::one_off(
@@ -85,7 +85,7 @@ impl AppConfig {
         environment: &Environment,
         working_dir: &str,
         dotenv_file: Option<&str>,
-    ) -> RResult<()> {
+    ) -> RecorderResult<()> {
         let try_dotenv_file_or_dirs = if dotenv_file.is_some() {
             vec![dotenv_file]
         } else {
@@ -124,7 +124,7 @@ impl AppConfig {
         environment: &Environment,
         working_dir: &str,
         config_file: Option<&str>,
-    ) -> RResult<AppConfig> {
+    ) -> RecorderResult<AppConfig> {
         let try_config_file_or_dirs = if config_file.is_some() {
             vec![config_file]
         } else {

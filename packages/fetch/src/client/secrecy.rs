@@ -4,7 +4,7 @@ use cookie::Cookie;
 use reqwest::{ClientBuilder, cookie::Jar};
 use url::Url;
 
-use crate::errors::app_error::RError;
+use crate::FetchError;
 
 pub trait HttpClientSecrecyDataTrait {
     fn attach_secrecy_to_client(&self, client_builder: ClientBuilder) -> ClientBuilder {
@@ -23,9 +23,9 @@ impl HttpClientCookiesAuth {
         cookies: &str,
         url: &Url,
         user_agent: Option<String>,
-    ) -> Result<Self, RError> {
+    ) -> Result<Self, FetchError> {
         let cookie_jar = Arc::new(Jar::default());
-        for cookie in Cookie::split_parse(cookies).try_collect::<Vec<_>>()? {
+        for cookie in Cookie::split_parse(cookies).collect::<Result<Vec<Cookie<'_>>, _>>()? {
             cookie_jar.add_cookie_str(&cookie.to_string(), url);
         }
 

@@ -1,6 +1,6 @@
 use super::{Environment, config::AppConfig};
 use crate::{
-    auth::AuthService, cache::CacheService, database::DatabaseService, errors::app_error::RResult,
+    auth::AuthService, cache::CacheService, database::DatabaseService, errors::RecorderResult,
     extract::mikan::MikanClient, graphql::GraphQLService, logger::LoggerService,
     storage::StorageService,
 };
@@ -36,7 +36,7 @@ impl AppContext {
         environment: Environment,
         config: AppConfig,
         working_dir: impl ToString,
-    ) -> RResult<Self> {
+    ) -> RecorderResult<Self> {
         let config_cloned = config.clone();
 
         let logger = LoggerService::from_config(config.logger).await?;

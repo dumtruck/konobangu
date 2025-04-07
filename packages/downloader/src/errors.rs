@@ -1,8 +1,7 @@
 use std::{borrow::Cow, time::Duration};
 
 use snafu::prelude::*;
-
-use crate::errors::OptDynErr;
+use util::errors::OptDynErr;
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]

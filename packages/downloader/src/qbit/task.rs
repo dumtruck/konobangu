@@ -6,36 +6,38 @@ use qbit_rs::model::{
 };
 use quirks_path::{Path, PathBuf};
 
-use crate::downloader::{
+use crate::{
     DownloaderError,
     bittorrent::{
         source::HashTorrentSource,
-        task::{TorrentCreationTrait, TorrentHashTrait, TorrentStateTrait, TorrentTaskTrait},
+        task::{SimpleTorrentHash, TorrentCreationTrait, TorrentStateTrait, TorrentTaskTrait},
     },
     core::{
-        DownloadCreationTrait, DownloadIdSelector, DownloadIdTrait, DownloadSelectorTrait,
-        DownloadStateTrait, DownloadTaskTrait,
+        DownloadCreationTrait, DownloadIdSelector, DownloadSelectorTrait, DownloadStateTrait,
+        DownloadTaskTrait,
     },
 };
 
-pub type QBittorrentHash = String;
-
-impl DownloadIdTrait for QBittorrentHash {}
-
-impl TorrentHashTrait for QBittorrentHash {}
+pub type QBittorrentHash = SimpleTorrentHash;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct QBittorrentState(Option<State>);
 
-impl DownloadStateTrait for QBittorrentState {}
-
-impl TorrentStateTrait for QBittorrentState {}
+impl From<State> for QBittorrentState {
+    fn from(value: State) -> Self {
+        Self(Some(value))
+    }
+}
 
 impl From<Option<State>> for QBittorrentState {
     fn from(value: Option<State>) -> Self {
         Self(value)
     }
 }
+
+impl DownloadStateTrait for QBittorrentState {}
+
+impl TorrentStateTrait for QBittorrentState {}
 
 #[derive(Debug)]
 pub struct QBittorrentTask {

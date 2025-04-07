@@ -7,7 +7,7 @@ use tokio::sync::{RwLock, mpsc};
 
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderError, RecorderResult},
     models,
 };
 
@@ -103,41 +103,41 @@ pub trait StreamTaskCoreTrait: Sized {
 }
 
 pub trait StreamTaskReplayLayoutTrait: StreamTaskCoreTrait {
-    fn history(&self) -> &[Arc<RResult<Self::Item>>];
+    fn history(&self) -> &[Arc<RecorderResult<Self::Item>>];
 
     fn resume_from_model(
         task: models::tasks::Model,
         stream_items: Vec<models::task_stream_item::Model>,
-    ) -> RResult<Self>;
+    ) -> RecorderResult<Self>;
 
     fn running_receiver(
         &self,
-    ) -> impl Future<Output = Option<mpsc::UnboundedReceiver<Arc<RResult<Self::Item>>>>>;
+    ) -> impl Future<Output = Option<mpsc::UnboundedReceiver<Arc<RecorderResult<Self::Item>>>>>;
 
     #[allow(clippy::type_complexity)]
     fn init_receiver(
         &self,
     ) -> impl Future<
         Output = (
-            mpsc::UnboundedSender<Arc<RResult<Self::Item>>>,
-            mpsc::UnboundedReceiver<Arc<RResult<Self::Item>>>,
+            mpsc::UnboundedSender<Arc<RecorderResult<Self::Item>>>,
+            mpsc::UnboundedReceiver<Arc<RecorderResult<Self::Item>>>,
         ),
     >;
 
-    fn serialize_request(request: Self::Request) -> RResult<serde_json::Value> {
-        serde_json::to_value(request).map_err(RError::from)
+    fn serialize_request(request: Self::Request) -> RecorderResult<serde_json::Value> {
+        serde_json::to_value(request).map_err(RecorderError::from)
     }
 
-    fn serialize_item(item: RResult<Self::Item>) -> RResult<serde_json::Value> {
-        serde_json::to_value(item).map_err(RError::from)
+    fn serialize_item(item: RecorderResult<Self::Item>) -> RecorderResult<serde_json::Value> {
+        serde_json::to_value(item).map_err(RecorderError::from)
     }
 
-    fn deserialize_request(request: serde_json::Value) -> RResult<Self::Request> {
-        serde_json::from_value(request).map_err(RError::from)
+    fn deserialize_request(request: serde_json::Value) -> RecorderResult<Self::Request> {
+        serde_json::from_value(request).map_err(RecorderError::from)
     }
 
-    fn deserialize_item(item: serde_json::Value) -> RResult<RResult<Self::Item>> {
-        serde_json::from_value(item).map_err(RError::from)
+    fn deserialize_item(item: serde_json::Value) -> RecorderResult<RecorderResult<Self::Item>> {
+        serde_json::from_value(item).map_err(RecorderError::from)
     }
 }
 
@@ -145,15 +145,15 @@ pub trait StreamTaskRunnerTrait: StreamTaskCoreTrait {
     fn run(
         context: Arc<dyn AppContextTrait>,
         request: &Self::Request,
-        history: &[Arc<RResult<Self::Item>>],
-    ) -> impl Stream<Item = RResult<Self::Item>>;
+        history: &[Arc<RecorderResult<Self::Item>>],
+    ) -> impl Stream<Item = RecorderResult<Self::Item>>;
 }
 
 pub trait StreamTaskReplayRunnerTrait: StreamTaskRunnerTrait + StreamTaskReplayLayoutTrait {
     fn run_shared(
         &self,
         context: Arc<dyn AppContextTrait>,
-    ) -> impl Stream<Item = Arc<RResult<Self::Item>>> {
+    ) -> impl Stream<Item = Arc<RecorderResult<Self::Item>>> {
         stream! {
             if let Some(mut receiver) = self.running_receiver().await {
                 while let Some(item) = receiver.recv().await {
@@ -185,9 +185,9 @@ where
 {
     pub meta: TaskMeta,
     pub request: Request,
-    pub history: Vec<Arc<RResult<Item>>>,
+    pub history: Vec<Arc<RecorderResult<Item>>>,
     #[allow(clippy::type_complexity)]
-    pub channel: Arc<RwLock<Option<ReplayChannel<Arc<RResult<Item>>>>>>,
+    pub channel: Arc<RwLock<Option<ReplayChannel<Arc<RecorderResult<Item>>>>>>,
 }
 
 impl<Request, Item> StreamTaskCoreTrait for StandardStreamTaskReplayLayout<Request, Item>
@@ -225,14 +225,14 @@ where
     Request: Serialize + DeserializeOwned,
     Item: Serialize + DeserializeOwned + Sync + Send + 'static,
 {
-    fn history(&self) -> &[Arc<RResult<Self::Item>>] {
+    fn history(&self) -> &[Arc<RecorderResult<Self::Item>>] {
         &self.history
     }
 
     fn resume_from_model(
         task: models::tasks::Model,
         stream_items: Vec<models::task_stream_item::Model>,
-    ) -> RResult<Self> {
+    ) -> RecorderResult<Self> {
         Ok(Self {
             meta: TaskMeta {
                 task_id: task.id,
@@ -243,12 +243,14 @@ where
             history: stream_items
                 .into_iter()
                 .map(|m| Self::deserialize_item(m.item).map(Arc::new))
-                .collect::<RResult<Vec<_>>>()?,
+                .collect::<RecorderResult<Vec<_>>>()?,
             channel: Arc::new(RwLock::new(None)),
         })
     }
 
-    async fn running_receiver(&self) -> Option<mpsc::UnboundedReceiver<Arc<RResult<Self::Item>>>> {
+    async fn running_receiver(
+        &self,
+    ) -> Option<mpsc::UnboundedReceiver<Arc<RecorderResult<Self::Item>>>> {
         if let Some(channel) = self.channel.read().await.as_ref() {
             Some(channel.receiver().await)
         } else {
@@ -259,8 +261,8 @@ where
     async fn init_receiver(
         &self,
     ) -> (
-        mpsc::UnboundedSender<Arc<RResult<Self::Item>>>,
-        mpsc::UnboundedReceiver<Arc<RResult<Self::Item>>>,
+        mpsc::UnboundedSender<Arc<RecorderResult<Self::Item>>>,
+        mpsc::UnboundedReceiver<Arc<RecorderResult<Self::Item>>>,
     ) {
         let channel = ReplayChannel::new(self.history.clone());
         let rx = channel.receiver().await;

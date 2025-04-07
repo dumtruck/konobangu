@@ -1,9 +1,7 @@
-pub mod alias;
 pub mod app_error;
 pub mod ext;
 pub mod response;
 
-pub use alias::OptDynErr;
-pub use app_error::*;
-pub use ext::RAnyhowResultExt;
+pub use app_error::{RecorderError, RecorderResult};
 pub use response::StandardErrorResponse;
+pub use util::errors::OptDynErr;

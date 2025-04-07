@@ -7,7 +7,7 @@ use super::core::Controller;
 use crate::{
     app::AppContextTrait,
     auth::{AuthUserInfo, header_www_authenticate_middleware},
-    errors::app_error::RResult,
+    errors::RecorderResult,
 };
 
 pub const CONTROLLER_PREFIX: &str = "/api/graphql";
@@ -25,7 +25,7 @@ async fn graphql_handler(
     graphql_service.schema.execute(req).await.into()
 }
 
-pub async fn create(ctx: Arc<dyn AppContextTrait>) -> RResult<Controller> {
+pub async fn create(ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Controller> {
     let router = Router::<Arc<dyn AppContextTrait>>::new()
         .route("/", post(graphql_handler))
         .layer(from_fn_with_state(ctx, header_www_authenticate_middleware));

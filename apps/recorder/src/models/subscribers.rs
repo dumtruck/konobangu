@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderResult, RecorderError},
 };
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
@@ -95,22 +95,22 @@ pub struct SubscriberIdParams {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub async fn find_seed_subscriber_id(ctx: &dyn AppContextTrait) -> RResult<i32> {
+    pub async fn find_seed_subscriber_id(ctx: &dyn AppContextTrait) -> RecorderResult<i32> {
         let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER).await?;
         Ok(subscriber_auth.subscriber_id)
     }
 
-    pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RResult<Self> {
+    pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RecorderResult<Self> {
         let db = ctx.db();
 
         let subscriber = Entity::find_by_id(id)
             .one(db)
             .await?
-            .ok_or_else(|| RError::from_db_record_not_found("subscriptions::find_by_id"))?;
+            .ok_or_else(|| RecorderError::from_db_record_not_found("subscriptions::find_by_id"))?;
         Ok(subscriber)
     }
 
-    pub async fn create_root(ctx: &dyn AppContextTrait) -> RResult<Self> {
+    pub async fn create_root(ctx: &dyn AppContextTrait) -> RecorderResult<Self> {
         let db = ctx.db();
         let txn = db.begin().await?;
 

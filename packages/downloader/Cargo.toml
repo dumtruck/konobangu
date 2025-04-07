@@ -1,0 +1,49 @@
+[package]
+name = "downloader"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = []
+testcontainers = [
+    "dep:testcontainers",
+    "dep:testcontainers-modules",
+    "dep:testcontainers-ext",
+    "dep:testing-torrents",
+]
+
+[dependencies]
+futures = { workspace = true }
+testcontainers = { workspace = true, optional = true }
+testcontainers-modules = { workspace = true, optional = true }
+testcontainers-ext = { workspace = true, optional = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+async-trait = { workspace = true }
+tracing = { workspace = true }
+snafu = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true }
+anyhow = { workspace = true }
+quirks_path = { workspace = true }
+itertools = { workspace = true }
+chrono = { workspace = true }
+bytes = { workspace = true }
+
+serde-value = "0.7"
+qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe", features = [
+    "default",
+    "builder",
+] }
+merge-struct = "0.1"
+librqbit-core = "4"
+librqbit = { version = "8", features = ["async-bt", "watch"] }
+
+util = { workspace = true }
+testing-torrents = { workspace = true, optional = true }
+fetch = { workspace = true }
+
+
+[dev-dependencies]
+reqwest = { workspace = true }
+tracing-subscriber = { workspace = true }

@@ -1,8 +1,8 @@
-use recorder::errors::app_error::RResult;
+use recorder::errors::RecorderResult;
 // #![allow(unused_imports)]
 // use recorder::{
 //     app::{AppContext, AppContextTrait},
-//     errors::RResult,
+//     errors::RecorderResult,
 //     migrations::Migrator,
 //     models::{
 //         subscribers::SEED_SUBSCRIBER,
@@ -12,7 +12,7 @@ use recorder::errors::app_error::RResult;
 // use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 // use sea_orm_migration::MigratorTrait;
 
-// async fn pull_mikan_bangumi_rss(ctx: &dyn AppContextTrait) -> RResult<()> {
+// async fn pull_mikan_bangumi_rss(ctx: &dyn AppContextTrait) -> RecorderResult<()> {
 //     let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
 
 //     // let rss_link =
@@ -44,13 +44,13 @@ use recorder::errors::app_error::RResult;
 // }
 
 // #[tokio::main]
-// async fn main() -> RResult<()> {
+// async fn main() -> RecorderResult<()> {
 //     pull_mikan_bangumi_rss(&ctx).await?;
 
 //     Ok(())
 // }
 
 #[tokio::main]
-async fn main() -> RResult<()> {
+async fn main() -> RecorderResult<()> {
     Ok(())
 }

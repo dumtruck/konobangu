@@ -3,7 +3,7 @@ use std::sync::Arc;
 use clap::{Parser, command};
 
 use super::{AppContext, core::App, env::Environment};
-use crate::{app::config::AppConfig, errors::app_error::RResult};
+use crate::{app::config::AppConfig, errors::RecorderResult};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -33,7 +33,7 @@ pub struct AppBuilder {
 }
 
 impl AppBuilder {
-    pub async fn from_main_cli(environment: Option<Environment>) -> RResult<Self> {
+    pub async fn from_main_cli(environment: Option<Environment>) -> RecorderResult<Self> {
         let args = MainCliArgs::parse();
 
         let environment = environment.unwrap_or_else(|| {
@@ -68,7 +68,7 @@ impl AppBuilder {
         Ok(builder)
     }
 
-    pub async fn build(self) -> RResult<App> {
+    pub async fn build(self) -> RecorderResult<App> {
         AppConfig::load_dotenv(
             &self.environment,
             &self.working_dir,

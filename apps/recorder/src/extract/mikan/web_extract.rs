@@ -2,6 +2,7 @@ use std::{borrow::Cow, sync::Arc};
 
 use async_stream::try_stream;
 use bytes::Bytes;
+use fetch::{html::fetch_html, image::fetch_image};
 use futures::Stream;
 use itertools::Itertools;
 use scraper::{Html, Selector};
@@ -15,12 +16,11 @@ use super::{
 };
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RError, RResult},
+    errors::app_error::{RecorderResult, RecorderError},
     extract::{
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
     },
-    fetch::{html::fetch_html, image::fetch_image},
     storage::StorageContentCategory,
 };
 
@@ -115,7 +115,7 @@ pub fn extract_mikan_episode_id_from_homepage(url: &Url) -> Option<MikanEpisodeH
 pub async fn extract_mikan_poster_meta_from_src(
     http_client: &MikanClient,
     origin_poster_src_url: Url,
-) -> Result<MikanBangumiPosterMeta, RError> {
+) -> Result<MikanBangumiPosterMeta, RecorderError> {
     let poster_data = fetch_image(http_client, origin_poster_src_url.clone()).await?;
     Ok(MikanBangumiPosterMeta {
         origin_poster_src: origin_poster_src_url,
@@ -128,7 +128,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
     ctx: &dyn AppContextTrait,
     origin_poster_src_url: Url,
     subscriber_id: i32,
-) -> RResult<MikanBangumiPosterMeta> {
+) -> RecorderResult<MikanBangumiPosterMeta> {
     let dal_client = ctx.storage();
     let mikan_client = ctx.mikan();
     if let Some(poster_src) = dal_client
@@ -170,7 +170,7 @@ pub async fn extract_mikan_bangumi_poster_meta_from_src_with_cache(
 pub async fn extract_mikan_episode_meta_from_episode_homepage(
     http_client: &MikanClient,
     mikan_episode_homepage_url: Url,
-) -> Result<MikanEpisodeMeta, RError> {
+) -> Result<MikanEpisodeMeta, RecorderError> {
     let mikan_base_url = Url::parse(&mikan_episode_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_episode_homepage_url.as_str()).await?;
 
@@ -186,7 +186,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -201,18 +201,22 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_episode_homepage_url.join(s).ok())
         .and_then(|rss_link_url| extract_mikan_bangumi_id_from_rss_link(&rss_link_url))
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id")))
+        .ok_or_else(|| {
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
+        })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let mikan_fansub_id = mikan_fansub_id
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id")))
+        .ok_or_else(|| {
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))
+        })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let episode_title = html
         .select(&Selector::parse("title").unwrap())
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -220,7 +224,9 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
     let MikanEpisodeHomepage {
         mikan_episode_id, ..
     } = extract_mikan_episode_id_from_homepage(&mikan_episode_homepage_url)
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id")))
+        .ok_or_else(|| {
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
+        })
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -232,7 +238,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
         )
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))
         .inspect_err(|error| {
             tracing::warn!(error = %error);
         })?;
@@ -275,7 +281,7 @@ pub async fn extract_mikan_episode_meta_from_episode_homepage(
 pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
     http_client: &MikanClient,
     mikan_bangumi_homepage_url: Url,
-) -> Result<MikanBangumiMeta, RError> {
+) -> Result<MikanBangumiMeta, RecorderError> {
     let mikan_base_url = Url::parse(&mikan_bangumi_homepage_url.origin().unicode_serialization())?;
     let content = fetch_html(http_client, mikan_bangumi_homepage_url.as_str()).await?;
     let html = Html::parse_document(&content);
@@ -289,7 +295,7 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
         .select(bangumi_title_selector)
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title")))
         .inspect_err(|error| tracing::warn!(error = %error))?;
 
     let mikan_bangumi_id = html
@@ -303,7 +309,9 @@ pub async fn extract_mikan_bangumi_meta_from_bangumi_homepage(
                  mikan_bangumi_id, ..
              }| mikan_bangumi_id,
         )
-        .ok_or_else(|| RError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id")))
+        .ok_or_else(|| {
+            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
+        })
         .inspect_err(|error| tracing::error!(error = %error))?;
 
     let origin_poster_src = html.select(bangumi_poster_selector).next().and_then(|el| {
@@ -353,8 +361,8 @@ pub fn extract_mikan_bangumis_meta_from_my_bangumi_page(
     context: Arc<dyn AppContextTrait>,
     my_bangumi_page_url: Url,
     auth_secrecy: Option<MikanAuthSecrecy>,
-    history: &[Arc<RResult<MikanBangumiMeta>>],
-) -> impl Stream<Item = RResult<MikanBangumiMeta>> {
+    history: &[Arc<RecorderResult<MikanBangumiMeta>>],
+) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
     try_stream! {
         let http_client = &context.mikan().fork_with_auth(auth_secrecy.clone())?;
 
@@ -511,7 +519,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_poster_from_src(before_each: ()) -> RResult<()> {
+    async fn test_extract_mikan_poster_from_src(before_each: ()) -> RecorderResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -542,7 +550,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_episode(before_each: ()) -> RResult<()> {
+    async fn test_extract_mikan_episode(before_each: ()) -> RecorderResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -582,7 +590,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_bangumi_meta_from_bangumi_homepage(before_each: ()) -> RResult<()> {
+    async fn test_extract_mikan_bangumi_meta_from_bangumi_homepage(before_each: ()) -> RecorderResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -619,7 +627,7 @@ mod test {
 
     #[rstest]
     #[tokio::test]
-    async fn test_extract_mikan_bangumis_meta_from_my_bangumi_page(before_each: ()) -> RResult<()> {
+    async fn test_extract_mikan_bangumis_meta_from_my_bangumi_page(before_each: ()) -> RecorderResult<()> {
         let mut mikan_server = mockito::Server::new_async().await;
 
         let mikan_base_url = Url::parse(&mikan_server.url())?;

@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::cors::{self, Any};
 
-use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RecorderResult, web::middleware::MiddlewareLayer};
 
 /// CORS middleware configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -80,7 +80,7 @@ impl Cors {
     ///
     /// In all of these cases, the error returned will be the result of the
     /// `parse` method of the corresponding type.
-    pub fn cors(&self) -> RResult<cors::CorsLayer> {
+    pub fn cors(&self) -> RecorderResult<cors::CorsLayer> {
         let mut cors: cors::CorsLayer = cors::CorsLayer::new();
 
         // testing CORS, assuming https://example.com in the allow list:
@@ -160,7 +160,7 @@ impl MiddlewareLayer for Cors {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(self.cors()?))
     }
 }

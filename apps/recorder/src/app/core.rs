@@ -1,12 +1,11 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use axum::Router;
-use futures::try_join;
 use tokio::signal;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-    errors::app_error::RResult,
+    errors::RecorderResult,
     web::{
         controller::{self, core::ControllerTrait},
         middleware::default_middleware_stack,
@@ -23,7 +22,7 @@ impl App {
         AppBuilder::default()
     }
 
-    pub async fn serve(&self) -> RResult<()> {
+    pub async fn serve(&self) -> RecorderResult<()> {
         let context = &self.context;
         let config = context.config();
         let listener = tokio::net::TcpListener::bind(&format!(
@@ -34,7 +33,7 @@ impl App {
 
         let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 
-        let (graphql_c, oidc_c, metadata_c) = try_join!(
+        let (graphql_c, oidc_c, metadata_c) = futures::try_join!(
             controller::graphql::create(context.clone()),
             controller::oidc::create(context.clone()),
             controller::metadata::create(context.clone())

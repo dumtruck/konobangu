@@ -6,9 +6,13 @@ use axum::{
     http::request::Parts,
     response::{IntoResponse as _, Response},
 };
+use fetch::{
+    HttpClient, HttpClientConfig,
+    client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
+};
+use http::header::HeaderValue;
 use jwt_authorizer::{JwtAuthorizer, Validation};
 use moka::future::Cache;
-use reqwest::header::HeaderValue;
 use snafu::prelude::*;
 
 use super::{
@@ -17,14 +21,7 @@ use super::{
     errors::{AuthError, OidcProviderHttpClientSnafu},
     oidc::{OidcAuthClaims, OidcAuthService},
 };
-use crate::{
-    app::AppContextTrait,
-    fetch::{
-        HttpClient, HttpClientConfig,
-        client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
-    },
-    models::auth::AuthType,
-};
+use crate::{app::AppContextTrait, models::auth::AuthType};
 
 #[derive(Clone, Debug)]
 pub struct AuthUserInfo {
@@ -89,7 +86,7 @@ impl AuthService {
                 AuthService::Oidc(Box::new(OidcAuthService {
                     config,
                     api_authorizer,
-                    oidc_provider_client,
+                    oidc_provider_client: Arc::new(oidc_provider_client),
                     oidc_request_cache: Cache::builder()
                         .time_to_live(Duration::from_mins(5))
                         .name("oidc_request_cache")

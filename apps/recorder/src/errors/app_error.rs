@@ -4,6 +4,7 @@ use axum::{
     Json,
     response::{IntoResponse, Response},
 };
+use fetch::{FetchError, HttpClientError};
 use http::StatusCode;
 use serde::{Deserialize, Deserializer, Serialize};
 use snafu::Snafu;
@@ -12,12 +13,11 @@ use crate::{
     auth::AuthError,
     downloader::DownloaderError,
     errors::{OptDynErr, response::StandardErrorResponse},
-    fetch::HttpClientError,
 };
 
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
-pub enum RError {
+pub enum RecorderError {
     #[snafu(transparent, context(false))]
     FancyRegexError {
         #[snafu(source(from(fancy_regex::Error, Box::new)))]
@@ -53,8 +53,6 @@ pub enum RError {
     IOError { source: std::io::Error },
     #[snafu(transparent)]
     DbError { source: sea_orm::DbErr },
-    #[snafu(transparent)]
-    CookieParseError { source: cookie::ParseError },
     #[snafu(transparent, context(false))]
     FigmentError {
         #[snafu(source(from(figment::Error, Box::new)))]
@@ -62,10 +60,6 @@ pub enum RError {
     },
     #[snafu(transparent)]
     SerdeJsonError { source: serde_json::Error },
-    #[snafu(transparent)]
-    ReqwestMiddlewareError { source: reqwest_middleware::Error },
-    #[snafu(transparent)]
-    ReqwestError { source: reqwest::Error },
     #[snafu(transparent)]
     ParseUrlError { source: url::ParseError },
     #[snafu(display("{source}"), context(false))]
@@ -106,6 +100,8 @@ pub enum RError {
     },
     #[snafu(display("Model Entity {entity} not found"))]
     ModelEntityNotFound { entity: Cow<'static, str> },
+    #[snafu(transparent)]
+    FetchError { source: FetchError },
     #[snafu(display("{message}"))]
     Whatever {
         message: String,
@@ -114,7 +110,7 @@ pub enum RError {
     },
 }
 
-impl RError {
+impl RecorderError {
     pub fn from_mikan_meta_missing_field(field: Cow<'static, str>) -> Self {
         Self::MikanMetaMissingFieldError {
             field,
@@ -146,7 +142,7 @@ impl RError {
     }
 }
 
-impl snafu::FromString for RError {
+impl snafu::FromString for RecorderError {
     type Source = Box<dyn std::error::Error + Send + Sync>;
 
     fn without_source(message: String) -> Self {
@@ -164,7 +160,7 @@ impl snafu::FromString for RError {
     }
 }
 
-impl IntoResponse for RError {
+impl IntoResponse for RecorderError {
     fn into_response(self) -> Response {
         match self {
             Self::AuthError { source: auth_error } => auth_error.into_response(),
@@ -177,7 +173,7 @@ impl IntoResponse for RError {
     }
 }
 
-impl Serialize for RError {
+impl Serialize for RecorderError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -186,7 +182,7 @@ impl Serialize for RError {
     }
 }
 
-impl<'de> Deserialize<'de> for RError {
+impl<'de> Deserialize<'de> for RecorderError {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -199,4 +195,4 @@ impl<'de> Deserialize<'de> for RError {
     }
 }
 
-pub type RResult<T> = Result<T, RError>;
+pub type RecorderResult<T> = Result<T, RecorderError>;

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use snafu::whatever;
 
 use crate::{
-    errors::app_error::RResult,
+    errors::RecorderResult,
     extract::defs::{DIGIT_1PLUS_REG, ZH_NUM_MAP, ZH_NUM_RE},
 };
 
@@ -75,7 +75,7 @@ fn replace_ch_bracket_to_en(raw_name: &str) -> String {
     raw_name.replace('【', "[").replace('】', "]")
 }
 
-fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> RResult<String> {
+fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> RecorderResult<String> {
     let raw_without_fansub = if let Some(fansub) = fansub {
         let fan_sub_re = Regex::new(&format!(".{fansub}."))?;
         fan_sub_re.replace_all(title_body, "")
@@ -263,7 +263,7 @@ pub fn check_is_movie(title: &str) -> bool {
     MOVIE_TITLE_RE.is_match(title)
 }
 
-pub fn parse_episode_meta_from_raw_name(s: &str) -> RResult<RawEpisodeMeta> {
+pub fn parse_episode_meta_from_raw_name(s: &str) -> RecorderResult<RawEpisodeMeta> {
     let raw_title = s.trim();
     let raw_title_without_ch_brackets = replace_ch_bracket_to_en(raw_title);
     let fansub = extract_fansub(&raw_title_without_ch_brackets);

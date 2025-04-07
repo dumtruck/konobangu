@@ -1,0 +1,11 @@
+[package]
+name = "util"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures = { workspace = true }
+quirks_path = { workspace = true }
+snafu = { workspace = true }
+anyhow = { workspace = true }
+bytes = { workspace = true }

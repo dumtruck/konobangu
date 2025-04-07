@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::timeout::TimeoutLayer;
 
-use crate::{app::AppContextTrait, errors::app_error::RResult, web::middleware::MiddlewareLayer};
+use crate::{app::AppContextTrait, errors::RecorderResult, web::middleware::MiddlewareLayer};
 
 /// Timeout middleware configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -61,7 +61,7 @@ impl MiddlewareLayer for TimeOut {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app.layer(TimeoutLayer::new(Duration::from_millis(self.timeout))))
     }
 }

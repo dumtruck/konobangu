@@ -53,3 +53,13 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for OptDynErr {
         Self::some(value)
     }
 }
+
+pub trait AnyhowResultExt<T>: snafu::ResultExt<T, anyhow::Error> {
+    fn to_dyn_boxed(self) -> Result<T, Box<dyn std::error::Error + Send + Sync>>;
+}
+
+impl<T> AnyhowResultExt<T> for Result<T, anyhow::Error> {
+    fn to_dyn_boxed(self) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
+        self.map_err(|e| e.into())
+    }
+}

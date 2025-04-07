@@ -15,7 +15,7 @@ use tower_http::{add_extension::AddExtensionLayer, trace::TraceLayer};
 
 use crate::{
     app::{AppContextTrait, Environment},
-    errors::app_error::RResult,
+    errors::RecorderResult,
     web::middleware::{MiddlewareLayer, request_id::LocoRequestId},
 };
 
@@ -70,7 +70,7 @@ impl MiddlewareLayer for Middleware {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>> {
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
         Ok(app
             .layer(
                 TraceLayer::new_for_http().make_span_with(|request: &http::Request<_>| {

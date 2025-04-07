@@ -8,7 +8,7 @@ use url::Url;
 use uuid::Uuid;
 
 use super::StorageConfig;
-use crate::errors::app_error::{RError, RResult};
+use crate::errors::app_error::{RecorderError, RecorderResult};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -50,7 +50,7 @@ pub struct StorageService {
 }
 
 impl StorageService {
-    pub async fn from_config(config: StorageConfig) -> RResult<Self> {
+    pub async fn from_config(config: StorageConfig) -> RecorderResult<Self> {
         Ok(Self {
             data_dir: config.data_dir.to_string(),
         })
@@ -71,7 +71,7 @@ impl StorageService {
         bucket: Option<&str>,
         filename: &str,
         data: Bytes,
-    ) -> Result<StorageStoredUrl, RError> {
+    ) -> Result<StorageStoredUrl, RecorderError> {
         match content_category {
             StorageContentCategory::Image => {
                 let fullname = [
@@ -108,7 +108,7 @@ impl StorageService {
         subscriber_id: i32,
         bucket: Option<&str>,
         filename: &str,
-    ) -> Result<Option<StorageStoredUrl>, RError> {
+    ) -> Result<Option<StorageStoredUrl>, RecorderError> {
         match content_category {
             StorageContentCategory::Image => {
                 let fullname = [
@@ -142,7 +142,7 @@ impl StorageService {
         subscriber_pid: &str,
         bucket: Option<&str>,
         filename: &str,
-    ) -> RResult<Buffer> {
+    ) -> RecorderResult<Buffer> {
         match content_category {
             StorageContentCategory::Image => {
                 let fullname = [

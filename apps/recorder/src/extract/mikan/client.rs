@@ -1,15 +1,11 @@
 use std::{fmt::Debug, ops::Deref};
 
-use reqwest_middleware::ClientWithMiddleware;
+use fetch::{FetchError, HttpClient, HttpClientTrait, client::HttpClientCookiesAuth};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
 use super::MikanConfig;
-use crate::{
-    errors::app_error::RError,
-    fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth},
-};
-
+use crate::errors::RecorderError;
 #[derive(Default, Clone, Deserialize, Serialize)]
 pub struct MikanAuthSecrecy {
     pub cookie: String,
@@ -26,8 +22,10 @@ impl Debug for MikanAuthSecrecy {
 }
 
 impl MikanAuthSecrecy {
-    pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RError> {
+    pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RecorderError> {
         HttpClientCookiesAuth::from_cookies(&self.cookie, url, self.user_agent)
+            .map_err(FetchError::from)
+            .map_err(RecorderError::from)
     }
 }
 
@@ -38,7 +36,7 @@ pub struct MikanClient {
 }
 
 impl MikanClient {
-    pub async fn from_config(config: MikanConfig) -> Result<Self, RError> {
+    pub async fn from_config(config: MikanConfig) -> Result<Self, RecorderError> {
         let http_client = HttpClient::from_config(config.http_client)?;
         let base_url = config.base_url;
         Ok(Self {
@@ -47,7 +45,7 @@ impl MikanClient {
         })
     }
 
-    pub fn fork_with_auth(&self, secrecy: Option<MikanAuthSecrecy>) -> Result<Self, RError> {
+    pub fn fork_with_auth(&self, secrecy: Option<MikanAuthSecrecy>) -> Result<Self, RecorderError> {
         let mut fork = self.http_client.fork();
 
         if let Some(secrecy) = secrecy {
@@ -71,10 +69,10 @@ impl MikanClient {
 }
 
 impl Deref for MikanClient {
-    type Target = ClientWithMiddleware;
+    type Target = fetch::reqwest_middleware::ClientWithMiddleware;
 
     fn deref(&self) -> &Self::Target {
-        self.http_client.deref()
+        &self.http_client
     }
 }
 

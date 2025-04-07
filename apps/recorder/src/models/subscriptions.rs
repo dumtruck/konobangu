@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
     app::AppContextTrait,
-    errors::app_error::RResult,
+    errors::RecorderResult,
     extract::{
         mikan::{
             build_mikan_bangumi_homepage, build_mikan_bangumi_rss_link,
@@ -182,7 +182,7 @@ impl Model {
         ctx: &dyn AppContextTrait,
         create_dto: SubscriptionCreateDto,
         subscriber_id: i32,
-    ) -> RResult<Self> {
+    ) -> RecorderResult<Self> {
         let db = ctx.db();
         let subscription = ActiveModel::from_create_dto(create_dto, subscriber_id);
 
@@ -193,7 +193,7 @@ impl Model {
         ctx: &dyn AppContextTrait,
         ids: impl Iterator<Item = i32>,
         enabled: bool,
-    ) -> RResult<()> {
+    ) -> RecorderResult<()> {
         let db = ctx.db();
         Entity::update_many()
             .col_expr(Column::Enabled, Expr::value(enabled))
@@ -206,7 +206,7 @@ impl Model {
     pub async fn delete_with_ids(
         ctx: &dyn AppContextTrait,
         ids: impl Iterator<Item = i32>,
-    ) -> RResult<()> {
+    ) -> RecorderResult<()> {
         let db = ctx.db();
         Entity::delete_many()
             .filter(Column::Id.is_in(ids))
@@ -215,7 +215,7 @@ impl Model {
         Ok(())
     }
 
-    pub async fn pull_subscription(&self, ctx: &dyn AppContextTrait) -> RResult<()> {
+    pub async fn pull_subscription(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
         match &self.category {
             SubscriptionCategory::Mikan => {
                 let mikan_client = ctx.mikan();
@@ -287,7 +287,7 @@ impl Model {
                             self.id,
                             mikan_bangumi_id.to_string(),
                             mikan_fansub_id.to_string(),
-                            async |am| -> RResult<()> {
+                            async |am| -> RecorderResult<()> {
                                 let bgm_meta = extract_mikan_bangumi_meta_from_bangumi_homepage(
                                     mikan_client,
                                     bgm_homepage.clone(),

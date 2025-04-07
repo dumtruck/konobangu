@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{QuerySelect, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{app::AppContextTrait, errors::app_error::RResult};
+use crate::{app::AppContextTrait, errors::RecorderResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize,
@@ -76,7 +76,7 @@ impl Model {
     pub async fn find_stream_task_by_id(
         ctx: &dyn AppContextTrait,
         task_id: i32,
-    ) -> RResult<Option<(Model, Vec<super::task_stream_item::Model>)>> {
+    ) -> RecorderResult<Option<(Model, Vec<super::task_stream_item::Model>)>> {
         let db = ctx.db();
         let res = Entity::find()
             .filter(Column::Id.eq(task_id))

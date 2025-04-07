@@ -19,17 +19,35 @@ testcontainers = [
     "dep:testcontainers",
     "dep:testcontainers-modules",
     "dep:testcontainers-ext",
-    "dep:testing-torrents",
 ]
 
 [dependencies]
+serde = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+async-trait = { workspace = true }
+testcontainers = { workspace = true, optional = true }
+testcontainers-modules = { workspace = true, optional = true }
+testcontainers-ext = { workspace = true, optional = true, features = [
+    "tracing",
+] }
+tracing = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+snafu = { workspace = true }
+itertools = { workspace = true }
+url = { workspace = true }
+regex = { workspace = true }
+lazy_static = { workspace = true }
+quirks_path = { workspace = true }
+futures = { workspace = true }
+bytes = { workspace = true }
+serde_with = { workspace = true }
+moka = { workspace = true }
+chrono = { workspace = true }
+tracing-subscriber = { workspace = true }
 
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1.42", features = ["macros", "fs", "rt-multi-thread"] }
-async-trait = "0.1.83"
-tracing = "0.1"
-chrono = "0.4"
+
 sea-orm = { version = "1.1", features = [
     "sqlx-sqlite",
     "sqlx-postgres",
@@ -38,58 +56,25 @@ sea-orm = { version = "1.1", features = [
     "debug-print",
 ] }
 figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
-axum = "0.8"
 uuid = { version = "1.6.0", features = ["v4"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 sea-orm-migration = { version = "1.1", features = ["runtime-tokio-rustls"] }
-reqwest = { version = "0.12", default-features = false, features = [
-    "charset",
-    "http2",
-    "json",
-    "macos-system-configuration",
-    "rustls-tls",
-    "cookies",
-] }
 rss = "2"
-bytes = "1.9"
-itertools = "0.14"
-url = "2.5"
 fancy-regex = "0.14"
-regex = "1.11"
-lazy_static = "1.5"
 maplit = "1.0.2"
 lightningcss = "1.0.0-alpha.61"
 html-escape = "0.2.13"
 opendal = { version = "0.51.0", features = ["default", "services-fs"] }
 zune-image = "0.4.15"
 once_cell = "1.20.2"
-reqwest-middleware = "0.4.0"
-reqwest-retry = "0.7.0"
-reqwest-tracing = "0.5.5"
 scraper = "0.23"
-leaky-bucket = "1.1.2"
-serde_with = "3"
+
 jwt-authorizer = "0.15.0"
-futures = "0.3.31"
-librqbit-core = "4"
-qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe", features = [
-    "default",
-    "builder",
-] }
-testcontainers = { version = "0.23.3", optional = true }
-testcontainers-modules = { version = "0.11.4", optional = true }
-testcontainers-ext = { version = "0.1.0", optional = true, features = [
-    "tracing",
-] }
 log = "0.4.22"
 async-graphql = { version = "7", features = [] }
 async-graphql-axum = "7"
-fastrand = "2.3.0"
 seaography = { version = "1.1" }
-quirks_path = "0.1.1"
 base64 = "0.22.1"
 tower = "0.5.2"
-axum-extra = "0.10"
 tower-http = { version = "0.6", features = [
     "trace",
     "catch-panic",
@@ -102,34 +87,19 @@ tower-http = { version = "0.6", features = [
 ] }
 tera = "1.20.0"
 openidconnect = { version = "4", features = ["rustls-tls"] }
-http-cache-reqwest = { version = "0.15", features = [
-    "manager-cacache",
-    "manager-moka",
-] }
-moka = "0.12.10"
-http-cache = { version = "0.20.0", features = [
-    "cacache-tokio",
-    "manager-cacache",
-    "manager-moka",
-], default-features = false }
-http-cache-semantics = "2.1.0"
 dotenv = "0.15.0"
 http = "1.2.0"
-cookie = "0.18.1"
 async-stream = "0.3.6"
 serde_variant = "0.1.3"
 tracing-appender = "0.2.3"
 clap = "4.5.31"
-futures-util = "0.3.31"
 ipnetwork = "0.21.1"
-librqbit = "8.0.0"
 typed-builder = "0.21.0"
-snafu = { version = "0.8.5", features = ["futures"] }
-anyhow = "1.0.97"
 serde_yaml = "0.9.34"
-merge-struct = "0.1.0"
-serde-value = "0.7.0"
-testing-torrents = { path = "../../packages/testing-torrents", optional = true }
+
+downloader = { workspace = true }
+util = { workspace = true }
+fetch = { workspace = true }
 
 [dev-dependencies]
 serial_test = "3"

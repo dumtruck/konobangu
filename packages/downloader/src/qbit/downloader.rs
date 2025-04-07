@@ -8,7 +8,6 @@ use std::{
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use futures_util::future::try_join_all;
 use itertools::Itertools;
 use merge_struct::merge;
 use qbit_rs::{
@@ -27,7 +26,7 @@ use tokio::{
 use tracing::instrument;
 use url::Url;
 
-use crate::downloader::{
+use crate::{
     DownloaderError,
     bittorrent::{
         downloader::TorrentDownloaderTrait,
@@ -409,8 +408,8 @@ impl DownloaderTrait for QBittorrentDownloader {
 
     async fn add_downloads(
         &self,
-        creation: Self::Creation,
-    ) -> Result<HashSet<Self::Id>, DownloaderError> {
+        creation: <Self as DownloaderTrait>::Creation,
+    ) -> Result<HashSet<<Self as DownloaderTrait>::Id>, DownloaderError> {
         let tags = {
             let mut tags = vec![TORRENT_TAG_NAME.to_string()];
             tags.extend(creation.tags);
@@ -506,21 +505,21 @@ impl DownloaderTrait for QBittorrentDownloader {
 
     async fn pause_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
         <Self as TorrentDownloaderTrait>::pause_downloads(self, selector).await
     }
 
     async fn resume_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
         <Self as TorrentDownloaderTrait>::resume_downloads(self, selector).await
     }
 
     async fn remove_downloads(
         &self,
-        selector: Self::Selector,
+        selector: <Self as DownloaderTrait>::Selector,
     ) -> Result<impl IntoIterator<Item = Self::Id>, DownloaderError> {
         <Self as TorrentDownloaderTrait>::remove_downloads(self, selector).await
     }
@@ -528,7 +527,7 @@ impl DownloaderTrait for QBittorrentDownloader {
     async fn query_downloads(
         &self,
         selector: QBittorrentSelector,
-    ) -> Result<Vec<Self::Task>, DownloaderError> {
+    ) -> Result<Vec<<Self as DownloaderTrait>::Task>, DownloaderError> {
         let selector = match selector {
             QBittorrentSelector::Hash(h) => h.into(),
             QBittorrentSelector::Complex(c) => c,
@@ -536,7 +535,7 @@ impl DownloaderTrait for QBittorrentDownloader {
 
         let torrent_list = self.client.get_torrent_list(selector.query).await?;
 
-        let torrent_contents = try_join_all(torrent_list.iter().map(|s| async {
+        let torrent_contents = futures::future::try_join_all(torrent_list.iter().map(|s| async {
             if let Some(hash) = &s.hash {
                 self.client.get_torrent_contents(hash as &str, None).await
             } else {
@@ -557,11 +556,12 @@ impl DownloaderTrait for QBittorrentDownloader {
 #[async_trait]
 impl TorrentDownloaderTrait for QBittorrentDownloader {
     type IdSelector = DownloadIdSelector<Self::Task>;
+
     #[instrument(level = "debug", skip(self))]
     async fn pause_torrents(
         &self,
-        hashes: Self::IdSelector,
-    ) -> Result<Self::IdSelector, DownloaderError> {
+        hashes: <Self as TorrentDownloaderTrait>::IdSelector,
+    ) -> Result<<Self as TorrentDownloaderTrait>::IdSelector, DownloaderError> {
         self.client.pause_torrents(hashes.clone()).await?;
         Ok(hashes)
     }
@@ -569,8 +569,8 @@ impl TorrentDownloaderTrait for QBittorrentDownloader {
     #[instrument(level = "debug", skip(self))]
     async fn resume_torrents(
         &self,
-        hashes: Self::IdSelector,
-    ) -> Result<Self::IdSelector, DownloaderError> {
+        hashes: <Self as TorrentDownloaderTrait>::IdSelector,
+    ) -> Result<<Self as TorrentDownloaderTrait>::IdSelector, DownloaderError> {
         self.client.resume_torrents(hashes.clone()).await?;
         Ok(hashes)
     }
@@ -578,8 +578,8 @@ impl TorrentDownloaderTrait for QBittorrentDownloader {
     #[instrument(level = "debug", skip(self))]
     async fn remove_torrents(
         &self,
-        hashes: Self::IdSelector,
-    ) -> Result<Self::IdSelector, DownloaderError> {
+        hashes: <Self as TorrentDownloaderTrait>::IdSelector,
+    ) -> Result<<Self as TorrentDownloaderTrait>::IdSelector, DownloaderError> {
         self.client
             .delete_torrents(hashes.clone(), Some(true))
             .await?;

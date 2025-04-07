@@ -1,7 +1,7 @@
-use recorder::{app::AppBuilder, errors::app_error::RResult};
+use recorder::{app::AppBuilder, errors::RecorderResult};
 
 #[tokio::main]
-async fn main() -> RResult<()> {
+async fn main() -> RecorderResult<()> {
     let builder = AppBuilder::from_main_cli(None).await?;
 
     let app = builder.build().await?;

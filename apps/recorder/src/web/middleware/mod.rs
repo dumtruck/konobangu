@@ -14,7 +14,7 @@ use std::sync::Arc;
 use axum::Router;
 use serde::{Deserialize, Serialize};
 
-use crate::{app::AppContextTrait, errors::app_error::RResult};
+use crate::{app::AppContextTrait, errors::RecorderResult};
 
 /// Trait representing the behavior of middleware components in the application.
 /// When implementing a new middleware, make sure to go over this checklist:
@@ -55,7 +55,7 @@ pub trait MiddlewareLayer {
     fn apply(
         &self,
         app: Router<Arc<dyn AppContextTrait>>,
-    ) -> RResult<Router<Arc<dyn AppContextTrait>>>;
+    ) -> RecorderResult<Router<Arc<dyn AppContextTrait>>>;
 }
 
 #[allow(clippy::unnecessary_lazy_evaluations)]

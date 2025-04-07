@@ -2,7 +2,7 @@ use std::{borrow::Cow, hash::Hash};
 
 use quirks_path::{Path, PathBuf};
 
-use crate::downloader::{
+use crate::{
     bittorrent::source::HashTorrentSource,
     core::{DownloadCreationTrait, DownloadIdTrait, DownloadStateTrait, DownloadTaskTrait},
 };
@@ -10,6 +10,12 @@ use crate::downloader::{
 pub const TORRENT_TAG_NAME: &str = "konobangu";
 
 pub trait TorrentHashTrait: DownloadIdTrait + Send + Hash {}
+
+pub type SimpleTorrentHash = String;
+
+impl DownloadIdTrait for SimpleTorrentHash {}
+
+impl TorrentHashTrait for SimpleTorrentHash {}
 
 pub trait TorrentStateTrait: DownloadStateTrait {}
 

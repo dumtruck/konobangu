@@ -4,7 +4,7 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::O
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
-use crate::{app::AppContextTrait, errors::app_error::RResult};
+use crate::{app::AppContextTrait, errors::RecorderResult};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
@@ -119,9 +119,9 @@ impl Model {
         mikan_bangumi_id: String,
         mikan_fansub_id: String,
         f: F,
-    ) -> RResult<Model>
+    ) -> RecorderResult<Model>
     where
-        F: AsyncFnOnce(&mut ActiveModel) -> RResult<()>,
+        F: AsyncFnOnce(&mut ActiveModel) -> RecorderResult<()>,
     {
         let db = ctx.db();
         if let Some(existed) = Entity::find()

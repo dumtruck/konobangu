@@ -1,0 +1,35 @@
+[package]
+name = "fetch"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+snafu = { workspace = true }
+bytes = { workspace = true }
+url = { workspace = true }
+serde = { workspace = true }
+serde_with = { workspace = true }
+lazy_static = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+async-trait = { workspace = true }
+moka = { workspace = true }
+reqwest = { workspace = true }
+
+leaky-bucket = "1.1"
+cookie = "0.18"
+http-cache-reqwest = { version = "0.15", features = [
+    "manager-cacache",
+    "manager-moka",
+] }
+http-cache-semantics = "2.1"
+fastrand = "2.3"
+reqwest-middleware = "0.4"
+reqwest-retry = "0.7"
+reqwest-tracing = "0.5"
+http-cache = { version = "0.20", features = [
+    "cacache-tokio",
+    "manager-cacache",
+    "manager-moka",
+], default-features = false }
