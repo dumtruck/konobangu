@@ -35,7 +35,7 @@ use crate::{app::AppContextTrait, errors::RecorderError, models::auth::AuthType}
 
 pub struct OidcHttpClient(pub Arc<HttpClient>);
 
-impl<'a> Deref for OidcHttpClient {
+impl Deref for OidcHttpClient {
     type Target = HttpClient;
 
     fn deref(&self) -> &Self::Target {
@@ -170,8 +170,8 @@ pub struct OidcAuthService {
 }
 
 impl OidcAuthService {
-    pub async fn build_authorization_request<'a>(
-        &'a self,
+    pub async fn build_authorization_request(
+        &self,
         redirect_uri: &str,
     ) -> Result<OidcAuthRequest, AuthError> {
         let oidc_provider_client = OidcHttpClient(self.oidc_provider_client.clone());
@@ -247,8 +247,8 @@ impl OidcAuthService {
         Ok(result)
     }
 
-    pub async fn extract_authorization_request_callback<'a>(
-        &'a self,
+    pub async fn extract_authorization_request_callback(
+        &self,
         query: OidcAuthCallbackQuery,
     ) -> Result<OidcAuthCallbackPayload, AuthError> {
         let oidc_http_client = OidcHttpClient(self.oidc_provider_client.clone());

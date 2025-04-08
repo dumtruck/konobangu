@@ -7,7 +7,18 @@ use async_trait::async_trait;
 
 use super::DownloaderError;
 
-pub trait DownloadStateTrait: Sized + Debug {}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DownloadSimpleState {
+    Paused,
+    Active,
+    Completed,
+    Error,
+    Unknown,
+}
+
+pub trait DownloadStateTrait: Sized + Debug {
+    fn to_download_state(&self) -> DownloadSimpleState;
+}
 
 pub trait DownloadIdTrait: Hash + Sized + Clone + Send + Debug {}
 

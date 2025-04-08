@@ -61,15 +61,15 @@ sea-orm-migration = { version = "1.1", features = ["runtime-tokio-rustls"] }
 rss = "2"
 fancy-regex = "0.14"
 maplit = "1.0.2"
-lightningcss = "1.0.0-alpha.61"
+lightningcss = "1.0.0-alpha.65"
 html-escape = "0.2.13"
-opendal = { version = "0.51.0", features = ["default", "services-fs"] }
+opendal = { version = "0.53", features = ["default", "services-fs"] }
 zune-image = "0.4.15"
 once_cell = "1.20.2"
 scraper = "0.23"
 
 jwt-authorizer = "0.15.0"
-log = "0.4.22"
+log = "0.4"
 async-graphql = { version = "7", features = [] }
 async-graphql-axum = "7"
 seaography = { version = "1.1" }
@@ -100,6 +100,7 @@ serde_yaml = "0.9.34"
 downloader = { workspace = true }
 util = { workspace = true }
 fetch = { workspace = true }
+string-interner = "0.19.0"
 
 [dev-dependencies]
 serial_test = "3"

@@ -17,7 +17,7 @@ use qbit_rs::{
         Torrent as QbitTorrent, TorrentFile, TorrentSource,
     },
 };
-use quirks_path::{Path, PathBuf};
+use quirks_path::PathBuf;
 use snafu::{OptionExt, whatever};
 use tokio::{
     sync::{RwLock, watch},
@@ -26,6 +26,7 @@ use tokio::{
 use tracing::instrument;
 use url::Url;
 
+use super::QBittorrentHashSelector;
 use crate::{
     DownloaderError,
     bittorrent::{
@@ -33,7 +34,7 @@ use crate::{
         source::{HashTorrentSource, HashTorrentSourceTrait, MagnetUrlSource, TorrentFileSource},
         task::TORRENT_TAG_NAME,
     },
-    core::{DownloadIdSelector, DownloaderTrait},
+    core::DownloaderTrait,
     qbit::task::{
         QBittorrentCreation, QBittorrentHash, QBittorrentSelector, QBittorrentState,
         QBittorrentTask,
@@ -41,6 +42,7 @@ use crate::{
     utils::path_equals_as_file_url,
 };
 
+#[derive(Debug)]
 pub struct QBittorrentDownloaderCreation {
     pub endpoint: String,
     pub username: String,
@@ -130,6 +132,7 @@ pub struct QBittorrentDownloader {
 }
 
 impl QBittorrentDownloader {
+    #[instrument(level = "debug")]
     pub async fn from_creation(
         creation: QBittorrentDownloaderCreation,
     ) -> Result<Arc<Self>, DownloaderError> {
@@ -253,10 +256,6 @@ impl QBittorrentDownloader {
         Ok(())
     }
 
-    pub fn get_save_path(&self, sub_path: &Path) -> PathBuf {
-        self.save_path.join(sub_path)
-    }
-
     #[instrument(level = "debug", skip(self))]
     pub async fn add_torrent_tags(
         &self,
@@ -324,6 +323,7 @@ impl QBittorrentDownloader {
         Ok(())
     }
 
+    #[instrument(level = "debug", skip(self))]
     pub async fn get_torrent_path(
         &self,
         hashes: String,
@@ -406,6 +406,7 @@ impl DownloaderTrait for QBittorrentDownloader {
     type Creation = QBittorrentCreation;
     type Selector = QBittorrentSelector;
 
+    #[instrument(level = "debug", skip(self))]
     async fn add_downloads(
         &self,
         creation: <Self as DownloaderTrait>::Creation,
@@ -524,6 +525,7 @@ impl DownloaderTrait for QBittorrentDownloader {
         <Self as TorrentDownloaderTrait>::remove_downloads(self, selector).await
     }
 
+    #[instrument(level = "debug", skip(self))]
     async fn query_downloads(
         &self,
         selector: QBittorrentSelector,
@@ -555,13 +557,13 @@ impl DownloaderTrait for QBittorrentDownloader {
 
 #[async_trait]
 impl TorrentDownloaderTrait for QBittorrentDownloader {
-    type IdSelector = DownloadIdSelector<Self::Task>;
+    type IdSelector = QBittorrentHashSelector;
 
     #[instrument(level = "debug", skip(self))]
     async fn pause_torrents(
         &self,
         hashes: <Self as TorrentDownloaderTrait>::IdSelector,
-    ) -> Result<<Self as TorrentDownloaderTrait>::IdSelector, DownloaderError> {
+    ) -> Result<Self::IdSelector, DownloaderError> {
         self.client.pause_torrents(hashes.clone()).await?;
         Ok(hashes)
     }
@@ -579,7 +581,7 @@ impl TorrentDownloaderTrait for QBittorrentDownloader {
     async fn remove_torrents(
         &self,
         hashes: <Self as TorrentDownloaderTrait>::IdSelector,
-    ) -> Result<<Self as TorrentDownloaderTrait>::IdSelector, DownloaderError> {
+    ) -> Result<Self::IdSelector, DownloaderError> {
         self.client
             .delete_torrents(hashes.clone(), Some(true))
             .await?;

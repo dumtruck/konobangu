@@ -1,6 +1,6 @@
 use std::{fmt::Debug, ops::Deref};
 
-use fetch::{FetchError, HttpClient, HttpClientTrait, client::HttpClientCookiesAuth};
+use fetch::{HttpClient, HttpClientTrait, client::HttpClientCookiesAuth};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -24,7 +24,6 @@ impl Debug for MikanAuthSecrecy {
 impl MikanAuthSecrecy {
     pub fn into_cookie_auth(self, url: &Url) -> Result<HttpClientCookiesAuth, RecorderError> {
         HttpClientCookiesAuth::from_cookies(&self.cookie, url, self.user_agent)
-            .map_err(FetchError::from)
             .map_err(RecorderError::from)
     }
 }

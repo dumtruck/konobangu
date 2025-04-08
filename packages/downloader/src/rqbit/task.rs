@@ -1,65 +1,81 @@
-use std::{borrow::Cow, time::Duration};
+use std::{borrow::Cow, fmt::Debug, sync::Arc, time::Duration};
 
-use itertools::Itertools;
-use qbit_rs::model::{
-    GetTorrentListArg, State, Torrent as QbitTorrent, TorrentContent as QbitTorrentContent,
-};
+use librqbit::{ManagedTorrent, ManagedTorrentState, TorrentStats, TorrentStatsState};
+use librqbit_core::Id20;
 use quirks_path::{Path, PathBuf};
 
 use crate::{
     DownloaderError,
     bittorrent::{
         source::HashTorrentSource,
-        task::{SimpleTorrentHash, TorrentCreationTrait, TorrentStateTrait, TorrentTaskTrait},
+        task::{TorrentCreationTrait, TorrentHashTrait, TorrentStateTrait, TorrentTaskTrait},
     },
     core::{
-        DownloadCreationTrait, DownloadIdSelector, DownloadSelectorTrait, DownloadStateTrait,
-        DownloadTaskTrait,
+        DownloadCreationTrait, DownloadIdSelector, DownloadIdTrait, DownloadSimpleState,
+        DownloadStateTrait, DownloadTaskTrait,
     },
 };
 
-pub type RqbitHash = SimpleTorrentHash;
+pub type RqbitHash = Id20;
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct RqbitState(Option<State>);
+impl DownloadIdTrait for RqbitHash {}
 
-impl DownloadStateTrait for RqbitState {}
+impl TorrentHashTrait for RqbitHash {}
+
+#[derive(Debug, Clone)]
+pub struct RqbitState(Arc<TorrentStats>);
+
+impl DownloadStateTrait for RqbitState {
+    fn to_download_state(&self) -> DownloadSimpleState {
+        match self.0.state {
+            TorrentStatsState::Error => DownloadSimpleState::Error,
+            TorrentStatsState::Paused => DownloadSimpleState::Paused,
+            TorrentStatsState::Live => {
+                if self.0.finished {
+                    DownloadSimpleState::Completed
+                } else {
+                    DownloadSimpleState::Active
+                }
+            }
+            TorrentStatsState::Initializing => DownloadSimpleState::Active,
+        }
+    }
+}
 
 impl TorrentStateTrait for RqbitState {}
 
-impl From<Option<State>> for RqbitState {
-    fn from(value: Option<State>) -> Self {
+impl From<Arc<TorrentStats>> for RqbitState {
+    fn from(value: Arc<TorrentStats>) -> Self {
         Self(value)
     }
 }
 
-#[derive(Debug)]
 pub struct RqbitTask {
     pub hash_info: RqbitHash,
-    pub torrent: QbitTorrent,
-    pub contents: Vec<QbitTorrentContent>,
+    pub torrent: Arc<ManagedTorrent>,
     pub state: RqbitState,
+    pub stats: Arc<TorrentStats>,
 }
 
 impl RqbitTask {
-    pub fn from_query(
-        torrent: QbitTorrent,
-        contents: Vec<QbitTorrentContent>,
-    ) -> Result<Self, DownloaderError> {
-        let hash = torrent
-            .hash
-            .clone()
-            .ok_or_else(|| DownloaderError::TorrentMetaError {
-                message: "missing hash".to_string(),
-                source: None.into(),
-            })?;
-        let state = RqbitState::from(torrent.state.clone());
+    pub fn from_query(torrent: Arc<ManagedTorrent>) -> Result<Self, DownloaderError> {
+        let hash = torrent.info_hash();
+        let stats = Arc::new(torrent.stats());
         Ok(Self {
             hash_info: hash,
-            contents,
-            state,
+            state: stats.clone().into(),
+            stats,
             torrent,
         })
+    }
+}
+
+impl Debug for RqbitTask {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RqbitTask")
+            .field("hash_info", &self.hash_info)
+            .field("state", &self.id())
+            .finish()
     }
 }
 
@@ -77,14 +93,26 @@ impl DownloadTaskTrait for RqbitTask {
 
     fn name(&self) -> Cow<'_, str> {
         self.torrent
-            .name
-            .as_deref()
-            .map(Cow::Borrowed)
+            .metadata
+            .load_full()
+            .and_then(|m| m.name.to_owned())
+            .map(Cow::Owned)
             .unwrap_or_else(|| DownloadTaskTrait::name(self))
     }
 
     fn speed(&self) -> Option<u64> {
-        self.torrent.dlspeed.and_then(|s| u64::try_from(s).ok())
+        self.stats
+            .live
+            .as_ref()
+            .map(|s| s.download_speed.mbps)
+            .and_then(|u| {
+                let v = u * 1024f64 * 1024f64;
+                if v.is_finite() && v > 0.0 && v < u64::MAX as f64 {
+                    Some(v as u64)
+                } else {
+                    None
+                }
+            })
     }
 
     fn state(&self) -> &Self::State {
@@ -92,54 +120,41 @@ impl DownloadTaskTrait for RqbitTask {
     }
 
     fn dl_bytes(&self) -> Option<u64> {
-        self.torrent.downloaded.and_then(|v| u64::try_from(v).ok())
+        Some(self.stats.progress_bytes)
     }
 
     fn total_bytes(&self) -> Option<u64> {
-        self.torrent.size.and_then(|v| u64::try_from(v).ok())
-    }
-
-    fn left_bytes(&self) -> Option<u64> {
-        self.torrent.amount_left.and_then(|v| u64::try_from(v).ok())
+        Some(self.stats.total_bytes)
     }
 
     fn et(&self) -> Option<Duration> {
-        self.torrent
-            .time_active
-            .and_then(|v| u64::try_from(v).ok())
-            .map(Duration::from_secs)
+        self.torrent.with_state(|l| match l {
+            ManagedTorrentState::Live(l) => Some(Duration::from_millis(
+                l.stats_snapshot().total_piece_download_ms,
+            )),
+            _ => None,
+        })
     }
 
     fn eta(&self) -> Option<Duration> {
-        self.torrent
-            .eta
-            .and_then(|v| u64::try_from(v).ok())
-            .map(Duration::from_secs)
-    }
-
-    fn progress(&self) -> Option<f32> {
-        self.torrent.progress.as_ref().map(|s| *s as f32)
+        self.torrent.with_state(|l| match l {
+            ManagedTorrentState::Live(l) => l.down_speed_estimator().time_remaining(),
+            _ => None,
+        })
     }
 }
 
 impl TorrentTaskTrait for RqbitTask {
-    fn hash_info(&self) -> &str {
-        &self.hash_info
+    fn hash_info(&self) -> Cow<'_, str> {
+        Cow::Owned(self.hash_info.as_string())
     }
 
     fn tags(&self) -> impl Iterator<Item = Cow<'_, str>> {
-        self.torrent
-            .tags
-            .as_deref()
-            .unwrap_or("")
-            .split(',')
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .map(Cow::Borrowed)
+        std::iter::empty()
     }
 
     fn category(&self) -> Option<Cow<'_, str>> {
-        self.torrent.category.as_deref().map(Cow::Borrowed)
+        None
     }
 }
 
@@ -171,45 +186,4 @@ impl TorrentCreationTrait for RqbitCreation {
 
 pub type RqbitHashSelector = DownloadIdSelector<RqbitTask>;
 
-pub struct RqbitComplexSelector {
-    pub query: GetTorrentListArg,
-}
-
-impl From<RqbitHashSelector> for RqbitComplexSelector {
-    fn from(value: RqbitHashSelector) -> Self {
-        Self {
-            query: GetTorrentListArg {
-                hashes: Some(value.ids.join("|")),
-                ..Default::default()
-            },
-        }
-    }
-}
-
-impl DownloadSelectorTrait for RqbitComplexSelector {
-    type Id = RqbitHash;
-    type Task = RqbitTask;
-}
-
-pub enum RqbitSelector {
-    Hash(RqbitHashSelector),
-    Complex(RqbitComplexSelector),
-}
-
-impl DownloadSelectorTrait for RqbitSelector {
-    type Id = RqbitHash;
-    type Task = RqbitTask;
-
-    fn try_into_ids_only(self) -> Result<Vec<Self::Id>, Self> {
-        match self {
-            RqbitSelector::Complex(c) => c.try_into_ids_only().map_err(RqbitSelector::Complex),
-            RqbitSelector::Hash(h) => {
-                let result = h
-                    .try_into_ids_only()
-                    .unwrap_or_else(|_| unreachable!("hash selector must contains hash"))
-                    .into_iter();
-                Ok(result.collect_vec())
-            }
-        }
-    }
-}
+pub type RqbitSelector = RqbitHashSelector;

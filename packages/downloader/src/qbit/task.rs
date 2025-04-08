@@ -13,8 +13,8 @@ use crate::{
         task::{SimpleTorrentHash, TorrentCreationTrait, TorrentStateTrait, TorrentTaskTrait},
     },
     core::{
-        DownloadCreationTrait, DownloadIdSelector, DownloadSelectorTrait, DownloadStateTrait,
-        DownloadTaskTrait,
+        DownloadCreationTrait, DownloadIdSelector, DownloadSelectorTrait, DownloadSimpleState,
+        DownloadStateTrait, DownloadTaskTrait,
     },
 };
 
@@ -35,7 +35,34 @@ impl From<Option<State>> for QBittorrentState {
     }
 }
 
-impl DownloadStateTrait for QBittorrentState {}
+impl DownloadStateTrait for QBittorrentState {
+    fn to_download_state(&self) -> DownloadSimpleState {
+        if let Some(ref state) = self.0 {
+            match state {
+                State::ForcedUP
+                | State::Uploading
+                | State::PausedUP
+                | State::QueuedUP
+                | State::StalledUP
+                | State::CheckingUP => DownloadSimpleState::Completed,
+                State::Error | State::MissingFiles => DownloadSimpleState::Error,
+                State::Unknown => DownloadSimpleState::Unknown,
+                State::PausedDL => DownloadSimpleState::Paused,
+                State::Allocating
+                | State::Moving
+                | State::MetaDL
+                | State::ForcedDL
+                | State::CheckingResumeData
+                | State::QueuedDL
+                | State::Downloading
+                | State::StalledDL
+                | State::CheckingDL => DownloadSimpleState::Active,
+            }
+        } else {
+            DownloadSimpleState::Unknown
+        }
+    }
+}
 
 impl TorrentStateTrait for QBittorrentState {}
 
@@ -129,8 +156,8 @@ impl DownloadTaskTrait for QBittorrentTask {
 }
 
 impl TorrentTaskTrait for QBittorrentTask {
-    fn hash_info(&self) -> &str {
-        &self.hash_info
+    fn hash_info(&self) -> Cow<'_, str> {
+        Cow::Borrowed(&self.hash_info)
     }
 
     fn tags(&self) -> impl Iterator<Item = Cow<'_, str>> {
@@ -177,6 +204,7 @@ impl TorrentCreationTrait for QBittorrentCreation {
 
 pub type QBittorrentHashSelector = DownloadIdSelector<QBittorrentTask>;
 
+#[derive(Debug)]
 pub struct QBittorrentComplexSelector {
     pub query: GetTorrentListArg,
 }
@@ -197,6 +225,7 @@ impl DownloadSelectorTrait for QBittorrentComplexSelector {
     type Task = QBittorrentTask;
 }
 
+#[derive(Debug)]
 pub enum QBittorrentSelector {
     Hash(QBittorrentHashSelector),
     Complex(QBittorrentComplexSelector),

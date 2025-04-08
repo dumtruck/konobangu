@@ -1,5 +1,4 @@
 pub mod app_error;
-pub mod ext;
 pub mod response;
 
 pub use app_error::{RecorderError, RecorderResult};

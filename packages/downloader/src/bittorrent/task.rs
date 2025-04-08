@@ -24,9 +24,10 @@ where
     Self::State: TorrentStateTrait,
     Self::Id: TorrentHashTrait,
 {
-    fn hash_info(&self) -> &str;
+    fn hash_info(&self) -> Cow<'_, str>;
+
     fn name(&self) -> Cow<'_, str> {
-        Cow::Borrowed(self.hash_info())
+        self.hash_info()
     }
 
     fn tags(&self) -> impl Iterator<Item = Cow<'_, str>>;

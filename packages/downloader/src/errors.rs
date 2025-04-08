@@ -35,6 +35,11 @@ pub enum DownloaderError {
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
         source: OptDynErr,
     },
+    #[snafu(display("{source}"))]
+    RqbitError {
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
+        source: OptDynErr,
+    },
     #[snafu(display("{message}"))]
     Whatever {
         message: String,

@@ -42,6 +42,7 @@ librqbit = { version = "8", features = ["async-bt", "watch"] }
 util = { workspace = true }
 testing-torrents = { workspace = true, optional = true }
 fetch = { workspace = true }
+dashmap = "6.1.0"
 
 
 [dev-dependencies]
