@@ -14,3 +14,12 @@ dev-proxy:
 # bacon recorder # crash on windows
 dev-recorder:
     cargo watch -w "apps/recorder" -x "run -p recorder --bin recorder_cli -- --environment development"
+
+dev-deps:
+    docker compose -f devdeps.compose.yaml up
+
+dev-deps-clean:
+    docker compose -f devdeps.compose.yaml down -v
+
+dev-all:
+    zellij --layout dev.kdl

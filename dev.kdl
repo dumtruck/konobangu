@@ -1,0 +1,30 @@
+on_force_close "quit"
+
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+    }
+    tab name="WebUI" {
+        pane command="pnpm" {
+            args "run" "--filter=webui" "dev"
+        }
+    }
+    tab name="Proxy" {
+        pane command="pnpm" {
+            args "run" "--filter=proxy" "dev"
+        }
+    }
+    tab name="Recorder" {
+        pane command="cargo" {
+            args "watch" "-w" "apps/recorder" "-x" "run -p recorder --bin recorder_cli -- --environment development"
+        }
+    }
+    tab name="Deps" {
+        pane command="docker" {
+            args "compose" "-f" "devdeps.compose.yaml" "up"
+        }
+    }
+}
