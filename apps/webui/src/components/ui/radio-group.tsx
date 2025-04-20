@@ -1,84 +1,45 @@
-import type { JSX, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+"use client"
 
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
-import * as RadioGroupPrimitive from '@kobalte/core/radio-group';
+import * as React from "react"
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
+import { CircleIcon } from "lucide-react"
 
-import { cn } from '~/utils/styles';
+import { cn } from "@/styles/utils"
 
-type RadioGroupRootProps<T extends ValidComponent = 'div'> =
-  RadioGroupPrimitive.RadioGroupRootProps<T> & { class?: string | undefined };
-
-const RadioGroup = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, RadioGroupRootProps<T>>
-) => {
-  const [local, others] = splitProps(props as RadioGroupRootProps, ['class']);
+function RadioGroup({
+  className,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
   return (
     <RadioGroupPrimitive.Root
-      class={cn('grid gap-2', local.class)}
-      {...others}
+      data-slot="radio-group"
+      className={cn("grid gap-3", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-type RadioGroupItemProps<T extends ValidComponent = 'div'> =
-  RadioGroupPrimitive.RadioGroupItemProps<T> & {
-    class?: string | undefined;
-    children?: JSX.Element;
-  };
-
-const RadioGroupItem = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, RadioGroupItemProps<T>>
-) => {
-  const [local, others] = splitProps(props as RadioGroupItemProps, [
-    'class',
-    'children',
-  ]);
+function RadioGroupItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
   return (
     <RadioGroupPrimitive.Item
-      class={cn('flex items-center space-x-2', local.class)}
-      {...others}
-    >
-      <RadioGroupPrimitive.ItemInput />
-      <RadioGroupPrimitive.ItemControl class="aspect-square size-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-        <RadioGroupPrimitive.ItemIndicator class="flex h-full items-center justify-center ">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-2.5 fill-current text-current"
-          >
-            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-          </svg>
-        </RadioGroupPrimitive.ItemIndicator>
-      </RadioGroupPrimitive.ItemControl>
-      {local.children}
-    </RadioGroupPrimitive.Item>
-  );
-};
-
-type RadioGroupLabelProps<T extends ValidComponent = 'label'> =
-  RadioGroupPrimitive.RadioGroupLabelProps<T> & {
-    class?: string | undefined;
-  };
-
-const RadioGroupItemLabel = <T extends ValidComponent = 'label'>(
-  props: PolymorphicProps<T, RadioGroupLabelProps<T>>
-) => {
-  const [local, others] = splitProps(props as RadioGroupLabelProps, ['class']);
-  return (
-    <RadioGroupPrimitive.ItemLabel
-      class={cn(
-        'font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-        local.class
+      data-slot="radio-group-item"
+      className={cn(
+        "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        className
       )}
-      {...others}
-    />
-  );
-};
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator
+        data-slot="radio-group-indicator"
+        className="relative flex items-center justify-center"
+      >
+        <CircleIcon className="fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2" />
+      </RadioGroupPrimitive.Indicator>
+    </RadioGroupPrimitive.Item>
+  )
+}
 
-export { RadioGroup, RadioGroupItem, RadioGroupItemLabel };
+export { RadioGroup, RadioGroupItem }

@@ -1,4 +1,17 @@
 on_force_close "quit"
+mouse_mode true
+
+keybinds {
+    shared_except "locked" {
+        unbind "Ctrl q"
+        bind "Alt q" { Quit; }
+    }
+
+    shared_except "tab" "locked" {
+        unbind "Ctrl t"
+        bind "Alt t" { SwitchToMode "Tab"; }
+    }
+}
 
 layout {
     default_tab_template {

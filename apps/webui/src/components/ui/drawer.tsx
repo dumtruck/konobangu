@@ -1,129 +1,120 @@
-import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+import * as React from "react"
+import { Drawer as DrawerPrimitive } from "vaul"
 
-import type {
-  ContentProps,
-  DescriptionProps,
-  DynamicProps,
-  LabelProps,
-  OverlayProps,
-} from '@corvu/drawer';
-import DrawerPrimitive from '@corvu/drawer';
+import { cn } from "@/styles/utils"
 
-import { cn } from '~/utils/styles';
+function Drawer({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Root>) {
+  return <DrawerPrimitive.Root data-slot="drawer" {...props} />
+}
 
-const Drawer = DrawerPrimitive;
+function DrawerTrigger({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
+  return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />
+}
 
-const DrawerTrigger = DrawerPrimitive.Trigger;
+function DrawerPortal({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
+  return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />
+}
 
-const DrawerPortal = DrawerPrimitive.Portal;
+function DrawerClose({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Close>) {
+  return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />
+}
 
-const DrawerClose = DrawerPrimitive.Close;
-
-type DrawerOverlayProps<T extends ValidComponent = 'div'> = OverlayProps<T> & {
-  class?: string;
-};
-
-const DrawerOverlay = <T extends ValidComponent = 'div'>(
-  props: DynamicProps<T, DrawerOverlayProps<T>>
-) => {
-  const [, rest] = splitProps(props as DrawerOverlayProps, ['class']);
-  const drawerContext = DrawerPrimitive.useContext();
+function DrawerOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Overlay>) {
   return (
     <DrawerPrimitive.Overlay
-      class={cn(
-        'fixed inset-0 z-50 data-[transitioning]:transition-colors data-[transitioning]:duration-300',
-        props.class
+      data-slot="drawer-overlay"
+      className={cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
       )}
-      style={{
-        'background-color': `rgb(0 0 0 / ${0.8 * drawerContext.openPercentage()})`,
-      }}
-      {...rest}
+      {...props}
     />
-  );
-};
+  )
+}
 
-type DrawerContentProps<T extends ValidComponent = 'div'> = ContentProps<T> & {
-  class?: string;
-  children?: JSX.Element;
-};
-
-const DrawerContent = <T extends ValidComponent = 'div'>(
-  props: DynamicProps<T, DrawerContentProps<T>>
-) => {
-  const [, rest] = splitProps(props as DrawerContentProps, [
-    'class',
-    'children',
-  ]);
+function DrawerContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
   return (
-    <DrawerPortal>
+    <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
       <DrawerPrimitive.Content
-        class={cn(
-          'fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background after:absolute after:inset-x-0 after:top-full after:h-1/2 after:bg-inherit data-[transitioning]:transition-transform data-[transitioning]:duration-300 md:select-none',
-          props.class
+        data-slot="drawer-content"
+        className={cn(
+          "group/drawer-content bg-background fixed z-50 flex h-auto flex-col",
+          "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b",
+          "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
+          "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:sm:max-w-sm",
+          "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:w-3/4 data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=left]:sm:max-w-sm",
+          className
         )}
-        {...rest}
+        {...props}
       >
-        <div class="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-        {props.children}
+        <div className="bg-muted mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
+        {children}
       </DrawerPrimitive.Content>
     </DrawerPortal>
-  );
-};
+  )
+}
 
-const DrawerHeader: Component<ComponentProps<'div'>> = (props) => {
-  const [, rest] = splitProps(props, ['class']);
+function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      class={cn('grid gap-1.5 p-4 text-center sm:text-left', props.class)}
-      {...rest}
+      data-slot="drawer-header"
+      className={cn("flex flex-col gap-1.5 p-4", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-const DrawerFooter: Component<ComponentProps<'div'>> = (props) => {
-  const [, rest] = splitProps(props, ['class']);
+function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div class={cn('t-auto flex flex-col gap-2 p-4', props.class)} {...rest} />
-  );
-};
-
-type DrawerTitleProps<T extends ValidComponent = 'div'> = LabelProps<T> & {
-  class?: string;
-};
-
-const DrawerTitle = <T extends ValidComponent = 'div'>(
-  props: DynamicProps<T, DrawerTitleProps<T>>
-) => {
-  const [, rest] = splitProps(props as DrawerTitleProps, ['class']);
-  return (
-    <DrawerPrimitive.Label
-      class={cn(
-        'font-semibold text-lg leading-none tracking-tight',
-        props.class
-      )}
-      {...rest}
+    <div
+      data-slot="drawer-footer"
+      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-type DrawerDescriptionProps<T extends ValidComponent = 'div'> =
-  DescriptionProps<T> & {
-    class?: string;
-  };
+function DrawerTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Title>) {
+  return (
+    <DrawerPrimitive.Title
+      data-slot="drawer-title"
+      className={cn("text-foreground font-semibold", className)}
+      {...props}
+    />
+  )
+}
 
-const DrawerDescription = <T extends ValidComponent = 'div'>(
-  props: DynamicProps<T, DrawerDescriptionProps<T>>
-) => {
-  const [, rest] = splitProps(props as DrawerDescriptionProps, ['class']);
+function DrawerDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.Description>) {
   return (
     <DrawerPrimitive.Description
-      class={cn('text-muted-foreground text-sm', props.class)}
-      {...rest}
+      data-slot="drawer-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
 export {
   Drawer,
@@ -136,4 +127,4 @@ export {
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
-};
+}

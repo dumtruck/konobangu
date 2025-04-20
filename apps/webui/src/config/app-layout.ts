@@ -4,7 +4,7 @@ import {
   Settings2,
   SquareTerminal,
   Telescope,
-} from 'lucide-solid';
+} from 'lucide-react';
 
 export const AppNavMainData = [
   {

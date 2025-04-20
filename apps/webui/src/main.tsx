@@ -1,29 +1,19 @@
 import '@abraham/reflection';
-import {
-  ColorModeProvider,
-  ColorModeScript,
-  createLocalStorageManager,
-} from '@kobalte/core';
 import { type Injector, ReflectiveInjector } from '@outposts/injection-js';
-import { RouterProvider, createRouter } from '@tanstack/solid-router';
-import {
-  OidcSecurityService,
-  provideAuth,
-  withCheckAuthResultEvent,
-  withDefaultFeatures,
-} from 'oidc-client-rx';
-import { withTanstackRouter } from 'oidc-client-rx/adapters/@tanstack/solid-router';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 import {
   InjectorContextVoidInjector,
   InjectorProvider,
-} from 'oidc-client-rx/adapters/solid-js';
-import { Dynamic, render } from 'solid-js/web';
-import { buildOidcConfig, isBasicAuth, isOidcAuth } from './auth/config';
-import { isAuthenticated } from './auth/context';
-import { useAuth } from './auth/hooks';
-import { routeTree } from './routeTree.gen';
-import './app.css';
+} from 'oidc-client-rx/adapters/react';
+import { Suspense } from 'react';
+import { createRoot } from 'react-dom/client';
+import { provideAuth, setupAuthContext } from './auth/context';
 import { AppNotFoundComponent } from './components/layout/app-not-found';
+import { providePlatform } from './platform/context';
+import { routeTree } from './routeTree.gen';
+import { provideStorages } from './storage/context';
+import { provideStyles } from './styles/context';
+import './app.css';
 
 // Create a new router instance
 const router = createRouter({
@@ -34,79 +24,44 @@ const router = createRouter({
   defaultNotFoundComponent: AppNotFoundComponent,
   notFoundMode: 'root',
   context: {
-    isAuthenticated: isAuthenticated,
     injector: InjectorContextVoidInjector,
-    oidcSecurityService: {} as OidcSecurityService,
   },
 });
 
 // Register the router instance for type safety
-declare module '@tanstack/solid-router' {
+declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
   }
 }
 
-const injector: Injector = isBasicAuth
-  ? ReflectiveInjector.resolveAndCreate([])
-  : ReflectiveInjector.resolveAndCreate(
-      provideAuth(
-        {
-          config: buildOidcConfig(),
-        },
-        withDefaultFeatures({
-          router: { enabled: false },
-          securityStorage: { type: 'local-storage' },
-        }),
-        withTanstackRouter(router),
-        withCheckAuthResultEvent()
-      )
-    );
+const injector: Injector = ReflectiveInjector.resolveAndCreate([
+  ...providePlatform(),
+  ...provideStorages(),
+  ...provideAuth(router),
+  ...provideStyles(),
+]);
 
-// if needed, check when init
-let oidcSecurityService: OidcSecurityService | undefined;
-if (isOidcAuth) {
-  oidcSecurityService = injector.get(OidcSecurityService);
-  oidcSecurityService.checkAuth().subscribe();
-}
+setupAuthContext(injector);
 
-// Render the app
 const rootElement = document.getElementById('root');
 
-const AppWithBasicAuth = () => {
-  return <RouterProvider router={router} />;
-};
-
-const AppWithOidcAuth = () => {
-  const { isAuthenticated, oidcSecurityService, injector } = useAuth();
-  return (
-    <RouterProvider
-      router={router}
-      context={{
-        isAuthenticated,
-        oidcSecurityService,
-        injector,
-      }}
-    />
-  );
-};
-
 const App = () => {
-  const storageManager = createLocalStorageManager('color-theme');
   return (
-    <>
-      <ColorModeScript storageType={storageManager.type} />
-      <ColorModeProvider storageManager={storageManager}>
-        <InjectorProvider injector={injector}>
-          <Dynamic
-            component={isBasicAuth ? AppWithBasicAuth : AppWithOidcAuth}
-          />
-        </InjectorProvider>
-      </ColorModeProvider>
-    </>
+    <Suspense>
+      <InjectorProvider injector={injector}>
+        <RouterProvider
+          router={router}
+          context={{
+            injector,
+          }}
+        />
+      </InjectorProvider>
+    </Suspense>
   );
 };
 
-if (rootElement && !rootElement.innerHTML) {
-  render(App, rootElement);
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<App />);
 }

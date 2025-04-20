@@ -1,6 +1,5 @@
 import { defineConfig } from '@rsbuild/core';
-import { pluginBabel } from '@rsbuild/plugin-babel';
-import { pluginSolid } from '@rsbuild/plugin-solid';
+import { pluginReact } from '@rsbuild/plugin-react';
 import { TanStackRouterRspack } from '@tanstack/router-plugin/rspack';
 
 export default defineConfig({
@@ -8,16 +7,11 @@ export default defineConfig({
     title: 'Konobangu',
     favicon: './public/assets/favicon.ico',
   },
-  plugins: [
-    pluginBabel({
-      include: /\.(?:jsx|tsx)$/,
-    }),
-    pluginSolid(),
-  ],
+  plugins: [pluginReact()],
   tools: {
     rspack: {
       plugins: [
-        TanStackRouterRspack({ target: 'solid', autoCodeSplitting: true }),
+        TanStackRouterRspack({ target: 'react', autoCodeSplitting: true }),
       ],
     },
   },

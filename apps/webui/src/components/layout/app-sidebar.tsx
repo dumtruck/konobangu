@@ -1,12 +1,12 @@
-import type { ComponentProps } from 'solid-js';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from '~/components/ui/sidebar';
-import { AppNavMainData } from '~/config/app-layout';
+} from '@/components/ui/sidebar';
+import { AppNavMainData } from '@/config/app-layout';
+import type { ComponentPropsWithoutRef } from 'react';
 import { AppIcon } from './app-icon';
 import { NavMain } from './nav-main';
 import { NavUser } from './nav-user';
@@ -19,7 +19,10 @@ const data = {
   },
 };
 
-type AppSidebarRootProps = Omit<ComponentProps<typeof Sidebar>, 'collapsible'>;
+type AppSidebarRootProps = Omit<
+  ComponentPropsWithoutRef<typeof Sidebar>,
+  'collapsible'
+>;
 
 export const AppSidebar = (props: AppSidebarRootProps) => {
   return (

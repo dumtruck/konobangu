@@ -1,31 +1,9 @@
-import type { Component, ComponentProps } from "solid-js"
-import { mergeProps, splitProps } from "solid-js"
+import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio"
 
-type AspectRatioProps = ComponentProps<"div"> & { ratio?: number }
-
-const AspectRatio: Component<AspectRatioProps> = (rawProps) => {
-  const props = mergeProps({ ratio: 1 / 1 }, rawProps)
-  const [local, others] = splitProps(props, ["ratio"])
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        "padding-bottom": `${100 / local.ratio}%`
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0
-        }}
-        {...others}
-      />
-    </div>
-  )
+function AspectRatio({
+  ...props
+}: React.ComponentProps<typeof AspectRatioPrimitive.Root>) {
+  return <AspectRatioPrimitive.Root data-slot="aspect-ratio" {...props} />
 }
 
 export { AspectRatio }

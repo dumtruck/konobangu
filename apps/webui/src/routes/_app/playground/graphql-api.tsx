@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/solid-router';
-import { AppSkeleton } from '~/components/layout/app-skeleton';
-import { buildLeafRouteStaticData } from '~/utils/route';
+import { AppSkeleton } from '@/components/layout/app-skeleton';
+import { buildLeafRouteStaticData } from '@/utils/route';
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/playground/graphql-api')({
   staticData: buildLeafRouteStaticData({ title: 'GraphQL Api' }),

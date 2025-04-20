@@ -1,54 +1,53 @@
-import { useMatches } from '@tanstack/solid-router';
-import {
-  type ComponentProps,
-  type FlowProps,
-  For,
-  Show,
-  createMemo,
-  splitProps,
-} from 'solid-js';
-import { Dynamic } from 'solid-js/web';
-import { AppSidebar } from '~/components/layout/app-sidebar';
+import { AppSidebar } from '@/components/layout/app-sidebar';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
-} from '~/components/ui/breadcrumb';
-import { Separator } from '~/components/ui/separator';
+} from '@/components/ui/breadcrumb';
+import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from '~/components/ui/sidebar';
-import type { RouteStateDataOption } from '~/traits/router';
-import type { RouteBreadcrumbItem } from '~/traits/router';
-import { cn } from '~/utils/styles';
+} from '@/components/ui/sidebar';
+import { cn } from '@/styles/utils';
+import type { RouteStateDataOption } from '@/traits/router';
+import type { RouteBreadcrumbItem } from '@/traits/router';
+import { useMatches } from '@tanstack/react-router';
+import {
+  type DetailedHTMLProps,
+  Fragment,
+  type HTMLAttributes,
+  useMemo,
+} from 'react';
 import { ProLink } from '../ui/pro-link';
 
 export type AppAsideBreadcrumbItem = RouteBreadcrumbItem;
-export interface AppAsideProps extends FlowProps<ComponentProps<'div'>> {
+
+export interface AppAsideProps
+  extends DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
   breadcrumb?: AppAsideBreadcrumbItem[];
   extractBreadcrumbFromRoutes?: boolean;
 }
 
-export function AppAside(props: AppAsideProps) {
-  const [local, other] = splitProps(props, [
-    'children',
-    'class',
-    'breadcrumb',
-    'extractBreadcrumbFromRoutes',
-  ]);
-
+export function AppAside({
+  children,
+  className,
+  breadcrumb: propBreadcrumb,
+  extractBreadcrumbFromRoutes,
+  ...other
+}: AppAsideProps) {
   const matches = useMatches();
 
-  const breadcrumb = createMemo(() => {
-    if (local.breadcrumb) {
-      return local.breadcrumb;
+  const breadcrumb = useMemo(() => {
+    if (propBreadcrumb) {
+      return propBreadcrumb;
     }
-    if (local.extractBreadcrumbFromRoutes) {
-      return matches()
+    if (extractBreadcrumbFromRoutes) {
+      return matches
         .map((m, i, arr) => {
           const staticData = m.staticData as RouteStateDataOption;
           if (staticData.breadcrumb) {
@@ -67,61 +66,69 @@ export function AppAside(props: AppAsideProps) {
         .filter((b): b is AppAsideBreadcrumbItem => !!b);
     }
     return [];
-  });
+  }, [matches, propBreadcrumb, extractBreadcrumbFromRoutes]);
 
-  const breadcrumbLength = breadcrumb().length;
+  const breadcrumbLength = breadcrumb.length;
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div class="flex items-center gap-2 px-4">
-            <SidebarTrigger class="-ml-1" />
-            <Show when={breadcrumbLength}>
-              <Separator orientation="vertical" class="mr-2 h-4" />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <For each={breadcrumb()}>
-                    {(item, index) => {
-                      const iconEl = (
-                        <Show when={!!item.icon}>
-                          <Dynamic component={item.icon} class=" size-4" />
-                        </Show>
-                      );
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            {breadcrumbLength > 0 && (
+              <>
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    {breadcrumb.map((item, index) => {
+                      const iconEl = item.icon ? (
+                        <item.icon className="size-4" />
+                      ) : null;
 
-                      const isCurrent = index() + 1 === breadcrumbLength;
+                      const isCurrent = index + 1 === breadcrumbLength;
 
+                      const LinkChild = (
+                        item.link ? ProLink : Fragment
+                      ) as typeof ProLink;
                       return (
-                        <>
-                          <Show when={index() > 0}>
-                            <BreadcrumbSeparator class="hidden md:block" />
-                          </Show>
-                          <BreadcrumbItem class="hidden md:block">
-                            <BreadcrumbLink
-                              class="text-[var(--foreground)] hover:text-inherit"
-                              as={item.link ? ProLink : undefined}
-                              current={isCurrent}
-                              {...item?.link}
-                            >
-                              {iconEl}
-                              {item.label}
-                            </BreadcrumbLink>
+                        <Fragment key={index}>
+                          {index > 0 && (
+                            <BreadcrumbSeparator className="hidden md:block" />
+                          )}
+                          <BreadcrumbItem className="hidden md:block">
+                            {isCurrent ? (
+                              <BreadcrumbPage>
+                                {iconEl}
+                                {item.label}
+                              </BreadcrumbPage>
+                            ) : (
+                              <BreadcrumbLink
+                                className="text-[var(--foreground)] hover:text-inherit"
+                                asChild={!!item.link}
+                              >
+                                <LinkChild {...item?.link}>
+                                  {iconEl}
+                                  {item.label}
+                                </LinkChild>
+                              </BreadcrumbLink>
+                            )}
                           </BreadcrumbItem>
-                        </>
+                        </Fragment>
                       );
-                    }}
-                  </For>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </Show>
+                    })}
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </>
+            )}
           </div>
         </header>
         <div
           {...other}
-          class={cn('flex min-h-0 flex-1 flex-col p-4 pt-0', local.class)}
+          className={cn('flex min-h-0 flex-1 flex-col p-4 pt-0', className)}
         >
-          {local.children}
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>

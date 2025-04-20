@@ -1,35 +1,48 @@
-import type { Component, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+"use client"
 
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
-import * as PopoverPrimitive from '@kobalte/core/popover';
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
 
-import { cn } from '~/utils/styles';
+import { cn } from "@/styles/utils"
 
-const PopoverTrigger = PopoverPrimitive.Trigger;
+function Popover({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+}
 
-const Popover: Component<PopoverPrimitive.PopoverRootProps> = (props) => {
-  return <PopoverPrimitive.Root gutter={4} {...props} />;
-};
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+}
 
-type PopoverContentProps<T extends ValidComponent = 'div'> =
-  PopoverPrimitive.PopoverContentProps<T> & { class?: string | undefined };
-
-const PopoverContent = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, PopoverContentProps<T>>
-) => {
-  const [local, others] = splitProps(props as PopoverContentProps, ['class']);
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
-        class={cn(
-          'data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95 z-50 w-72 origin-[var(--kb-popover-content-transform-origin)] rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[closed]:animate-out data-[expanded]:animate-in',
-          local.class
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+          className
         )}
-        {...others}
+        {...props}
       />
     </PopoverPrimitive.Portal>
-  );
-};
+  )
+}
 
-export { Popover, PopoverTrigger, PopoverContent };
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+}
+
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

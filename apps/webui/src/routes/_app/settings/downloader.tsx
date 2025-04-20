@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/solid-router';
-import { buildLeafRouteStaticData } from '~/utils/route';
+import { buildLeafRouteStaticData } from '@/utils/route';
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/settings/downloader')({
   component: SettingsDownloaderRouteComponent,

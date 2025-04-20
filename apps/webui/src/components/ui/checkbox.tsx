@@ -1,60 +1,32 @@
-import type { ValidComponent } from 'solid-js';
-import { Match, Switch, splitProps } from 'solid-js';
+"use client"
 
-import * as CheckboxPrimitive from '@kobalte/core/checkbox';
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
+import * as React from "react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { CheckIcon } from "lucide-react"
 
-import { cn } from '~/utils/styles';
+import { cn } from "@/styles/utils"
 
-type CheckboxRootProps<T extends ValidComponent = 'div'> =
-  CheckboxPrimitive.CheckboxRootProps<T> & { class?: string | undefined };
-
-const Checkbox = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, CheckboxRootProps<T>>
-) => {
-  const [local, others] = splitProps(props as CheckboxRootProps, ['class']);
+function Checkbox({
+  className,
+  ...props
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
     <CheckboxPrimitive.Root
-      class={cn('items-top group relative flex space-x-2', local.class)}
-      {...others}
+      data-slot="checkbox"
+      className={cn(
+        "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
     >
-      <CheckboxPrimitive.Input class="peer" />
-      <CheckboxPrimitive.Control class="size-4 shrink-0 rounded-sm border border-primary ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 data-[checked]:border-none data-[indeterminate]:border-none data-[checked]:bg-primary data-[indeterminate]:bg-primary data-[checked]:text-primary-foreground data-[indeterminate]:text-primary-foreground">
-        <CheckboxPrimitive.Indicator>
-          <Switch>
-            <Match when={!others.indeterminate}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4"
-              >
-                <path d="M5 12l5 5l10 -10" />
-              </svg>
-            </Match>
-            <Match when={others.indeterminate}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="size-4"
-              >
-                <path d="M5 12l14 0" />
-              </svg>
-            </Match>
-          </Switch>
-        </CheckboxPrimitive.Indicator>
-      </CheckboxPrimitive.Control>
+      <CheckboxPrimitive.Indicator
+        data-slot="checkbox-indicator"
+        className="flex items-center justify-center text-current transition-none"
+      >
+        <CheckIcon className="size-3.5" />
+      </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
-  );
-};
+  )
+}
 
-export { Checkbox };
+export { Checkbox }

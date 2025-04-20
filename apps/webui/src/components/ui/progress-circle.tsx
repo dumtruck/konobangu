@@ -1,7 +1,5 @@
-import type { Component, ComponentProps } from 'solid-js';
-import { mergeProps, splitProps } from 'solid-js';
-
-import { cn } from '~/utils/styles';
+import { cn } from '@/styles/utils';
+import type { FC, HTMLAttributes } from 'react';
 
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
@@ -13,87 +11,81 @@ const sizes: Record<Size, { radius: number; strokeWidth: number }> = {
   xl: { radius: 80, strokeWidth: 10 },
 };
 
-type ProgressCircleProps = ComponentProps<'div'> & {
+interface ProgressCircleProps extends HTMLAttributes<HTMLDivElement> {
   value?: number;
   size?: Size;
   radius?: number;
   strokeWidth?: number;
   showAnimation?: boolean;
-};
+}
 
-const ProgressCircle: Component<ProgressCircleProps> = (rawProps) => {
-  const props = mergeProps(
-    { size: 'md' as Size, showAnimation: true },
-    rawProps
-  );
-  const [local, others] = splitProps(props, [
-    'class',
-    'children',
-    'value',
-    'size',
-    'radius',
-    'strokeWidth',
-    'showAnimation',
-  ]);
-
-  const value = () => getLimitedValue(local.value);
-  const radius = () => local.radius ?? sizes[local.size].radius;
-  const strokeWidth = () => local.strokeWidth ?? sizes[local.size].strokeWidth;
-  const normalizedRadius = () => radius() - strokeWidth() / 2;
-  const circumference = () => normalizedRadius() * 2 * Math.PI;
-  const strokeDashoffset = () => (value() / 100) * circumference();
-  const offset = () => circumference() - strokeDashoffset();
+const ProgressCircle: FC<ProgressCircleProps> = ({
+  className,
+  children,
+  value = 0,
+  size = 'md',
+  radius,
+  strokeWidth,
+  showAnimation = true,
+  ...props
+}) => {
+  const currentValue = getLimitedValue(value);
+  const currentRadius = radius ?? sizes[size].radius;
+  const currentStrokeWidth = strokeWidth ?? sizes[size].strokeWidth;
+  const normalizedRadius = currentRadius - currentStrokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = (currentValue / 100) * circumference;
+  const offset = circumference - strokeDashoffset;
 
   return (
     <div
-      class={cn('flex flex-col items-center justify-center', local.class)}
-      {...others}
+      className={cn('flex flex-col items-center justify-center', className)}
+      {...props}
     >
       <svg
-        width={radius() * 2}
-        height={radius() * 2}
-        viewBox={`0 0 ${radius() * 2} ${radius() * 2}`}
-        class="-rotate-90"
+        width={currentRadius * 2}
+        height={currentRadius * 2}
+        viewBox={`0 0 ${currentRadius * 2} ${currentRadius * 2}`}
+        className="-rotate-90"
       >
         <circle
-          r={normalizedRadius()}
-          cx={radius()}
-          cy={radius()}
-          stroke-width={strokeWidth()}
+          r={normalizedRadius}
+          cx={currentRadius}
+          cy={currentRadius}
+          strokeWidth={currentStrokeWidth}
           fill="transparent"
           stroke=""
-          stroke-linecap="round"
-          class={cn('stroke-secondary transition-colors ease-linear')}
+          strokeLinecap="round"
+          className={cn('stroke-secondary transition-colors ease-linear')}
         />
-        {value() >= 0 ? (
+        {currentValue >= 0 && (
           <circle
-            r={normalizedRadius()}
-            cx={radius()}
-            cy={radius()}
-            stroke-width={strokeWidth()}
-            stroke-dasharray={circumference() + ' ' + circumference()}
-            stroke-dashoffset={offset()}
+            r={normalizedRadius}
+            cx={currentRadius}
+            cy={currentRadius}
+            strokeWidth={currentStrokeWidth}
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={offset}
             fill="transparent"
             stroke=""
-            stroke-linecap="round"
-            class={cn(
+            strokeLinecap="round"
+            className={cn(
               'stroke-primary transition-colors ease-linear',
-              local.showAnimation
-                ? 'transition-all duration-300 ease-in-out'
-                : ''
+              showAnimation ? 'transition-all duration-300 ease-in-out' : ''
             )}
           />
-        ) : null}
+        )}
       </svg>
-      <div class={cn('absolute flex')}>{local.children}</div>
+      <div className={cn('absolute flex')}>{children}</div>
     </div>
   );
 };
 
-function getLimitedValue(input: number | undefined) {
+function getLimitedValue(input: number | undefined): number {
   if (input === undefined) {
     return 0;
-  } else if (input > 100) {
+  }
+  if (input > 100) {
     return 100;
   }
   return input;

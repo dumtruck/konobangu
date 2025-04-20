@@ -1,91 +1,31 @@
-import type { JSX, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+"use client"
 
-import type { PolymorphicProps } from '@kobalte/core';
-import * as SwitchPrimitive from '@kobalte/core/switch';
+import * as React from "react"
+import * as SwitchPrimitive from "@radix-ui/react-switch"
 
-import { cn } from '~/utils/styles';
+import { cn } from "@/styles/utils"
 
-const Switch = SwitchPrimitive.Root;
-const SwitchDescription = SwitchPrimitive.Description;
-const SwitchErrorMessage = SwitchPrimitive.ErrorMessage;
-
-type SwitchControlProps = SwitchPrimitive.SwitchControlProps & {
-  class?: string | undefined;
-  children?: JSX.Element;
-};
-
-const SwitchControl = <T extends ValidComponent = 'input'>(
-  props: PolymorphicProps<T, SwitchControlProps>
-) => {
-  const [local, others] = splitProps(props as SwitchControlProps, [
-    'class',
-    'children',
-  ]);
+function Switch({
+  className,
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root>) {
   return (
-    <>
-      <SwitchPrimitive.Input
-        class={cn(
-          '[&:focus-visible+div]:outline-none [&:focus-visible+div]:ring-2 [&:focus-visible+div]:ring-ring [&:focus-visible+div]:ring-offset-2 [&:focus-visible+div]:ring-offset-background',
-          local.class
+    <SwitchPrimitive.Root
+      data-slot="switch"
+      className={cn(
+        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        data-slot="switch-thumb"
+        className={cn(
+          "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
         )}
       />
-      <SwitchPrimitive.Control
-        class={cn(
-          'inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-input transition-[color,background-color,box-shadow] data-[disabled]:cursor-not-allowed data-[checked]:bg-primary data-[disabled]:opacity-50',
-          local.class
-        )}
-        {...others}
-      >
-        {local.children}
-      </SwitchPrimitive.Control>
-    </>
-  );
-};
+    </SwitchPrimitive.Root>
+  )
+}
 
-type SwitchThumbProps = SwitchPrimitive.SwitchThumbProps & {
-  class?: string | undefined;
-};
-
-const SwitchThumb = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, SwitchThumbProps>
-) => {
-  const [local, others] = splitProps(props as SwitchThumbProps, ['class']);
-  return (
-    <SwitchPrimitive.Thumb
-      class={cn(
-        'pointer-events-none block size-5 translate-x-0 rounded-full bg-background shadow-lg ring-0 transition-transform data-[checked]:translate-x-5',
-        local.class
-      )}
-      {...others}
-    />
-  );
-};
-
-type SwitchLabelProps = SwitchPrimitive.SwitchLabelProps & {
-  class?: string | undefined;
-};
-
-const SwitchLabel = <T extends ValidComponent = 'label'>(
-  props: PolymorphicProps<T, SwitchLabelProps>
-) => {
-  const [local, others] = splitProps(props as SwitchLabelProps, ['class']);
-  return (
-    <SwitchPrimitive.Label
-      class={cn(
-        'font-medium text-sm leading-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-70',
-        local.class
-      )}
-      {...others}
-    />
-  );
-};
-
-export {
-  Switch,
-  SwitchControl,
-  SwitchThumb,
-  SwitchLabel,
-  SwitchDescription,
-  SwitchErrorMessage,
-};
+export { Switch }

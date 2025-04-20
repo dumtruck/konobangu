@@ -26,5 +26,19 @@
     "tsx": "^4.19.2",
     "typescript": "^5.8.2",
     "ultracite": "^4.1.15"
+  },
+  "overrides": {
+    "@headlessui/react": "^2.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "date-fns": "^4.1.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@headlessui/react": "^2.2.0",
+      "react": "^19.1.0",
+      "react-dom": "^19.1.0",
+      "date-fns": "^4.1.0"
+    }
   }
 }

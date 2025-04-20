@@ -1,6 +1,6 @@
-import { Outlet } from '@tanstack/solid-router';
-import { guardRouteIndexAsNotFound } from '~/components/layout/app-not-found';
-import type { RouteStateDataOption } from '~/traits/router';
+import { guardRouteIndexAsNotFound } from '@/components/layout/app-not-found';
+import type { RouteStateDataOption } from '@/traits/router';
+import { Outlet } from '@tanstack/react-router';
 
 export interface BuildVirtualBranchRouteOptions {
   title: string;

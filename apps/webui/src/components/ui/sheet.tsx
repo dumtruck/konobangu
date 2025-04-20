@@ -1,188 +1,129 @@
-import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+import * as React from "react"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
+import { XIcon } from "lucide-react"
 
-import * as SheetPrimitive from '@kobalte/core/dialog';
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
-import { type VariantProps, cva } from 'class-variance-authority';
+import { cn } from "@/styles/utils"
 
-import { cn } from '~/utils/styles';
+function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
+  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+}
 
-const Sheet = SheetPrimitive.Root;
-const SheetTrigger = SheetPrimitive.Trigger;
-const SheetClose = SheetPrimitive.CloseButton;
+function SheetTrigger({
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+}
 
-const portalVariants = cva('fixed inset-0 z-50 flex', {
-  variants: {
-    position: {
-      top: 'items-start',
-      bottom: 'items-end',
-      left: 'justify-start',
-      right: 'justify-end',
-    },
-  },
-  defaultVariants: { position: 'right' },
-});
+function SheetClose({
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Close>) {
+  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
+}
 
-type PortalProps = SheetPrimitive.DialogPortalProps &
-  VariantProps<typeof portalVariants>;
+function SheetPortal({
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Portal>) {
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
+}
 
-const SheetPortal: Component<PortalProps> = (props) => {
-  const [local, others] = splitProps(props, ['position', 'children']);
-  return (
-    <SheetPrimitive.Portal {...others}>
-      <div class={portalVariants({ position: local.position })}>
-        {local.children}
-      </div>
-    </SheetPrimitive.Portal>
-  );
-};
-
-type DialogOverlayProps<T extends ValidComponent = 'div'> =
-  SheetPrimitive.DialogOverlayProps<T> & {
-    class?: string | undefined;
-  };
-
-const SheetOverlay = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, DialogOverlayProps<T>>
-) => {
-  const [local, others] = splitProps(props as DialogOverlayProps, ['class']);
+function SheetOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Overlay>) {
   return (
     <SheetPrimitive.Overlay
-      class={cn(
-        'data-[closed=]:fade-out-0 data-[expanded=]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[closed=]:animate-out data-[expanded=]:animate-in',
-        local.class
+      data-slot="sheet-overlay"
+      className={cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className
       )}
-      {...others}
+      {...props}
     />
-  );
-};
+  )
+}
 
-const sheetVariants = cva(
-  'fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[closed=]:animate-out data-[expanded=]:animate-in data-[closed=]:duration-300 data-[expanded=]:duration-500',
-  {
-    variants: {
-      position: {
-        top: 'data-[closed=]:slide-out-to-top data-[expanded=]:slide-in-from-top inset-x-0 top-0 border-b',
-        bottom:
-          'data-[closed=]:slide-out-to-bottom data-[expanded=]:slide-in-from-bottom inset-x-0 bottom-0 border-t',
-        left: 'data-[closed=]:slide-out-to-left data-[expanded=]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
-        right:
-          'data-[closed=]:slide-out-to-right data-[expanded=]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
-      },
-    },
-    defaultVariants: {
-      position: 'right',
-    },
-  }
-);
-
-type DialogContentProps<T extends ValidComponent = 'div'> =
-  SheetPrimitive.DialogContentProps<T> &
-    VariantProps<typeof sheetVariants> & {
-      class?: string | undefined;
-      children?: JSX.Element;
-    };
-
-const SheetContent = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, DialogContentProps<T>>
-) => {
-  const [local, others] = splitProps(props as DialogContentProps, [
-    'position',
-    'class',
-    'children',
-  ]);
+function SheetContent({
+  className,
+  children,
+  side = "right",
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Content> & {
+  side?: "top" | "right" | "bottom" | "left"
+}) {
   return (
-    <SheetPortal position={local.position}>
+    <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
-        class={cn(
-          sheetVariants({ position: local.position }),
-          local.class,
-          'max-h-screen overflow-y-auto'
+        data-slot="sheet-content"
+        className={cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          side === "right" &&
+            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
+          side === "left" &&
+            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
+          side === "top" &&
+            "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
+          side === "bottom" &&
+            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
+          className
         )}
-        {...others}
+        {...props}
       >
-        {local.children}
-        <SheetPrimitive.CloseButton class="absolute top-4 right-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
-          >
-            <path d="M18 6l-12 12" />
-            <path d="M6 6l12 12" />
-          </svg>
-          <span class="sr-only">Close</span>
-        </SheetPrimitive.CloseButton>
+        {children}
+        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+          <XIcon className="size-4" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>
-  );
-};
+  )
+}
 
-const SheetHeader: Component<ComponentProps<'div'>> = (props) => {
-  const [local, others] = splitProps(props, ['class']);
+function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      class={cn(
-        'flex flex-col space-y-2 text-center sm:text-left',
-        local.class
-      )}
-      {...others}
+      data-slot="sheet-header"
+      className={cn("flex flex-col gap-1.5 p-4", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-const SheetFooter: Component<ComponentProps<'div'>> = (props) => {
-  const [local, others] = splitProps(props, ['class']);
+function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      class={cn(
-        'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-        local.class
-      )}
-      {...others}
+      data-slot="sheet-footer"
+      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-type DialogTitleProps<T extends ValidComponent = 'h2'> =
-  SheetPrimitive.DialogTitleProps<T> & {
-    class?: string | undefined;
-  };
-
-const SheetTitle = <T extends ValidComponent = 'h2'>(
-  props: PolymorphicProps<T, DialogTitleProps<T>>
-) => {
-  const [local, others] = splitProps(props as DialogTitleProps, ['class']);
+function SheetTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Title>) {
   return (
     <SheetPrimitive.Title
-      class={cn('font-semibold text-foreground text-lg', local.class)}
-      {...others}
+      data-slot="sheet-title"
+      className={cn("text-foreground font-semibold", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
-type DialogDescriptionProps<T extends ValidComponent = 'p'> =
-  SheetPrimitive.DialogDescriptionProps<T> & { class?: string | undefined };
-
-const SheetDescription = <T extends ValidComponent = 'p'>(
-  props: PolymorphicProps<T, DialogDescriptionProps<T>>
-) => {
-  const [local, others] = splitProps(props as DialogDescriptionProps, [
-    'class',
-  ]);
+function SheetDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof SheetPrimitive.Description>) {
   return (
     <SheetPrimitive.Description
-      class={cn('text-muted-foreground text-sm', local.class)}
-      {...others}
+      data-slot="sheet-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
     />
-  );
-};
+  )
+}
 
 export {
   Sheet,
@@ -193,4 +134,4 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
-};
+}

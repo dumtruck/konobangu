@@ -1,12 +1,10 @@
+import { useAuth } from '@/auth/hooks';
 import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
-import { createLazyFileRoute } from '@tanstack/solid-router';
+import { createLazyFileRoute } from '@tanstack/react-router';
 import GraphiQL from 'graphiql';
-import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
-import { onCleanup, onMount } from 'solid-js';
-import { isOidcAuth } from '~/auth/config';
-import { useAuth } from '~/auth/hooks';
+import { useCallback } from 'react';
 import 'graphiql/graphiql.css';
+import { AuthMethodEnum } from '@/auth/config';
 import { firstValueFrom } from 'rxjs';
 
 export const Route = createLazyFileRoute('/_app/playground/graphql-api')({
@@ -14,41 +12,38 @@ export const Route = createLazyFileRoute('/_app/playground/graphql-api')({
 });
 
 function PlaygroundGraphQLApiRouteComponent() {
-  const auth = useAuth();
-  let containerRef: HTMLDivElement | undefined;
+  const { authContext } = useAuth();
 
-  onMount(() => {
-    if (containerRef) {
-      const reactRoot = createRoot(containerRef);
-      if (reactRoot) {
-        const fetcher: Fetcher = async (props) => {
-          const accessToken = isOidcAuth
-            ? await firstValueFrom(auth.oidcSecurityService!.getAccessToken())
-            : undefined;
-          return createGraphiQLFetcher({
-            url: '/api/graphql',
-            headers: accessToken
-              ? {
-                  Authorization: `Bearer ${accessToken}`,
-                }
-              : undefined,
-          })(props);
-        };
-        const graphiql = createElement(GraphiQL, {
-          fetcher,
-        });
-        reactRoot.render(graphiql);
-
-        onCleanup(() => reactRoot.unmount());
-      }
-    }
-  });
+  const fetcher: Fetcher = useCallback(
+    async (props) => {
+      const accessToken =
+        authContext.type === AuthMethodEnum.OIDC
+          ? await firstValueFrom(
+              authContext.oidcSecurityService.getAccessToken()
+            )
+          : undefined;
+      return createGraphiQLFetcher({
+        url: '/api/graphql',
+        headers: accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : undefined,
+      })(props);
+    },
+    [
+      authContext.type,
+      // @ts-ignore
+      authContext?.oidcSecurityService?.getAccessToken,
+    ]
+  );
 
   return (
     <div
       data-id="graphiql-playground-container"
-      class="h-full overflow-hidden rounded-lg"
-      ref={containerRef}
-    />
+      className="h-full overflow-hidden rounded-lg"
+    >
+      <GraphiQL fetcher={fetcher} />
+    </div>
   );
 }

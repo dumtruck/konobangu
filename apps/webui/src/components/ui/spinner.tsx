@@ -1,50 +1,47 @@
+import { cn } from '@/styles/utils';
 import {
-  LoaderCircleIcon,
-  LoaderIcon,
-  LoaderPinwheelIcon,
+  Loader,
+  LoaderCircle,
+  LoaderPinwheel,
   type LucideProps,
-} from 'lucide-solid';
-import { mergeProps, splitProps } from 'solid-js';
-import { cn } from '~/utils/styles';
+} from 'lucide-react';
 
-type SpinnerVariantProps = Omit<SpinnerProps, 'variant'>;
+export type SpinnerVariantProps = Omit<SpinnerProps, 'variant'>;
 
-const Default = (props: SpinnerVariantProps) => {
-  const [local, other] = splitProps(props, ['class']);
-  return <LoaderIcon class={cn('animate-spin', local.class)} {...other} />;
+const Default = ({ className, ...props }: SpinnerVariantProps) => {
+  return <Loader className={cn('animate-spin', className)} {...props} />;
 };
 
-const Circle = (props: SpinnerVariantProps) => {
-  const [local, other] = splitProps(props, ['class']);
+const Circle = ({ className, ...props }: SpinnerVariantProps) => {
+  return <LoaderCircle className={cn('animate-spin', className)} {...props} />;
+};
+
+const Pinwheel = ({ className, ...props }: SpinnerVariantProps) => {
   return (
-    <LoaderCircleIcon class={cn('animate-spin', local.class)} {...other} />
+    <LoaderPinwheel className={cn('animate-spin', className)} {...props} />
   );
 };
 
-const Pinwheel = (props: SpinnerVariantProps) => {
-  const [local, other] = splitProps(props, ['class']);
+const CircleFilled = ({
+  className,
+  size = 24,
+  ...props
+}: SpinnerVariantProps) => {
   return (
-    <LoaderPinwheelIcon class={cn('animate-spin', local.class)} {...other} />
-  );
-};
-
-const CircleFilled = (props: SpinnerVariantProps) => {
-  const [local, _] = splitProps(mergeProps({ size: 24 }, props), [
-    'class',
-    'size',
-  ]);
-  const size = `${local.size}`;
-  return (
-    <div class="relative" style={{ width: size, height: size }}>
-      <div class="absolute inset-0 rotate-180">
-        <LoaderCircleIcon
-          class={cn('animate-spin', local.class, 'text-foreground opacity-20')}
+    <div className="relative" style={{ width: size, height: size }}>
+      <div className="absolute inset-0 rotate-180">
+        <LoaderCircle
+          className={cn(
+            'animate-spin',
+            className,
+            'text-foreground opacity-20'
+          )}
           size={size}
           {...props}
         />
       </div>
-      <LoaderCircleIcon
-        class={cn('relative animate-spin', local.class)}
+      <LoaderCircle
+        className={cn('relative animate-spin', className)}
         size={size}
         {...props}
       />
@@ -52,15 +49,14 @@ const CircleFilled = (props: SpinnerVariantProps) => {
   );
 };
 
-const Ellipsis = (props: SpinnerVariantProps) => {
-  const [{ size = 24 }, other] = splitProps(props, ['size']);
+const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      {...other}
+      {...props}
     >
       <title>Loading...</title>
       <circle cx="4" cy="12" r="2" fill="currentColor">
@@ -99,8 +95,7 @@ const Ellipsis = (props: SpinnerVariantProps) => {
   );
 };
 
-const Ring = (props: SpinnerVariantProps) => {
-  const [{ size = 24 }, other] = splitProps(props, ['size']);
+const Ring = ({ size = 24, ...props }: SpinnerVariantProps) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -108,10 +103,10 @@ const Ring = (props: SpinnerVariantProps) => {
       height={size}
       viewBox="0 0 44 44"
       stroke="currentColor"
-      {...other}
+      {...props}
     >
       <title>Loading...</title>
-      <g fill="none" fill-rule="evenodd" stroke-width="2">
+      <g fill="none" fillRule="evenodd" strokeWidth="2">
         <circle cx="22" cy="22" r="1">
           <animate
             attributeName="r"
@@ -171,30 +166,30 @@ const Bars = ({ size = 24, ...props }: SpinnerVariantProps) => (
   >
     <title>Loading...</title>
     <style>{`
-      .spinner-bar {
-        animation: spinner-bars-animation .8s linear infinite;
-        animation-delay: -.8s;
-      }
-      .spinner-bars-2 {
-        animation-delay: -.65s;
-      }
-      .spinner-bars-3 {
-        animation-delay: -0.5s;
-      }
-      @keyframes spinner-bars-animation {
-        0% {
-          y: 1px;
-          height: 22px;
+        .spinner-bar {
+          animation: spinner-bars-animation .8s linear infinite;
+          animation-delay: -.8s;
         }
-        93.75% {
-          y: 5px;
-          height: 14px;
-          opacity: 0.2;
+        .spinner-bars-2 {
+          animation-delay: -.65s;
         }
-      }
-    `}</style>
+        .spinner-bars-3 {
+          animation-delay: -0.5s;
+        }
+        @keyframes spinner-bars-animation {
+          0% {
+            y: 1px;
+            height: 22px;
+          }
+          93.75% {
+            y: 5px;
+            height: 14px;
+            opacity: 0.2;
+          }
+        }
+      `}</style>
     <rect
-      class="spinner-bar"
+      className="spinner-bar"
       x="1"
       y="1"
       width="6"
@@ -202,7 +197,7 @@ const Bars = ({ size = 24, ...props }: SpinnerVariantProps) => (
       fill="currentColor"
     />
     <rect
-      class="spinner-bar spinner-bars-2"
+      className="spinner-bar spinner-bars-2"
       x="9"
       y="1"
       width="6"
@@ -210,7 +205,7 @@ const Bars = ({ size = 24, ...props }: SpinnerVariantProps) => (
       fill="currentColor"
     />
     <rect
-      class="spinner-bar spinner-bars-3"
+      className="spinner-bar spinner-bars-3"
       x="17"
       y="1"
       width="6"
@@ -233,13 +228,13 @@ const Infinite = ({ size = 24, ...props }: SpinnerVariantProps) => (
     <path
       fill="none"
       stroke="currentColor"
-      stroke-width="10"
-      stroke-dasharray="205.271142578125 51.317785644531256"
+      strokeWidth="10"
+      strokeDasharray="205.271142578125 51.317785644531256"
       d="M24.3 30C11.4 30 5 43.3 5 50s6.4 20 19.3 20c19.3 0 32.1-40 51.4-40 C88.6 30 95 43.3 95 50s-6.4 20-19.3 20C56.4 70 43.6 30 24.3 30z"
-      stroke-linecap="round"
+      strokeLinecap="round"
       style={{
         transform: 'scale(0.8)',
-        'transform-origin': '50px 50px',
+        transformOrigin: '50px 50px',
       }}
     >
       <animate

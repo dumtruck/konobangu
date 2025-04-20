@@ -1,35 +1,59 @@
-import type { ValidComponent } from 'solid-js';
-import { type Component, splitProps } from 'solid-js';
+import * as React from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
-import * as TooltipPrimitive from '@kobalte/core/tooltip';
+import { cn } from "@/styles/utils"
 
-import { cn } from '~/utils/styles';
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
+  return (
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
+  )
+}
 
-const TooltipTrigger = TooltipPrimitive.Trigger;
+function Tooltip({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+  return (
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
+}
 
-const Tooltip: Component<TooltipPrimitive.TooltipRootProps> = (props) => {
-  return <TooltipPrimitive.Root gutter={4} {...props} />;
-};
+function TooltipTrigger({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+}
 
-type TooltipContentProps<T extends ValidComponent = 'div'> =
-  TooltipPrimitive.TooltipContentProps<T> & { class?: string | undefined };
-
-const TooltipContent = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, TooltipContentProps<T>>
-) => {
-  const [local, others] = splitProps(props as TooltipContentProps, ['class']);
+function TooltipContent({
+  className,
+  sideOffset = 0,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
-        class={cn(
-          'fade-in-0 zoom-in-95 z-50 origin-[var(--kb-popover-content-transform-origin)] animate-in overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-popover-foreground text-sm shadow-md',
-          local.class
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          className
         )}
-        {...others}
-      />
+        {...props}
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+      </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
-  );
-};
+  )
+}
 
-export { Tooltip, TooltipTrigger, TooltipContent };
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }

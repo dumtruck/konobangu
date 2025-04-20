@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/solid-router';
-import type { RouteStateDataOption } from '~/traits/router';
+import type { RouteStateDataOption } from '@/traits/router';
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/subscriptions/create')({
   component: SubscriptionCreateRouteComponent,

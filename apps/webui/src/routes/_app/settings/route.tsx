@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/solid-router';
-import { buildVirtualBranchRouteOptions } from '~/utils/route';
+import { buildVirtualBranchRouteOptions } from '@/utils/route';
+import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_app/settings')(
   buildVirtualBranchRouteOptions({

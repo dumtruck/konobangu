@@ -1,273 +1,252 @@
-import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
-import { splitProps } from 'solid-js';
+"use client"
 
-import * as ContextMenuPrimitive from '@kobalte/core/context-menu';
-import type { PolymorphicProps } from '@kobalte/core/polymorphic';
+import * as React from "react"
+import * as ContextMenuPrimitive from "@radix-ui/react-context-menu"
+import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
-import { cn } from '~/utils/styles';
+import { cn } from "@/styles/utils"
 
-const ContextMenuTrigger = ContextMenuPrimitive.Trigger;
-const ContextMenuPortal = ContextMenuPrimitive.Portal;
-const ContextMenuSub = ContextMenuPrimitive.Sub;
-const ContextMenuGroup = ContextMenuPrimitive.Group;
-const ContextMenuRadioGroup = ContextMenuPrimitive.RadioGroup;
+function ContextMenu({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
+  return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
+}
 
-const ContextMenu: Component<ContextMenuPrimitive.ContextMenuRootProps> = (
-  props
-) => {
-  return <ContextMenuPrimitive.Root gutter={4} {...props} />;
-};
+function ContextMenuTrigger({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
+  return (
+    <ContextMenuPrimitive.Trigger data-slot="context-menu-trigger" {...props} />
+  )
+}
 
-type ContextMenuContentProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuContentProps<T> & {
-    class?: string | undefined;
-  };
+function ContextMenuGroup({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
+  return (
+    <ContextMenuPrimitive.Group data-slot="context-menu-group" {...props} />
+  )
+}
 
-const ContextMenuContent = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuContentProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuContentProps, [
-    'class',
-  ]);
+function ContextMenuPortal({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
+  return (
+    <ContextMenuPrimitive.Portal data-slot="context-menu-portal" {...props} />
+  )
+}
+
+function ContextMenuSub({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
+  return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />
+}
+
+function ContextMenuRadioGroup({
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
+  return (
+    <ContextMenuPrimitive.RadioGroup
+      data-slot="context-menu-radio-group"
+      {...props}
+    />
+  )
+}
+
+function ContextMenuSubTrigger({
+  className,
+  inset,
+  children,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.SubTrigger> & {
+  inset?: boolean
+}) {
+  return (
+    <ContextMenuPrimitive.SubTrigger
+      data-slot="context-menu-sub-trigger"
+      data-inset={inset}
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <ChevronRightIcon className="ml-auto" />
+    </ContextMenuPrimitive.SubTrigger>
+  )
+}
+
+function ContextMenuSubContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.SubContent>) {
+  return (
+    <ContextMenuPrimitive.SubContent
+      data-slot="context-menu-sub-content"
+      className={cn(
+        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function ContextMenuContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Content>) {
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
-        class={cn(
-          'z-50 min-w-32 origin-[var(--kb-menu-content-transform-origin)] animate-in overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-          local.class
+        data-slot="context-menu-content"
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-context-menu-content-available-height) min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md",
+          className
         )}
-        {...others}
+        {...props}
       />
     </ContextMenuPrimitive.Portal>
-  );
-};
+  )
+}
 
-type ContextMenuItemProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuItemProps<T> & {
-    class?: string | undefined;
-  };
-
-const ContextMenuItem = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuItemProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuItemProps, ['class']);
+function ContextMenuItem({
+  className,
+  inset,
+  variant = "default",
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Item> & {
+  inset?: boolean
+  variant?: "default" | "destructive"
+}) {
   return (
     <ContextMenuPrimitive.Item
-      class={cn(
-        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        local.class
+      data-slot="context-menu-item"
+      data-inset={inset}
+      data-variant={variant}
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
       )}
-      {...others}
+      {...props}
     />
-  );
-};
+  )
+}
 
-const ContextMenuShortcut: Component<ComponentProps<'span'>> = (props) => {
-  const [local, others] = splitProps(props, ['class']);
-  return (
-    <span
-      class={cn('ml-auto text-xs tracking-widest opacity-60', local.class)}
-      {...others}
-    />
-  );
-};
-
-type ContextMenuSeparatorProps<T extends ValidComponent = 'hr'> =
-  ContextMenuPrimitive.ContextMenuSeparatorProps<T> & {
-    class?: string | undefined;
-  };
-
-const ContextMenuSeparator = <T extends ValidComponent = 'hr'>(
-  props: PolymorphicProps<T, ContextMenuSeparatorProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuSeparatorProps, [
-    'class',
-  ]);
-  return (
-    <ContextMenuPrimitive.Separator
-      class={cn('-mx-1 my-1 h-px bg-muted', local.class)}
-      {...others}
-    />
-  );
-};
-
-type ContextMenuSubTriggerProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuSubTriggerProps<T> & {
-    class?: string | undefined;
-    children?: JSX.Element;
-  };
-
-const ContextMenuSubTrigger = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuSubTriggerProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuSubTriggerProps, [
-    'class',
-    'children',
-  ]);
-  return (
-    <ContextMenuPrimitive.SubTrigger
-      class={cn(
-        'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent',
-        local.class
-      )}
-      {...others}
-    >
-      {local.children}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="ml-auto size-4"
-      >
-        <path d="M9 6l6 6l-6 6" />
-      </svg>
-    </ContextMenuPrimitive.SubTrigger>
-  );
-};
-
-type ContextMenuSubContentProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuSubContentProps<T> & {
-    class?: string | undefined;
-  };
-
-const ContextMenuSubContent = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuSubContentProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuSubContentProps, [
-    'class',
-  ]);
-  return (
-    <ContextMenuPrimitive.SubContent
-      class={cn(
-        'z-50 min-w-32 origin-[var(--kb-menu-content-transform-origin)] animate-in overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-        local.class
-      )}
-      {...others}
-    />
-  );
-};
-
-type ContextMenuCheckboxItemProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuCheckboxItemProps<T> & {
-    class?: string | undefined;
-    children?: JSX.Element;
-  };
-
-const ContextMenuCheckboxItem = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuCheckboxItemProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuCheckboxItemProps, [
-    'class',
-    'children',
-  ]);
+function ContextMenuCheckboxItem({
+  className,
+  children,
+  checked,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.CheckboxItem>) {
   return (
     <ContextMenuPrimitive.CheckboxItem
-      class={cn(
-        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        local.class
+      data-slot="context-menu-checkbox-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
       )}
-      {...others}
+      checked={checked}
+      {...props}
     >
-      <span class="absolute left-2 flex size-3.5 items-center justify-center">
+      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <ContextMenuPrimitive.ItemIndicator>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-4"
-          >
-            <path d="M5 12l5 5l10 -10" />
-          </svg>
+          <CheckIcon className="size-4" />
         </ContextMenuPrimitive.ItemIndicator>
       </span>
-      {local.children}
+      {children}
     </ContextMenuPrimitive.CheckboxItem>
-  );
-};
+  )
+}
 
-type ContextMenuGroupLabelProps<T extends ValidComponent = 'span'> =
-  ContextMenuPrimitive.ContextMenuGroupLabelProps<T> & {
-    class?: string | undefined;
-  };
-
-const ContextMenuGroupLabel = <T extends ValidComponent = 'span'>(
-  props: PolymorphicProps<T, ContextMenuGroupLabelProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuGroupLabelProps, [
-    'class',
-  ]);
-  return (
-    <ContextMenuPrimitive.GroupLabel
-      class={cn('px-2 py-1.5 font-semibold text-sm', local.class)}
-      {...others}
-    />
-  );
-};
-
-type ContextMenuRadioItemProps<T extends ValidComponent = 'div'> =
-  ContextMenuPrimitive.ContextMenuRadioItemProps<T> & {
-    class?: string | undefined;
-    children?: JSX.Element;
-  };
-
-const ContextMenuRadioItem = <T extends ValidComponent = 'div'>(
-  props: PolymorphicProps<T, ContextMenuRadioItemProps<T>>
-) => {
-  const [local, others] = splitProps(props as ContextMenuRadioItemProps, [
-    'class',
-    'children',
-  ]);
+function ContextMenuRadioItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.RadioItem>) {
   return (
     <ContextMenuPrimitive.RadioItem
-      class={cn(
-        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        local.class
+      data-slot="context-menu-radio-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
       )}
-      {...others}
+      {...props}
     >
-      <span class="absolute left-2 flex size-3.5 items-center justify-center">
+      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <ContextMenuPrimitive.ItemIndicator>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-2 fill-current"
-          >
-            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-          </svg>
+          <CircleIcon className="size-2 fill-current" />
         </ContextMenuPrimitive.ItemIndicator>
       </span>
-      {local.children}
+      {children}
     </ContextMenuPrimitive.RadioItem>
-  );
-};
+  )
+}
+
+function ContextMenuLabel({
+  className,
+  inset,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Label> & {
+  inset?: boolean
+}) {
+  return (
+    <ContextMenuPrimitive.Label
+      data-slot="context-menu-label"
+      data-inset={inset}
+      className={cn(
+        "text-foreground px-2 py-1.5 text-sm font-medium data-[inset]:pl-8",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function ContextMenuSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof ContextMenuPrimitive.Separator>) {
+  return (
+    <ContextMenuPrimitive.Separator
+      data-slot="context-menu-separator"
+      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      {...props}
+    />
+  )
+}
+
+function ContextMenuShortcut({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="context-menu-shortcut"
+      className={cn(
+        "text-muted-foreground ml-auto text-xs tracking-widest",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
 export {
   ContextMenu,
   ContextMenuTrigger,
-  ContextMenuPortal,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuShortcut,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubTrigger,
-  ContextMenuSubContent,
   ContextMenuCheckboxItem,
-  ContextMenuGroup,
-  ContextMenuGroupLabel,
-  ContextMenuRadioGroup,
   ContextMenuRadioItem,
-};
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+}
