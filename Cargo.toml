@@ -50,3 +50,4 @@ recorder = { path = "./apps/recorder" }
 
 [patch.crates-io]
 jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }
+seaography = { git = "https://github.com/lonelyhentxi/seaography.git", rev = "0c4cc5c" }

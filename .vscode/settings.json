@@ -28,5 +28,18 @@
   "emmet.showExpandedAbbreviation": "never",
   "prettier.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "rust-analyzer.cargo.features": ["testcontainers"]
+  "rust-analyzer.cargo.features": [
+    "testcontainers"
+  ],
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "konobangu-dev",
+      "database": "konobangu",
+      "username": "konobangu"
+    }
+  ]
 }

@@ -5632,8 +5632,7 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 [[package]]
 name = "seaography"
 version = "1.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f5e0455935e4f31eb64ce606d9963715efd4c1856edb129619126f6b5372fcf"
+source = "git+https://github.com/lonelyhentxi/seaography.git?rev=0c4cc5c#0c4cc5ccd43730338802f98401120d5faeccd096"
 dependencies = [
  "async-graphql",
  "fnv",

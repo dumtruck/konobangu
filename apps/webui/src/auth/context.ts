@@ -42,7 +42,7 @@ export interface OidcAuthContext {
   type: typeof AuthMethodEnum.OIDC;
   oidcSecurityService: OidcSecurityService;
   isAuthenticated$: Observable<boolean>;
-  userData$: Observable<any>;
+  userData$: Observable<{}>;
   checkAuthResultEvent$: Observable<CheckAuthResultEventType>;
 }
 

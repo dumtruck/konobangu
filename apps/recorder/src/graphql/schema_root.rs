@@ -3,13 +3,16 @@ use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use super::{
-    filter::{SUBSCRIBER_ID_FILTER_INFO, subscriber_id_condition_function},
+use crate::graphql::{
+    extentions::AuthExtensionFactory,
+    filter::{
+        SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info, subscriber_id_condition_function,
+    },
+    guard::guard_entity_with_subscriber_id,
     util::{get_entity_column_key, get_entity_key},
 };
-use crate::graphql::{filter::init_custom_filter_info, guard::guard_entity_with_subscriber_id};
 
-static CONTEXT: OnceCell<BuilderContext> = OnceCell::new();
+pub static CONTEXT: OnceCell<BuilderContext> = OnceCell::new();
 
 fn restrict_filter_input_for_entity<T>(
     context: &mut BuilderContext,
@@ -153,7 +156,9 @@ pub fn schema(
     };
     schema
         .data(database)
-        // .extension(GraphqlAuthExtension)
+        .extension(AuthExtensionFactory {
+            builder_context: context,
+        })
         .finish()
         .inspect_err(|e| tracing::error!(e = ?e))
 }
