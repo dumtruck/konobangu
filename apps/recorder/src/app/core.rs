@@ -78,12 +78,25 @@ impl App {
                 .await;
         };
 
+        #[cfg(all(unix, debug_assertions))]
+        let quit = async {
+            signal::unix::signal(signal::unix::SignalKind::quit())
+                .expect("Failed to install SIGQUIT handler")
+                .recv()
+                .await;
+            println!("Received SIGQUIT");
+        };
+
         #[cfg(not(unix))]
         let terminate = std::future::pending::<()>();
+
+        #[cfg(all(not(unix), debug_assertions))]
+        let quit = std::future::pending::<()>();
 
         tokio::select! {
             () = ctrl_c => {},
             () = terminate => {},
+            () = quit => {},
         }
     }
 }

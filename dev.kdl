@@ -31,8 +31,8 @@ layout {
         }
     }
     tab name="Recorder" {
-        pane command="cargo" {
-            args "watch" "-w" "apps/recorder" "-x" "run -p recorder --bin recorder_cli -- --environment development"
+        pane command="watchexec" {
+            args "-w" "apps/recorder" "--" "cargo" "run" "-p" "recorder" "--bin" "recorder_cli" "--" "--environment" "development"
         }
     }
     tab name="Deps" {
