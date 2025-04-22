@@ -4,11 +4,8 @@ use async_graphql::dynamic::{ResolverContext, ValueAccessor};
 use sea_orm::EntityTrait;
 use seaography::{BuilderContext, FnGuard, GuardAction};
 
-use super::util::get_entity_key;
-use crate::{
-    auth::{AuthError, AuthUserInfo},
-    graphql::util::get_column_key,
-};
+use super::util::{get_column_key, get_entity_key};
+use crate::auth::{AuthError, AuthUserInfo};
 
 fn guard_data_object_accessor_with_subscriber_id(
     value: ValueAccessor<'_>,
@@ -50,27 +47,20 @@ fn guard_data_object_accessor_with_optional_subscriber_id(
     }
 }
 
-fn guard_filter_object_accessor_with_subscriber_id(
-    value: ValueAccessor<'_>,
-    column_name: &str,
-    subscriber_id: i32,
-) -> async_graphql::Result<()> {
-    let obj = value.object()?;
-    let subscriber_id_filter_input_value = obj.try_get(column_name)?;
-
-    let subscriber_id_filter_input_obj = subscriber_id_filter_input_value.object()?;
-
-    let subscriber_id_value = subscriber_id_filter_input_obj.try_get("eq")?;
-
-    let id = subscriber_id_value.i64()?;
-    if id == subscriber_id as i64 {
-        Ok(())
-    } else {
-        Err(async_graphql::Error::new("subscriber not match"))
-    }
+pub fn guard_entity_with_subscriber_id<T>(_context: &BuilderContext, _column: &T::Column) -> FnGuard
+where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    Box::new(move |context: &ResolverContext| -> GuardAction {
+        match context.ctx.data::<AuthUserInfo>() {
+            Ok(_) => GuardAction::Allow,
+            Err(err) => GuardAction::Block(Some(err.message)),
+        }
+    })
 }
 
-pub fn guard_entity_with_subscriber_id<T>(context: &BuilderContext, column: &T::Column) -> FnGuard
+pub fn guard_field_with_subscriber_id<T>(context: &BuilderContext, column: &T::Column) -> FnGuard
 where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
@@ -95,23 +85,13 @@ where
     ));
     let entity_create_batch_mutation_data_field_name =
         Arc::new(context.entity_create_batch_mutation.data_field.clone());
-    let entity_delete_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name,
-        context.entity_delete_mutation.mutation_suffix.clone()
-    ));
-    let entity_delete_mutation_filter_field_name =
-        Arc::new(context.entity_delete_mutation.filter_field.clone());
     let entity_update_mutation_field_name = Arc::new(format!(
         "{}{}",
         entity_name, context.entity_update_mutation.mutation_suffix
     ));
-    let entity_update_mutation_filter_field_name =
-        Arc::new(context.entity_update_mutation.filter_field.clone());
     let entity_update_mutation_data_field_name =
         Arc::new(context.entity_update_mutation.data_field.clone());
-    let entity_query_field_name = Arc::new(entity_name);
-    let entity_query_filter_field_name = Arc::new(context.entity_query_field.filters.clone());
+
     Box::new(move |context: &ResolverContext| -> GuardAction {
         match context.ctx.data::<AuthUserInfo>() {
             Ok(user_info) => {
@@ -157,80 +137,26 @@ where
                                 &column_name,
                             )
                         }),
-                    field if field == entity_delete_mutation_field_name.as_str() => context
-                        .args
-                        .try_get(&entity_delete_mutation_filter_field_name)
-                        .and_then(|filter_value| {
-                            guard_filter_object_accessor_with_subscriber_id(
-                                filter_value,
-                                &column_name,
-                                subscriber_id,
-                            )
-                        })
-                        .map_err(|inner_error| {
-                            AuthError::from_graphql_subscribe_id_guard(
-                                inner_error,
-                                context,
-                                &entity_delete_mutation_filter_field_name,
-                                &column_name,
-                            )
-                        }),
-                    field if field == entity_update_mutation_field_name.as_str() => context
-                        .args
-                        .try_get(&entity_update_mutation_filter_field_name)
-                        .and_then(|filter_value| {
-                            guard_filter_object_accessor_with_subscriber_id(
-                                filter_value,
-                                &column_name,
-                                subscriber_id,
-                            )
-                        })
-                        .map_err(|inner_error| {
-                            AuthError::from_graphql_subscribe_id_guard(
-                                inner_error,
-                                context,
-                                &entity_update_mutation_filter_field_name,
-                                &column_name,
-                            )
-                        })
-                        .and_then(|_| {
-                            match context.args.get(&entity_update_mutation_data_field_name) {
-                                Some(data_value) => {
-                                    guard_data_object_accessor_with_optional_subscriber_id(
-                                        data_value,
+                    field if field == entity_update_mutation_field_name.as_str() => {
+                        match context.args.get(&entity_update_mutation_data_field_name) {
+                            Some(data_value) => {
+                                guard_data_object_accessor_with_optional_subscriber_id(
+                                    data_value,
+                                    &column_name,
+                                    subscriber_id,
+                                )
+                                .map_err(|inner_error| {
+                                    AuthError::from_graphql_subscribe_id_guard(
+                                        inner_error,
+                                        context,
+                                        &entity_update_mutation_data_field_name,
                                         &column_name,
-                                        subscriber_id,
                                     )
-                                    .map_err(|inner_error| {
-                                        AuthError::from_graphql_subscribe_id_guard(
-                                            inner_error,
-                                            context,
-                                            &entity_update_mutation_data_field_name,
-                                            &column_name,
-                                        )
-                                    })
-                                }
-                                None => Ok(()),
+                                })
                             }
-                        }),
-                    field if field == entity_query_field_name.as_str() => context
-                        .args
-                        .try_get(&entity_query_filter_field_name)
-                        .and_then(|filter_value| {
-                            guard_filter_object_accessor_with_subscriber_id(
-                                filter_value,
-                                &column_name,
-                                subscriber_id,
-                            )
-                        })
-                        .map_err(|inner_error| {
-                            AuthError::from_graphql_subscribe_id_guard(
-                                inner_error,
-                                context,
-                                &entity_query_filter_field_name,
-                                &column_name,
-                            )
-                        }),
+                            None => Ok(()),
+                        }
+                    }
                     field => Err(AuthError::from_graphql_subscribe_id_guard(
                         async_graphql::Error::new("unsupport graphql field"),
                         context,

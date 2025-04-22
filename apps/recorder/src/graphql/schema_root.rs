@@ -3,12 +3,12 @@ use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
+use super::transformer::filter_condition_transformer;
 use crate::graphql::{
-    extentions::AuthExtensionFactory,
     filter::{
         SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info, subscriber_id_condition_function,
     },
-    guard::guard_entity_with_subscriber_id,
+    guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
     util::{get_entity_column_key, get_entity_key},
 };
 
@@ -34,8 +34,12 @@ where
     let entity_key = get_entity_key::<T>(context);
     let entity_column_key = get_entity_column_key::<T>(context, column);
     context.guards.entity_guards.insert(
-        entity_key,
+        entity_key.clone(),
         guard_entity_with_subscriber_id::<T>(context, column),
+    );
+    context.guards.field_guards.insert(
+        entity_column_key.clone(),
+        guard_field_with_subscriber_id::<T>(context, column),
     );
     context.filter_types.overwrites.insert(
         entity_column_key.clone(),
@@ -46,6 +50,10 @@ where
     context.filter_types.condition_functions.insert(
         entity_column_key,
         subscriber_id_condition_function::<T>(context, column),
+    );
+    context.transformers.filter_conditions_transformers.insert(
+        entity_key,
+        filter_condition_transformer::<T>(context, column),
     );
 }
 
@@ -156,9 +164,6 @@ pub fn schema(
     };
     schema
         .data(database)
-        .extension(AuthExtensionFactory {
-            builder_context: context,
-        })
         .finish()
         .inspect_err(|e| tracing::error!(e = ?e))
 }
