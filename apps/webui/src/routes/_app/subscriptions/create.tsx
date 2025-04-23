@@ -1,4 +1,4 @@
-import { useAuth } from '@/auth/hooks';
+import { useAuth } from '@/app/auth/hooks';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type { RouteStateDataOption } from '@/traits/router';
+import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { createFileRoute } from '@tanstack/react-router';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -116,8 +116,8 @@ function SubscriptionCreateRouteComponent() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Anime Subscription</CardTitle>
-        <CardDescription>Add a new anime subscription source</CardDescription>
+        <CardTitle>Create Bangumi Subscription</CardTitle>
+        <CardDescription>Add a new bangumi subscription source</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

@@ -1,8 +1,6 @@
-import { UnreachableError } from '@/errors/common';
+import { UnreachableError } from '@/infra/errors/common';
 import type { Injector, Provider } from '@outposts/injection-js';
 import type { AnyRouter } from '@tanstack/react-router';
-import { atomSignal } from 'jotai-signal';
-import type { Atom } from 'jotai/vanilla';
 import {
   CHECK_AUTH_RESULT_EVENT,
   type CheckAuthResultEventType,

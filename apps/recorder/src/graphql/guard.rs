@@ -157,12 +157,7 @@ where
                             None => Ok(()),
                         }
                     }
-                    field => Err(AuthError::from_graphql_subscribe_id_guard(
-                        async_graphql::Error::new("unsupport graphql field"),
-                        context,
-                        field,
-                        "",
-                    )),
+                    _ => Ok(()),
                 };
                 match validation_result {
                     Ok(_) => GuardAction::Allow,

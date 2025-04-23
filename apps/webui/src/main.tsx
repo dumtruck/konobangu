@@ -1,4 +1,8 @@
 import '@abraham/reflection';
+import { provideAuth, setupAuthContext } from '@/app/auth/context';
+import { providePlatform } from '@/infra/platform/context';
+import { provideStorages } from '@/infra/storage/context';
+import { provideStyles } from '@/infra/styles/context';
 import { type Injector, ReflectiveInjector } from '@outposts/injection-js';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import {
@@ -7,12 +11,8 @@ import {
 } from 'oidc-client-rx/adapters/react';
 import { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { provideAuth, setupAuthContext } from './auth/context';
 import { AppNotFoundComponent } from './components/layout/app-not-found';
-import { providePlatform } from './platform/context';
 import { routeTree } from './routeTree.gen';
-import { provideStorages } from './storage/context';
-import { provideStyles } from './styles/context';
 import './app.css';
 
 // Create a new router instance

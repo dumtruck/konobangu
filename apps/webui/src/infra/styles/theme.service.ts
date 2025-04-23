@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@/platform/injection';
-import { LocalStorageService } from '@/storage/web-storage.service';
+import { DOCUMENT } from '@/infra/platform/injection';
+import { LocalStorageService } from '@/infra/storage/web-storage.service';
 import { Injectable, inject } from '@outposts/injection-js';
 
 export type PreferColorSchemaType = 'dark' | 'light' | 'system';

@@ -1,4 +1,7 @@
-import type { RouteStateDataOption, RouterContext } from '@/traits/router';
+import type {
+  RouteStateDataOption,
+  RouterContext,
+} from '@/infra/routes/traits';
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
 import { Home } from 'lucide-react';
 

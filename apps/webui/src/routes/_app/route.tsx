@@ -1,4 +1,4 @@
-import { beforeLoadGuard } from '@/auth/guard';
+import { beforeLoadGuard } from '@/app/auth/guard';
 import { AppAside } from '@/components/layout/app-layout';
 import { Outlet, createFileRoute } from '@tanstack/react-router';
 

@@ -1,5 +1,5 @@
-import { FeatureNotAvailablePlatformError } from '@/platform/errors';
-import { DOCUMENT } from '@/platform/injection';
+import { FeatureNotAvailablePlatformError } from '@/infra/platform/errors';
+import { DOCUMENT } from '@/infra/platform/injection';
 import { Injectable, inject } from '@outposts/injection-js';
 
 @Injectable()

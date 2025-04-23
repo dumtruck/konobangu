@@ -13,9 +13,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { cn } from '@/styles/utils';
-import type { RouteStateDataOption } from '@/traits/router';
-import type { RouteBreadcrumbItem } from '@/traits/router';
+import type { RouteStateDataOption } from '@/infra/routes/traits';
+import type { RouteBreadcrumbItem } from '@/infra/routes/traits';
+import { cn } from '@/infra/styles/utils';
 import { useMatches } from '@tanstack/react-router';
 import {
   type DetailedHTMLProps,

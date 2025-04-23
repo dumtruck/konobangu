@@ -1,4 +1,4 @@
-import { cn } from '@/styles/utils';
+import { cn } from '@/infra/styles/utils';
 import type { FC, HTMLAttributes } from 'react';
 
 type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';

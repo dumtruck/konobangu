@@ -1,4 +1,4 @@
-import { cn } from '@/styles/utils';
+import { cn } from '@/infra/styles/utils';
 import {
   Loader,
   LoaderCircle,

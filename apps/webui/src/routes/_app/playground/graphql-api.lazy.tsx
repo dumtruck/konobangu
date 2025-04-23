@@ -1,10 +1,10 @@
-import { useAuth } from '@/auth/hooks';
+import { useAuth } from '@/app/auth/hooks';
 import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createLazyFileRoute } from '@tanstack/react-router';
 import GraphiQL from 'graphiql';
 import { useCallback } from 'react';
 import 'graphiql/graphiql.css';
-import { AuthMethodEnum } from '@/auth/config';
+import { AuthMethodEnum } from '@/app/auth/config';
 import { firstValueFrom } from 'rxjs';
 
 export const Route = createLazyFileRoute('/_app/playground/graphql-api')({

@@ -5,7 +5,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { AppNavMainData } from '@/config/app-layout';
+import { AppNavMainData } from '@/infra/routes/nav';
 import type { ComponentPropsWithoutRef } from 'react';
 import { AppIcon } from './app-icon';
 import { NavMain } from './nav-main';

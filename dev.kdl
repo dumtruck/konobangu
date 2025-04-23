@@ -32,7 +32,7 @@ layout {
     }
     tab name="Recorder" {
         pane command="watchexec" {
-            args "-w" "apps/recorder" "--" "cargo" "run" "-p" "recorder" "--bin" "recorder_cli" "--" "--environment" "development"
+            args "-r" "-w" "apps/recorder" "--" "cargo" "run" "-p" "recorder" "--bin" "recorder_cli" "--" "--environment" "development"
         }
     }
     tab name="Deps" {

@@ -11,9 +11,9 @@ dev-webui:
 dev-proxy:
     pnpm run --filter=proxy dev
 
-# bacon recorder # crash on windows
+# crash on windows
 dev-recorder:
-    watchexec -w apps/recorder -- cargo run -p recorder --bin recorder_cli -- --environment development
+    watchexec -r -w apps/recorder -- cargo run -p recorder --bin recorder_cli -- --environment development
 
 dev-deps:
     docker compose -f devdeps.compose.yaml up

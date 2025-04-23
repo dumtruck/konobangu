@@ -1,4 +1,4 @@
-import type { RouteStateDataOption } from '@/traits/router';
+import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute(

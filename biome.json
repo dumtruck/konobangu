@@ -9,6 +9,9 @@
       "style": {
         "noNonNullAssertion": "off"
       },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off",
         "noConsole": "off",
@@ -28,6 +31,36 @@
       }
     }
   },
+  "overrides": [
+    {
+      "include": ["apps/webui/src/components/ui/**/*"],
+      "javascript": {
+        "formatter": {
+          "quoteStyle": "double"
+        }
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "useBlockStatements": "off",
+            "useImportType": "off"
+          },
+          "nursery": {
+            "noNestedTernary": "off",
+            "useSortedClasses": "off"
+          },
+          "a11y": {
+            "noRedundantRoles": "off",
+            "useFocusableInteractive": "off",
+            "useSemanticElements": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "ignore": [".vscode/*.json"]
   }

@@ -1,5 +1,5 @@
-import { AppAuthMethod, AuthMethodEnum } from '@/auth/config';
-import { useAuth } from '@/auth/hooks';
+import { AppAuthMethod, AuthMethodEnum } from '@/app/auth/config';
+import { useAuth } from '@/app/auth/hooks';
 import { ProLink } from '@/components/ui/pro-link';
 import { Spinner } from '@/components/ui/spinner';
 import { createFileRoute } from '@tanstack/react-router';

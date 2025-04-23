@@ -1,4 +1,4 @@
-import type { RouterContext } from '@/traits/router';
+import type { RouterContext } from '@/infra/routes/traits';
 import { runInInjectionContext } from '@outposts/injection-js';
 import { autoLoginPartialRoutesGuard } from 'oidc-client-rx';
 import { firstValueFrom } from 'rxjs';

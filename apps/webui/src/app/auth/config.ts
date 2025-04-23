@@ -28,7 +28,7 @@ export function buildOidcConfig(): OpenIdConfiguration {
     responseType: 'code',
     silentRenew: true,
     useRefreshToken: true,
-    logLevel: LogLevel.Debug,
+    logLevel: LogLevel.None,
     autoUserInfo: !resource,
     renewUserInfoAfterTokenRenew: !resource,
     customParamsAuthRequest: {
