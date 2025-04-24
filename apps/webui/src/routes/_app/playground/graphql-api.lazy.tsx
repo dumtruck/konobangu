@@ -1,10 +1,9 @@
 import { useAuth } from '@/app/auth/hooks';
 import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
 import { createLazyFileRoute } from '@tanstack/react-router';
-import GraphiQL from 'graphiql';
+import { GraphiQL } from 'graphiql';
 import { useCallback } from 'react';
 import 'graphiql/graphiql.css';
-import { AuthMethodEnum } from '@/app/auth/config';
 import { firstValueFrom } from 'rxjs';
 
 export const Route = createLazyFileRoute('/_app/playground/graphql-api')({
@@ -16,12 +15,9 @@ function PlaygroundGraphQLApiRouteComponent() {
 
   const fetcher: Fetcher = useCallback(
     async (props) => {
-      const accessToken =
-        authContext.type === AuthMethodEnum.OIDC
-          ? await firstValueFrom(
-              authContext.oidcSecurityService.getAccessToken()
-            )
-          : undefined;
+      const accessToken = await firstValueFrom(
+        authContext.authService.getAccessToken()
+      );
       return createGraphiQLFetcher({
         url: '/api/graphql',
         headers: accessToken
@@ -31,11 +27,7 @@ function PlaygroundGraphQLApiRouteComponent() {
           : undefined,
       })(props);
     },
-    [
-      authContext.type,
-      // @ts-ignore
-      authContext?.oidcSecurityService?.getAccessToken,
-    ]
+    [authContext.authService.getAccessToken]
   );
 
   return (

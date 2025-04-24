@@ -14,7 +14,7 @@
     "bump-deps": "npx --yes npm-check-updates --deep -u -x react-day-picker && pnpm install",
     "clean": "git clean -xdf node_modules"
   },
-  "packageManager": "pnpm@10.6.1",
+  "packageManager": "pnpm@10.10.0",
   "engines": {
     "node": ">=22"
   },
@@ -22,23 +22,9 @@
     "@auto-it/all-contributors": "^11.3.0",
     "@auto-it/first-time-contributor": "^11.3.0",
     "@biomejs/biome": "1.9.4",
-    "@types/node": "^22.13.8",
-    "tsx": "^4.19.2",
-    "typescript": "^5.8.2",
-    "ultracite": "^4.1.15"
-  },
-  "overrides": {
-    "@headlessui/react": "^2.2.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "date-fns": "^4.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "@headlessui/react": "^2.2.0",
-      "react": "^19.1.0",
-      "react-dom": "^19.1.0",
-      "date-fns": "^4.1.0"
-    }
+    "@types/node": "^22.15.16",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "ultracite": "^4.2.4"
   }
 }

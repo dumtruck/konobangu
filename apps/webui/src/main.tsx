@@ -48,16 +48,16 @@ const rootElement = document.getElementById('root');
 
 const App = () => {
   return (
-    <Suspense>
-      <InjectorProvider injector={injector}>
+    <InjectorProvider injector={injector}>
+      <Suspense>
         <RouterProvider
           router={router}
           context={{
             injector,
           }}
         />
-      </InjectorProvider>
-    </Suspense>
+      </Suspense>
+    </InjectorProvider>
   );
 };
 
