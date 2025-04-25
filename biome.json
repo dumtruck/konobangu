@@ -14,6 +14,7 @@
         "noDangerouslySetInnerHtml": "off"
       },
       "suspicious": {
+        "noEmptyBlockStatements": "off",
         "noExplicitAny": "off",
         "noConsole": "off",
         "noConsoleLog": "off"
@@ -34,7 +35,7 @@
   },
   "overrides": [
     {
-      "include": ["apps/webui/src/components/ui/**/*"],
+      "include": ["apps/webui/src/views/components/ui/**/*"],
       "javascript": {
         "formatter": {
           "quoteStyle": "double"

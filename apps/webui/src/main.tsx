@@ -3,6 +3,8 @@ import { provideAuth, setupAuthContext } from '@/app/auth/context';
 import { providePlatform } from '@/infra/platform/context';
 import { provideStorages } from '@/infra/storage/context';
 import { provideStyles } from '@/infra/styles/context';
+import { AppNotFoundComponent } from '@/views/components/layout/app-not-found';
+import { routeTree } from '@/views/routeTree.gen';
 import { type Injector, ReflectiveInjector } from '@outposts/injection-js';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import {
@@ -11,9 +13,10 @@ import {
 } from 'oidc-client-rx/adapters/react';
 import { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AppNotFoundComponent } from './components/layout/app-not-found';
-import { routeTree } from './routeTree.gen';
 import './app.css';
+import { ApolloProvider } from '@apollo/client';
+import { provideGraphql } from './infra/graphql';
+import { graphqlContextFromInjector } from './infra/graphql/context';
 
 // Create a new router instance
 const router = createRouter({
@@ -40,22 +43,27 @@ const injector: Injector = ReflectiveInjector.resolveAndCreate([
   ...provideStorages(),
   ...provideAuth(router),
   ...provideStyles(),
+  ...provideGraphql(),
 ]);
 
 setupAuthContext(injector);
 
 const rootElement = document.getElementById('root');
 
+const { graphqlService } = graphqlContextFromInjector(injector);
+
 const App = () => {
   return (
     <InjectorProvider injector={injector}>
       <Suspense>
-        <RouterProvider
-          router={router}
-          context={{
-            injector,
-          }}
-        />
+        <ApolloProvider client={graphqlService._apollo}>
+          <RouterProvider
+            router={router}
+            context={{
+              injector,
+            }}
+          />
+        </ApolloProvider>
       </Suspense>
     </InjectorProvider>
   );

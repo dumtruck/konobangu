@@ -1,0 +1,27 @@
+import { InjectionToken } from '@outposts/injection-js';
+import type { CheckAuthResultEventType } from 'oidc-client-rx';
+import { type Observable, map } from 'rxjs';
+import type { AuthMethodType } from './defs';
+
+export abstract class AuthProvider {
+  abstract authMethod: AuthMethodType;
+  abstract checkAuthResultEvent$: Observable<CheckAuthResultEventType>;
+  abstract isAuthenticated$: Observable<boolean>;
+  abstract userData$: Observable<any>;
+  abstract getAccessToken(): Observable<string | undefined>;
+  abstract setup(): void;
+  abstract autoLoginPartialRoutesGuard(): Observable<boolean>;
+  getAuthHeaders(): Observable<Record<string, string>> {
+    return this.getAccessToken().pipe(
+      map((accessToken) =>
+        accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : ({} as Record<string, string>)
+      )
+    );
+  }
+}
+
+export const AUTH_PROVIDER = new InjectionToken<AuthProvider>('AUTH_PROVIDER');

@@ -26,9 +26,9 @@ export function useAuth() {
   );
 
   return {
+    ...authContext,
     userData,
     injector,
     isAuthenticated,
-    authContext,
   };
 }

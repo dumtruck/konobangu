@@ -1,4 +1,4 @@
-import type { ProLinkProps } from '@/components/ui/pro-link';
+import type { ProLinkProps } from '@/views/components/ui/pro-link';
 import type { Injector } from '@outposts/injection-js';
 import type { LucideIcon } from 'lucide-react';
 
