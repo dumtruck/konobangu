@@ -97,64 +97,75 @@ where
             Ok(user_info) => {
                 let subscriber_id = user_info.subscriber_auth.subscriber_id;
                 let validation_result = match context.field().name() {
-                    field if field == entity_create_one_mutation_field_name.as_str() => context
-                        .args
-                        .try_get(&entity_create_one_mutation_data_field_name)
-                        .and_then(|data_value| {
+                    field if field == entity_create_one_mutation_field_name.as_str() => {
+                        if let Some(data_value) = context
+                            .args
+                            .get(&entity_create_one_mutation_data_field_name)
+                        {
                             guard_data_object_accessor_with_subscriber_id(
                                 data_value,
                                 &column_name,
                                 subscriber_id,
                             )
-                        })
-                        .map_err(|inner_error| {
-                            AuthError::from_graphql_subscribe_id_guard(
-                                inner_error,
-                                context,
-                                &entity_create_one_mutation_data_field_name,
-                                &column_name,
-                            )
-                        }),
-                    field if field == entity_create_batch_mutation_field_name.as_str() => context
-                        .args
-                        .try_get(&entity_create_batch_mutation_data_field_name)
-                        .and_then(|data_value| {
-                            data_value.list().and_then(|data_list| {
-                                data_list.iter().try_for_each(|data_item_value| {
-                                    guard_data_object_accessor_with_subscriber_id(
-                                        data_item_value,
-                                        &column_name,
-                                        subscriber_id,
-                                    )
-                                })
-                            })
-                        })
-                        .map_err(|inner_error| {
-                            AuthError::from_graphql_subscribe_id_guard(
-                                inner_error,
-                                context,
-                                &entity_create_batch_mutation_data_field_name,
-                                &column_name,
-                            )
-                        }),
-                    field if field == entity_update_mutation_field_name.as_str() => {
-                        match context.args.get(&entity_update_mutation_data_field_name) {
-                            Some(data_value) => {
-                                guard_data_object_accessor_with_optional_subscriber_id(
-                                    data_value,
+                            .map_err(|inner_error| {
+                                AuthError::from_graphql_subscribe_id_guard(
+                                    inner_error,
+                                    context,
+                                    &entity_create_one_mutation_data_field_name,
                                     &column_name,
-                                    subscriber_id,
                                 )
+                            })
+                        } else {
+                            Ok(())
+                        }
+                    }
+                    field if field == entity_create_batch_mutation_field_name.as_str() => {
+                        if let Some(data_value) = context
+                            .args
+                            .get(&entity_create_batch_mutation_data_field_name)
+                        {
+                            data_value
+                                .list()
+                                .and_then(|data_list| {
+                                    data_list.iter().try_for_each(|data_item_value| {
+                                        guard_data_object_accessor_with_optional_subscriber_id(
+                                            data_item_value,
+                                            &column_name,
+                                            subscriber_id,
+                                        )
+                                    })
+                                })
                                 .map_err(|inner_error| {
                                     AuthError::from_graphql_subscribe_id_guard(
                                         inner_error,
                                         context,
-                                        &entity_update_mutation_data_field_name,
+                                        &entity_create_batch_mutation_data_field_name,
                                         &column_name,
                                     )
                                 })
-                            }
-                            None => Ok(()),
+                        } else {
+                            Ok(())
+                        }
+                    }
+                    field if field == entity_update_mutation_field_name.as_str() => {
+                        if let Some(data_value) =
+                            context.args.get(&entity_update_mutation_data_field_name)
+                        {
+                            guard_data_object_accessor_with_optional_subscriber_id(
+                                data_value,
+                                &column_name,
+                                subscriber_id,
+                            )
+                            .map_err(|inner_error| {
+                                AuthError::from_graphql_subscribe_id_guard(
+                                    inner_error,
+                                    context,
+                                    &entity_update_mutation_data_field_name,
+                                    &column_name,
+                                )
+                            })
+                        } else {
+                            Ok(())
                         }
                     }
                     _ => Ok(()),

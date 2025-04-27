@@ -66,7 +66,7 @@ export function authContextFromInjector(injector: Injector): AuthContext {
   return {
     type: authProvider.authMethod,
     isAuthenticated$: authService.isAuthenticated$,
-    userData$: authService.userData$,
+    userData$: authService.authData$,
     checkAuthResultEvent$: authService.checkAuthResultEvent$,
     authService,
     authProvider,

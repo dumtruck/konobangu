@@ -25,7 +25,7 @@ export class OidcAuthProvider extends AuthProvider {
     );
   }
 
-  get userData$() {
+  get authData$() {
     return this.oidcSecurityService.userData$.pipe(map((s) => s.userData));
   }
 

@@ -20,14 +20,14 @@ export function useAuth() {
     [authContext.isAuthenticated$]
   );
 
-  const userData = useMemo(
+  const authData = useMemo(
     () => atomWithObservable(() => authContext.userData$ as Observable<any>),
     [authContext]
   );
 
   return {
     ...authContext,
-    userData,
+    authData,
     injector,
     isAuthenticated,
   };

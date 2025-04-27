@@ -7,7 +7,7 @@ export abstract class AuthProvider {
   abstract authMethod: AuthMethodType;
   abstract checkAuthResultEvent$: Observable<CheckAuthResultEventType>;
   abstract isAuthenticated$: Observable<boolean>;
-  abstract userData$: Observable<any>;
+  abstract authData$: Observable<any>;
   abstract getAccessToken(): Observable<string | undefined>;
   abstract setup(): void;
   abstract autoLoginPartialRoutesGuard(): Observable<boolean>;

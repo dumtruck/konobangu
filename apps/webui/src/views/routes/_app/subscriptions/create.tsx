@@ -56,20 +56,21 @@ const CREATE_SUBSCRIPTION_MUTATION = gql`
             sourceUrl
             enabled
             category
+            subscriberId
         }
     }
 `;
 
 function SubscriptionCreateRouteComponent() {
-  const { userData } = useAuth();
-  console.log(JSON.stringify(userData, null, 2));
+  const { authData } = useAuth();
+  console.log(JSON.stringify(authData, null, 2));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const form = useForm<SubscriptionFormValues>({
     defaultValues: {
       displayName: '',
       sourceUrl: '',
-      category: 'Mikan',
+      category: 'mikan',
       enabled: true,
     },
   });
@@ -129,7 +130,7 @@ function SubscriptionCreateRouteComponent() {
                     disabled
                     value={field.value}
                     onValueChange={field.onChange}
-                    defaultValue="Mikan"
+                    defaultValue="mikan"
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -137,11 +138,11 @@ function SubscriptionCreateRouteComponent() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Mikan">Mikan</SelectItem>
+                      <SelectItem value="mikan">mikan</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Currently only Mikan source is supported
+                    Currently only mikan source is supported
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

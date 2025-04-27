@@ -7,7 +7,7 @@ import { AUTH_METHOD } from '../defs';
 export class BasicAuthProvider extends AuthProvider {
   authMethod = AUTH_METHOD.BASIC;
   isAuthenticated$ = of(true);
-  userData$ = of({});
+  authData$ = of({});
   checkAuthResultEvent$: Observable<CheckAuthResultEventType> = NEVER;
 
   getAccessToken(): Observable<string | undefined> {

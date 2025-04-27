@@ -6,8 +6,8 @@ export class AuthService {
   private authProvider = inject(AUTH_PROVIDER);
 
   isAuthenticated$ = this.authProvider.isAuthenticated$;
-  userData$ = this.authProvider.userData$;
   checkAuthResultEvent$ = this.authProvider.checkAuthResultEvent$;
+  authData$ = this.authProvider.authData$;
 
   setup() {
     this.authProvider.setup();

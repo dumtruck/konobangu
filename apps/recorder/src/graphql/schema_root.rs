@@ -3,7 +3,7 @@ use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use super::transformer::filter_condition_transformer;
+use super::transformer::{filter_condition_transformer, mutation_input_object_transformer};
 use crate::graphql::{
     filter::{
         SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info, subscriber_id_condition_function,
@@ -48,13 +48,25 @@ where
         )),
     );
     context.filter_types.condition_functions.insert(
-        entity_column_key,
+        entity_column_key.clone(),
         subscriber_id_condition_function::<T>(context, column),
     );
     context.transformers.filter_conditions_transformers.insert(
-        entity_key,
+        entity_key.clone(),
         filter_condition_transformer::<T>(context, column),
     );
+    context
+        .transformers
+        .mutation_input_object_transformers
+        .insert(
+            entity_key,
+            mutation_input_object_transformer::<T>(context, column),
+        );
+    context
+        .entity_input
+        .insert_skips
+        .push(entity_column_key.clone());
+    context.entity_input.update_skips.push(entity_column_key);
 }
 
 pub fn schema(

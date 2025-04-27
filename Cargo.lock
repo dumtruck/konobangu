@@ -5632,7 +5632,7 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 [[package]]
 name = "seaography"
 version = "1.1.4"
-source = "git+https://github.com/lonelyhentxi/seaography.git?rev=0c4cc5c#0c4cc5ccd43730338802f98401120d5faeccd096"
+source = "git+https://github.com/dumtruck/seaography.git?rev=10ba248#10ba2487fb356a0385c598290668a01e0ef21734"
 dependencies = [
  "async-graphql",
  "fnv",
