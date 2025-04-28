@@ -21,5 +21,8 @@ dev-deps:
 dev-deps-clean:
     docker compose -f devdeps.compose.yaml down -v
 
+dev-codegen:
+    pnpm run --filter=webui codegen
+
 dev-all:
     zellij --layout dev.kdl

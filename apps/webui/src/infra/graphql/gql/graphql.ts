@@ -1,0 +1,1538 @@
+/* eslint-disable */
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
+export type MakeEmpty<
+  T extends { [key: string]: unknown },
+  K extends keyof T,
+> = { [_ in K]?: never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+    };
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
+};
+
+export type Bangumi = {
+  __typename?: 'Bangumi';
+  createdAt: Scalars['String']['output'];
+  deleted: Scalars['Boolean']['output'];
+  displayName: Scalars['String']['output'];
+  episode: EpisodesConnection;
+  fansub?: Maybe<Scalars['String']['output']>;
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mikanBangumiId?: Maybe<Scalars['String']['output']>;
+  mikanFansubId?: Maybe<Scalars['String']['output']>;
+  posterLink?: Maybe<Scalars['String']['output']>;
+  rawName: Scalars['String']['output'];
+  rssLink?: Maybe<Scalars['String']['output']>;
+  savePath?: Maybe<Scalars['String']['output']>;
+  season: Scalars['Int']['output'];
+  seasonRaw?: Maybe<Scalars['String']['output']>;
+  subscriber?: Maybe<Subscribers>;
+  subscriberId: Scalars['Int']['output'];
+  subscription: SubscriptionsConnection;
+  subscriptionBangumi: SubscriptionBangumiConnection;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type BangumiEpisodeArgs = {
+  filters?: InputMaybe<EpisodesFilterInput>;
+  orderBy?: InputMaybe<EpisodesOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type BangumiSubscriptionArgs = {
+  filters?: InputMaybe<SubscriptionsFilterInput>;
+  orderBy?: InputMaybe<SubscriptionsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type BangumiSubscriptionBangumiArgs = {
+  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type BangumiBasic = {
+  __typename?: 'BangumiBasic';
+  createdAt: Scalars['String']['output'];
+  deleted: Scalars['Boolean']['output'];
+  displayName: Scalars['String']['output'];
+  fansub?: Maybe<Scalars['String']['output']>;
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mikanBangumiId?: Maybe<Scalars['String']['output']>;
+  mikanFansubId?: Maybe<Scalars['String']['output']>;
+  posterLink?: Maybe<Scalars['String']['output']>;
+  rawName: Scalars['String']['output'];
+  rssLink?: Maybe<Scalars['String']['output']>;
+  savePath?: Maybe<Scalars['String']['output']>;
+  season: Scalars['Int']['output'];
+  seasonRaw?: Maybe<Scalars['String']['output']>;
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type BangumiConnection = {
+  __typename?: 'BangumiConnection';
+  edges: Array<BangumiEdge>;
+  nodes: Array<Bangumi>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type BangumiEdge = {
+  __typename?: 'BangumiEdge';
+  cursor: Scalars['String']['output'];
+  node: Bangumi;
+};
+
+export type BangumiFilterInput = {
+  and?: InputMaybe<Array<BangumiFilterInput>>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  deleted?: InputMaybe<BooleanFilterInput>;
+  displayName?: InputMaybe<StringFilterInput>;
+  fansub?: InputMaybe<StringFilterInput>;
+  homepage?: InputMaybe<StringFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  mikanBangumiId?: InputMaybe<StringFilterInput>;
+  mikanFansubId?: InputMaybe<StringFilterInput>;
+  or?: InputMaybe<Array<BangumiFilterInput>>;
+  posterLink?: InputMaybe<StringFilterInput>;
+  rawName?: InputMaybe<StringFilterInput>;
+  rssLink?: InputMaybe<StringFilterInput>;
+  savePath?: InputMaybe<StringFilterInput>;
+  season?: InputMaybe<IntegerFilterInput>;
+  seasonRaw?: InputMaybe<StringFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+};
+
+export type BangumiInsertInput = {
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  deleted: Scalars['Boolean']['input'];
+  displayName: Scalars['String']['input'];
+  fansub?: InputMaybe<Scalars['String']['input']>;
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mikanBangumiId?: InputMaybe<Scalars['String']['input']>;
+  mikanFansubId?: InputMaybe<Scalars['String']['input']>;
+  posterLink?: InputMaybe<Scalars['String']['input']>;
+  rawName: Scalars['String']['input'];
+  rssLink?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  season: Scalars['Int']['input'];
+  seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type BangumiOrderInput = {
+  createdAt?: InputMaybe<OrderByEnum>;
+  deleted?: InputMaybe<OrderByEnum>;
+  displayName?: InputMaybe<OrderByEnum>;
+  extra?: InputMaybe<OrderByEnum>;
+  fansub?: InputMaybe<OrderByEnum>;
+  filter?: InputMaybe<OrderByEnum>;
+  homepage?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  mikanBangumiId?: InputMaybe<OrderByEnum>;
+  mikanFansubId?: InputMaybe<OrderByEnum>;
+  posterLink?: InputMaybe<OrderByEnum>;
+  rawName?: InputMaybe<OrderByEnum>;
+  rssLink?: InputMaybe<OrderByEnum>;
+  savePath?: InputMaybe<OrderByEnum>;
+  season?: InputMaybe<OrderByEnum>;
+  seasonRaw?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+};
+
+export type BangumiUpdateInput = {
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  deleted?: InputMaybe<Scalars['Boolean']['input']>;
+  displayName?: InputMaybe<Scalars['String']['input']>;
+  fansub?: InputMaybe<Scalars['String']['input']>;
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mikanBangumiId?: InputMaybe<Scalars['String']['input']>;
+  mikanFansubId?: InputMaybe<Scalars['String']['input']>;
+  posterLink?: InputMaybe<Scalars['String']['input']>;
+  rawName?: InputMaybe<Scalars['String']['input']>;
+  rssLink?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  season?: InputMaybe<Scalars['Int']['input']>;
+  seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type BooleanFilterInput = {
+  eq?: InputMaybe<Scalars['Boolean']['input']>;
+  gt?: InputMaybe<Scalars['Boolean']['input']>;
+  gte?: InputMaybe<Scalars['Boolean']['input']>;
+  is_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  is_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  is_not_null?: InputMaybe<Scalars['Boolean']['input']>;
+  is_null?: InputMaybe<Scalars['Boolean']['input']>;
+  lt?: InputMaybe<Scalars['Boolean']['input']>;
+  lte?: InputMaybe<Scalars['Boolean']['input']>;
+  ne?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type CursorInput = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit: Scalars['Int']['input'];
+};
+
+export enum DownloadMimeEnum {
+  Applicationoctetstream = 'applicationoctetstream',
+  Applicationxbittorrent = 'applicationxbittorrent',
+}
+
+export type DownloadMimeEnumFilterInput = {
+  eq?: InputMaybe<DownloadMimeEnum>;
+  gt?: InputMaybe<DownloadMimeEnum>;
+  gte?: InputMaybe<DownloadMimeEnum>;
+  is_in?: InputMaybe<Array<DownloadMimeEnum>>;
+  is_not_in?: InputMaybe<Array<DownloadMimeEnum>>;
+  is_not_null?: InputMaybe<DownloadMimeEnum>;
+  is_null?: InputMaybe<DownloadMimeEnum>;
+  lt?: InputMaybe<DownloadMimeEnum>;
+  lte?: InputMaybe<DownloadMimeEnum>;
+  ne?: InputMaybe<DownloadMimeEnum>;
+};
+
+export enum DownloadStatusEnum {
+  Completed = 'completed',
+  Deleted = 'deleted',
+  Downloading = 'downloading',
+  Failed = 'failed',
+  Paused = 'paused',
+  Pending = 'pending',
+}
+
+export type DownloadStatusEnumFilterInput = {
+  eq?: InputMaybe<DownloadStatusEnum>;
+  gt?: InputMaybe<DownloadStatusEnum>;
+  gte?: InputMaybe<DownloadStatusEnum>;
+  is_in?: InputMaybe<Array<DownloadStatusEnum>>;
+  is_not_in?: InputMaybe<Array<DownloadStatusEnum>>;
+  is_not_null?: InputMaybe<DownloadStatusEnum>;
+  is_null?: InputMaybe<DownloadStatusEnum>;
+  lt?: InputMaybe<DownloadStatusEnum>;
+  lte?: InputMaybe<DownloadStatusEnum>;
+  ne?: InputMaybe<DownloadStatusEnum>;
+};
+
+export enum DownloaderCategoryEnum {
+  Dandanplay = 'dandanplay',
+  Qbittorrent = 'qbittorrent',
+}
+
+export type DownloaderCategoryEnumFilterInput = {
+  eq?: InputMaybe<DownloaderCategoryEnum>;
+  gt?: InputMaybe<DownloaderCategoryEnum>;
+  gte?: InputMaybe<DownloaderCategoryEnum>;
+  is_in?: InputMaybe<Array<DownloaderCategoryEnum>>;
+  is_not_in?: InputMaybe<Array<DownloaderCategoryEnum>>;
+  is_not_null?: InputMaybe<DownloaderCategoryEnum>;
+  is_null?: InputMaybe<DownloaderCategoryEnum>;
+  lt?: InputMaybe<DownloaderCategoryEnum>;
+  lte?: InputMaybe<DownloaderCategoryEnum>;
+  ne?: InputMaybe<DownloaderCategoryEnum>;
+};
+
+export type Downloaders = {
+  __typename?: 'Downloaders';
+  category: DownloaderCategoryEnum;
+  createdAt: Scalars['String']['output'];
+  download: DownloadsConnection;
+  endpoint: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  password: Scalars['String']['output'];
+  savePath: Scalars['String']['output'];
+  subscriber?: Maybe<Subscribers>;
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+  username: Scalars['String']['output'];
+};
+
+export type DownloadersDownloadArgs = {
+  filters?: InputMaybe<DownloadsFilterInput>;
+  orderBy?: InputMaybe<DownloadsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type DownloadersBasic = {
+  __typename?: 'DownloadersBasic';
+  category: DownloaderCategoryEnum;
+  createdAt: Scalars['String']['output'];
+  endpoint: Scalars['String']['output'];
+  id: Scalars['Int']['output'];
+  password: Scalars['String']['output'];
+  savePath: Scalars['String']['output'];
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+  username: Scalars['String']['output'];
+};
+
+export type DownloadersConnection = {
+  __typename?: 'DownloadersConnection';
+  edges: Array<DownloadersEdge>;
+  nodes: Array<Downloaders>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type DownloadersEdge = {
+  __typename?: 'DownloadersEdge';
+  cursor: Scalars['String']['output'];
+  node: Downloaders;
+};
+
+export type DownloadersFilterInput = {
+  and?: InputMaybe<Array<DownloadersFilterInput>>;
+  category?: InputMaybe<DownloaderCategoryEnumFilterInput>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  endpoint?: InputMaybe<StringFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  or?: InputMaybe<Array<DownloadersFilterInput>>;
+  password?: InputMaybe<StringFilterInput>;
+  savePath?: InputMaybe<StringFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+  username?: InputMaybe<StringFilterInput>;
+};
+
+export type DownloadersInsertInput = {
+  category: DownloaderCategoryEnum;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  endpoint: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  password: Scalars['String']['input'];
+  savePath: Scalars['String']['input'];
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+  username: Scalars['String']['input'];
+};
+
+export type DownloadersOrderInput = {
+  category?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  endpoint?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  password?: InputMaybe<OrderByEnum>;
+  savePath?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+  username?: InputMaybe<OrderByEnum>;
+};
+
+export type DownloadersUpdateInput = {
+  category?: InputMaybe<DownloaderCategoryEnum>;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  endpoint?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  password?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Downloads = {
+  __typename?: 'Downloads';
+  allSize?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['String']['output'];
+  currSize?: Maybe<Scalars['Int']['output']>;
+  displayName: Scalars['String']['output'];
+  downloader?: Maybe<Downloaders>;
+  downloaderId: Scalars['Int']['output'];
+  episode?: Maybe<Episodes>;
+  episodeId: Scalars['Int']['output'];
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mime: DownloadMimeEnum;
+  rawName: Scalars['String']['output'];
+  savePath?: Maybe<Scalars['String']['output']>;
+  status: DownloadStatusEnum;
+  subscriber?: Maybe<Subscribers>;
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type DownloadsBasic = {
+  __typename?: 'DownloadsBasic';
+  allSize?: Maybe<Scalars['Int']['output']>;
+  createdAt: Scalars['String']['output'];
+  currSize?: Maybe<Scalars['Int']['output']>;
+  displayName: Scalars['String']['output'];
+  downloaderId: Scalars['Int']['output'];
+  episodeId: Scalars['Int']['output'];
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mime: DownloadMimeEnum;
+  rawName: Scalars['String']['output'];
+  savePath?: Maybe<Scalars['String']['output']>;
+  status: DownloadStatusEnum;
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type DownloadsConnection = {
+  __typename?: 'DownloadsConnection';
+  edges: Array<DownloadsEdge>;
+  nodes: Array<Downloads>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type DownloadsEdge = {
+  __typename?: 'DownloadsEdge';
+  cursor: Scalars['String']['output'];
+  node: Downloads;
+};
+
+export type DownloadsFilterInput = {
+  allSize?: InputMaybe<IntegerFilterInput>;
+  and?: InputMaybe<Array<DownloadsFilterInput>>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  currSize?: InputMaybe<IntegerFilterInput>;
+  displayName?: InputMaybe<StringFilterInput>;
+  downloaderId?: InputMaybe<IntegerFilterInput>;
+  episodeId?: InputMaybe<IntegerFilterInput>;
+  homepage?: InputMaybe<StringFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  mime?: InputMaybe<DownloadMimeEnumFilterInput>;
+  or?: InputMaybe<Array<DownloadsFilterInput>>;
+  rawName?: InputMaybe<StringFilterInput>;
+  savePath?: InputMaybe<StringFilterInput>;
+  status?: InputMaybe<DownloadStatusEnumFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+  url?: InputMaybe<StringFilterInput>;
+};
+
+export type DownloadsInsertInput = {
+  allSize?: InputMaybe<Scalars['Int']['input']>;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  currSize?: InputMaybe<Scalars['Int']['input']>;
+  displayName: Scalars['String']['input'];
+  downloaderId: Scalars['Int']['input'];
+  episodeId: Scalars['Int']['input'];
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mime: DownloadMimeEnum;
+  rawName: Scalars['String']['input'];
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  status: DownloadStatusEnum;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+  url: Scalars['String']['input'];
+};
+
+export type DownloadsOrderInput = {
+  allSize?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  currSize?: InputMaybe<OrderByEnum>;
+  displayName?: InputMaybe<OrderByEnum>;
+  downloaderId?: InputMaybe<OrderByEnum>;
+  episodeId?: InputMaybe<OrderByEnum>;
+  homepage?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  mime?: InputMaybe<OrderByEnum>;
+  rawName?: InputMaybe<OrderByEnum>;
+  savePath?: InputMaybe<OrderByEnum>;
+  status?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+  url?: InputMaybe<OrderByEnum>;
+};
+
+export type DownloadsUpdateInput = {
+  allSize?: InputMaybe<Scalars['Int']['input']>;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  currSize?: InputMaybe<Scalars['Int']['input']>;
+  displayName?: InputMaybe<Scalars['String']['input']>;
+  downloaderId?: InputMaybe<Scalars['Int']['input']>;
+  episodeId?: InputMaybe<Scalars['Int']['input']>;
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mime?: InputMaybe<DownloadMimeEnum>;
+  rawName?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<DownloadStatusEnum>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Episodes = {
+  __typename?: 'Episodes';
+  bangumi?: Maybe<Bangumi>;
+  bangumiId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  deleted: Scalars['Boolean']['output'];
+  displayName: Scalars['String']['output'];
+  download: SubscriptionsConnection;
+  episodeIndex: Scalars['Int']['output'];
+  fansub?: Maybe<Scalars['String']['output']>;
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mikanEpisodeId?: Maybe<Scalars['String']['output']>;
+  posterLink?: Maybe<Scalars['String']['output']>;
+  rawName: Scalars['String']['output'];
+  resolution?: Maybe<Scalars['String']['output']>;
+  savePath?: Maybe<Scalars['String']['output']>;
+  season: Scalars['Int']['output'];
+  seasonRaw?: Maybe<Scalars['String']['output']>;
+  source?: Maybe<Scalars['String']['output']>;
+  subscriber?: Maybe<Subscribers>;
+  subscriberId: Scalars['Int']['output'];
+  subscription: DownloadsConnection;
+  subscriptionEpisode: SubscriptionEpisodeConnection;
+  subtitle?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type EpisodesDownloadArgs = {
+  filters?: InputMaybe<SubscriptionsFilterInput>;
+  orderBy?: InputMaybe<SubscriptionsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type EpisodesSubscriptionArgs = {
+  filters?: InputMaybe<DownloadsFilterInput>;
+  orderBy?: InputMaybe<DownloadsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type EpisodesSubscriptionEpisodeArgs = {
+  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type EpisodesBasic = {
+  __typename?: 'EpisodesBasic';
+  bangumiId: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  deleted: Scalars['Boolean']['output'];
+  displayName: Scalars['String']['output'];
+  episodeIndex: Scalars['Int']['output'];
+  fansub?: Maybe<Scalars['String']['output']>;
+  homepage?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  mikanEpisodeId?: Maybe<Scalars['String']['output']>;
+  posterLink?: Maybe<Scalars['String']['output']>;
+  rawName: Scalars['String']['output'];
+  resolution?: Maybe<Scalars['String']['output']>;
+  savePath?: Maybe<Scalars['String']['output']>;
+  season: Scalars['Int']['output'];
+  seasonRaw?: Maybe<Scalars['String']['output']>;
+  source?: Maybe<Scalars['String']['output']>;
+  subscriberId: Scalars['Int']['output'];
+  subtitle?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type EpisodesConnection = {
+  __typename?: 'EpisodesConnection';
+  edges: Array<EpisodesEdge>;
+  nodes: Array<Episodes>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type EpisodesEdge = {
+  __typename?: 'EpisodesEdge';
+  cursor: Scalars['String']['output'];
+  node: Episodes;
+};
+
+export type EpisodesFilterInput = {
+  and?: InputMaybe<Array<EpisodesFilterInput>>;
+  bangumiId?: InputMaybe<IntegerFilterInput>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  deleted?: InputMaybe<BooleanFilterInput>;
+  displayName?: InputMaybe<StringFilterInput>;
+  episodeIndex?: InputMaybe<IntegerFilterInput>;
+  fansub?: InputMaybe<StringFilterInput>;
+  homepage?: InputMaybe<StringFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  mikanEpisodeId?: InputMaybe<StringFilterInput>;
+  or?: InputMaybe<Array<EpisodesFilterInput>>;
+  posterLink?: InputMaybe<StringFilterInput>;
+  rawName?: InputMaybe<StringFilterInput>;
+  resolution?: InputMaybe<StringFilterInput>;
+  savePath?: InputMaybe<StringFilterInput>;
+  season?: InputMaybe<IntegerFilterInput>;
+  seasonRaw?: InputMaybe<StringFilterInput>;
+  source?: InputMaybe<StringFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  subtitle?: InputMaybe<StringFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+};
+
+export type EpisodesInsertInput = {
+  bangumiId: Scalars['Int']['input'];
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  deleted: Scalars['Boolean']['input'];
+  displayName: Scalars['String']['input'];
+  episodeIndex: Scalars['Int']['input'];
+  fansub?: InputMaybe<Scalars['String']['input']>;
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mikanEpisodeId?: InputMaybe<Scalars['String']['input']>;
+  posterLink?: InputMaybe<Scalars['String']['input']>;
+  rawName: Scalars['String']['input'];
+  resolution?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  season: Scalars['Int']['input'];
+  seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  source?: InputMaybe<Scalars['String']['input']>;
+  subtitle?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type EpisodesOrderInput = {
+  bangumiId?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  deleted?: InputMaybe<OrderByEnum>;
+  displayName?: InputMaybe<OrderByEnum>;
+  episodeIndex?: InputMaybe<OrderByEnum>;
+  extra?: InputMaybe<OrderByEnum>;
+  fansub?: InputMaybe<OrderByEnum>;
+  homepage?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  mikanEpisodeId?: InputMaybe<OrderByEnum>;
+  posterLink?: InputMaybe<OrderByEnum>;
+  rawName?: InputMaybe<OrderByEnum>;
+  resolution?: InputMaybe<OrderByEnum>;
+  savePath?: InputMaybe<OrderByEnum>;
+  season?: InputMaybe<OrderByEnum>;
+  seasonRaw?: InputMaybe<OrderByEnum>;
+  source?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  subtitle?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+};
+
+export type EpisodesUpdateInput = {
+  bangumiId?: InputMaybe<Scalars['Int']['input']>;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  deleted?: InputMaybe<Scalars['Boolean']['input']>;
+  displayName?: InputMaybe<Scalars['String']['input']>;
+  episodeIndex?: InputMaybe<Scalars['Int']['input']>;
+  fansub?: InputMaybe<Scalars['String']['input']>;
+  homepage?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  mikanEpisodeId?: InputMaybe<Scalars['String']['input']>;
+  posterLink?: InputMaybe<Scalars['String']['input']>;
+  rawName?: InputMaybe<Scalars['String']['input']>;
+  resolution?: InputMaybe<Scalars['String']['input']>;
+  savePath?: InputMaybe<Scalars['String']['input']>;
+  season?: InputMaybe<Scalars['Int']['input']>;
+  seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  source?: InputMaybe<Scalars['String']['input']>;
+  subtitle?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type IntegerFilterInput = {
+  between?: InputMaybe<Array<Scalars['Int']['input']>>;
+  eq?: InputMaybe<Scalars['Int']['input']>;
+  gt?: InputMaybe<Scalars['Int']['input']>;
+  gte?: InputMaybe<Scalars['Int']['input']>;
+  is_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  is_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  is_not_null?: InputMaybe<Scalars['Int']['input']>;
+  is_null?: InputMaybe<Scalars['Int']['input']>;
+  lt?: InputMaybe<Scalars['Int']['input']>;
+  lte?: InputMaybe<Scalars['Int']['input']>;
+  ne?: InputMaybe<Scalars['Int']['input']>;
+  not_between?: InputMaybe<Array<Scalars['Int']['input']>>;
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  _ping?: Maybe<Scalars['String']['output']>;
+  bangumiCreateBatch: Array<BangumiBasic>;
+  bangumiCreateOne: BangumiBasic;
+  bangumiDelete: Scalars['Int']['output'];
+  bangumiUpdate: Array<BangumiBasic>;
+  downloadersCreateBatch: Array<DownloadersBasic>;
+  downloadersCreateOne: DownloadersBasic;
+  downloadersDelete: Scalars['Int']['output'];
+  downloadersUpdate: Array<DownloadersBasic>;
+  downloadsCreateBatch: Array<DownloadsBasic>;
+  downloadsCreateOne: DownloadsBasic;
+  downloadsDelete: Scalars['Int']['output'];
+  downloadsUpdate: Array<DownloadsBasic>;
+  episodesCreateBatch: Array<EpisodesBasic>;
+  episodesCreateOne: EpisodesBasic;
+  episodesDelete: Scalars['Int']['output'];
+  episodesUpdate: Array<EpisodesBasic>;
+  subscriptionBangumiCreateBatch: Array<SubscriptionBangumiBasic>;
+  subscriptionBangumiCreateOne: SubscriptionBangumiBasic;
+  subscriptionBangumiDelete: Scalars['Int']['output'];
+  subscriptionBangumiUpdate: Array<SubscriptionBangumiBasic>;
+  subscriptionEpisodeCreateBatch: Array<SubscriptionEpisodeBasic>;
+  subscriptionEpisodeCreateOne: SubscriptionEpisodeBasic;
+  subscriptionEpisodeDelete: Scalars['Int']['output'];
+  subscriptionEpisodeUpdate: Array<SubscriptionEpisodeBasic>;
+  subscriptionsCreateBatch: Array<SubscriptionsBasic>;
+  subscriptionsCreateOne: SubscriptionsBasic;
+  subscriptionsDelete: Scalars['Int']['output'];
+  subscriptionsUpdate: Array<SubscriptionsBasic>;
+};
+
+export type MutationBangumiCreateBatchArgs = {
+  data: Array<BangumiInsertInput>;
+};
+
+export type MutationBangumiCreateOneArgs = {
+  data: BangumiInsertInput;
+};
+
+export type MutationBangumiDeleteArgs = {
+  filter?: InputMaybe<BangumiFilterInput>;
+};
+
+export type MutationBangumiUpdateArgs = {
+  data: BangumiUpdateInput;
+  filter?: InputMaybe<BangumiFilterInput>;
+};
+
+export type MutationDownloadersCreateBatchArgs = {
+  data: Array<DownloadersInsertInput>;
+};
+
+export type MutationDownloadersCreateOneArgs = {
+  data: DownloadersInsertInput;
+};
+
+export type MutationDownloadersDeleteArgs = {
+  filter?: InputMaybe<DownloadersFilterInput>;
+};
+
+export type MutationDownloadersUpdateArgs = {
+  data: DownloadersUpdateInput;
+  filter?: InputMaybe<DownloadersFilterInput>;
+};
+
+export type MutationDownloadsCreateBatchArgs = {
+  data: Array<DownloadsInsertInput>;
+};
+
+export type MutationDownloadsCreateOneArgs = {
+  data: DownloadsInsertInput;
+};
+
+export type MutationDownloadsDeleteArgs = {
+  filter?: InputMaybe<DownloadsFilterInput>;
+};
+
+export type MutationDownloadsUpdateArgs = {
+  data: DownloadsUpdateInput;
+  filter?: InputMaybe<DownloadsFilterInput>;
+};
+
+export type MutationEpisodesCreateBatchArgs = {
+  data: Array<EpisodesInsertInput>;
+};
+
+export type MutationEpisodesCreateOneArgs = {
+  data: EpisodesInsertInput;
+};
+
+export type MutationEpisodesDeleteArgs = {
+  filter?: InputMaybe<EpisodesFilterInput>;
+};
+
+export type MutationEpisodesUpdateArgs = {
+  data: EpisodesUpdateInput;
+  filter?: InputMaybe<EpisodesFilterInput>;
+};
+
+export type MutationSubscriptionBangumiCreateBatchArgs = {
+  data: Array<SubscriptionBangumiInsertInput>;
+};
+
+export type MutationSubscriptionBangumiCreateOneArgs = {
+  data: SubscriptionBangumiInsertInput;
+};
+
+export type MutationSubscriptionBangumiDeleteArgs = {
+  filter?: InputMaybe<SubscriptionBangumiFilterInput>;
+};
+
+export type MutationSubscriptionBangumiUpdateArgs = {
+  data: SubscriptionBangumiUpdateInput;
+  filter?: InputMaybe<SubscriptionBangumiFilterInput>;
+};
+
+export type MutationSubscriptionEpisodeCreateBatchArgs = {
+  data: Array<SubscriptionEpisodeInsertInput>;
+};
+
+export type MutationSubscriptionEpisodeCreateOneArgs = {
+  data: SubscriptionEpisodeInsertInput;
+};
+
+export type MutationSubscriptionEpisodeDeleteArgs = {
+  filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
+};
+
+export type MutationSubscriptionEpisodeUpdateArgs = {
+  data: SubscriptionEpisodeUpdateInput;
+  filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
+};
+
+export type MutationSubscriptionsCreateBatchArgs = {
+  data: Array<SubscriptionsInsertInput>;
+};
+
+export type MutationSubscriptionsCreateOneArgs = {
+  data: SubscriptionsInsertInput;
+};
+
+export type MutationSubscriptionsDeleteArgs = {
+  filter?: InputMaybe<SubscriptionsFilterInput>;
+};
+
+export type MutationSubscriptionsUpdateArgs = {
+  data: SubscriptionsUpdateInput;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
+};
+
+export type OffsetInput = {
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+};
+
+export enum OrderByEnum {
+  Asc = 'ASC',
+  Desc = 'DESC',
+}
+
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type PageInput = {
+  limit: Scalars['Int']['input'];
+  page: Scalars['Int']['input'];
+};
+
+export type PaginationInfo = {
+  __typename?: 'PaginationInfo';
+  current: Scalars['Int']['output'];
+  offset: Scalars['Int']['output'];
+  pages: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type PaginationInput = {
+  cursor?: InputMaybe<CursorInput>;
+  offset?: InputMaybe<OffsetInput>;
+  page?: InputMaybe<PageInput>;
+};
+
+export type Query = {
+  __typename?: 'Query';
+  _sea_orm_entity_metadata?: Maybe<Scalars['String']['output']>;
+  bangumi: BangumiConnection;
+  downloaders: DownloadersConnection;
+  downloads: DownloadsConnection;
+  episodes: EpisodesConnection;
+  subscribers: SubscribersConnection;
+  subscriptionBangumi: SubscriptionBangumiConnection;
+  subscriptionEpisode: SubscriptionEpisodeConnection;
+  subscriptions: SubscriptionsConnection;
+};
+
+export type Query_Sea_Orm_Entity_MetadataArgs = {
+  table_name: Scalars['String']['input'];
+};
+
+export type QueryBangumiArgs = {
+  filters?: InputMaybe<BangumiFilterInput>;
+  orderBy?: InputMaybe<BangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QueryDownloadersArgs = {
+  filters?: InputMaybe<DownloadersFilterInput>;
+  orderBy?: InputMaybe<DownloadersOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QueryDownloadsArgs = {
+  filters?: InputMaybe<DownloadsFilterInput>;
+  orderBy?: InputMaybe<DownloadsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QueryEpisodesArgs = {
+  filters?: InputMaybe<EpisodesFilterInput>;
+  orderBy?: InputMaybe<EpisodesOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QuerySubscribersArgs = {
+  filters?: InputMaybe<SubscribersFilterInput>;
+  orderBy?: InputMaybe<SubscribersOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QuerySubscriptionBangumiArgs = {
+  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QuerySubscriptionEpisodeArgs = {
+  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type QuerySubscriptionsArgs = {
+  filters?: InputMaybe<SubscriptionsFilterInput>;
+  orderBy?: InputMaybe<SubscriptionsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type StringFilterInput = {
+  between?: InputMaybe<Array<Scalars['String']['input']>>;
+  contains?: InputMaybe<Scalars['String']['input']>;
+  ends_with?: InputMaybe<Scalars['String']['input']>;
+  eq?: InputMaybe<Scalars['String']['input']>;
+  gt?: InputMaybe<Scalars['String']['input']>;
+  gte?: InputMaybe<Scalars['String']['input']>;
+  is_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  is_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  is_not_null?: InputMaybe<Scalars['String']['input']>;
+  is_null?: InputMaybe<Scalars['String']['input']>;
+  like?: InputMaybe<Scalars['String']['input']>;
+  lt?: InputMaybe<Scalars['String']['input']>;
+  lte?: InputMaybe<Scalars['String']['input']>;
+  ne?: InputMaybe<Scalars['String']['input']>;
+  not_between?: InputMaybe<Array<Scalars['String']['input']>>;
+  not_like?: InputMaybe<Scalars['String']['input']>;
+  starts_with?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SubscriberIdFilterInput = {
+  eq?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type Subscribers = {
+  __typename?: 'Subscribers';
+  bangumi: BangumiConnection;
+  createdAt: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
+  downloader: DownloadersConnection;
+  episode: EpisodesConnection;
+  id: Scalars['Int']['output'];
+  subscription: SubscriptionsConnection;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type SubscribersBangumiArgs = {
+  filters?: InputMaybe<BangumiFilterInput>;
+  orderBy?: InputMaybe<BangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscribersDownloaderArgs = {
+  filters?: InputMaybe<DownloadersFilterInput>;
+  orderBy?: InputMaybe<DownloadersOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscribersEpisodeArgs = {
+  filters?: InputMaybe<EpisodesFilterInput>;
+  orderBy?: InputMaybe<EpisodesOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscribersSubscriptionArgs = {
+  filters?: InputMaybe<SubscriptionsFilterInput>;
+  orderBy?: InputMaybe<SubscriptionsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscribersConnection = {
+  __typename?: 'SubscribersConnection';
+  edges: Array<SubscribersEdge>;
+  nodes: Array<Subscribers>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type SubscribersEdge = {
+  __typename?: 'SubscribersEdge';
+  cursor: Scalars['String']['output'];
+  node: Subscribers;
+};
+
+export type SubscribersFilterInput = {
+  and?: InputMaybe<Array<SubscribersFilterInput>>;
+  id?: InputMaybe<SubscriberIdFilterInput>;
+  or?: InputMaybe<Array<SubscribersFilterInput>>;
+};
+
+export type SubscribersOrderInput = {
+  bangumiConf?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  displayName?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+};
+
+export type SubscriptionBangumi = {
+  __typename?: 'SubscriptionBangumi';
+  bangumi?: Maybe<Bangumi>;
+  bangumiId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  subscriberId: Scalars['Int']['output'];
+  subscription?: Maybe<Subscriptions>;
+  subscriptionId: Scalars['Int']['output'];
+};
+
+export type SubscriptionBangumiBasic = {
+  __typename?: 'SubscriptionBangumiBasic';
+  bangumiId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  subscriberId: Scalars['Int']['output'];
+  subscriptionId: Scalars['Int']['output'];
+};
+
+export type SubscriptionBangumiConnection = {
+  __typename?: 'SubscriptionBangumiConnection';
+  edges: Array<SubscriptionBangumiEdge>;
+  nodes: Array<SubscriptionBangumi>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type SubscriptionBangumiEdge = {
+  __typename?: 'SubscriptionBangumiEdge';
+  cursor: Scalars['String']['output'];
+  node: SubscriptionBangumi;
+};
+
+export type SubscriptionBangumiFilterInput = {
+  and?: InputMaybe<Array<SubscriptionBangumiFilterInput>>;
+  bangumiId?: InputMaybe<IntegerFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  or?: InputMaybe<Array<SubscriptionBangumiFilterInput>>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  subscriptionId?: InputMaybe<IntegerFilterInput>;
+};
+
+export type SubscriptionBangumiInsertInput = {
+  bangumiId: Scalars['Int']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  subscriptionId: Scalars['Int']['input'];
+};
+
+export type SubscriptionBangumiOrderInput = {
+  bangumiId?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  subscriptionId?: InputMaybe<OrderByEnum>;
+};
+
+export type SubscriptionBangumiUpdateInput = {
+  bangumiId?: InputMaybe<Scalars['Int']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  subscriptionId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum SubscriptionCategoryEnum {
+  Manual = 'manual',
+  Mikan = 'mikan',
+}
+
+export type SubscriptionCategoryEnumFilterInput = {
+  eq?: InputMaybe<SubscriptionCategoryEnum>;
+  gt?: InputMaybe<SubscriptionCategoryEnum>;
+  gte?: InputMaybe<SubscriptionCategoryEnum>;
+  is_in?: InputMaybe<Array<SubscriptionCategoryEnum>>;
+  is_not_in?: InputMaybe<Array<SubscriptionCategoryEnum>>;
+  is_not_null?: InputMaybe<SubscriptionCategoryEnum>;
+  is_null?: InputMaybe<SubscriptionCategoryEnum>;
+  lt?: InputMaybe<SubscriptionCategoryEnum>;
+  lte?: InputMaybe<SubscriptionCategoryEnum>;
+  ne?: InputMaybe<SubscriptionCategoryEnum>;
+};
+
+export type SubscriptionEpisode = {
+  __typename?: 'SubscriptionEpisode';
+  episode?: Maybe<Episodes>;
+  episodeId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  subscriberId: Scalars['Int']['output'];
+  subscription?: Maybe<Subscriptions>;
+  subscriptionId: Scalars['Int']['output'];
+};
+
+export type SubscriptionEpisodeBasic = {
+  __typename?: 'SubscriptionEpisodeBasic';
+  episodeId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  subscriberId: Scalars['Int']['output'];
+  subscriptionId: Scalars['Int']['output'];
+};
+
+export type SubscriptionEpisodeConnection = {
+  __typename?: 'SubscriptionEpisodeConnection';
+  edges: Array<SubscriptionEpisodeEdge>;
+  nodes: Array<SubscriptionEpisode>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type SubscriptionEpisodeEdge = {
+  __typename?: 'SubscriptionEpisodeEdge';
+  cursor: Scalars['String']['output'];
+  node: SubscriptionEpisode;
+};
+
+export type SubscriptionEpisodeFilterInput = {
+  and?: InputMaybe<Array<SubscriptionEpisodeFilterInput>>;
+  episodeId?: InputMaybe<IntegerFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  or?: InputMaybe<Array<SubscriptionEpisodeFilterInput>>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  subscriptionId?: InputMaybe<IntegerFilterInput>;
+};
+
+export type SubscriptionEpisodeInsertInput = {
+  episodeId: Scalars['Int']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  subscriptionId: Scalars['Int']['input'];
+};
+
+export type SubscriptionEpisodeOrderInput = {
+  episodeId?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  subscriptionId?: InputMaybe<OrderByEnum>;
+};
+
+export type SubscriptionEpisodeUpdateInput = {
+  episodeId?: InputMaybe<Scalars['Int']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  subscriptionId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type Subscriptions = {
+  __typename?: 'Subscriptions';
+  bangumi: BangumiConnection;
+  category: SubscriptionCategoryEnum;
+  createdAt: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  episode: EpisodesConnection;
+  id: Scalars['Int']['output'];
+  sourceUrl: Scalars['String']['output'];
+  subscriber?: Maybe<Subscribers>;
+  subscriberId: Scalars['Int']['output'];
+  subscriptionBangumi: SubscriptionBangumiConnection;
+  subscriptionEpisode: SubscriptionEpisodeConnection;
+  updatedAt: Scalars['String']['output'];
+};
+
+export type SubscriptionsBangumiArgs = {
+  filters?: InputMaybe<BangumiFilterInput>;
+  orderBy?: InputMaybe<BangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscriptionsEpisodeArgs = {
+  filters?: InputMaybe<EpisodesFilterInput>;
+  orderBy?: InputMaybe<EpisodesOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscriptionsSubscriptionBangumiArgs = {
+  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscriptionsSubscriptionEpisodeArgs = {
+  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+export type SubscriptionsBasic = {
+  __typename?: 'SubscriptionsBasic';
+  category: SubscriptionCategoryEnum;
+  createdAt: Scalars['String']['output'];
+  displayName: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['Int']['output'];
+  sourceUrl: Scalars['String']['output'];
+  subscriberId: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type SubscriptionsConnection = {
+  __typename?: 'SubscriptionsConnection';
+  edges: Array<SubscriptionsEdge>;
+  nodes: Array<Subscriptions>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type SubscriptionsEdge = {
+  __typename?: 'SubscriptionsEdge';
+  cursor: Scalars['String']['output'];
+  node: Subscriptions;
+};
+
+export type SubscriptionsFilterInput = {
+  and?: InputMaybe<Array<SubscriptionsFilterInput>>;
+  category?: InputMaybe<SubscriptionCategoryEnumFilterInput>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  displayName?: InputMaybe<StringFilterInput>;
+  enabled?: InputMaybe<BooleanFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  or?: InputMaybe<Array<SubscriptionsFilterInput>>;
+  sourceUrl?: InputMaybe<StringFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+};
+
+export type SubscriptionsInsertInput = {
+  category: SubscriptionCategoryEnum;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  displayName: Scalars['String']['input'];
+  enabled: Scalars['Boolean']['input'];
+  id?: InputMaybe<Scalars['Int']['input']>;
+  sourceUrl: Scalars['String']['input'];
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SubscriptionsOrderInput = {
+  category?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  displayName?: InputMaybe<OrderByEnum>;
+  enabled?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  sourceUrl?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+};
+
+export type SubscriptionsUpdateInput = {
+  category?: InputMaybe<SubscriptionCategoryEnum>;
+  createdAt?: InputMaybe<Scalars['String']['input']>;
+  displayName?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  sourceUrl?: InputMaybe<Scalars['String']['input']>;
+  updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type TextFilterInput = {
+  between?: InputMaybe<Array<Scalars['String']['input']>>;
+  eq?: InputMaybe<Scalars['String']['input']>;
+  gt?: InputMaybe<Scalars['String']['input']>;
+  gte?: InputMaybe<Scalars['String']['input']>;
+  is_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  is_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  is_not_null?: InputMaybe<Scalars['String']['input']>;
+  is_null?: InputMaybe<Scalars['String']['input']>;
+  lt?: InputMaybe<Scalars['String']['input']>;
+  lte?: InputMaybe<Scalars['String']['input']>;
+  ne?: InputMaybe<Scalars['String']['input']>;
+  not_between?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type CreateSubscriptionMutationVariables = Exact<{
+  input: SubscriptionsInsertInput;
+}>;
+
+export type CreateSubscriptionMutation = {
+  __typename?: 'Mutation';
+  subscriptionsCreateOne: {
+    __typename?: 'SubscriptionsBasic';
+    id: number;
+    displayName: string;
+    sourceUrl: string;
+    enabled: boolean;
+    category: SubscriptionCategoryEnum;
+    subscriberId: number;
+  };
+};
+
+export type GetSubscriptionsQueryVariables = Exact<{
+  page: Scalars['Int']['input'];
+  pageSize: Scalars['Int']['input'];
+}>;
+
+export type GetSubscriptionsQuery = {
+  __typename?: 'Query';
+  subscriptions: {
+    __typename?: 'SubscriptionsConnection';
+    nodes: Array<{
+      __typename?: 'Subscriptions';
+      id: number;
+      displayName: string;
+      category: SubscriptionCategoryEnum;
+      enabled: boolean;
+      bangumi: {
+        __typename?: 'BangumiConnection';
+        nodes: Array<{
+          __typename?: 'Bangumi';
+          id: number;
+          displayName: string;
+          posterLink?: string | null;
+          season: number;
+          fansub?: string | null;
+          homepage?: string | null;
+        }>;
+      };
+    }>;
+  };
+};
+
+export const CreateSubscriptionDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CreateSubscription' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'input' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptionsCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'subscriberId' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CreateSubscriptionMutation,
+  CreateSubscriptionMutationVariables
+>;
+export const GetSubscriptionsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetSubscriptions' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'pageSize' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptions' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'pagination' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'page' },
+                      value: {
+                        kind: 'ObjectValue',
+                        fields: [
+                          {
+                            kind: 'ObjectField',
+                            name: { kind: 'Name', value: 'page' },
+                            value: {
+                              kind: 'Variable',
+                              name: { kind: 'Name', value: 'page' },
+                            },
+                          },
+                          {
+                            kind: 'ObjectField',
+                            name: { kind: 'Name', value: 'limit' },
+                            value: {
+                              kind: 'Variable',
+                              name: { kind: 'Name', value: 'pageSize' },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'displayName' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'category' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'enabled' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'bangumi' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'displayName',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'posterLink' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'season' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'fansub' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'homepage' },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetSubscriptionsQuery,
+  GetSubscriptionsQueryVariables
+>;

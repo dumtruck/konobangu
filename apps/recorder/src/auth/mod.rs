@@ -7,5 +7,5 @@ pub mod service;
 
 pub use config::{AuthConfig, BasicAuthConfig, OidcAuthConfig};
 pub use errors::AuthError;
-pub use middleware::header_www_authenticate_middleware;
+pub use middleware::auth_middleware;
 pub use service::{AuthService, AuthServiceTrait, AuthUserInfo};

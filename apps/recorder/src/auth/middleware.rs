@@ -9,7 +9,7 @@ use axum::{
 
 use crate::{app::AppContextTrait, auth::AuthServiceTrait};
 
-pub async fn header_www_authenticate_middleware(
+pub async fn auth_middleware(
     State(ctx): State<Arc<dyn AppContextTrait>>,
     request: Request,
     next: Next,

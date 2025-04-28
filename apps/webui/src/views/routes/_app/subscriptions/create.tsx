@@ -56,7 +56,6 @@ const CREATE_SUBSCRIPTION_MUTATION = gql`
             sourceUrl
             enabled
             category
-            subscriberId
         }
     }
 `;
