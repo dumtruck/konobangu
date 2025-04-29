@@ -3,7 +3,7 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use super::defs::{
     Bangumi, CustomSchemaManagerExt, Episodes, GeneralIds, Subscribers, SubscriptionBangumi,
-    SubscriptionEpisode, Subscriptions,
+    SubscriptionEpisode, Subscriptions, table_auto_z,
 };
 use crate::models::{
     subscribers::SEED_SUBSCRIBER,
@@ -22,7 +22,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Subscribers::Table)
+                table_auto_z(Subscribers::Table)
                     .col(pk_auto(Subscribers::Id))
                     .col(string(Subscribers::DisplayName))
                     .col(json_binary_null(Subscribers::BangumiConf))
@@ -57,7 +57,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Subscriptions::Table)
+                table_auto_z(Subscriptions::Table)
                     .col(pk_auto(Subscriptions::Id))
                     .col(string(Subscriptions::DisplayName))
                     .col(integer(Subscriptions::SubscriberId))
@@ -89,7 +89,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Bangumi::Table)
+                table_auto_z(Bangumi::Table)
                     .col(pk_auto(Bangumi::Id))
                     .col(text_null(Bangumi::MikanBangumiId))
                     .col(integer(Bangumi::SubscriberId))
@@ -156,7 +156,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(SubscriptionBangumi::Table)
+                table_auto_z(SubscriptionBangumi::Table)
                     .col(pk_auto(SubscriptionBangumi::Id))
                     .col(integer(SubscriptionBangumi::SubscriberId))
                     .col(integer(SubscriptionBangumi::SubscriptionId))
@@ -206,7 +206,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Episodes::Table)
+                table_auto_z(Episodes::Table)
                     .col(pk_auto(Episodes::Id))
                     .col(text_null(Episodes::MikanEpisodeId))
                     .col(text(Episodes::RawName))
@@ -275,7 +275,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(SubscriptionEpisode::Table)
+                table_auto_z(SubscriptionEpisode::Table)
                     .col(pk_auto(SubscriptionEpisode::Id))
                     .col(integer(SubscriptionEpisode::SubscriptionId))
                     .col(integer(SubscriptionEpisode::EpisodeId))

@@ -1,5 +1,6 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
+use super::defs::table_auto_z;
 use crate::{
     migrations::defs::{CustomSchemaManagerExt, Downloaders, GeneralIds, Subscribers},
     models::downloaders::{DownloaderCategory, DownloaderCategoryEnum},
@@ -20,7 +21,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Downloaders::Table)
+                table_auto_z(Downloaders::Table)
                     .col(pk_auto(Downloaders::Id))
                     .col(text(Downloaders::Endpoint))
                     .col(string_null(Downloaders::Username))

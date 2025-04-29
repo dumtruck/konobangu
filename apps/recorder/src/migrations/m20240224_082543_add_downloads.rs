@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Downloaders::Table)
+                table_auto_z(Downloaders::Table)
                     .col(pk_auto(Downloaders::Id))
                     .col(text(Downloaders::Endpoint))
                     .col(string_null(Downloaders::Username))
@@ -78,7 +78,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Downloads::Table)
+                table_auto_z(Downloads::Table)
                     .col(pk_auto(Downloads::Id))
                     .col(string(Downloads::RawName))
                     .col(string(Downloads::DisplayName))

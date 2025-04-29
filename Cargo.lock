@@ -250,6 +250,7 @@ dependencies = [
  "async-stream",
  "async-trait",
  "base64 0.22.1",
+ "bigdecimal",
  "bytes",
  "chrono",
  "fast_chemail",
@@ -273,6 +274,7 @@ dependencies = [
  "static_assertions_next",
  "tempfile",
  "thiserror 1.0.69",
+ "time",
 ]
 
 [[package]]

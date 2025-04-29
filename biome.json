@@ -6,6 +6,9 @@
   },
   "linter": {
     "rules": {
+      "nursery": {
+        "noEnum": "off"
+      },
       "style": {
         "noParameterProperties": "off",
         "noNonNullAssertion": "off"
@@ -35,7 +38,19 @@
   },
   "overrides": [
     {
-      "include": ["apps/webui/src/views/components/ui/**/*"],
+      "include": ["apps/webui/src/infra/graphql/gql/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useShorthandArrayType": "off",
+            "useConsistentArrayType": "off",
+            "useImportType": "off"
+          }
+        }
+      }
+    },
+    {
+      "include": ["apps/webui/src/components/ui/**/*"],
       "javascript": {
         "formatter": {
           "quoteStyle": "double"

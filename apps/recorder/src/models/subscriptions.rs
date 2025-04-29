@@ -44,9 +44,9 @@ pub enum SubscriptionCategory {
 #[sea_orm(table_name = "subscriptions")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
-    pub created_at: DateTime,
+    pub created_at: DateTimeUtc,
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
-    pub updated_at: DateTime,
+    pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,
     pub display_name: String,

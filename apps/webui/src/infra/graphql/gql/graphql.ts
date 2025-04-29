@@ -1,32 +1,19 @@
 /* eslint-disable */
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T,
-> = { [_ in K]?: never };
-export type Incremental<T> =
-  | T
-  | {
-      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
-    };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
 };
 
 export type Bangumi = {
@@ -53,17 +40,20 @@ export type Bangumi = {
   updatedAt: Scalars['String']['output'];
 };
 
+
 export type BangumiEpisodeArgs = {
   filters?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type BangumiSubscriptionArgs = {
   filters?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type BangumiSubscriptionBangumiArgs = {
   filters?: InputMaybe<SubscriptionBangumiFilterInput>;
@@ -203,7 +193,7 @@ export type CursorInput = {
 
 export enum DownloadMimeEnum {
   Applicationoctetstream = 'applicationoctetstream',
-  Applicationxbittorrent = 'applicationxbittorrent',
+  Applicationxbittorrent = 'applicationxbittorrent'
 }
 
 export type DownloadMimeEnumFilterInput = {
@@ -225,7 +215,7 @@ export enum DownloadStatusEnum {
   Downloading = 'downloading',
   Failed = 'failed',
   Paused = 'paused',
-  Pending = 'pending',
+  Pending = 'pending'
 }
 
 export type DownloadStatusEnumFilterInput = {
@@ -243,7 +233,7 @@ export type DownloadStatusEnumFilterInput = {
 
 export enum DownloaderCategoryEnum {
   Dandanplay = 'dandanplay',
-  Qbittorrent = 'qbittorrent',
+  Qbittorrent = 'qbittorrent'
 }
 
 export type DownloaderCategoryEnumFilterInput = {
@@ -273,6 +263,7 @@ export type Downloaders = {
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
+
 
 export type DownloadersDownloadArgs = {
   filters?: InputMaybe<DownloadsFilterInput>;
@@ -510,17 +501,20 @@ export type Episodes = {
   updatedAt: Scalars['String']['output'];
 };
 
+
 export type EpisodesDownloadArgs = {
   filters?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type EpisodesSubscriptionArgs = {
   filters?: InputMaybe<DownloadsFilterInput>;
   orderBy?: InputMaybe<DownloadsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type EpisodesSubscriptionEpisodeArgs = {
   filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
@@ -702,119 +696,147 @@ export type Mutation = {
   subscriptionsUpdate: Array<SubscriptionsBasic>;
 };
 
+
 export type MutationBangumiCreateBatchArgs = {
   data: Array<BangumiInsertInput>;
 };
+
 
 export type MutationBangumiCreateOneArgs = {
   data: BangumiInsertInput;
 };
 
+
 export type MutationBangumiDeleteArgs = {
   filter?: InputMaybe<BangumiFilterInput>;
 };
+
 
 export type MutationBangumiUpdateArgs = {
   data: BangumiUpdateInput;
   filter?: InputMaybe<BangumiFilterInput>;
 };
 
+
 export type MutationDownloadersCreateBatchArgs = {
   data: Array<DownloadersInsertInput>;
 };
+
 
 export type MutationDownloadersCreateOneArgs = {
   data: DownloadersInsertInput;
 };
 
+
 export type MutationDownloadersDeleteArgs = {
   filter?: InputMaybe<DownloadersFilterInput>;
 };
+
 
 export type MutationDownloadersUpdateArgs = {
   data: DownloadersUpdateInput;
   filter?: InputMaybe<DownloadersFilterInput>;
 };
 
+
 export type MutationDownloadsCreateBatchArgs = {
   data: Array<DownloadsInsertInput>;
 };
+
 
 export type MutationDownloadsCreateOneArgs = {
   data: DownloadsInsertInput;
 };
 
+
 export type MutationDownloadsDeleteArgs = {
   filter?: InputMaybe<DownloadsFilterInput>;
 };
+
 
 export type MutationDownloadsUpdateArgs = {
   data: DownloadsUpdateInput;
   filter?: InputMaybe<DownloadsFilterInput>;
 };
 
+
 export type MutationEpisodesCreateBatchArgs = {
   data: Array<EpisodesInsertInput>;
 };
+
 
 export type MutationEpisodesCreateOneArgs = {
   data: EpisodesInsertInput;
 };
 
+
 export type MutationEpisodesDeleteArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
 };
+
 
 export type MutationEpisodesUpdateArgs = {
   data: EpisodesUpdateInput;
   filter?: InputMaybe<EpisodesFilterInput>;
 };
 
+
 export type MutationSubscriptionBangumiCreateBatchArgs = {
   data: Array<SubscriptionBangumiInsertInput>;
 };
+
 
 export type MutationSubscriptionBangumiCreateOneArgs = {
   data: SubscriptionBangumiInsertInput;
 };
 
+
 export type MutationSubscriptionBangumiDeleteArgs = {
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
 };
+
 
 export type MutationSubscriptionBangumiUpdateArgs = {
   data: SubscriptionBangumiUpdateInput;
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
 };
 
+
 export type MutationSubscriptionEpisodeCreateBatchArgs = {
   data: Array<SubscriptionEpisodeInsertInput>;
 };
+
 
 export type MutationSubscriptionEpisodeCreateOneArgs = {
   data: SubscriptionEpisodeInsertInput;
 };
 
+
 export type MutationSubscriptionEpisodeDeleteArgs = {
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
 };
+
 
 export type MutationSubscriptionEpisodeUpdateArgs = {
   data: SubscriptionEpisodeUpdateInput;
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
 };
 
+
 export type MutationSubscriptionsCreateBatchArgs = {
   data: Array<SubscriptionsInsertInput>;
 };
+
 
 export type MutationSubscriptionsCreateOneArgs = {
   data: SubscriptionsInsertInput;
 };
 
+
 export type MutationSubscriptionsDeleteArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
 };
+
 
 export type MutationSubscriptionsUpdateArgs = {
   data: SubscriptionsUpdateInput;
@@ -828,7 +850,7 @@ export type OffsetInput = {
 
 export enum OrderByEnum {
   Asc = 'ASC',
-  Desc = 'DESC',
+  Desc = 'DESC'
 }
 
 export type PageInfo = {
@@ -871,9 +893,11 @@ export type Query = {
   subscriptions: SubscriptionsConnection;
 };
 
+
 export type Query_Sea_Orm_Entity_MetadataArgs = {
   table_name: Scalars['String']['input'];
 };
+
 
 export type QueryBangumiArgs = {
   filters?: InputMaybe<BangumiFilterInput>;
@@ -881,11 +905,13 @@ export type QueryBangumiArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type QueryDownloadersArgs = {
   filters?: InputMaybe<DownloadersFilterInput>;
   orderBy?: InputMaybe<DownloadersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type QueryDownloadsArgs = {
   filters?: InputMaybe<DownloadsFilterInput>;
@@ -893,11 +919,13 @@ export type QueryDownloadsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type QueryEpisodesArgs = {
   filters?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type QuerySubscribersArgs = {
   filters?: InputMaybe<SubscribersFilterInput>;
@@ -905,17 +933,20 @@ export type QuerySubscribersArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type QuerySubscriptionBangumiArgs = {
   filters?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type QuerySubscriptionEpisodeArgs = {
   filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
   orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type QuerySubscriptionsArgs = {
   filters?: InputMaybe<SubscriptionsFilterInput>;
@@ -959,11 +990,13 @@ export type Subscribers = {
   updatedAt: Scalars['String']['output'];
 };
 
+
 export type SubscribersBangumiArgs = {
   filters?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type SubscribersDownloaderArgs = {
   filters?: InputMaybe<DownloadersFilterInput>;
@@ -971,11 +1004,13 @@ export type SubscribersDownloaderArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type SubscribersEpisodeArgs = {
   filters?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type SubscribersSubscriptionArgs = {
   filters?: InputMaybe<SubscriptionsFilterInput>;
@@ -1073,7 +1108,7 @@ export type SubscriptionBangumiUpdateInput = {
 
 export enum SubscriptionCategoryEnum {
   Manual = 'manual',
-  Mikan = 'mikan',
+  Mikan = 'mikan'
 }
 
 export type SubscriptionCategoryEnumFilterInput = {
@@ -1166,11 +1201,13 @@ export type Subscriptions = {
   updatedAt: Scalars['String']['output'];
 };
 
+
 export type SubscriptionsBangumiArgs = {
   filters?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type SubscriptionsEpisodeArgs = {
   filters?: InputMaybe<EpisodesFilterInput>;
@@ -1178,11 +1215,13 @@ export type SubscriptionsEpisodeArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
 export type SubscriptionsSubscriptionBangumiArgs = {
   filters?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
+
 
 export type SubscriptionsSubscriptionEpisodeArgs = {
   filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
@@ -1275,264 +1314,47 @@ export type TextFilterInput = {
   not_between?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
+export type GetSubscriptionsQueryVariables = Exact<{
+  page: PageInput;
+  filters: SubscriptionsFilterInput;
+  orderBy: SubscriptionsOrderInput;
+}>;
+
+
+export type GetSubscriptionsQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+
+export type UpdateSubscriptionsMutationVariables = Exact<{
+  data: SubscriptionsUpdateInput;
+  filters: SubscriptionsFilterInput;
+}>;
+
+
+export type UpdateSubscriptionsMutation = { __typename?: 'Mutation', subscriptionsUpdate: Array<{ __typename?: 'SubscriptionsBasic', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean }> };
+
+export type DeleteSubscriptionsMutationVariables = Exact<{
+  filters?: InputMaybe<SubscriptionsFilterInput>;
+}>;
+
+
+export type DeleteSubscriptionsMutation = { __typename?: 'Mutation', subscriptionsDelete: number };
+
+export type GetSubscriptionDetailQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetSubscriptionDetailQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, displayName: string, createdAt: string, updatedAt: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, bangumi: { __typename?: 'BangumiConnection', nodes: Array<{ __typename?: 'Bangumi', createdAt: string, updatedAt: string, id: number, mikanBangumiId?: string | null, displayName: string, rawName: string, season: number, seasonRaw?: string | null, fansub?: string | null, mikanFansubId?: string | null, rssLink?: string | null, posterLink?: string | null, savePath?: string | null, deleted: boolean, homepage?: string | null }> } }> } };
+
 export type CreateSubscriptionMutationVariables = Exact<{
   input: SubscriptionsInsertInput;
 }>;
 
-export type CreateSubscriptionMutation = {
-  __typename?: 'Mutation';
-  subscriptionsCreateOne: {
-    __typename?: 'SubscriptionsBasic';
-    id: number;
-    displayName: string;
-    sourceUrl: string;
-    enabled: boolean;
-    category: SubscriptionCategoryEnum;
-    subscriberId: number;
-  };
-};
 
-export type GetSubscriptionsQueryVariables = Exact<{
-  page: Scalars['Int']['input'];
-  pageSize: Scalars['Int']['input'];
-}>;
+export type CreateSubscriptionMutation = { __typename?: 'Mutation', subscriptionsCreateOne: { __typename?: 'SubscriptionsBasic', id: number, displayName: string, sourceUrl: string, enabled: boolean, category: SubscriptionCategoryEnum } };
 
-export type GetSubscriptionsQuery = {
-  __typename?: 'Query';
-  subscriptions: {
-    __typename?: 'SubscriptionsConnection';
-    nodes: Array<{
-      __typename?: 'Subscriptions';
-      id: number;
-      displayName: string;
-      category: SubscriptionCategoryEnum;
-      enabled: boolean;
-      bangumi: {
-        __typename?: 'BangumiConnection';
-        nodes: Array<{
-          __typename?: 'Bangumi';
-          id: number;
-          displayName: string;
-          posterLink?: string | null;
-          season: number;
-          fansub?: string | null;
-          homepage?: string | null;
-        }>;
-      };
-    }>;
-  };
-};
 
-export const CreateSubscriptionDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'mutation',
-      name: { kind: 'Name', value: 'CreateSubscription' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'input' },
-          },
-          type: {
-            kind: 'NonNullType',
-            type: {
-              kind: 'NamedType',
-              name: { kind: 'Name', value: 'SubscriptionsInsertInput' },
-            },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'subscriptionsCreateOne' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'data' },
-                value: {
-                  kind: 'Variable',
-                  name: { kind: 'Name', value: 'input' },
-                },
-              },
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'subscriberId' },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<
-  CreateSubscriptionMutation,
-  CreateSubscriptionMutationVariables
->;
-export const GetSubscriptionsDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'GetSubscriptions' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'page' } },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
-          },
-        },
-        {
-          kind: 'VariableDefinition',
-          variable: {
-            kind: 'Variable',
-            name: { kind: 'Name', value: 'pageSize' },
-          },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
-          },
-        },
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'subscriptions' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'pagination' },
-                value: {
-                  kind: 'ObjectValue',
-                  fields: [
-                    {
-                      kind: 'ObjectField',
-                      name: { kind: 'Name', value: 'page' },
-                      value: {
-                        kind: 'ObjectValue',
-                        fields: [
-                          {
-                            kind: 'ObjectField',
-                            name: { kind: 'Name', value: 'page' },
-                            value: {
-                              kind: 'Variable',
-                              name: { kind: 'Name', value: 'page' },
-                            },
-                          },
-                          {
-                            kind: 'ObjectField',
-                            name: { kind: 'Name', value: 'limit' },
-                            value: {
-                              kind: 'Variable',
-                              name: { kind: 'Name', value: 'pageSize' },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'nodes' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'displayName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'category' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'enabled' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'bangumi' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'nodes' },
-                              selectionSet: {
-                                kind: 'SelectionSet',
-                                selections: [
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'id' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: {
-                                      kind: 'Name',
-                                      value: 'displayName',
-                                    },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'posterLink' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'season' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'fansub' },
-                                  },
-                                  {
-                                    kind: 'Field',
-                                    name: { kind: 'Name', value: 'homepage' },
-                                  },
-                                ],
-                              },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<
-  GetSubscriptionsQuery,
-  GetSubscriptionsQueryVariables
->;
+export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"page"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PageInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsOrderInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"page"},"value":{"kind":"Variable","name":{"kind":"Name","value":"page"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>;
+export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
+export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
+export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"rawName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"savePath"}},{"kind":"Field","name":{"kind":"Name","value":"deleted"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
+export const CreateSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"category"}}]}}]}}]} as unknown as DocumentNode<CreateSubscriptionMutation, CreateSubscriptionMutationVariables>;

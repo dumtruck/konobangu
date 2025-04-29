@@ -31,13 +31,18 @@ layout {
         }
     }
     tab name="Recorder" {
-        pane command="watchexec" {
-            args "-r" "-w" "apps/recorder" "--" "cargo" "run" "-p" "recorder" "--bin" "recorder_cli" "--" "--environment" "development"
+        pane command="just" {
+            args "dev-recorder"
         }
     }
     tab name="Deps" {
         pane command="docker" {
             args "compose" "-f" "devdeps.compose.yaml" "up"
+        }
+    }
+    tab name="Codegen" {
+        pane command="just" {
+            args "dev-codegen-wait"
         }
     }
 }

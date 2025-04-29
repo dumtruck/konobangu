@@ -366,7 +366,10 @@ impl AuthServiceTrait for OidcAuthService {
             }) => crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await,
             r => r,
         }
-        .map_err(|_| AuthError::FindAuthRecordError)?;
+        .map_err(|e| {
+            tracing::error!("Error finding auth record: {:?}", e);
+            AuthError::FindAuthRecordError
+        })?;
 
         Ok(AuthUserInfo {
             subscriber_auth,

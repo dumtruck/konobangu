@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     app::AppContextTrait,
-    errors::app_error::{RecorderResult, RecorderError},
+    errors::app_error::{RecorderError, RecorderResult},
 };
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
@@ -21,9 +21,9 @@ pub struct SubscriberBangumiConfig {
 #[sea_orm(table_name = "subscribers")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
-    pub created_at: DateTime,
+    pub created_at: DateTimeUtc,
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
-    pub updated_at: DateTime,
+    pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,
     pub display_name: String,

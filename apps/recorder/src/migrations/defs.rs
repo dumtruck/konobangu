@@ -2,7 +2,10 @@ use std::collections::HashSet;
 
 use async_trait::async_trait;
 use sea_orm::{DeriveIden, Statement};
-use sea_orm_migration::prelude::{extension::postgres::IntoTypeRef, *};
+use sea_orm_migration::{
+    prelude::{extension::postgres::IntoTypeRef, *},
+    schema::timestamp_with_time_zone,
+};
 
 use crate::migrations::extension::postgres::Type;
 
@@ -142,6 +145,17 @@ macro_rules! create_postgres_enum_for_active_enum {
             ($manager).create_postgres_enum_for_active_enum($active_enum, values)
         }
     };
+}
+
+pub fn timestamps_z(t: TableCreateStatement) -> TableCreateStatement {
+    let mut t = t;
+    t.col(timestamp_with_time_zone(GeneralIds::CreatedAt).default(Expr::current_timestamp()))
+        .col(timestamp_with_time_zone(GeneralIds::UpdatedAt).default(Expr::current_timestamp()))
+        .take()
+}
+
+pub fn table_auto_z<T: IntoIden + 'static>(name: T) -> TableCreateStatement {
+    timestamps_z(Table::create().table(name).if_not_exists().take())
 }
 
 #[async_trait]

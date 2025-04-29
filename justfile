@@ -11,7 +11,6 @@ dev-webui:
 dev-proxy:
     pnpm run --filter=proxy dev
 
-# crash on windows
 dev-recorder:
     watchexec -r -w apps/recorder -- cargo run -p recorder --bin recorder_cli -- --environment development
 
@@ -26,3 +25,8 @@ dev-codegen:
 
 dev-all:
     zellij --layout dev.kdl
+
+dev-codegen-wait:
+    @until nc -z localhost 5001; do echo "Waiting for Recorder..."; sleep 1; done
+    pnpm run --filter=webui codegen-watch
+

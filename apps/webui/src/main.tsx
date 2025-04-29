@@ -1,10 +1,10 @@
 import '@abraham/reflection';
 import { provideAuth, setupAuthContext } from '@/app/auth/context';
+import { AppNotFoundComponent } from '@/components/layout/app-not-found';
 import { providePlatform } from '@/infra/platform/context';
 import { provideStorages } from '@/infra/storage/context';
 import { provideStyles } from '@/infra/styles/context';
-import { AppNotFoundComponent } from '@/views/components/layout/app-not-found';
-import { routeTree } from '@/views/routeTree.gen';
+import { routeTree } from '@/presentation/routeTree.gen';
 import { type Injector, ReflectiveInjector } from '@outposts/injection-js';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import {

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use sea_orm_migration::{prelude::*, schema::*};
 
-use super::defs::Auth;
+use super::defs::{Auth, table_auto_z};
 use crate::{
     migrations::defs::{CustomSchemaManagerExt, GeneralIds, Subscribers},
     models::{
@@ -26,7 +26,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_table(
-                table_auto(Auth::Table)
+                table_auto_z(Auth::Table)
                     .col(pk_auto(Auth::Id))
                     .col(text(Auth::Pid))
                     .col(enumeration(
