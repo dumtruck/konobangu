@@ -36,7 +36,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
 import { Eye, EyeOff, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -51,7 +50,10 @@ export const Route = createFileRoute('/_app/credential3rd/manage')({
 function CredentialManageRouteComponent() {
   const navigate = useNavigate();
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    createdAt: false,
+    updatedAt: false,
+  });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -85,7 +87,9 @@ function CredentialManageRouteComponent() {
     onCompleted: async () => {
       const refetchResult = await refetch();
       if (refetchResult.errors) {
-        toast.error(refetchResult.errors[0].message);
+        toast.error('Failed to delete credential', {
+          description: refetchResult.errors[0].message,
+        });
         return;
       }
       toast.success('Credential deleted');
@@ -124,7 +128,6 @@ function CredentialManageRouteComponent() {
       {
         header: 'ID',
         accessorKey: 'id',
-        enableHiding: false,
         cell: ({ row }) => {
           return <div className="font-mono text-sm">{row.original.id}</div>;
         },
@@ -160,14 +163,10 @@ function CredentialManageRouteComponent() {
           const password = row.original.password;
           const isVisible = showPasswords[row.original.id];
 
-          if (!password) {
-            return <div>-</div>;
-          }
-
           return (
             <div className="flex items-center gap-2">
               <div className="font-mono text-sm">
-                {isVisible ? password : '••••••••'}
+                {isVisible ? password || '-' : '••••••••'}
               </div>
               <Button
                 variant="ghost"
@@ -216,9 +215,7 @@ function CredentialManageRouteComponent() {
           const updatedAt = row.original.updatedAt;
           return (
             <div className="text-sm">
-              {format(new Date(updatedAt), 'yyyy-MM-dd HH:mm:ss', {
-                locale: zhCN,
-              })}
+              {format(new Date(updatedAt), 'yyyy-MM-dd HH:mm:ss')}
             </div>
           );
         },
@@ -231,9 +228,16 @@ function CredentialManageRouteComponent() {
             getId={(row) => row.original.id}
             showEdit
             showDelete
-            onEdit={() => {
+            showDetail
+            onDetail={() => {
               navigate({
                 to: '/credential3rd/detail/$id',
+                params: { id: `${row.original.id}` },
+              });
+            }}
+            onEdit={() => {
+              navigate({
+                to: '/credential3rd/edit/$id',
                 params: { id: `${row.original.id}` },
               });
             }}
@@ -259,6 +263,13 @@ function CredentialManageRouteComponent() {
       pagination,
       sorting,
       columnVisibility,
+    },
+    enableColumnPinning: true,
+    initialState: {
+      columnPinning: {
+        left: [],
+        right: ['actions'],
+      },
     },
   });
 

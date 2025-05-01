@@ -8,6 +8,14 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ProLink, type ProLinkProps } from '@/components/ui/pro-link';
+import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
@@ -16,9 +24,9 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useMatches } from '@tanstack/react-router';
-import { ProLink, type ProLinkProps } from '../ui/pro-link';
 
 export interface NavMainItem {
   link?: ProLinkProps;
@@ -38,6 +46,7 @@ export function NavMain({
   groups: NavMainGroup[];
 }) {
   const matches = useMatches();
+  const { state } = useSidebar();
 
   const isMenuMatch = (link: ProLinkProps | undefined) => {
     const linkTo = link?.to;
@@ -50,10 +59,81 @@ export function NavMain({
   const renderSidebarMenuItemButton = (item: NavMainItem) => {
     return (
       <>
-        {item.icon && <item.icon />}
-        <span>{item.title}</span>
+        {item.icon && <item.icon className="h-4 w-4" aria-hidden="true" />}
+        <span className="truncate">{item.title}</span>
         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-90" />
       </>
+    );
+  };
+
+  const renderCollapsedSubMenu = (item: NavMainItem) => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuButton
+            tooltip={item.title}
+            isActive={isMenuMatch(item.link)}
+            aria-label={`${item.title} (expandable)`}
+          >
+            {item.icon && <item.icon className="h-4 w-4" aria-hidden="true" />}
+          </SidebarMenuButton>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" className="min-w-48">
+          <DropdownMenuItem asChild>
+            <span className="font-medium">{item.title}</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          {item.children?.map((subItem, index) => (
+            <DropdownMenuItem key={index} asChild>
+              <ProLink {...subItem.link}>{subItem.title}</ProLink>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  const renderExpandedSubMenu = (item: NavMainItem, itemIndex: number) => {
+    return (
+      <Collapsible
+        key={itemIndex}
+        asChild
+        className="group/collapsible"
+        defaultOpen={isMenuMatch(item.link)}
+      >
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              tooltip={item.title}
+              aria-label={`${item.title} (expandable)`}
+            >
+              {renderSidebarMenuItemButton(item)}
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {(item.children || []).map((subItem, subItemIndex) => {
+                return (
+                  <SidebarMenuSubItem key={subItemIndex}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={isMenuMatch(subItem.link)}
+                    >
+                      <ProLink
+                        {...subItem.link}
+                        activeProps={{ className: '' }}
+                        aria-label={`${subItem.title}`}
+                      >
+                        <span>{subItem.title}</span>
+                      </ProLink>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                );
+              })}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
     );
   };
 
@@ -66,51 +146,21 @@ export function NavMain({
             if (!item.children?.length) {
               return (
                 <SidebarMenuItem key={itemIndex}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <ProLink {...item.link}>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={isMenuMatch(item.link)}
+                  >
+                    <ProLink {...item.link} tabIndex={0}>
                       {renderSidebarMenuItemButton(item)}
                     </ProLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );
             }
-            return (
-              <Collapsible
-                key={itemIndex}
-                asChild
-                className="group/collapsible"
-                defaultOpen={isMenuMatch(item.link)}
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={item.title}>
-                      {renderSidebarMenuItemButton(item)}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {(item.children || []).map((subItem, subItemIndex) => {
-                        return (
-                          <SidebarMenuSubItem key={subItemIndex}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={isMenuMatch(subItem.link)}
-                            >
-                              <ProLink
-                                {...subItem.link}
-                                activeProps={{ className: '' }}
-                              >
-                                <span>{subItem.title}</span>
-                              </ProLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        );
-                      })}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-            );
+            return state === 'collapsed'
+              ? renderCollapsedSubMenu(item)
+              : renderExpandedSubMenu(item, itemIndex);
           })}
         </SidebarMenu>
       </SidebarGroup>

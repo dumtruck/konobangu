@@ -19,7 +19,6 @@ import {
 import { useAppForm } from '@/components/ui/tanstack-form';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  type Credential3rdInsertDto,
   Credential3rdInsertSchema,
   INSERT_CREDENTIAL_3RD,
 } from '@/domains/recorder/schema/credential3rd';
@@ -27,6 +26,7 @@ import { useInject } from '@/infra/di/inject';
 import {
   Credential3rdTypeEnum,
   type InsertCredential3rdMutation,
+  type InsertCredential3rdMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import { PlatformService } from '@/infra/platform/platform.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
@@ -47,7 +47,8 @@ function CredentialCreateRouteComponent() {
   const platformService = useInject(PlatformService);
 
   const [insertCredential3rd, { loading }] = useMutation<
-    InsertCredential3rdMutation['credential3rdCreateOne']
+    InsertCredential3rdMutation['credential3rdCreateOne'],
+    InsertCredential3rdMutationVariables
   >(INSERT_CREDENTIAL_3RD, {
     onCompleted(data) {
       toast.success('Credential created');
@@ -69,16 +70,20 @@ function CredentialCreateRouteComponent() {
       username: '',
       password: '',
       userAgent: '',
-    } as Credential3rdInsertDto,
+    },
     validators: {
       onBlur: Credential3rdInsertSchema,
       onSubmit: Credential3rdInsertSchema,
     },
     onSubmit: async (form) => {
+      const value = {
+        ...form.value,
+        userAgent: form.value.userAgent || platformService.userAgent,
+      };
       if (form.value.credentialType === Credential3rdTypeEnum.Mikan) {
         await insertCredential3rd({
           variables: {
-            data: form.value,
+            data: value,
           },
         });
       }
@@ -142,9 +147,7 @@ function CredentialCreateRouteComponent() {
                     </SelectContent>
                   </Select>
                   {field.state.meta.errors && (
-                    <p className="text-destructive text-sm">
-                      {field.state.meta.errors[0]?.toString()}
-                    </p>
+                    <FormFieldErrors errors={field.state.meta.errors} />
                   )}
                 </div>
               )}
@@ -209,7 +212,7 @@ function CredentialCreateRouteComponent() {
                     the default value"
                   />
                   <p className="text-muted-foreground text-sm">
-                    Current user agent: {platformService.userAgent}
+                    Current default user agent: {platformService.userAgent}
                   </p>
                   {field.state.meta.errors && (
                     <FormFieldErrors errors={field.state.meta.errors} />

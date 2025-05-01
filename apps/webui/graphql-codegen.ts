@@ -10,6 +10,9 @@ const config: CodegenConfig = {
       presetConfig: {
         gqlTagName: 'gql',
       },
+      config: {
+        enumsAsConst: true,
+      },
     },
   },
 };

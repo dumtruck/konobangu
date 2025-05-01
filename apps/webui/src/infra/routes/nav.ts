@@ -32,7 +32,7 @@ export const AppNavMainData = [
       {
         title: 'Subscriptions',
         link: {
-          to: '/subscriptions',
+          to: '/subscriptions/manage',
         },
         icon: Folders,
         children: [
@@ -53,7 +53,7 @@ export const AppNavMainData = [
       {
         title: 'Credential',
         link: {
-          to: '/credential3rd',
+          to: '/credential3rd/manage',
         },
         icon: KeyRound,
         children: [

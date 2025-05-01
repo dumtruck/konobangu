@@ -267,10 +267,11 @@ export type Credential3rdOrderInput = {
   username?: InputMaybe<OrderByEnum>;
 };
 
-export enum Credential3rdTypeEnum {
-  Mikan = 'mikan'
-}
+export const Credential3rdTypeEnum = {
+  Mikan: 'mikan'
+} as const;
 
+export type Credential3rdTypeEnum = typeof Credential3rdTypeEnum[keyof typeof Credential3rdTypeEnum];
 export type Credential3rdTypeEnumFilterInput = {
   eq?: InputMaybe<Credential3rdTypeEnum>;
   gt?: InputMaybe<Credential3rdTypeEnum>;
@@ -300,11 +301,12 @@ export type CursorInput = {
   limit: Scalars['Int']['input'];
 };
 
-export enum DownloadMimeEnum {
-  Applicationoctetstream = 'applicationoctetstream',
-  Applicationxbittorrent = 'applicationxbittorrent'
-}
+export const DownloadMimeEnum = {
+  Applicationoctetstream: 'applicationoctetstream',
+  Applicationxbittorrent: 'applicationxbittorrent'
+} as const;
 
+export type DownloadMimeEnum = typeof DownloadMimeEnum[keyof typeof DownloadMimeEnum];
 export type DownloadMimeEnumFilterInput = {
   eq?: InputMaybe<DownloadMimeEnum>;
   gt?: InputMaybe<DownloadMimeEnum>;
@@ -318,15 +320,16 @@ export type DownloadMimeEnumFilterInput = {
   ne?: InputMaybe<DownloadMimeEnum>;
 };
 
-export enum DownloadStatusEnum {
-  Completed = 'completed',
-  Deleted = 'deleted',
-  Downloading = 'downloading',
-  Failed = 'failed',
-  Paused = 'paused',
-  Pending = 'pending'
-}
+export const DownloadStatusEnum = {
+  Completed: 'completed',
+  Deleted: 'deleted',
+  Downloading: 'downloading',
+  Failed: 'failed',
+  Paused: 'paused',
+  Pending: 'pending'
+} as const;
 
+export type DownloadStatusEnum = typeof DownloadStatusEnum[keyof typeof DownloadStatusEnum];
 export type DownloadStatusEnumFilterInput = {
   eq?: InputMaybe<DownloadStatusEnum>;
   gt?: InputMaybe<DownloadStatusEnum>;
@@ -340,11 +343,12 @@ export type DownloadStatusEnumFilterInput = {
   ne?: InputMaybe<DownloadStatusEnum>;
 };
 
-export enum DownloaderCategoryEnum {
-  Dandanplay = 'dandanplay',
-  Qbittorrent = 'qbittorrent'
-}
+export const DownloaderCategoryEnum = {
+  Dandanplay: 'dandanplay',
+  Qbittorrent: 'qbittorrent'
+} as const;
 
+export type DownloaderCategoryEnum = typeof DownloaderCategoryEnum[keyof typeof DownloaderCategoryEnum];
 export type DownloaderCategoryEnumFilterInput = {
   eq?: InputMaybe<DownloaderCategoryEnum>;
   gt?: InputMaybe<DownloaderCategoryEnum>;
@@ -1007,11 +1011,12 @@ export type OffsetInput = {
   offset: Scalars['Int']['input'];
 };
 
-export enum OrderByEnum {
-  Asc = 'ASC',
-  Desc = 'DESC'
-}
+export const OrderByEnum = {
+  Asc: 'ASC',
+  Desc: 'DESC'
+} as const;
 
+export type OrderByEnum = typeof OrderByEnum[keyof typeof OrderByEnum];
 export type PageInfo = {
   __typename?: 'PageInfo';
   endCursor?: Maybe<Scalars['String']['output']>;
@@ -1405,13 +1410,14 @@ export type SubscriptionBangumiUpdateInput = {
   subscriptionId?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export enum SubscriptionCategoryEnum {
-  Manual = 'manual',
-  MikanBangumi = 'mikan_bangumi',
-  MikanSeason = 'mikan_season',
-  MikanSubscriber = 'mikan_subscriber'
-}
+export const SubscriptionCategoryEnum = {
+  Manual: 'manual',
+  MikanBangumi: 'mikan_bangumi',
+  MikanSeason: 'mikan_season',
+  MikanSubscriber: 'mikan_subscriber'
+} as const;
 
+export type SubscriptionCategoryEnum = typeof SubscriptionCategoryEnum[keyof typeof SubscriptionCategoryEnum];
 export type SubscriptionCategoryEnumFilterInput = {
   eq?: InputMaybe<SubscriptionCategoryEnum>;
   gt?: InputMaybe<SubscriptionCategoryEnum>;
@@ -1665,6 +1671,13 @@ export type DeleteCredential3rdMutationVariables = Exact<{
 
 export type DeleteCredential3rdMutation = { __typename?: 'Mutation', credential3rdDelete: number };
 
+export type GetCredential3rdDetailQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetCredential3rdDetailQuery = { __typename?: 'Query', credential3rd: { __typename?: 'Credential3rdConnection', nodes: Array<{ __typename?: 'Credential3rd', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }> } };
+
 export type GetSubscriptionsQueryVariables = Exact<{
   filters: SubscriptionsFilterInput;
   orderBy: SubscriptionsOrderInput;
@@ -1708,6 +1721,7 @@ export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind
 export const InsertCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<InsertCredential3rdMutation, InsertCredential3rdMutationVariables>;
 export const UpdateCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<UpdateCredential3rdMutation, UpdateCredential3rdMutationVariables>;
 export const DeleteCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteCredential3rdMutation, DeleteCredential3rdMutationVariables>;
+export const GetCredential3rdDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rdDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdDetailQuery, GetCredential3rdDetailQueryVariables>;
 export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>;
 export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
 export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;

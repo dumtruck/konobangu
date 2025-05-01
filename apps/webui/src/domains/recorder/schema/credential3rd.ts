@@ -1,5 +1,6 @@
 import {
   Credential3rdTypeEnum,
+  type GetCredential3rdDetailQuery,
   type GetCredential3rdQuery,
 } from '@/infra/graphql/gql/graphql';
 import { gql } from '@apollo/client';
@@ -62,6 +63,23 @@ export const DELETE_CREDENTIAL_3RD = gql`
   }
 `;
 
+export const GET_CREDENTIAL_3RD_DETAIL = gql`
+  query GetCredential3rdDetail($id: Int!) {
+    credential3rd(filters: { id: { eq: $id } }) {
+      nodes {
+        id
+        cookies
+        username
+        password
+        userAgent
+        createdAt
+        updatedAt
+        credentialType
+      }
+    }
+  }
+`;
+
 export const Credential3rdTypedMikanSchema = type({
   credentialType: `'${Credential3rdTypeEnum.Mikan}'`,
   username: 'string > 0',
@@ -81,3 +99,10 @@ export type Credential3rdInsertDto = typeof Credential3rdInsertSchema.infer;
 
 export type Credential3rdQueryDto =
   GetCredential3rdQuery['credential3rd']['nodes'][number];
+
+export const Credential3rdUpdateSchema = Credential3rdInsertSchema.partial();
+
+export type Credential3rdUpdateDto = typeof Credential3rdUpdateSchema.infer;
+
+export type Credential3rdDetailDto =
+  GetCredential3rdDetailQuery['credential3rd']['nodes'][number];

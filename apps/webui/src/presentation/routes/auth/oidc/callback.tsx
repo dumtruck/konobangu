@@ -4,7 +4,7 @@ import { ProLink } from '@/components/ui/pro-link';
 import { Spinner } from '@/components/ui/spinner';
 import { AUTH_METHOD } from '@/infra/auth/defs';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { useAtom } from 'jotai/react';
+import { useAtomValue } from 'jotai/react';
 import { atomWithObservable } from 'jotai/utils';
 import { EventTypes } from 'oidc-client-rx';
 import { useMemo } from 'react';
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/auth/oidc/callback')({
 function OidcCallbackRouteComponent() {
   const { authService } = useAuth();
 
-  const isLoading = useAtom(
+  const isLoading = useAtomValue(
     useMemo(
       () =>
         atomWithObservable(() =>
@@ -33,7 +33,7 @@ function OidcCallbackRouteComponent() {
     )
   );
 
-  const checkAuthResultError = useAtom(
+  const checkAuthResultError = useAtomValue(
     useMemo(
       () =>
         atomWithObservable(() =>

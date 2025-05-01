@@ -4,6 +4,7 @@
   "javascript": {
     "globals": ["Liveblocks"]
   },
+
   "linter": {
     "rules": {
       "nursery": {
@@ -26,6 +27,12 @@
         "noSvgWithoutTitle": "off"
       },
       "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": {
+            "maxAllowedComplexity": 20
+          }
+        },
         "noBannedTypes": "off"
       },
       "correctness": {

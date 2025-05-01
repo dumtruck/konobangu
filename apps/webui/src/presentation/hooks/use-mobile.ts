@@ -1,19 +1,21 @@
-import * as React from "react"
-
-const MOBILE_BREAKPOINT = 768
+import { useInject } from '@/infra/di/inject';
+import { ThemeService } from '@/infra/styles/theme.service';
+import { useAtomValue } from 'jotai/react';
+import { atomWithObservable } from 'jotai/utils';
+import { useMemo } from 'react';
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const themeService = useInject(ThemeService);
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
+  const isMobile = useAtomValue(
+    useMemo(
+      () =>
+        atomWithObservable(() => themeService.isMobile$, {
+          initialValue: themeService.isMobile$.value,
+        }),
+      [themeService.isMobile$]
+    )
+  );
 
-  return !!isMobile
+  return isMobile;
 }

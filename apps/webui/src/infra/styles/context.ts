@@ -37,8 +37,11 @@ export function useTheme() {
   }, [injector]);
 
   const colorTheme = useMemo(
-    () => atomWithObservable(() => themeService.colorSchema$),
-    [themeService]
+    () =>
+      atomWithObservable(() => themeService.colorSchema$, {
+        initialValue: themeService.colorSchema$.value,
+      }),
+    [themeService.colorSchema$]
   );
 
   return {

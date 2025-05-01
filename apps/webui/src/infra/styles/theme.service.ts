@@ -3,17 +3,16 @@ import { LocalStorageService } from '@/infra/storage/web-storage.service';
 import { Injectable, inject } from '@outposts/injection-js';
 import {
   BehaviorSubject,
-  ReplaySubject,
   combineLatest,
   distinctUntilChanged,
   filter,
   fromEvent,
   map,
-  shareReplay,
-  startWith,
 } from 'rxjs';
 export type PreferColorSchemaType = 'dark' | 'light' | 'system';
 export type PreferColorSchemaClass = 'dark' | 'light';
+
+const MOBILE_BREAKPOINT = 768;
 
 @Injectable()
 export class ThemeService {
@@ -29,17 +28,34 @@ export class ThemeService {
       this.systemColorSchema$.value
     )
   );
+  isMobile$ = new BehaviorSubject(
+    this.getIsMobileByInnerWidth(this.document.defaultView?.innerWidth)
+  );
 
   setup() {
-    const mediaQuery = this.document.defaultView?.matchMedia(
+    const isMobileMediaQuery = this.document.defaultView?.matchMedia(
+      `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
+    );
+
+    if (isMobileMediaQuery) {
+      fromEvent(isMobileMediaQuery, 'change')
+        .pipe(
+          map(() =>
+            this.getIsMobileByInnerWidth(this.document.defaultView?.innerWidth)
+          ),
+          distinctUntilChanged()
+        )
+        .subscribe(this.isMobile$);
+    }
+
+    const systemColorSchemaMediaQuery = this.document.defaultView?.matchMedia(
       '(prefers-color-scheme: dark)'
     );
 
-    if (mediaQuery) {
-      fromEvent(mediaQuery, 'change')
+    if (systemColorSchemaMediaQuery) {
+      fromEvent(systemColorSchemaMediaQuery, 'change')
         .pipe(
-          map(() => (mediaQuery.matches ? 'dark' : 'light')),
-          startWith(this.systemColorSchema),
+          map(() => (systemColorSchemaMediaQuery.matches ? 'dark' : 'light')),
           distinctUntilChanged()
         )
         .subscribe(this.systemColorSchema$);
@@ -83,6 +99,13 @@ export class ThemeService {
       return themeType;
     }
     return systemColorSchema;
+  }
+
+  private getIsMobileByInnerWidth(innerWidth: number | undefined): boolean {
+    if (innerWidth === undefined) {
+      return false;
+    }
+    return innerWidth < MOBILE_BREAKPOINT;
   }
 
   get systemColorSchema(): PreferColorSchemaClass {

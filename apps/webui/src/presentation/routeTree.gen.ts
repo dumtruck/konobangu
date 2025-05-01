@@ -34,6 +34,7 @@ import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
 import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
 import { Route as AppSubscriptionsEditSubscriptionIdImport } from './routes/_app/subscriptions/edit.$subscriptionId'
 import { Route as AppSubscriptionsDetailSubscriptionIdImport } from './routes/_app/subscriptions/detail.$subscriptionId'
+import { Route as AppCredential3rdEditIdImport } from './routes/_app/credential3rd/edit.$id'
 import { Route as AppCredential3rdDetailIdImport } from './routes/_app/credential3rd/detail.$id'
 
 // Create/Update Routes
@@ -178,6 +179,12 @@ const AppSubscriptionsDetailSubscriptionIdRoute =
     path: '/detail/$subscriptionId',
     getParentRoute: () => AppSubscriptionsRouteRoute,
   } as any)
+
+const AppCredential3rdEditIdRoute = AppCredential3rdEditIdImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => AppCredential3rdRouteRoute,
+} as any)
 
 const AppCredential3rdDetailIdRoute = AppCredential3rdDetailIdImport.update({
   id: '/detail/$id',
@@ -343,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCredential3rdDetailIdImport
       parentRoute: typeof AppCredential3rdRouteImport
     }
+    '/_app/credential3rd/edit/$id': {
+      id: '/_app/credential3rd/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/credential3rd/edit/$id'
+      preLoaderRoute: typeof AppCredential3rdEditIdImport
+      parentRoute: typeof AppCredential3rdRouteImport
+    }
     '/_app/subscriptions/detail/$subscriptionId': {
       id: '/_app/subscriptions/detail/$subscriptionId'
       path: '/detail/$subscriptionId'
@@ -378,12 +392,14 @@ interface AppCredential3rdRouteRouteChildren {
   AppCredential3rdCreateRoute: typeof AppCredential3rdCreateRoute
   AppCredential3rdManageRoute: typeof AppCredential3rdManageRoute
   AppCredential3rdDetailIdRoute: typeof AppCredential3rdDetailIdRoute
+  AppCredential3rdEditIdRoute: typeof AppCredential3rdEditIdRoute
 }
 
 const AppCredential3rdRouteRouteChildren: AppCredential3rdRouteRouteChildren = {
   AppCredential3rdCreateRoute: AppCredential3rdCreateRoute,
   AppCredential3rdManageRoute: AppCredential3rdManageRoute,
   AppCredential3rdDetailIdRoute: AppCredential3rdDetailIdRoute,
+  AppCredential3rdEditIdRoute: AppCredential3rdEditIdRoute,
 }
 
 const AppCredential3rdRouteRouteWithChildren =
@@ -481,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
+  '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
   '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
@@ -508,6 +525,7 @@ export interface FileRoutesByTo {
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
+  '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
   '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
@@ -536,6 +554,7 @@ export interface FileRoutesById {
   '/_app/subscriptions/manage': typeof AppSubscriptionsManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/_app/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
+  '/_app/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/_app/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
   '/_app/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
@@ -565,6 +584,7 @@ export interface FileRouteTypes {
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
+    | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$subscriptionId'
     | '/subscriptions/edit/$subscriptionId'
   fileRoutesByTo: FileRoutesByTo
@@ -591,6 +611,7 @@ export interface FileRouteTypes {
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
+    | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$subscriptionId'
     | '/subscriptions/edit/$subscriptionId'
   id:
@@ -617,6 +638,7 @@ export interface FileRouteTypes {
     | '/_app/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/_app/credential3rd/detail/$id'
+    | '/_app/credential3rd/edit/$id'
     | '/_app/subscriptions/detail/$subscriptionId'
     | '/_app/subscriptions/edit/$subscriptionId'
   fileRoutesById: FileRoutesById
@@ -695,7 +717,8 @@ export const routeTree = rootRoute
       "children": [
         "/_app/credential3rd/create",
         "/_app/credential3rd/manage",
-        "/_app/credential3rd/detail/$id"
+        "/_app/credential3rd/detail/$id",
+        "/_app/credential3rd/edit/$id"
       ]
     },
     "/_app/playground": {
@@ -769,6 +792,10 @@ export const routeTree = rootRoute
     },
     "/_app/credential3rd/detail/$id": {
       "filePath": "_app/credential3rd/detail.$id.tsx",
+      "parent": "/_app/credential3rd"
+    },
+    "/_app/credential3rd/edit/$id": {
+      "filePath": "_app/credential3rd/edit.$id.tsx",
       "parent": "/_app/credential3rd"
     },
     "/_app/subscriptions/detail/$subscriptionId": {
