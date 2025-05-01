@@ -1,8 +1,8 @@
 use std::{ops::Deref, time::Duration};
 
 use sea_orm::{
-    ConnectOptions, ConnectionTrait, Database, DatabaseBackend, DatabaseConnection, DbBackend,
-    DbErr, ExecResult, QueryResult, Statement,
+    ConnectOptions, ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, ExecResult,
+    QueryResult, Statement,
 };
 use sea_orm_migration::MigratorTrait;
 
@@ -28,20 +28,21 @@ impl DatabaseService {
 
         let db = Database::connect(opt).await?;
 
-        if db.get_database_backend() == DatabaseBackend::Sqlite {
-            db.execute(Statement::from_string(
-                DatabaseBackend::Sqlite,
-                "
-                PRAGMA foreign_keys = ON;
-                PRAGMA journal_mode = WAL;
-                PRAGMA synchronous = NORMAL;
-                PRAGMA mmap_size = 134217728;
-                PRAGMA journal_size_limit = 67108864;
-                PRAGMA cache_size = 2000;
-                ",
-            ))
-            .await?;
-        }
+        // only support postgres for now
+        // if db.get_database_backend() == DatabaseBackend::Sqlite {
+        //     db.execute(Statement::from_string(
+        //         DatabaseBackend::Sqlite,
+        //         "
+        //         PRAGMA foreign_keys = ON;
+        //         PRAGMA journal_mode = WAL;
+        //         PRAGMA synchronous = NORMAL;
+        //         PRAGMA mmap_size = 134217728;
+        //         PRAGMA journal_size_limit = 67108864;
+        //         PRAGMA cache_size = 2000;
+        //         ",
+        //     ))
+        //     .await?;
+        // }
 
         if config.auto_migrate {
             Migrator::up(&db, None).await?;

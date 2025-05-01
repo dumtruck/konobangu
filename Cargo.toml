@@ -11,7 +11,6 @@ resolver = "2"
 [workspace.dependencies]
 moka = "0.12"
 futures = "0.3"
-futures-util = "0.3"
 quirks_path = "0.1"
 snafu = { version = "0.8", features = ["futures"] }
 testcontainers = { version = "0.23.3" }
@@ -46,7 +45,6 @@ testing-torrents = { path = "./packages/testing-torrents" }
 util = { path = "./packages/util" }
 fetch = { path = "./packages/fetch" }
 downloader = { path = "./packages/downloader" }
-recorder = { path = "./apps/recorder" }
 
 [patch.crates-io]
 jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }

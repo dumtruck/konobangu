@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use clap::{Parser, command};
 
 use super::{AppContext, core::App, env::Environment};
@@ -83,9 +81,8 @@ impl AppBuilder {
         )
         .await?;
 
-        let app_context = Arc::new(
-            AppContext::new(self.environment.clone(), config, self.working_dir.clone()).await?,
-        );
+        let app_context =
+            AppContext::new(self.environment.clone(), config, self.working_dir.clone()).await?;
 
         Ok(App {
             context: app_context,

@@ -4,13 +4,14 @@ use axum::{
     Json,
     response::{IntoResponse, Response},
 };
-use fetch::{FetchError, HttpClientError};
+use fetch::{FetchError, HttpClientError, reqwest, reqwest_middleware};
 use http::StatusCode;
 use serde::{Deserialize, Deserializer, Serialize};
 use snafu::Snafu;
 
 use crate::{
     auth::AuthError,
+    crypto::CryptoError,
     downloader::DownloaderError,
     errors::{OptDynErr, response::StandardErrorResponse},
 };
@@ -102,6 +103,14 @@ pub enum RecorderError {
     ModelEntityNotFound { entity: Cow<'static, str> },
     #[snafu(transparent)]
     FetchError { source: FetchError },
+    #[snafu(display("Credential3rdError: {source}"))]
+    Credential3rdError {
+        message: String,
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
+        source: OptDynErr,
+    },
+    #[snafu(transparent)]
+    CryptoError { source: CryptoError },
     #[snafu(display("{message}"))]
     Whatever {
         message: String,
@@ -192,6 +201,18 @@ impl<'de> Deserialize<'de> for RecorderError {
             message: s,
             source: None.into(),
         })
+    }
+}
+
+impl From<reqwest::Error> for RecorderError {
+    fn from(error: reqwest::Error) -> Self {
+        FetchError::from(error).into()
+    }
+}
+
+impl From<reqwest_middleware::Error> for RecorderError {
+    fn from(error: reqwest_middleware::Error) -> Self {
+        FetchError::from(error).into()
     }
 }
 

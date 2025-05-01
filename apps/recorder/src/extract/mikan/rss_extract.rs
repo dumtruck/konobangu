@@ -12,7 +12,7 @@ use crate::{
     errors::app_error::{RecorderError, RecorderResult},
     extract::mikan::{
         MikanClient,
-        web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage},
+        web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage_url},
     },
 };
 
@@ -135,7 +135,7 @@ impl TryFrom<rss::Item> for MikanRssItem {
 
         let MikanEpisodeHomepage {
             mikan_episode_id, ..
-        } = extract_mikan_episode_id_from_homepage(&homepage).ok_or_else(|| {
+        } = extract_mikan_episode_id_from_homepage_url(&homepage).ok_or_else(|| {
             RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
@@ -155,17 +155,17 @@ impl TryFrom<rss::Item> for MikanRssItem {
 }
 
 #[derive(Debug, Clone)]
-pub struct MikanBangumiRssLink {
+pub struct MikanBangumiRssUrlMeta {
     pub mikan_bangumi_id: String,
     pub mikan_fansub_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
-pub struct MikanSubscriberAggregationRssLink {
+pub struct MikanSubscriberAggregationRssUrlMeta {
     pub mikan_aggregation_id: String,
 }
 
-pub fn build_mikan_bangumi_rss_link(
+pub fn build_mikan_bangumi_rss_url(
     mikan_base_url: impl IntoUrl,
     mikan_bangumi_id: &str,
     mikan_fansub_id: Option<&str>,
@@ -181,7 +181,7 @@ pub fn build_mikan_bangumi_rss_link(
     Ok(url)
 }
 
-pub fn build_mikan_subscriber_aggregation_rss_link(
+pub fn build_mikan_subscriber_aggregation_rss_url(
     mikan_base_url: &str,
     mikan_aggregation_id: &str,
 ) -> RecorderResult<Url> {
@@ -192,11 +192,11 @@ pub fn build_mikan_subscriber_aggregation_rss_link(
     Ok(url)
 }
 
-pub fn extract_mikan_bangumi_id_from_rss_link(url: &Url) -> Option<MikanBangumiRssLink> {
+pub fn extract_mikan_bangumi_id_from_rss_url(url: &Url) -> Option<MikanBangumiRssUrlMeta> {
     if url.path() == "/RSS/Bangumi" {
         url.query_pairs()
             .find(|(k, _)| k == "bangumiId")
-            .map(|(_, v)| MikanBangumiRssLink {
+            .map(|(_, v)| MikanBangumiRssUrlMeta {
                 mikan_bangumi_id: v.to_string(),
                 mikan_fansub_id: url
                     .query_pairs()
@@ -210,10 +210,10 @@ pub fn extract_mikan_bangumi_id_from_rss_link(url: &Url) -> Option<MikanBangumiR
 
 pub fn extract_mikan_subscriber_aggregation_id_from_rss_link(
     url: &Url,
-) -> Option<MikanSubscriberAggregationRssLink> {
+) -> Option<MikanSubscriberAggregationRssUrlMeta> {
     if url.path() == "/RSS/MyBangumi" {
         url.query_pairs().find(|(k, _)| k == "token").map(|(_, v)| {
-            MikanSubscriberAggregationRssLink {
+            MikanSubscriberAggregationRssUrlMeta {
                 mikan_aggregation_id: v.to_string(),
             }
         })
@@ -233,10 +233,10 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
 
     let channel_link = Url::parse(channel.link())?;
 
-    if let Some(MikanBangumiRssLink {
+    if let Some(MikanBangumiRssUrlMeta {
         mikan_bangumi_id,
         mikan_fansub_id,
-    }) = extract_mikan_bangumi_id_from_rss_link(&channel_link)
+    }) = extract_mikan_bangumi_id_from_rss_url(&channel_link)
     {
         tracing::trace!(
             mikan_bangumi_id,
@@ -290,7 +290,7 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
                 },
             ))
         }
-    } else if let Some(MikanSubscriberAggregationRssLink {
+    } else if let Some(MikanSubscriberAggregationRssUrlMeta {
         mikan_aggregation_id,
         ..
     }) = extract_mikan_subscriber_aggregation_id_from_rss_link(&channel_link)

@@ -9,7 +9,7 @@ use crate::{
     app::AppContextTrait,
     errors::RecorderResult,
     extract::{
-        mikan::{MikanEpisodeMeta, build_mikan_episode_homepage},
+        mikan::{MikanEpisodeMeta, build_mikan_episode_homepage_url},
         rawname::parse_episode_meta_from_raw_name,
     },
 };
@@ -200,8 +200,10 @@ impl ActiveModel {
             })
             .ok()
             .unwrap_or_default();
-        let homepage =
-            build_mikan_episode_homepage(ctx.mikan().base_url().clone(), &item.mikan_episode_id);
+        let homepage = build_mikan_episode_homepage_url(
+            ctx.mikan().base_url().clone(),
+            &item.mikan_episode_id,
+        );
 
         Ok(Self {
             mikan_episode_id: ActiveValue::Set(Some(item.mikan_episode_id)),

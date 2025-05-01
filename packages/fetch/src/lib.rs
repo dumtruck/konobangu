@@ -9,10 +9,7 @@ pub mod test_util;
 pub use core::get_random_mobile_ua;
 
 pub use bytes::fetch_bytes;
-pub use client::{
-    HttpClient, HttpClientConfig, HttpClientCookiesAuth, HttpClientError,
-    HttpClientSecrecyDataTrait, HttpClientTrait,
-};
+pub use client::{HttpClient, HttpClientConfig, HttpClientError, HttpClientTrait};
 pub use errors::FetchError;
 pub use html::fetch_html;
 pub use image::fetch_image;

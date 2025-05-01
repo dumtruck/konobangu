@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod bangumi;
+pub mod credential_3rd;
 pub mod downloaders;
 pub mod downloads;
 pub mod episodes;

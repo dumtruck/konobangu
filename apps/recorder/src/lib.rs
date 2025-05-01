@@ -14,6 +14,7 @@ pub use downloader;
 pub mod app;
 pub mod auth;
 pub mod cache;
+pub mod crypto;
 pub mod database;
 pub mod errors;
 pub mod extract;

@@ -6,7 +6,8 @@ use http_cache_reqwest::{
     Cache, CacheManager, CacheMode, HttpCache, HttpCacheOptions, MokaManager,
 };
 use leaky_bucket::RateLimiter;
-use reqwest::{ClientBuilder, Request, Response};
+use reqwest::{self, ClientBuilder, Request, Response};
+use reqwest_cookie_store::{CookieStore, CookieStoreRwLock};
 use reqwest_middleware::{
     ClientBuilder as ClientWithMiddlewareBuilder, ClientWithMiddleware, Middleware, Next,
 };
@@ -16,7 +17,6 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use snafu::Snafu;
 
-use super::HttpClientSecrecyDataTrait;
 use crate::get_random_mobile_ua;
 
 pub struct RateLimiterMiddleware {
@@ -109,6 +109,8 @@ pub enum HttpClientError {
     ReqwestMiddlewareError { source: reqwest_middleware::Error },
     #[snafu(transparent)]
     HttpError { source: http::Error },
+    #[snafu(display("Failed to parse cookies: {}", source))]
+    ParseCookiesError { source: serde_json::Error },
 }
 
 pub trait HttpClientTrait: Deref<Target = ClientWithMiddleware> + Debug {}
@@ -117,17 +119,29 @@ pub struct HttpClientFork {
     pub client_builder: ClientBuilder,
     pub middleware_stack: Vec<Arc<dyn Middleware>>,
     pub config: HttpClientConfig,
+    pub cookie_store: Option<Arc<CookieStoreRwLock>>,
 }
 
 impl HttpClientFork {
-    pub fn attach_secrecy<S: HttpClientSecrecyDataTrait>(self, secrecy: S) -> Self {
-        let mut fork = self;
-        fork.client_builder = secrecy.attach_secrecy_to_client(fork.client_builder);
-        fork
+    pub fn attach_cookies(mut self, cookies: &str) -> Result<Self, HttpClientError> {
+        let cookie_store: CookieStore = serde_json::from_str(cookies)
+            .map_err(|err| HttpClientError::ParseCookiesError { source: err })?;
+
+        let cookies_store = Arc::new(CookieStoreRwLock::new(cookie_store));
+
+        self.cookie_store = Some(cookies_store.clone());
+        self.client_builder = self.client_builder.cookie_provider(cookies_store);
+        Ok(self)
+    }
+
+    pub fn attach_user_agent(mut self, user_agent: &str) -> Self {
+        self.client_builder = self.client_builder.user_agent(user_agent);
+        self
     }
 }
 
 pub struct HttpClient {
+    pub cookie_store: Option<Arc<CookieStoreRwLock>>,
     client: ClientWithMiddleware,
     middleware_stack: Vec<Arc<dyn Middleware>>,
     pub config: HttpClientConfig,
@@ -268,6 +282,7 @@ impl HttpClient {
             client: reqwest_with_middleware,
             middleware_stack,
             config,
+            cookie_store: None,
         })
     }
 
@@ -287,6 +302,7 @@ impl HttpClient {
             client_builder: reqwest_client_builder,
             middleware_stack: self.middleware_stack.clone(),
             config: self.config.clone(),
+            cookie_store: self.cookie_store.clone(),
         }
     }
 
@@ -295,6 +311,7 @@ impl HttpClient {
             client_builder,
             middleware_stack,
             config,
+            cookie_store,
         } = fork;
         let reqwest_client = client_builder.build()?;
         let mut reqwest_with_middleware_builder = ClientWithMiddlewareBuilder::new(reqwest_client);
@@ -309,6 +326,7 @@ impl HttpClient {
             client: reqwest_with_middleware,
             middleware_stack,
             config,
+            cookie_store,
         })
     }
 }

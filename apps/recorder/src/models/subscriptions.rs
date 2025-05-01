@@ -11,7 +11,7 @@ use crate::{
     errors::RecorderResult,
     extract::{
         mikan::{
-            build_mikan_bangumi_homepage, build_mikan_bangumi_rss_link,
+            build_mikan_bangumi_homepage_url, build_mikan_bangumi_rss_url,
             extract_mikan_bangumi_meta_from_bangumi_homepage,
             extract_mikan_episode_meta_from_episode_homepage,
             extract_mikan_rss_channel_from_rss_link,
@@ -54,6 +54,7 @@ pub struct Model {
     pub category: SubscriptionCategory,
     pub source_url: String,
     pub enabled: bool,
+    pub credential_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -74,6 +75,14 @@ pub enum Relation {
     SubscriptionEpisode,
     #[sea_orm(has_many = "super::subscription_bangumi::Entity")]
     SubscriptionBangumi,
+    #[sea_orm(
+        belongs_to = "super::credential_3rd::Entity",
+        from = "Column::CredentialId",
+        to = "super::credential_3rd::Column::Id",
+        on_update = "Cascade",
+        on_delete = "SetNull"
+    )]
+    Credential3rd,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -122,6 +131,12 @@ impl Related<super::episodes::Entity> for Entity {
     }
 }
 
+impl Related<super::credential_3rd::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Credential3rd.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscribers::Entity")]
@@ -134,6 +149,8 @@ pub enum RelatedEntity {
     SubscriptionEpisode,
     #[sea_orm(entity = "super::subscription_bangumi::Entity")]
     SubscriptionBangumi,
+    #[sea_orm(entity = "super::credential_3rd::Entity")]
+    Credential3rd,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -270,12 +287,12 @@ impl Model {
                 for ((mikan_bangumi_id, mikan_fansub_id), new_ep_metas) in new_mikan_bangumi_groups
                 {
                     let mikan_base_url = ctx.mikan().base_url();
-                    let bgm_homepage = build_mikan_bangumi_homepage(
+                    let bgm_homepage = build_mikan_bangumi_homepage_url(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,
                         Some(&mikan_fansub_id),
                     );
-                    let bgm_rss_link = build_mikan_bangumi_rss_link(
+                    let bgm_rss_link = build_mikan_bangumi_rss_url(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,
                         Some(&mikan_fansub_id),

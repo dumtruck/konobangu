@@ -61,7 +61,7 @@ sea-orm-migration = { version = "1.1", features = ["runtime-tokio-rustls"] }
 rss = "2"
 fancy-regex = "0.14"
 maplit = "1.0.2"
-lightningcss = "1.0.0-alpha.65"
+lightningcss = "1.0.0-alpha.66"
 html-escape = "0.2.13"
 opendal = { version = "0.53", features = ["default", "services-fs"] }
 zune-image = "0.4.15"
@@ -104,11 +104,16 @@ clap = "4.5.31"
 ipnetwork = "0.21.1"
 typed-builder = "0.21.0"
 serde_yaml = "0.9.34"
-
+apalis = { version = "0.7", features = ["limit", "tracing", "catch-panic"] }
+apalis-sql = { version = "0.7", features = ["postgres"] }
+cocoon = { version = "0.4.3", features = ["getrandom", "thiserror"] }
+rand = "0.9.1"
 downloader = { workspace = true }
 util = { workspace = true }
 fetch = { workspace = true }
 string-interner = "0.19.0"
+secrecy = "0.10.3"
+reqwest_cookie_store = "0.8.0"
 
 [dev-dependencies]
 serial_test = "3"

@@ -33,6 +33,7 @@ pub enum Subscriptions {
     Category,
     SourceUrl,
     Enabled,
+    CredentialId,
 }
 
 #[derive(DeriveIden)]
@@ -135,6 +136,18 @@ pub enum Auth {
     Pid,
     SubscriberId,
     AuthType,
+}
+
+#[derive(DeriveIden)]
+pub enum Credential3rd {
+    Table,
+    Id,
+    SubscriberId,
+    CredentialType,
+    Cookies,
+    Username,
+    Password,
+    UserAgent,
 }
 
 macro_rules! create_postgres_enum_for_active_enum {

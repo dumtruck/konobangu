@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use typed_builder::TypedBuilder;
 
 use crate::app::AppContextTrait;
@@ -13,10 +15,18 @@ pub struct UnitTestAppContext {
     auth: Option<crate::auth::AuthService>,
     graphql: Option<crate::graphql::GraphQLService>,
     storage: Option<crate::storage::StorageService>,
+    crypto: Option<crate::crypto::CryptoService>,
+    tasks: Option<crate::tasks::TaskService>,
     #[builder(default = Some(String::from(env!("CARGO_MANIFEST_DIR"))))]
     working_dir: Option<String>,
     #[builder(default = crate::app::Environment::Testing, setter(!strip_option))]
     environment: crate::app::Environment,
+}
+
+impl Debug for UnitTestAppContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "UnitTestAppContext")
+    }
 }
 
 impl AppContextTrait for UnitTestAppContext {
@@ -58,5 +68,13 @@ impl AppContextTrait for UnitTestAppContext {
 
     fn working_dir(&self) -> &String {
         self.working_dir.as_ref().expect("should set working_dir")
+    }
+
+    fn crypto(&self) -> &crate::crypto::CryptoService {
+        self.crypto.as_ref().expect("should set crypto")
+    }
+
+    fn task(&self) -> &crate::tasks::TaskService {
+        self.tasks.as_ref().expect("should set tasks")
     }
 }

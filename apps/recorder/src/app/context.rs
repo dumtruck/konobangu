@@ -1,11 +1,15 @@
+use std::{fmt::Debug, sync::Arc};
+
+use tokio::sync::OnceCell;
+
 use super::{Environment, config::AppConfig};
 use crate::{
-    auth::AuthService, cache::CacheService, database::DatabaseService, errors::RecorderResult,
-    extract::mikan::MikanClient, graphql::GraphQLService, logger::LoggerService,
-    storage::StorageService,
+    auth::AuthService, cache::CacheService, crypto::CryptoService, database::DatabaseService,
+    errors::RecorderResult, extract::mikan::MikanClient, graphql::GraphQLService,
+    logger::LoggerService, storage::StorageService, tasks::TaskService,
 };
 
-pub trait AppContextTrait: Send + Sync {
+pub trait AppContextTrait: Send + Sync + Debug {
     fn logger(&self) -> &LoggerService;
     fn db(&self) -> &DatabaseService;
     fn config(&self) -> &AppConfig;
@@ -16,6 +20,8 @@ pub trait AppContextTrait: Send + Sync {
     fn storage(&self) -> &StorageService;
     fn working_dir(&self) -> &String;
     fn environment(&self) -> &Environment;
+    fn crypto(&self) -> &CryptoService;
+    fn task(&self) -> &TaskService;
 }
 
 pub struct AppContext {
@@ -27,8 +33,10 @@ pub struct AppContext {
     auth: AuthService,
     graphql: GraphQLService,
     storage: StorageService,
+    crypto: CryptoService,
     working_dir: String,
     environment: Environment,
+    task: OnceCell<TaskService>,
 }
 
 impl AppContext {
@@ -36,7 +44,7 @@ impl AppContext {
         environment: Environment,
         config: AppConfig,
         working_dir: impl ToString,
-    ) -> RecorderResult<Self> {
+    ) -> RecorderResult<Arc<Self>> {
         let config_cloned = config.clone();
 
         let logger = LoggerService::from_config(config.logger).await?;
@@ -45,9 +53,10 @@ impl AppContext {
         let storage = StorageService::from_config(config.storage).await?;
         let auth = AuthService::from_conf(config.auth).await?;
         let mikan = MikanClient::from_config(config.mikan).await?;
+        let crypto = CryptoService::from_config(config.crypto).await?;
         let graphql = GraphQLService::from_config_and_database(config.graphql, db.clone()).await?;
 
-        Ok(AppContext {
+        let ctx = Arc::new(AppContext {
             config: config_cloned,
             environment,
             logger,
@@ -58,9 +67,26 @@ impl AppContext {
             mikan,
             working_dir: working_dir.to_string(),
             graphql,
-        })
+            crypto,
+            task: OnceCell::new(),
+        });
+
+        ctx.task
+            .get_or_try_init(async || {
+                TaskService::from_config_and_ctx(config.tasks, ctx.clone()).await
+            })
+            .await?;
+
+        Ok(ctx)
     }
 }
+
+impl Debug for AppContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AppContext")
+    }
+}
+
 impl AppContextTrait for AppContext {
     fn logger(&self) -> &LoggerService {
         &self.logger
@@ -91,5 +117,11 @@ impl AppContextTrait for AppContext {
     }
     fn environment(&self) -> &Environment {
         &self.environment
+    }
+    fn crypto(&self) -> &CryptoService {
+        &self.crypto
+    }
+    fn task(&self) -> &TaskService {
+        self.task.get().expect("task should be set")
     }
 }

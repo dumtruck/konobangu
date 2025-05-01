@@ -1,4 +1,6 @@
-pub mod core;
+pub mod config;
 pub mod mikan;
 pub mod service;
-pub mod registry;
+
+pub use config::TaskConfig;
+pub use service::TaskService;

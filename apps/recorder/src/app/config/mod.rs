@@ -9,9 +9,9 @@ use serde::{Deserialize, Serialize};
 
 use super::env::Environment;
 use crate::{
-    auth::AuthConfig, cache::CacheConfig, database::DatabaseConfig, errors::RecorderResult,
-    extract::mikan::MikanConfig, graphql::GraphQLConfig, logger::LoggerConfig,
-    storage::StorageConfig, web::WebServerConfig,
+    auth::AuthConfig, cache::CacheConfig, crypto::CryptoConfig, database::DatabaseConfig,
+    errors::RecorderResult, extract::mikan::MikanConfig, graphql::GraphQLConfig,
+    logger::LoggerConfig, storage::StorageConfig, tasks::TaskConfig, web::WebServerConfig,
 };
 
 const DEFAULT_CONFIG_MIXIN: &str = include_str!("./default_mixin.toml");
@@ -24,9 +24,11 @@ pub struct AppConfig {
     pub auth: AuthConfig,
     pub storage: StorageConfig,
     pub mikan: MikanConfig,
+    pub crypto: CryptoConfig,
     pub graphql: GraphQLConfig,
     pub logger: LoggerConfig,
     pub database: DatabaseConfig,
+    pub tasks: TaskConfig,
 }
 
 impl AppConfig {
