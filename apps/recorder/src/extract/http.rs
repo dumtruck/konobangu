@@ -1,4 +1,4 @@
-use axum::http::{header, request::Parts, HeaderName, HeaderValue, Uri};
+use axum::http::{HeaderName, HeaderValue, Uri, header, request::Parts};
 use itertools::Itertools;
 use url::Url;
 
@@ -121,11 +121,7 @@ impl ForwardedRelatedInfo {
             .and_then(|s| s.to_str().ok())
             .and_then(|s| {
                 let l = s.split(",").map(|s| s.trim().to_string()).collect_vec();
-                if l.is_empty() {
-                    None
-                } else {
-                    Some(l)
-                }
+                if l.is_empty() { None } else { Some(l) }
             });
 
         let host = headers
@@ -165,7 +161,7 @@ impl ForwardedRelatedInfo {
 
     pub fn resolved_origin(&self) -> Option<Url> {
         if let (Some(protocol), Some(host)) = (self.resolved_protocol(), self.resolved_host()) {
-            let origin = format!("{}://{}", protocol, host);
+            let origin = format!("{protocol}://{host}");
             Url::parse(&origin).ok()
         } else {
             None

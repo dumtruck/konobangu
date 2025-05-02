@@ -11,13 +11,11 @@ use crate::{
     errors::RecorderResult,
     extract::{
         mikan::{
-            build_mikan_bangumi_homepage_url, build_mikan_bangumi_rss_url,
-            extract_mikan_bangumi_meta_from_bangumi_homepage,
-            extract_mikan_episode_meta_from_episode_homepage,
+            MikanBangumiPosterMeta, build_mikan_bangumi_homepage_url, build_mikan_bangumi_rss_url,
             extract_mikan_rss_channel_from_rss_link,
-            web_extract::{
-                MikanBangumiPosterMeta, extract_mikan_bangumi_poster_meta_from_src_with_cache,
-            },
+            scrape_mikan_bangumi_meta_from_bangumi_homepage_url,
+            scrape_mikan_episode_meta_from_episode_homepage_url,
+            scrape_mikan_poster_meta_from_image_url,
         },
         rawname::extract_season_from_title_body,
     },
@@ -272,7 +270,7 @@ impl Model {
                 let mut new_metas = vec![];
                 for new_rss_item in new_rss_items.iter() {
                     new_metas.push(
-                        extract_mikan_episode_meta_from_episode_homepage(
+                        scrape_mikan_episode_meta_from_episode_homepage_url(
                             mikan_client,
                             new_rss_item.homepage.clone(),
                         )
@@ -305,7 +303,7 @@ impl Model {
                             mikan_bangumi_id.to_string(),
                             mikan_fansub_id.to_string(),
                             async |am| -> RecorderResult<()> {
-                                let bgm_meta = extract_mikan_bangumi_meta_from_bangumi_homepage(
+                                let bgm_meta = scrape_mikan_bangumi_meta_from_bangumi_homepage_url(
                                     mikan_client,
                                     bgm_homepage.clone(),
                                 )
@@ -319,20 +317,20 @@ impl Model {
                                 am.season_raw = ActiveValue::Set(bgm_season_raw);
                                 am.rss_link = ActiveValue::Set(Some(bgm_rss_link.to_string()));
                                 am.homepage = ActiveValue::Set(Some(bgm_homepage.to_string()));
-                                am.fansub = ActiveValue::Set(bgm_meta.fansub);
-                                if let Some(origin_poster_src) = bgm_meta.origin_poster_src {
-                                    if let MikanBangumiPosterMeta {
+                                am.fansub = ActiveValue::Set(Some(bgm_meta.fansub));
+                                if let Some(origin_poster_src) = bgm_meta.origin_poster_src
+                                    && let MikanBangumiPosterMeta {
                                         poster_src: Some(poster_src),
                                         ..
-                                    } = extract_mikan_bangumi_poster_meta_from_src_with_cache(
-                                        ctx,
+                                    } = scrape_mikan_poster_meta_from_image_url(
+                                        mikan_client,
+                                        ctx.storage(),
                                         origin_poster_src,
                                         self.subscriber_id,
                                     )
                                     .await?
-                                    {
-                                        am.poster_link = ActiveValue::Set(Some(poster_src))
-                                    }
+                                {
+                                    am.poster_link = ActiveValue::Set(Some(poster_src))
                                 }
                                 Ok(())
                             },

@@ -1,14 +1,13 @@
 use std::fmt;
 
 use bytes::Bytes;
-use opendal::{Buffer, Operator, layers::LoggingLayer, services::Fs};
+use opendal::{Buffer, Operator, layers::LoggingLayer};
 use quirks_path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use url::Url;
-use uuid::Uuid;
 
 use super::StorageConfig;
-use crate::errors::app_error::{RecorderError, RecorderResult};
+use crate::errors::app_error::RecorderResult;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -44,6 +43,88 @@ impl fmt::Display for StorageStoredUrl {
     }
 }
 
+#[async_trait::async_trait]
+pub trait StorageServiceTrait: Sync {
+    fn get_operator(&self) -> RecorderResult<Operator>;
+
+    fn get_fullname(
+        &self,
+        content_category: StorageContentCategory,
+        subscriber_id: i32,
+        bucket: Option<&str>,
+        filename: &str,
+    ) -> PathBuf {
+        [
+            &subscriber_id.to_string(),
+            content_category.as_ref(),
+            bucket.unwrap_or_default(),
+            filename,
+        ]
+        .into_iter()
+        .map(Path::new)
+        .collect::<PathBuf>()
+    }
+    async fn store_object(
+        &self,
+        content_category: StorageContentCategory,
+        subscriber_id: i32,
+        bucket: Option<&str>,
+        filename: &str,
+        data: Bytes,
+    ) -> RecorderResult<StorageStoredUrl> {
+        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
+
+        let operator = self.get_operator()?;
+
+        if let Some(dirname) = fullname.parent() {
+            let dirname = dirname.join("/");
+            operator.create_dir(dirname.as_str()).await?;
+        }
+
+        operator.write(fullname.as_str(), data).await?;
+
+        Ok(StorageStoredUrl::RelativePath {
+            path: fullname.to_string(),
+        })
+    }
+
+    async fn exists_object(
+        &self,
+        content_category: StorageContentCategory,
+        subscriber_id: i32,
+        bucket: Option<&str>,
+        filename: &str,
+    ) -> RecorderResult<Option<StorageStoredUrl>> {
+        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
+
+        let operator = self.get_operator()?;
+
+        if operator.exists(fullname.as_str()).await? {
+            Ok(Some(StorageStoredUrl::RelativePath {
+                path: fullname.to_string(),
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn load_object(
+        &self,
+        content_category: StorageContentCategory,
+        subscriber_id: i32,
+        bucket: Option<&str>,
+        filename: &str,
+    ) -> RecorderResult<Buffer> {
+        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
+
+        let operator = self.get_operator()?;
+
+        let data = operator.read(fullname.as_str()).await?;
+
+        Ok(data)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct StorageService {
     pub data_dir: String,
@@ -55,114 +136,15 @@ impl StorageService {
             data_dir: config.data_dir.to_string(),
         })
     }
+}
 
-    pub fn get_fs(&self) -> Fs {
-        Fs::default().root(&self.data_dir)
-    }
+#[async_trait::async_trait]
+impl StorageServiceTrait for StorageService {
+    fn get_operator(&self) -> RecorderResult<Operator> {
+        let fs_op = Operator::new(opendal::services::Fs::default().root(&self.data_dir))?
+            .layer(LoggingLayer::default())
+            .finish();
 
-    pub fn create_filename(extname: &str) -> String {
-        format!("{}{}", Uuid::new_v4(), extname)
-    }
-
-    pub async fn store_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-        data: Bytes,
-    ) -> Result<StorageStoredUrl, RecorderError> {
-        match content_category {
-            StorageContentCategory::Image => {
-                let fullname = [
-                    &subscriber_id.to_string(),
-                    content_category.as_ref(),
-                    bucket.unwrap_or_default(),
-                    filename,
-                ]
-                .into_iter()
-                .map(Path::new)
-                .collect::<PathBuf>();
-
-                let fs_op = Operator::new(self.get_fs())?
-                    .layer(LoggingLayer::default())
-                    .finish();
-
-                if let Some(dirname) = fullname.parent() {
-                    let dirname = dirname.join("/");
-                    fs_op.create_dir(dirname.as_str()).await?;
-                }
-
-                fs_op.write(fullname.as_str(), data).await?;
-
-                Ok(StorageStoredUrl::RelativePath {
-                    path: fullname.to_string(),
-                })
-            }
-        }
-    }
-
-    pub async fn exists_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-    ) -> Result<Option<StorageStoredUrl>, RecorderError> {
-        match content_category {
-            StorageContentCategory::Image => {
-                let fullname = [
-                    &subscriber_id.to_string(),
-                    content_category.as_ref(),
-                    bucket.unwrap_or_default(),
-                    filename,
-                ]
-                .into_iter()
-                .map(Path::new)
-                .collect::<PathBuf>();
-
-                let fs_op = Operator::new(self.get_fs())?
-                    .layer(LoggingLayer::default())
-                    .finish();
-
-                if fs_op.exists(fullname.as_str()).await? {
-                    Ok(Some(StorageStoredUrl::RelativePath {
-                        path: fullname.to_string(),
-                    }))
-                } else {
-                    Ok(None)
-                }
-            }
-        }
-    }
-
-    pub async fn load_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_pid: &str,
-        bucket: Option<&str>,
-        filename: &str,
-    ) -> RecorderResult<Buffer> {
-        match content_category {
-            StorageContentCategory::Image => {
-                let fullname = [
-                    subscriber_pid,
-                    content_category.as_ref(),
-                    bucket.unwrap_or_default(),
-                    filename,
-                ]
-                .into_iter()
-                .map(Path::new)
-                .collect::<PathBuf>();
-
-                let fs_op = Operator::new(self.get_fs())?
-                    .layer(LoggingLayer::default())
-                    .finish();
-
-                let data = fs_op.read(fullname.as_str()).await?;
-
-                Ok(data)
-            }
-        }
+        Ok(fs_op)
     }
 }

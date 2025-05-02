@@ -27,10 +27,10 @@ async fn graphql_handler(
 
 // 检查是否是 introspection 查询
 fn is_introspection_query(req: &async_graphql::Request) -> bool {
-    if let Some(operation) = &req.operation_name {
-        if operation.starts_with("__") {
-            return true;
-        }
+    if let Some(operation) = &req.operation_name
+        && operation.starts_with("__")
+    {
+        return true;
     }
 
     // 检查查询内容是否包含 introspection 字段

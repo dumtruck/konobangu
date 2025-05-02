@@ -71,18 +71,16 @@ impl AuthServiceTrait for BasicAuthService {
             user: found_user,
             password: found_password,
         }) = AuthBasic::decode_request_parts(request)
+            && self.config.user == found_user
+            && self.config.password == found_password.unwrap_or_default()
         {
-            if self.config.user == found_user
-                && self.config.password == found_password.unwrap_or_default()
-            {
-                let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER)
-                    .await
-                    .map_err(|_| AuthError::FindAuthRecordError)?;
-                return Ok(AuthUserInfo {
-                    subscriber_auth,
-                    auth_type: AuthType::Basic,
-                });
-            }
+            let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER)
+                .await
+                .map_err(|_| AuthError::FindAuthRecordError)?;
+            return Ok(AuthUserInfo {
+                subscriber_auth,
+                auth_type: AuthType::Basic,
+            });
         }
         Err(AuthError::BasicInvalidCredentials)
     }

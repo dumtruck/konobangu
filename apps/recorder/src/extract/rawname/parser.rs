@@ -101,19 +101,19 @@ fn title_body_pre_process(title_body: &str, fansub: Option<&str>) -> RecorderRes
             raw = sub.replace_all(&raw, "").to_string();
         }
     }
-    if let Some(m) = MAIN_TITLE_PRE_PROCESS_BACKETS_RE.find(&raw) {
-        if m.len() as f32 > (raw.len() as f32) * 0.5 {
-            let mut raw1 = MAIN_TITLE_PRE_PROCESS_BACKETS_RE_SUB1
-                .replace(&raw, "")
-                .chars()
-                .collect_vec();
-            while let Some(ch) = raw1.pop() {
-                if ch == ']' {
-                    break;
-                }
+    if let Some(m) = MAIN_TITLE_PRE_PROCESS_BACKETS_RE.find(&raw)
+        && m.len() as f32 > (raw.len() as f32) * 0.5
+    {
+        let mut raw1 = MAIN_TITLE_PRE_PROCESS_BACKETS_RE_SUB1
+            .replace(&raw, "")
+            .chars()
+            .collect_vec();
+        while let Some(ch) = raw1.pop() {
+            if ch == ']' {
+                break;
             }
-            raw = raw1.into_iter().collect();
         }
+        raw = raw1.into_iter().collect();
     }
     Ok(raw.to_string())
 }
@@ -136,23 +136,21 @@ pub fn extract_season_from_title_body(title_body: &str) -> (String, Option<Strin
 
     for s in seasons {
         season_raw = Some(s);
-        if let Some(m) = SEASON_EXTRACT_SEASON_EN_PREFIX_RE.find(s) {
-            if let Ok(s) = SEASON_EXTRACT_SEASON_ALL_RE
+        if let Some(m) = SEASON_EXTRACT_SEASON_EN_PREFIX_RE.find(s)
+            && let Ok(s) = SEASON_EXTRACT_SEASON_ALL_RE
                 .replace_all(m.as_str(), "")
                 .parse::<i32>()
-            {
-                season = s;
-                break;
-            }
+        {
+            season = s;
+            break;
         }
-        if let Some(m) = SEASON_EXTRACT_SEASON_EN_NTH_RE.find(s) {
-            if let Some(s) = DIGIT_1PLUS_REG
+        if let Some(m) = SEASON_EXTRACT_SEASON_EN_NTH_RE.find(s)
+            && let Some(s) = DIGIT_1PLUS_REG
                 .find(m.as_str())
                 .and_then(|s| s.as_str().parse::<i32>().ok())
-            {
-                season = s;
-                break;
-            }
+        {
+            season = s;
+            break;
         }
         if let Some(m) = SEASON_EXTRACT_SEASON_ZH_PREFIX_RE.find(s) {
             if let Ok(s) = SEASON_EXTRACT_SEASON_ZH_PREFIX_SUB_RE

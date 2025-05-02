@@ -1709,7 +1709,6 @@ dependencies = [
  "async-trait",
  "bytes",
  "chrono",
- "dashmap 6.1.0",
  "fetch",
  "futures",
  "itertools 0.14.0",
@@ -1721,7 +1720,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde-value",
- "serde_json",
  "snafu",
  "testcontainers",
  "testcontainers-ext",
@@ -5166,7 +5164,6 @@ dependencies = [
  "sea-orm",
  "sea-orm-migration",
  "seaography",
- "secrecy",
  "serde",
  "serde_json",
  "serde_variant",
@@ -5174,7 +5171,6 @@ dependencies = [
  "serde_yaml",
  "serial_test",
  "snafu",
- "string-interner",
  "tera",
  "testcontainers",
  "testcontainers-ext",
@@ -5935,15 +5931,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "secrecy"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e891af845473308773346dc847b2c23ee78fe442e0472ac50e22a18a93d3ae5a"
-dependencies = [
- "zeroize",
-]
-
-[[package]]
 name = "security-framework"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6650,16 +6637,6 @@ name = "static_assertions_next"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7beae5182595e9a8b683fa98c4317f956c9a2dec3b9716990d20023cc60c766"
-
-[[package]]
-name = "string-interner"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23de088478b31c349c9ba67816fa55d9355232d63c3afea8bf513e31f0f1d2c0"
-dependencies = [
- "hashbrown 0.15.2",
- "serde",
-]
 
 [[package]]
 name = "string_cache"

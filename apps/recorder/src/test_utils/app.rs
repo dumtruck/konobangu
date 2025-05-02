@@ -58,7 +58,7 @@ impl AppContextTrait for UnitTestAppContext {
         self.graphql.as_ref().expect("should set graphql")
     }
 
-    fn storage(&self) -> &crate::storage::StorageService {
+    fn storage(&self) -> &dyn crate::storage::StorageServiceTrait {
         self.storage.as_ref().expect("should set storage")
     }
 

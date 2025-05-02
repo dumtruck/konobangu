@@ -1,0 +1,59 @@
+use crate::{
+    database::{DatabaseConfig, DatabaseService},
+    errors::RecorderResult,
+};
+
+#[cfg(feature = "testcontainers")]
+pub async fn build_testing_database_service() -> RecorderResult<DatabaseService> {
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers_ext::{ImageDefaultLogConsumerExt, ImagePruneExistedLabelExt};
+    use testcontainers_modules::postgres::Postgres;
+
+    let container = Postgres::default()
+        .with_db_name("konobangu")
+        .with_user("konobangu")
+        .with_password("konobangu")
+        .with_default_log_consumer()
+        .with_prune_existed_label(env!("CARGO_PKG_NAME"), "postgres", true, true)
+        .await?;
+
+    let container = container.start().await?;
+
+    let host_ip = container.get_host().await?;
+    let host_port = container.get_host_port_ipv4(5432).await?;
+
+    let connection_string =
+        format!("postgres://konobangu:konobangu@{host_ip}:{host_port}/konobangu");
+
+    let mut db_service = DatabaseService::from_config(DatabaseConfig {
+        uri: connection_string,
+        enable_logging: true,
+        min_connections: 1,
+        max_connections: 1,
+        connect_timeout: 5000,
+        idle_timeout: 10000,
+        acquire_timeout: None,
+        auto_migrate: true,
+    })
+    .await?;
+    db_service.container = Some(container);
+
+    Ok(db_service)
+}
+
+#[cfg(not(feature = "testcontainers"))]
+pub async fn build_testing_database_service() -> RecorderResult<DatabaseService> {
+    let db_service = DatabaseService::from_config(DatabaseConfig {
+        uri: String::from("postgres://konobangu:konobangu@127.0.0.1:5432/konobangu"),
+        enable_logging: true,
+        min_connections: 1,
+        max_connections: 1,
+        connect_timeout: 5000,
+        idle_timeout: 10000,
+        acquire_timeout: None,
+        auto_migrate: true,
+    })
+    .await?;
+
+    Ok(db_service)
+}

@@ -10,10 +10,7 @@ use url::Url;
 
 use crate::{
     errors::app_error::{RecorderError, RecorderResult},
-    extract::mikan::{
-        MikanClient,
-        web_extract::{MikanEpisodeHomepage, extract_mikan_episode_id_from_homepage_url},
-    },
+    extract::mikan::{MikanClient, MikanEpisodeHomepageUrlMeta},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -37,7 +34,7 @@ pub struct MikanBangumiRssChannel {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MikanBangumiAggregationRssChannel {
+pub struct MikanBangumiIndexRssChannel {
     pub name: String,
     pub url: Url,
     pub mikan_bangumi_id: String,
@@ -45,7 +42,7 @@ pub struct MikanBangumiAggregationRssChannel {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MikanSubscriberAggregationRssChannel {
+pub struct MikanSubscriberStreamRssChannel {
     pub mikan_aggregation_id: String,
     pub url: Url,
     pub items: Vec<MikanRssItem>,
@@ -54,46 +51,40 @@ pub struct MikanSubscriberAggregationRssChannel {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum MikanRssChannel {
     Bangumi(MikanBangumiRssChannel),
-    BangumiAggregation(MikanBangumiAggregationRssChannel),
-    SubscriberAggregation(MikanSubscriberAggregationRssChannel),
+    BangumiIndex(MikanBangumiIndexRssChannel),
+    SubscriberStream(MikanSubscriberStreamRssChannel),
 }
 
 impl MikanRssChannel {
     pub fn items(&self) -> &[MikanRssItem] {
         match &self {
             Self::Bangumi(MikanBangumiRssChannel { items, .. })
-            | Self::BangumiAggregation(MikanBangumiAggregationRssChannel { items, .. })
-            | Self::SubscriberAggregation(MikanSubscriberAggregationRssChannel { items, .. }) => {
-                items
-            }
+            | Self::BangumiIndex(MikanBangumiIndexRssChannel { items, .. })
+            | Self::SubscriberStream(MikanSubscriberStreamRssChannel { items, .. }) => items,
         }
     }
 
     pub fn into_items(self) -> Vec<MikanRssItem> {
         match self {
             Self::Bangumi(MikanBangumiRssChannel { items, .. })
-            | Self::BangumiAggregation(MikanBangumiAggregationRssChannel { items, .. })
-            | Self::SubscriberAggregation(MikanSubscriberAggregationRssChannel { items, .. }) => {
-                items
-            }
+            | Self::BangumiIndex(MikanBangumiIndexRssChannel { items, .. })
+            | Self::SubscriberStream(MikanSubscriberStreamRssChannel { items, .. }) => items,
         }
     }
 
     pub fn name(&self) -> Option<&str> {
         match &self {
             Self::Bangumi(MikanBangumiRssChannel { name, .. })
-            | Self::BangumiAggregation(MikanBangumiAggregationRssChannel { name, .. }) => {
-                Some(name.as_str())
-            }
-            Self::SubscriberAggregation(MikanSubscriberAggregationRssChannel { .. }) => None,
+            | Self::BangumiIndex(MikanBangumiIndexRssChannel { name, .. }) => Some(name.as_str()),
+            Self::SubscriberStream(MikanSubscriberStreamRssChannel { .. }) => None,
         }
     }
 
     pub fn url(&self) -> &Url {
         match &self {
             Self::Bangumi(MikanBangumiRssChannel { url, .. })
-            | Self::BangumiAggregation(MikanBangumiAggregationRssChannel { url, .. })
-            | Self::SubscriberAggregation(MikanSubscriberAggregationRssChannel { url, .. }) => url,
+            | Self::BangumiIndex(MikanBangumiIndexRssChannel { url, .. })
+            | Self::SubscriberStream(MikanSubscriberStreamRssChannel { url, .. }) => url,
         }
     }
 }
@@ -133,9 +124,9 @@ impl TryFrom<rss::Item> for MikanRssItem {
                 RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
             })?;
 
-        let MikanEpisodeHomepage {
+        let MikanEpisodeHomepageUrlMeta {
             mikan_episode_id, ..
-        } = extract_mikan_episode_id_from_homepage_url(&homepage).ok_or_else(|| {
+        } = MikanEpisodeHomepageUrlMeta::parse_url(&homepage).ok_or_else(|| {
             RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
@@ -278,17 +269,15 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
                 channel_name,
                 channel_link = channel_link.as_str(),
                 mikan_bangumi_id,
-                "MikanBangumiAggregationRssChannel extracted"
+                "MikanBangumiIndexRssChannel extracted"
             );
 
-            Ok(MikanRssChannel::BangumiAggregation(
-                MikanBangumiAggregationRssChannel {
-                    name: channel_name,
-                    mikan_bangumi_id,
-                    url: channel_link,
-                    items,
-                },
-            ))
+            Ok(MikanRssChannel::BangumiIndex(MikanBangumiIndexRssChannel {
+                name: channel_name,
+                mikan_bangumi_id,
+                url: channel_link,
+                items,
+            }))
         }
     } else if let Some(MikanSubscriberAggregationRssUrlMeta {
         mikan_aggregation_id,
@@ -317,8 +306,8 @@ pub async fn extract_mikan_rss_channel_from_rss_link(
             "MikanSubscriberAggregationRssChannel extracted"
         );
 
-        Ok(MikanRssChannel::SubscriberAggregation(
-            MikanSubscriberAggregationRssChannel {
+        Ok(MikanRssChannel::SubscriberStream(
+            MikanSubscriberStreamRssChannel {
                 mikan_aggregation_id,
                 items,
                 url: channel_link,
@@ -342,7 +331,7 @@ mod tests {
     use crate::{
         errors::RecorderResult,
         extract::mikan::{
-            MikanBangumiAggregationRssChannel, MikanBangumiRssChannel, MikanRssChannel,
+            MikanBangumiIndexRssChannel, MikanBangumiRssChannel, MikanRssChannel,
             extract_mikan_rss_channel_from_rss_link,
         },
         test_utils::mikan::build_testing_mikan_client,
@@ -413,7 +402,7 @@ mod tests {
 
             assert_matches!(
                 &channel,
-                MikanRssChannel::BangumiAggregation(MikanBangumiAggregationRssChannel { .. })
+                MikanRssChannel::BangumiIndex(MikanBangumiIndexRssChannel { .. })
             );
 
             assert_matches!(&channel.name(), Some("叹气的亡灵想隐退"));

@@ -4,9 +4,16 @@ use tokio::sync::OnceCell;
 
 use super::{Environment, config::AppConfig};
 use crate::{
-    auth::AuthService, cache::CacheService, crypto::CryptoService, database::DatabaseService,
-    errors::RecorderResult, extract::mikan::MikanClient, graphql::GraphQLService,
-    logger::LoggerService, storage::StorageService, tasks::TaskService,
+    auth::AuthService,
+    cache::CacheService,
+    crypto::CryptoService,
+    database::DatabaseService,
+    errors::RecorderResult,
+    extract::mikan::MikanClient,
+    graphql::GraphQLService,
+    logger::LoggerService,
+    storage::{StorageService, StorageServiceTrait},
+    tasks::TaskService,
 };
 
 pub trait AppContextTrait: Send + Sync + Debug {
@@ -17,7 +24,7 @@ pub trait AppContextTrait: Send + Sync + Debug {
     fn mikan(&self) -> &MikanClient;
     fn auth(&self) -> &AuthService;
     fn graphql(&self) -> &GraphQLService;
-    fn storage(&self) -> &StorageService;
+    fn storage(&self) -> &dyn StorageServiceTrait;
     fn working_dir(&self) -> &String;
     fn environment(&self) -> &Environment;
     fn crypto(&self) -> &CryptoService;
@@ -109,7 +116,7 @@ impl AppContextTrait for AppContext {
     fn graphql(&self) -> &GraphQLService {
         &self.graphql
     }
-    fn storage(&self) -> &StorageService {
+    fn storage(&self) -> &dyn StorageServiceTrait {
         &self.storage
     }
     fn working_dir(&self) -> &String {

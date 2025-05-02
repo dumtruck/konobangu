@@ -1,4 +1,4 @@
-pub const MIKAN_BUCKET_KEY: &str = "mikan";
+pub const MIKAN_POSTER_BUCKET_KEY: &str = "mikan_poster";
 pub const MIKAN_UNKNOWN_FANSUB_NAME: &str = "生肉/不明字幕";
 pub const MIKAN_UNKNOWN_FANSUB_ID: &str = "202";
 pub const MIKAN_LOGIN_PAGE_PATH: &str = "/Account/Login";

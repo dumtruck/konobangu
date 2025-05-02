@@ -2,8 +2,7 @@ set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
 prepare-dev-recorder:
-    cargo install sea-orm-cli
-    cargo install cargo-watch
+    cargo install sea-orm-cli watchexec cargo-llvm-cov cargo-nextest
 
 dev-webui:
     pnpm run --filter=webui dev
@@ -29,4 +28,7 @@ dev-all:
 dev-codegen-wait:
     @until nc -z localhost 5001; do echo "Waiting for Recorder..."; sleep 1; done
     pnpm run --filter=webui codegen-watch
+
+dev-coverage:
+    cargo llvm-cov test --html
 

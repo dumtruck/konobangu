@@ -142,7 +142,7 @@ impl AppConfig {
             .flat_map(|ps| {
                 allowed_extensions
                     .iter()
-                    .map(move |ext| (format!("{}{}{}", convention_prefix, ps, ext), ext))
+                    .map(move |ext| (format!("{convention_prefix}{ps}{ext}"), ext))
             })
             .collect_vec();
 

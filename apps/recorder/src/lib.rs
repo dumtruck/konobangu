@@ -1,5 +1,5 @@
 #![feature(
-    duration_constructors,
+    duration_constructors_lite,
     assert_matches,
     unboxed_closures,
     impl_trait_in_bindings,

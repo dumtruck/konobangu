@@ -3,7 +3,6 @@ use std::{fmt::Debug, ops::Deref, sync::Arc};
 use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
 use sea_orm::DbErr;
-use secrecy::SecretBox;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use util::OptDynErr;
@@ -22,8 +21,6 @@ pub struct MikanCredentialForm {
     pub username: String,
     pub user_agent: String,
 }
-
-pub type MikanAuthSecrecy = SecretBox<MikanCredentialForm>;
 
 impl Debug for MikanCredentialForm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -72,7 +69,7 @@ impl MikanClient {
             Ok(false)
         } else {
             Err(RecorderError::Credential3rdError {
-                message: format!("mikan account check has login failed, status = {}", status),
+                message: format!("mikan account check has login failed, status = {status}"),
                 source: None.into(),
             })
         }
@@ -189,7 +186,7 @@ impl MikanClient {
                 userpass_credential_opt = Some(userpass_credential);
             } else {
                 return Err(RecorderError::from_db_record_not_found(
-                    DbErr::RecordNotFound(format!("credential={} not found", credential_id)),
+                    DbErr::RecordNotFound(format!("credential={credential_id} not found")),
                 ));
             }
         }

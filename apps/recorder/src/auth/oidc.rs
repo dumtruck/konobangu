@@ -297,10 +297,10 @@ impl OidcAuthService {
             id_token.signing_key(id_token_verifier)?,
         )?;
 
-        if let Some(expected_access_token_hash) = claims.access_token_hash() {
-            if actual_access_token_hash != *expected_access_token_hash {
-                return Err(AuthError::OidcInvalidAccessTokenError);
-            }
+        if let Some(expected_access_token_hash) = claims.access_token_hash()
+            && actual_access_token_hash != *expected_access_token_hash
+        {
+            return Err(AuthError::OidcInvalidAccessTokenError);
         }
 
         Ok(OidcAuthCallbackPayload {
@@ -350,14 +350,14 @@ impl AuthServiceTrait for OidcAuthService {
             if !claims.has_claim(key) {
                 return Err(AuthError::OidcExtraClaimMissingError { claim: key.clone() });
             }
-            if let Some(value) = config.extra_claim_value.as_ref() {
-                if claims.get_claim(key).is_none_or(|v| &v != value) {
-                    return Err(AuthError::OidcExtraClaimMatchError {
-                        expected: value.clone(),
-                        found: claims.get_claim(key).unwrap_or_default().to_string(),
-                        key: key.clone(),
-                    });
-                }
+            if let Some(value) = config.extra_claim_value.as_ref()
+                && claims.get_claim(key).is_none_or(|v| &v != value)
+            {
+                return Err(AuthError::OidcExtraClaimMatchError {
+                    expected: value.clone(),
+                    found: claims.get_claim(key).unwrap_or_default().to_string(),
+                    key: key.clone(),
+                });
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {

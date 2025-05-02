@@ -108,7 +108,7 @@ pub fn parse_episode_media_meta_from_torrent(
     let media_name = torrent_path
         .file_name()
         .with_whatever_context::<_, _, RecorderError>(|| {
-            format!("failed to get file name of {}", torrent_path)
+            format!("failed to get file name of {torrent_path}")
         })?;
     let mut match_obj = None;
     for rule in TORRENT_EP_PARSE_RULES.iter() {
@@ -141,7 +141,7 @@ pub fn parse_episode_media_meta_from_torrent(
             .unwrap_or(1);
         let extname = torrent_path
             .extension()
-            .map(|e| format!(".{}", e))
+            .map(|e| format!(".{e}"))
             .unwrap_or_default();
         Ok(TorrentEpisodeMediaMeta {
             fansub: fansub.map(|s| s.to_string()),
@@ -168,7 +168,7 @@ pub fn parse_episode_subtitle_meta_from_torrent(
     let media_name = torrent_path
         .file_name()
         .with_whatever_context::<_, _, RecorderError>(|| {
-            format!("failed to get file name of {}", torrent_path)
+            format!("failed to get file name of {torrent_path}")
         })?;
 
     let lang = get_subtitle_lang(media_name);
@@ -271,7 +271,7 @@ mod tests {
     pub fn test_torrent_ep_parser(raw_name: &str, expected: &str) {
         let extname = Path::new(raw_name)
             .extension()
-            .map(|e| format!(".{}", e))
+            .map(|e| format!(".{e}"))
             .unwrap_or_default()
             .to_lowercase();
 

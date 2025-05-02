@@ -2,9 +2,4 @@
 recorder-playground = "run -p recorder  --example playground -- --environment development"
 
 [build]
-rustflags = [
-    "-Zthreads=8",
-    "--cfg",
-    "feature=\"testcontainers\"",
-    "-Zshare-generics=y",
-]
+rustflags = ["-Zthreads=8", "-Zshare-generics=y"]

@@ -19,21 +19,19 @@ pub fn extract_background_image_src_from_style_attr(
             match prop {
                 Property::BackgroundImage(images) => {
                     for img in images {
-                        if let CSSImage::Url(path) = img {
-                            if let Some(url) = extract_image_src_from_str(path.url.trim(), base_url)
-                            {
-                                return Some(url);
-                            }
+                        if let CSSImage::Url(path) = img
+                            && let Some(url) = extract_image_src_from_str(path.url.trim(), base_url)
+                        {
+                            return Some(url);
                         }
                     }
                 }
                 Property::Background(backgrounds) => {
                     for bg in backgrounds {
-                        if let CSSImage::Url(path) = &bg.image {
-                            if let Some(url) = extract_image_src_from_str(path.url.trim(), base_url)
-                            {
-                                return Some(url);
-                            }
+                        if let CSSImage::Url(path) = &bg.image
+                            && let Some(url) = extract_image_src_from_str(path.url.trim(), base_url)
+                        {
+                            return Some(url);
                         }
                     }
                 }
