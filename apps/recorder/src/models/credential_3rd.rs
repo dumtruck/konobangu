@@ -24,7 +24,7 @@ pub enum Credential3rdType {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, DeriveEntityModel)]
-#[sea_orm(table_name = "credential_3rd")]
+#[sea_orm(table_name = "credential3rd")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTimeUtc,

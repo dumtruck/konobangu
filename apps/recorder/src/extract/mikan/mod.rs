@@ -1,15 +1,17 @@
 mod client;
 mod config;
 mod constants;
+mod credential;
 mod rss;
 mod web;
 
-pub use client::{MikanClient, MikanCredentialForm};
+pub use client::MikanClient;
 pub use config::MikanConfig;
 pub use constants::{
     MIKAN_ACCOUNT_MANAGE_PAGE_PATH, MIKAN_LOGIN_PAGE_PATH, MIKAN_LOGIN_PAGE_SEARCH,
     MIKAN_POSTER_BUCKET_KEY, MIKAN_UNKNOWN_FANSUB_ID, MIKAN_UNKNOWN_FANSUB_NAME,
 };
+pub use credential::MikanCredentialForm;
 pub use rss::{
     MikanBangumiIndexRssChannel, MikanBangumiRssChannel, MikanBangumiRssUrlMeta, MikanRssChannel,
     MikanRssItem, MikanSubscriberAggregationRssUrlMeta, MikanSubscriberStreamRssChannel,

@@ -2,7 +2,13 @@ set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
 prepare-dev-recorder:
-    cargo install sea-orm-cli watchexec cargo-llvm-cov cargo-nextest
+    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest
+    # install watchexec
+
+prepare-dev-testcontainers:
+    docker pull linuxserver/qbittorrent:latest
+    docker pull ghcr.io/dumtruck/konobangu-testing-torrents:latest
+    docker pull postgres:17-alpine
 
 dev-webui:
     pnpm run --filter=webui dev

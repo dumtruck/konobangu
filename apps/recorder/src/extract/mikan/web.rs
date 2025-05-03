@@ -704,21 +704,25 @@ mod test {
     #![allow(unused_variables)]
     use std::fs;
 
+    use fetch::get_random_ua;
     use rstest::{fixture, rstest};
     use tracing::Level;
     use url::Url;
     use zune_image::{codecs::ImageFormat, image::Image};
 
     use super::*;
-    use crate::test_utils::{
-        app::UnitTestAppContext, database::build_testing_database_service,
-        mikan::build_testing_mikan_client, storage::build_testing_storage_service,
-        tracing::try_init_testing_tracing,
+    use crate::{
+        extract::mikan::MikanCredentialForm,
+        test_utils::{
+            app::UnitTestAppContext, crypto::build_testing_crypto_service,
+            database::build_testing_database_service, mikan::build_testing_mikan_client,
+            storage::build_testing_storage_service, tracing::try_init_testing_tracing,
+        },
     };
 
     #[fixture]
     fn before_each() {
-        try_init_testing_tracing(Level::INFO);
+        try_init_testing_tracing(Level::DEBUG);
     }
 
     #[rstest]
@@ -853,7 +857,7 @@ mod test {
 
     #[rstest]
     #[test]
-    fn ttest_extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
+    fn test_extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
         before_each: (),
     ) -> RecorderResult<()> {
         let origin_poster_src =
@@ -934,15 +938,29 @@ mod test {
         let app_ctx = {
             let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
             let db_service = build_testing_database_service().await?;
+            let crypto_service = build_testing_crypto_service().await?;
             let app_ctx = UnitTestAppContext::builder()
                 .mikan(mikan_client)
                 .db(db_service)
+                .crypto(crypto_service)
                 .build();
 
             Arc::new(app_ctx)
         };
 
         let mikan_client = app_ctx.mikan();
+
+        let credential = mikan_client
+            .save_credential(
+                app_ctx.clone(),
+                1,
+                MikanCredentialForm {
+                    username: String::from("test_username"),
+                    password: String::from("test_password"),
+                    user_agent: get_random_ua().to_string(),
+                },
+            )
+            .await?;
 
         let mikan_season_flow_url =
             build_mikan_season_flow_url(mikan_base_url, 2025, MikanSeasonStr::Spring);
@@ -951,7 +969,7 @@ mod test {
             mikan_client,
             app_ctx.clone(),
             mikan_season_flow_url,
-            1,
+            credential.id,
         )
         .await?;
 

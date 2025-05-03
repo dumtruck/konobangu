@@ -5,7 +5,7 @@ use crate::{
 
 #[cfg(feature = "testcontainers")]
 pub async fn build_testing_database_service() -> RecorderResult<DatabaseService> {
-    use testcontainers::runners::AsyncRunner;
+    use testcontainers::{ImageExt, runners::AsyncRunner};
     use testcontainers_ext::{ImageDefaultLogConsumerExt, ImagePruneExistedLabelExt};
     use testcontainers_modules::postgres::Postgres;
 
@@ -13,6 +13,7 @@ pub async fn build_testing_database_service() -> RecorderResult<DatabaseService>
         .with_db_name("konobangu")
         .with_user("konobangu")
         .with_password("konobangu")
+        .with_tag("17-alpine")
         .with_default_log_consumer()
         .with_prune_existed_label(env!("CARGO_PKG_NAME"), "postgres", true, true)
         .await?;

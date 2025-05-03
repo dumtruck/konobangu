@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use snafu::Snafu;
 
-use crate::get_random_mobile_ua;
+use crate::get_random_ua;
 
 pub struct RateLimiterMiddleware {
     rate_limiter: RateLimiter,
@@ -176,7 +176,7 @@ impl HttpClient {
             config
                 .user_agent
                 .as_deref()
-                .unwrap_or_else(|| get_random_mobile_ua()),
+                .unwrap_or_else(|| get_random_ua()),
         );
 
         #[cfg(not(target_arch = "wasm32"))]
@@ -291,7 +291,7 @@ impl HttpClient {
             self.config
                 .user_agent
                 .as_deref()
-                .unwrap_or_else(|| get_random_mobile_ua()),
+                .unwrap_or_else(|| get_random_ua()),
         );
 
         #[cfg(not(target_arch = "wasm32"))]

@@ -2,12 +2,11 @@ use std::{fmt::Debug, ops::Deref, sync::Arc};
 
 use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
-use sea_orm::DbErr;
-use serde::{Deserialize, Serialize};
+use sea_orm::{ActiveModelTrait, ActiveValue::Set, DbErr, TryIntoModel};
 use url::Url;
 use util::OptDynErr;
 
-use super::{MikanConfig, constants::MIKAN_ACCOUNT_MANAGE_PAGE_PATH};
+use super::{MikanConfig, MikanCredentialForm, constants::MIKAN_ACCOUNT_MANAGE_PAGE_PATH};
 use crate::{
     app::AppContextTrait,
     crypto::UserPassCredential,
@@ -15,22 +14,6 @@ use crate::{
     extract::mikan::constants::{MIKAN_LOGIN_PAGE_PATH, MIKAN_LOGIN_PAGE_SEARCH},
     models::credential_3rd::{self, Credential3rdType},
 };
-#[derive(Default, Clone, Deserialize, Serialize)]
-pub struct MikanCredentialForm {
-    pub password: String,
-    pub username: String,
-    pub user_agent: String,
-}
-
-impl Debug for MikanCredentialForm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MikanCredentialForm")
-            .field("username", &String::from("[secrecy]"))
-            .field("password", &String::from("[secrecy]"))
-            .field("user_agent", &String::from("[secrecy]"))
-            .finish()
-    }
-}
 
 #[derive(Debug)]
 pub struct MikanClient {
@@ -152,6 +135,28 @@ impl MikanClient {
                 source: None.into(),
             })
         }
+    }
+
+    pub async fn save_credential(
+        &self,
+        ctx: Arc<dyn AppContextTrait>,
+        subscriber_id: i32,
+        credential_form: MikanCredentialForm,
+    ) -> RecorderResult<credential_3rd::Model> {
+        let db = ctx.db();
+        let am = credential_3rd::ActiveModel {
+            username: Set(Some(credential_form.username)),
+            password: Set(Some(credential_form.password)),
+            user_agent: Set(Some(credential_form.user_agent)),
+            credential_type: Set(Credential3rdType::Mikan),
+            subscriber_id: Set(subscriber_id),
+            ..Default::default()
+        }
+        .try_encrypt(ctx.clone())
+        .await?;
+
+        let credential: credential_3rd::Model = am.save(db).await?.try_into_model()?;
+        Ok(credential)
     }
 
     pub async fn fork_with_credential(

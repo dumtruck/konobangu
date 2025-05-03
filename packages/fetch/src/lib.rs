@@ -6,7 +6,7 @@ pub mod html;
 pub mod image;
 pub mod test_util;
 
-pub use core::get_random_mobile_ua;
+pub use core::get_random_ua;
 
 pub use bytes::fetch_bytes;
 pub use client::{HttpClient, HttpClientConfig, HttpClientError, HttpClientTrait};
