@@ -2,7 +2,9 @@ use std::{fmt::Debug, ops::Deref, sync::Arc};
 
 use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, DbErr, TryIntoModel};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter, TryIntoModel,
+};
 use url::Url;
 use util::OptDynErr;
 
@@ -137,7 +139,7 @@ impl MikanClient {
         }
     }
 
-    pub async fn save_credential(
+    pub async fn submit_credential_form(
         &self,
         ctx: Arc<dyn AppContextTrait>,
         subscriber_id: i32,
@@ -159,49 +161,67 @@ impl MikanClient {
         Ok(credential)
     }
 
+    pub async fn sync_credential_cookies(
+        &self,
+        ctx: Arc<dyn AppContextTrait>,
+        credential_id: i32,
+    ) -> RecorderResult<()> {
+        let cookies = self.http_client.save_cookie_store_to_json()?;
+        if let Some(cookies) = cookies {
+            let am = credential_3rd::ActiveModel {
+                cookies: Set(Some(cookies)),
+                ..Default::default()
+            }
+            .try_encrypt(ctx.clone())
+            .await?;
+
+            credential_3rd::Entity::update_many()
+                .set(am)
+                .filter(credential_3rd::Column::Id.eq(credential_id))
+                .exec(ctx.db())
+                .await?;
+        }
+        Ok(())
+    }
+
     pub async fn fork_with_credential(
         &self,
         ctx: Arc<dyn AppContextTrait>,
-        credential_id: Option<i32>,
+        credential_id: i32,
     ) -> RecorderResult<Self> {
         let mut fork = self.http_client.fork();
-        let mut userpass_credential_opt = None;
 
-        if let Some(credential_id) = credential_id {
-            let credential = credential_3rd::Model::find_by_id(ctx.clone(), credential_id).await?;
-            if let Some(credential) = credential {
-                if credential.credential_type != Credential3rdType::Mikan {
-                    return Err(RecorderError::Credential3rdError {
-                        message: "credential is not a mikan credential".to_string(),
-                        source: None.into(),
-                    });
-                }
-
-                let userpass_credential: UserPassCredential =
-                    credential.try_into_userpass_credential(ctx)?;
-
-                if let Some(cookies) = userpass_credential.cookies.as_ref() {
-                    fork = fork.attach_cookies(cookies)?;
-                }
-
-                if let Some(user_agent) = userpass_credential.user_agent.as_ref() {
-                    fork = fork.attach_user_agent(user_agent);
-                }
-
-                userpass_credential_opt = Some(userpass_credential);
-            } else {
-                return Err(RecorderError::from_db_record_not_found(
-                    DbErr::RecordNotFound(format!("credential={credential_id} not found")),
-                ));
+        let credential = credential_3rd::Model::find_by_id(ctx.clone(), credential_id).await?;
+        if let Some(credential) = credential {
+            if credential.credential_type != Credential3rdType::Mikan {
+                return Err(RecorderError::Credential3rdError {
+                    message: "credential is not a mikan credential".to_string(),
+                    source: None.into(),
+                });
             }
-        }
 
-        Ok(Self {
-            http_client: HttpClient::from_fork(fork)?,
-            base_url: self.base_url.clone(),
-            origin_url: self.origin_url.clone(),
-            userpass_credential: userpass_credential_opt,
-        })
+            let userpass_credential: UserPassCredential =
+                credential.try_into_userpass_credential(ctx)?;
+
+            fork = fork.attach_cookies(userpass_credential.cookies.as_deref())?;
+
+            if let Some(user_agent) = userpass_credential.user_agent.as_ref() {
+                fork = fork.attach_user_agent(user_agent);
+            }
+
+            let userpass_credential_opt = Some(userpass_credential);
+
+            Ok(Self {
+                http_client: HttpClient::from_fork(fork)?,
+                base_url: self.base_url.clone(),
+                origin_url: self.origin_url.clone(),
+                userpass_credential: userpass_credential_opt,
+            })
+        } else {
+            Err(RecorderError::from_db_record_not_found(
+                DbErr::RecordNotFound(format!("credential={credential_id} not found")),
+            ))
+        }
     }
 
     pub fn base_url(&self) -> &Url {

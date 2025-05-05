@@ -32,3 +32,5 @@ http-cache = { version = "0.20", features = [
     "manager-moka",
 ], default-features = false }
 reqwest_cookie_store = { version = "0.8.0", features = ["serde"] }
+
+util = { workspace = true }

@@ -16,6 +16,7 @@ use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use snafu::Snafu;
+use util::OptDynErr;
 
 use crate::get_random_ua;
 
@@ -111,6 +112,8 @@ pub enum HttpClientError {
     HttpError { source: http::Error },
     #[snafu(display("Failed to parse cookies: {}", source))]
     ParseCookiesError { source: serde_json::Error },
+    #[snafu(display("Failed to save cookies, message: {}, source: {:?}", message, source))]
+    SaveCookiesError { message: String, source: OptDynErr },
 }
 
 pub trait HttpClientTrait: Deref<Target = ClientWithMiddleware> + Debug {}
@@ -123,9 +126,13 @@ pub struct HttpClientFork {
 }
 
 impl HttpClientFork {
-    pub fn attach_cookies(mut self, cookies: &str) -> Result<Self, HttpClientError> {
-        let cookie_store: CookieStore = serde_json::from_str(cookies)
-            .map_err(|err| HttpClientError::ParseCookiesError { source: err })?;
+    pub fn attach_cookies(mut self, cookies: Option<&str>) -> Result<Self, HttpClientError> {
+        let cookie_store = if let Some(cookies) = cookies {
+            serde_json::from_str(cookies)
+                .map_err(|err| HttpClientError::ParseCookiesError { source: err })?
+        } else {
+            CookieStore::default()
+        };
 
         let cookies_store = Arc::new(CookieStoreRwLock::new(cookie_store));
 
@@ -328,6 +335,35 @@ impl HttpClient {
             config,
             cookie_store,
         })
+    }
+
+    pub fn save_cookie_store_to_json(&self) -> Result<Option<String>, HttpClientError> {
+        if let Some(cookie_store) = self.cookie_store.as_ref() {
+            let json = {
+                let cookie_store =
+                    cookie_store
+                        .read()
+                        .map_err(|_| HttpClientError::SaveCookiesError {
+                            message: "Failed to read cookie store".to_string(),
+                            source: None.into(),
+                        })?;
+
+                if cookie_store.iter_any().next().is_none() {
+                    return Ok(None);
+                }
+
+                serde_json::to_string(&cookie_store as &CookieStore).map_err(|err| {
+                    HttpClientError::SaveCookiesError {
+                        message: "Failed to serialize cookie store".to_string(),
+                        source: OptDynErr::some_boxed(err),
+                    }
+                })?
+            };
+
+            Ok(Some(json))
+        } else {
+            Ok(None)
+        }
     }
 }
 

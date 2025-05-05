@@ -10,7 +10,8 @@ use tracing::instrument;
 use url::Url;
 
 use super::{
-    MIKAN_POSTER_BUCKET_KEY, MikanBangumiRssUrlMeta, MikanClient,
+    MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_POSTER_BUCKET_KEY,
+    MIKAN_SEASON_FLOW_PAGE_PATH, MikanBangumiRssUrlMeta, MikanClient,
     extract_mikan_bangumi_id_from_rss_url,
 };
 use crate::{
@@ -183,7 +184,7 @@ pub fn build_mikan_season_flow_url(
     season_str: MikanSeasonStr,
 ) -> Url {
     let mut url = mikan_base_url;
-    url.set_path("/Home/BangumiCoverFlow");
+    url.set_path(MIKAN_SEASON_FLOW_PAGE_PATH);
     url.query_pairs_mut()
         .append_pair("year", &year.to_string())
         .append_pair("seasonStr", &season_str.to_string());
@@ -201,7 +202,7 @@ pub fn build_mikan_bangumi_expand_subscribed_url(
     mikan_bangumi_id: &str,
 ) -> Url {
     let mut url = mikan_base_url;
-    url.set_path("/ExpandBangumi");
+    url.set_path(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH);
     url.query_pairs_mut()
         .append_pair("bangumiId", mikan_bangumi_id)
         .append_pair("showSubscribed", "true");
@@ -651,7 +652,7 @@ pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
     credential_id: i32,
 ) -> RecorderResult<Vec<MikanBangumiMeta>> {
     let mikan_client = mikan_client
-        .fork_with_credential(ctx.clone(), Some(credential_id))
+        .fork_with_credential(ctx.clone(), credential_id)
         .await?;
 
     let mikan_base_url = mikan_client.base_url();
@@ -670,6 +671,10 @@ pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
     }
 
     let mut bangumi_metas = vec![];
+
+    mikan_client
+        .sync_credential_cookies(ctx.clone(), credential_id)
+        .await?;
 
     for bangumi_index in bangumi_indices_meta {
         let bangumi_title = bangumi_index.bangumi_title.clone();
@@ -696,6 +701,10 @@ pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
         bangumi_metas.push(bangumi_meta);
     }
 
+    mikan_client
+        .sync_credential_cookies(ctx, credential_id)
+        .await?;
+
     Ok(bangumi_metas)
 }
 
@@ -704,7 +713,6 @@ mod test {
     #![allow(unused_variables)]
     use std::fs;
 
-    use fetch::get_random_ua;
     use rstest::{fixture, rstest};
     use tracing::Level;
     use url::Url;
@@ -712,11 +720,16 @@ mod test {
 
     use super::*;
     use crate::{
-        extract::mikan::MikanCredentialForm,
+        extract::mikan::{MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_SEASON_FLOW_PAGE_PATH},
         test_utils::{
-            app::UnitTestAppContext, crypto::build_testing_crypto_service,
-            database::build_testing_database_service, mikan::build_testing_mikan_client,
-            storage::build_testing_storage_service, tracing::try_init_testing_tracing,
+            app::UnitTestAppContext,
+            crypto::build_testing_crypto_service,
+            database::build_testing_database_service,
+            mikan::{
+                MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form,
+            },
+            storage::build_testing_storage_service,
+            tracing::try_init_testing_tracing,
         },
     };
 
@@ -932,8 +945,8 @@ mod test {
     async fn test_scrape_mikan_bangumi_meta_list_from_season_flow_url(
         before_each: (),
     ) -> RecorderResult<()> {
-        let mut mikan_server = mockito::Server::new_async().await;
-        let mikan_base_url = Url::parse(&mikan_server.url())?;
+        let mut mikan_server = MikanMockServer::new().await?;
+        let mikan_base_url = mikan_server.base_url().clone();
 
         let app_ctx = {
             let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
@@ -950,20 +963,50 @@ mod test {
 
         let mikan_client = app_ctx.mikan();
 
+        let login_mock = mikan_server.mock_get_login_page();
+
+        let season_flow_noauth_mock = mikan_server
+            .server
+            .mock("GET", MIKAN_SEASON_FLOW_PAGE_PATH)
+            .match_query(mockito::Matcher::Any)
+            .match_request(|req| !MikanMockServer::get_has_auth_matcher()(req))
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/BangumiCoverFlow-2025-spring-noauth.html")
+            .create();
+
+        let season_flow_mock = mikan_server
+            .server
+            .mock("GET", MIKAN_SEASON_FLOW_PAGE_PATH)
+            .match_query(mockito::Matcher::Any)
+            .match_request(|req| MikanMockServer::get_has_auth_matcher()(req))
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/BangumiCoverFlow-2025-spring.html")
+            .create();
+
+        let bangumi_subscribed_noauth_mock = mikan_server
+            .server
+            .mock("GET", MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
+            .match_query(mockito::Matcher::Any)
+            .match_request(|req| !MikanMockServer::get_has_auth_matcher()(req))
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/ExpandBangumi-3599-noauth.html")
+            .create();
+
+        let bangumi_subscribed_mock = mikan_server
+            .server
+            .mock("GET", MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
+            .match_query(mockito::Matcher::Any)
+            .match_request(|req| MikanMockServer::get_has_auth_matcher()(req))
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/ExpandBangumi-3599.html")
+            .create();
+
         let credential = mikan_client
-            .save_credential(
-                app_ctx.clone(),
-                1,
-                MikanCredentialForm {
-                    username: String::from("test_username"),
-                    password: String::from("test_password"),
-                    user_agent: get_random_ua().to_string(),
-                },
-            )
+            .submit_credential_form(app_ctx.clone(), 1, build_testing_mikan_credential_form())
             .await?;
 
         let mikan_season_flow_url =
-            build_mikan_season_flow_url(mikan_base_url, 2025, MikanSeasonStr::Spring);
+            build_mikan_season_flow_url(mikan_base_url.clone(), 2025, MikanSeasonStr::Spring);
 
         let bangumi_meta_list = scrape_mikan_bangumi_meta_list_from_season_flow_url(
             mikan_client,
@@ -974,6 +1017,26 @@ mod test {
         .await?;
 
         assert!(!bangumi_meta_list.is_empty());
+
+        let bangumi = bangumi_meta_list.first().unwrap();
+
+        assert!(
+            bangumi
+                .homepage
+                .to_string()
+                .ends_with("/Home/Bangumi/3288#370"),
+        );
+        assert_eq!(bangumi.bangumi_title, "吉伊卡哇");
+        assert_eq!(bangumi.mikan_bangumi_id, "3288");
+        assert!(
+            bangumi
+                .origin_poster_src
+                .as_ref()
+                .map_or(String::new(), |u| u.to_string())
+                .ends_with("/images/Bangumi/202204/d8ef46c0.jpg")
+        );
+        assert_eq!(bangumi.mikan_fansub_id, String::from("370"));
+        assert_eq!(bangumi.fansub, String::from("LoliHouse"));
 
         Ok(())
     }
@@ -987,8 +1050,9 @@ mod test {
         let mikan_base_url = Url::parse(&mikan_server.url())?;
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
 
-        let episode_homepage_url =
-            mikan_base_url.join("/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a")?;
+        let episode_homepage_url = mikan_base_url
+            .clone()
+            .join("/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a")?;
 
         let episode_homepage_mock = mikan_server
             .mock("GET", episode_homepage_url.path())
@@ -1058,101 +1122,4 @@ mod test {
 
         Ok(())
     }
-
-    // #[rstest]
-    // #[tokio::test]
-    // async fn test_extract_mikan_bangumis_meta_from_my_bangumi_page(
-    //     before_each: (),
-    // ) -> RecorderResult<()> {
-    //     let mut mikan_server = mockito::Server::new_async().await;
-
-    //     let mikan_base_url = Url::parse(&mikan_server.url())?;
-
-    //     let my_bangumi_page_url = mikan_base_url.join("/Home/MyBangumi")?;
-
-    //     let context = Arc::new(
-    //         UnitTestAppContext::builder()
-    //
-    // .mikan(build_testing_mikan_client(mikan_base_url.clone()).await?)
-    //             .build(),
-    //     );
-
-    //     {
-    //         let my_bangumi_without_cookie_mock = mikan_server
-    //             .mock("GET", my_bangumi_page_url.path())
-    //             .match_header(header::COOKIE, mockito::Matcher::Missing)
-    //
-    // .with_body_from_file("tests/resources/mikan/MyBangumi-noauth.htm")
-    //             .create_async()
-    //             .await;
-
-    //         let bangumi_metas =
-    // extract_mikan_bangumis_meta_from_my_bangumi_page(
-    // context.clone(),             my_bangumi_page_url.clone(),
-    //             None,
-    //             &[],
-    //         );
-
-    //         pin_mut!(bangumi_metas);
-
-    //         let bangumi_metas = bangumi_metas.try_collect::<Vec<_>>().await?;
-
-    //         assert!(bangumi_metas.is_empty());
-
-    //         assert!(my_bangumi_without_cookie_mock.matched_async().await);
-    //     }
-    //     {
-    //         let my_bangumi_with_cookie_mock = mikan_server
-    //             .mock("GET", my_bangumi_page_url.path())
-    //             .match_header(
-    //                 header::COOKIE,
-    //                 mockito::Matcher::AllOf(vec![
-    //
-    // mockito::Matcher::Regex(String::from(".*\\.AspNetCore\\.Antiforgery.*")),
-    //                     mockito::Matcher::Regex(String::from(
-    //                         ".*\\.AspNetCore\\.Identity\\.Application.*",
-    //                     )),
-    //                 ]),
-    //             )
-    //             .with_body_from_file("tests/resources/mikan/MyBangumi.htm")
-    //             .create_async()
-    //             .await;
-
-    //         let expand_bangumi_mock = mikan_server
-    //             .mock("GET", "/ExpandBangumi")
-    //             .match_query(mockito::Matcher::Any)
-    //
-    // .with_body_from_file("tests/resources/mikan/ExpandBangumi.htm")
-    //             .create_async()
-    //             .await;
-
-    //         let auth_secrecy = Some(MikanCredentialForm {
-    //             username: String::from("test_username"),
-    //             password: String::from("test_password"),
-    //             user_agent: String::from(
-    //                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-    // AppleWebKit/537.36 (KHTML, like \                  Gecko)
-    // Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0",             ),
-    //         });
-
-    //         let bangumi_metas =
-    // extract_mikan_bangumis_meta_from_my_bangumi_page(
-    // context.clone(),             my_bangumi_page_url,
-    //             auth_secrecy,
-    //             &[],
-    //         );
-    //         pin_mut!(bangumi_metas);
-    //         let bangumi_metas = bangumi_metas.try_collect::<Vec<_>>().await?;
-
-    //         assert!(!bangumi_metas.is_empty());
-
-    //         assert!(bangumi_metas[0].origin_poster_src.is_some());
-
-    //         assert!(my_bangumi_with_cookie_mock.matched_async().await);
-
-    //         expand_bangumi_mock.expect(bangumi_metas.len());
-    //     }
-
-    //     Ok(())
-    // }
 }
