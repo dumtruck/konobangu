@@ -115,6 +115,7 @@ reqwest_cookie_store = "0.8.0"
 downloader = { workspace = true }
 util = { workspace = true }
 fetch = { workspace = true }
+nanoid = "0.4.0"
 
 [dev-dependencies]
 serial_test = "3"

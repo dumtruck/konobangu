@@ -242,3 +242,92 @@ impl Deref for MikanClient {
 }
 
 impl HttpClientTrait for MikanClient {}
+
+#[cfg(test)]
+mod tests {
+    #![allow(unused_variables)]
+    use std::assert_matches::assert_matches;
+
+    use rstest::{fixture, rstest};
+    use tracing::Level;
+
+    use super::*;
+    use crate::test_utils::{
+        app::UnitTestAppContext,
+        crypto::build_testing_crypto_service,
+        database::build_testing_database_service,
+        mikan::{MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form},
+        tracing::try_init_testing_tracing,
+    };
+
+    async fn create_testing_context(
+        mikan_base_url: Url,
+    ) -> RecorderResult<Arc<dyn AppContextTrait>> {
+        let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
+        let db_service = build_testing_database_service().await?;
+        let crypto_service = build_testing_crypto_service().await?;
+        let ctx = UnitTestAppContext::builder()
+            .db(db_service)
+            .crypto(crypto_service)
+            .mikan(mikan_client)
+            .build();
+
+        Ok(Arc::new(ctx))
+    }
+
+    #[fixture]
+    fn before_each() {
+        try_init_testing_tracing(Level::DEBUG);
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_mikan_client_submit_credential_form(before_each: ()) -> RecorderResult<()> {
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let app_ctx = create_testing_context(mikan_server.base_url().clone()).await?;
+
+        let _login_mock = mikan_server.mock_get_login_page();
+
+        let mikan_client = app_ctx.mikan();
+        let crypto_service = app_ctx.crypto();
+
+        let credential_form = build_testing_mikan_credential_form();
+
+        let credential_model = mikan_client
+            .submit_credential_form(app_ctx.clone(), 1, credential_form.clone())
+            .await?;
+
+        let expected_username = &credential_form.username;
+        let expected_password = &credential_form.password;
+
+        let found_username = crypto_service
+            .decrypt_string(credential_model.username.as_deref().unwrap_or_default())?;
+        let found_password = crypto_service
+            .decrypt_string(credential_model.password.as_deref().unwrap_or_default())?;
+
+        assert_eq!(&found_username, expected_username);
+        assert_eq!(&found_password, expected_password);
+
+        let has_login = mikan_client.has_login().await?;
+
+        assert!(!has_login);
+
+        assert_matches!(
+            mikan_client.login().await,
+            Err(RecorderError::Credential3rdError { .. })
+        );
+
+        let mikan_client = mikan_client
+            .fork_with_credential(app_ctx.clone(), credential_model.id)
+            .await?;
+
+        mikan_client.login().await?;
+
+        let has_login = mikan_client.has_login().await?;
+
+        assert!(has_login);
+
+        Ok(())
+    }
+}

@@ -74,17 +74,17 @@ impl ActiveModel {
         let crypto = ctx.crypto();
 
         if let ActiveValue::Set(Some(username)) = self.username {
-            let username_enc = crypto.encrypt_credentials(&username)?;
+            let username_enc = crypto.encrypt_string(username)?;
             self.username = ActiveValue::Set(Some(username_enc));
         }
 
         if let ActiveValue::Set(Some(password)) = self.password {
-            let password_enc = crypto.encrypt_credentials(&password)?;
+            let password_enc = crypto.encrypt_string(password)?;
             self.password = ActiveValue::Set(Some(password_enc));
         }
 
         if let ActiveValue::Set(Some(cookies)) = self.cookies {
-            let cookies_enc = crypto.encrypt_credentials(&cookies)?;
+            let cookies_enc = crypto.encrypt_string(cookies)?;
             self.cookies = ActiveValue::Set(Some(cookies_enc));
         }
 
@@ -115,7 +115,7 @@ impl Model {
                 source: None.into(),
             })?;
 
-        let username: String = crypto.decrypt_credentials(&username_enc)?;
+        let username: String = crypto.decrypt_string(&username_enc)?;
 
         let password_enc = self
             .password
@@ -124,10 +124,10 @@ impl Model {
                 source: None.into(),
             })?;
 
-        let password: String = crypto.decrypt_credentials(&password_enc)?;
+        let password: String = crypto.decrypt_string(&password_enc)?;
 
         let cookies: Option<String> = if let Some(cookies_enc) = self.cookies {
-            let cookies = crypto.decrypt_credentials(&cookies_enc)?;
+            let cookies = crypto.decrypt_string(&cookies_enc)?;
             Some(cookies)
         } else {
             None

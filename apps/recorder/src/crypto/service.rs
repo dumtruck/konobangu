@@ -16,7 +16,7 @@ impl CryptoService {
         Ok(Self { config })
     }
 
-    pub fn encrypt_data(&self, data: String) -> Result<String, CryptoError> {
+    pub fn encrypt_string(&self, data: String) -> Result<String, CryptoError> {
         let key = rand::rng().random::<[u8; 32]>();
         let mut cocoon = Cocoon::new(&key);
 
@@ -32,7 +32,7 @@ impl CryptoService {
         Ok(BASE64_URL_SAFE.encode(combined))
     }
 
-    pub fn decrypt_data(&self, data: &str) -> Result<String, CryptoError> {
+    pub fn decrypt_string(&self, data: &str) -> Result<String, CryptoError> {
         let decoded = BASE64_URL_SAFE.decode(data)?;
 
         let (key, remain) = decoded.split_at(32);
@@ -45,20 +45,17 @@ impl CryptoService {
         String::from_utf8(data).map_err(CryptoError::from)
     }
 
-    pub fn encrypt_credentials<T: Serialize>(
-        &self,
-        credentials: &T,
-    ) -> Result<String, CryptoError> {
+    pub fn encrypt_serialize<T: Serialize>(&self, credentials: &T) -> Result<String, CryptoError> {
         let json = serde_json::to_string(credentials)?;
 
-        self.encrypt_data(json)
+        self.encrypt_string(json)
     }
 
-    pub fn decrypt_credentials<T: for<'de> Deserialize<'de>>(
+    pub fn decrypt_deserialize<T: for<'de> Deserialize<'de>>(
         &self,
         encrypted: &str,
     ) -> Result<T, CryptoError> {
-        let data = self.decrypt_data(encrypted)?;
+        let data = self.decrypt_string(encrypted)?;
 
         serde_json::from_str(&data).map_err(CryptoError::from)
     }
