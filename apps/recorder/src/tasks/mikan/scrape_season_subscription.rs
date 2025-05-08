@@ -16,7 +16,7 @@ use crate::{
 const TASK_NAME: &str = "mikan_extract_season_subscription";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExtractMikanSeasonSubscriptionTask {
+pub struct ScrapeMikanSeasonSubscriptionTask {
     pub task_id: i32,
     pub year: i32,
     pub season_str: MikanSeasonStr,
@@ -26,7 +26,7 @@ pub struct ExtractMikanSeasonSubscriptionTask {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ExtractMikanSeasonSubscriptionTaskResult {
+pub struct ScrapeMikanSeasonSubscriptionTaskResult {
     pub task_id: i32,
     pub year: i32,
     pub season_str: MikanSeasonStr,
@@ -36,10 +36,10 @@ pub struct ExtractMikanSeasonSubscriptionTaskResult {
     pub bangumi_meta_list: Vec<MikanBangumiMeta>,
 }
 
-pub async fn extract_mikan_season_subscription(
-    job: ExtractMikanSeasonSubscriptionTask,
+pub async fn scrape_mikan_season_subscription(
+    job: ScrapeMikanSeasonSubscriptionTask,
     data: Data<Arc<dyn AppContextTrait>>,
-) -> RecorderResult<GoTo<ExtractMikanSeasonSubscriptionTaskResult>> {
+) -> RecorderResult<GoTo<ScrapeMikanSeasonSubscriptionTaskResult>> {
     let ctx = data.deref();
 
     let mikan_client = ctx.mikan();
@@ -56,7 +56,7 @@ pub async fn extract_mikan_season_subscription(
     )
     .await?;
 
-    Ok(GoTo::Done(ExtractMikanSeasonSubscriptionTaskResult {
+    Ok(GoTo::Done(ScrapeMikanSeasonSubscriptionTaskResult {
         bangumi_meta_list,
         credential_id: job.credential_id,
         season_str: job.season_str,
@@ -67,14 +67,14 @@ pub async fn extract_mikan_season_subscription(
     }))
 }
 
-pub fn register_extract_mikan_season_subscription_task(
+pub fn register_scrape_mikan_season_subscription_task(
     monitor: Monitor,
     ctx: Arc<dyn AppContextTrait>,
 ) -> RecorderResult<(Monitor, PostgresStorage<StepRequest<serde_json::Value>>)> {
     let pool = ctx.db().get_postgres_connection_pool().clone();
     let storage = PostgresStorage::new(pool);
 
-    let steps = StepBuilder::new().step_fn(extract_mikan_season_subscription);
+    let steps = StepBuilder::new().step_fn(scrape_mikan_season_subscription);
 
     let worker = WorkerBuilder::new(TASK_NAME)
         .catch_panic()

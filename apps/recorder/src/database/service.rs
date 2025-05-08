@@ -1,5 +1,6 @@
 use std::{ops::Deref, time::Duration};
 
+use apalis_sql::postgres::PostgresStorage;
 use sea_orm::{
     ConnectOptions, ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, ExecResult,
     QueryResult, Statement,
@@ -53,6 +54,10 @@ impl DatabaseService {
 
         if config.auto_migrate {
             Migrator::up(&db, None).await?;
+            {
+                let pool = db.get_postgres_connection_pool();
+                PostgresStorage::setup(pool).await?;
+            }
         }
 
         Ok(Self {

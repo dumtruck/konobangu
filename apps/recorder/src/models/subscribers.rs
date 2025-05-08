@@ -1,4 +1,3 @@
-use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use sea_orm::{ActiveValue, FromJsonQueryResult, TransactionTrait, entity::prelude::*};
 use serde::{Deserialize, Serialize};
@@ -10,14 +9,12 @@ use crate::{
 
 pub const SEED_SUBSCRIBER: &str = "konobangu";
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct SubscriberBangumiConfig {
     pub leading_group_tag: Option<bool>,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscribers")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]

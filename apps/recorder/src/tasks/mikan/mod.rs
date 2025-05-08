@@ -1,5 +1,6 @@
-mod extract_season_subscription;
+mod scrape_season_subscription;
 
-pub use extract_season_subscription::{
-    ExtractMikanSeasonSubscriptionTask, register_extract_mikan_season_subscription_task,
+pub use scrape_season_subscription::{
+    ScrapeMikanSeasonSubscriptionTask, ScrapeMikanSeasonSubscriptionTaskResult,
+    register_scrape_mikan_season_subscription_task,
 };

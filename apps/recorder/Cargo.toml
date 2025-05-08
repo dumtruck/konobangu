@@ -72,7 +72,7 @@ scraper = "0.23"
 
 jwt-authorizer = "0.15.0"
 log = "0.4"
-async-graphql = { version = "7", features = [] }
+async-graphql = { version = "7", features = ["dynamic-schema"] }
 async-graphql-axum = "7"
 seaography = { version = "1.1", features = [
     "with-json",

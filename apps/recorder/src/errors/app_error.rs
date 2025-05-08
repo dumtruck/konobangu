@@ -54,6 +54,8 @@ pub enum RecorderError {
     IOError { source: std::io::Error },
     #[snafu(transparent)]
     DbError { source: sea_orm::DbErr },
+    #[snafu(transparent)]
+    DbSqlxError { source: sea_orm::SqlxError },
     #[snafu(transparent, context(false))]
     FigmentError {
         #[snafu(source(from(figment::Error, Box::new)))]

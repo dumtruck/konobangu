@@ -3,12 +3,12 @@ use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use super::transformer::{filter_condition_transformer, mutation_input_object_transformer};
-use crate::graphql::{
+use crate::graphql::infra::{
     filter::{
         SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info, subscriber_id_condition_function,
     },
     guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
+    transformer::{filter_condition_transformer, mutation_input_object_transformer},
     util::{get_entity_column_key, get_entity_key},
 };
 

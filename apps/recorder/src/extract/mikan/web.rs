@@ -48,6 +48,33 @@ pub struct MikanBangumiMeta {
     pub fansub: String,
 }
 
+#[async_graphql::Object]
+impl MikanBangumiMeta {
+    async fn homepage(&self) -> &str {
+        self.homepage.as_str()
+    }
+
+    async fn origin_poster_src(&self) -> Option<&str> {
+        self.origin_poster_src.as_ref().map(|url| url.as_str())
+    }
+
+    async fn bangumi_title(&self) -> &str {
+        &self.bangumi_title
+    }
+
+    async fn mikan_bangumi_id(&self) -> &str {
+        &self.mikan_bangumi_id
+    }
+
+    async fn mikan_fansub_id(&self) -> &str {
+        &self.mikan_fansub_id
+    }
+
+    async fn fansub(&self) -> &str {
+        &self.fansub
+    }
+}
+
 impl MikanBangumiMeta {
     pub fn from_bangumi_index_and_fansub_meta(
         bangumi_index_meta: MikanBangumiIndexMeta,
@@ -138,15 +165,19 @@ impl MikanEpisodeHomepageUrlMeta {
     }
 }
 
-#[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(async_graphql::Enum, Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum MikanSeasonStr {
     #[serde(rename = "春")]
+    #[graphql(name = "spring")]
     Spring,
     #[serde(rename = "夏")]
+    #[graphql(name = "summer")]
     Summer,
     #[serde(rename = "秋")]
+    #[graphql(name = "autumn")]
     Autumn,
     #[serde(rename = "冬")]
+    #[graphql(name = "winter")]
     Winter,
 }
 
