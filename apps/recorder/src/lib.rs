@@ -26,6 +26,5 @@ pub mod migrations;
 pub mod models;
 pub mod storage;
 pub mod task;
-#[cfg(any(test, feature = "playground"))]
 pub mod test_utils;
 pub mod web;

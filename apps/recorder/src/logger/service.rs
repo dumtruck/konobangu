@@ -13,7 +13,7 @@ use super::{LogFormat, LogLevel, LogRotation, LoggerConfig};
 use crate::errors::RecorderResult;
 
 // Function to initialize the logger based on the provided configuration
-const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sqlx::query", "sidekiq"];
+pub const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sea_orm", "sea_query"];
 
 // Keep nonblocking file appender work guard
 static NONBLOCKING_WORK_GUARD_KEEP: OnceLock<WorkerGuard> = OnceLock::new();

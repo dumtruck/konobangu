@@ -3,7 +3,7 @@ use std::{fmt::Debug, sync::Arc};
 use once_cell::sync::OnceCell;
 use typed_builder::TypedBuilder;
 
-use crate::app::AppContextTrait;
+use crate::{app::AppContextTrait, test_utils::storage::TestingStorageService};
 
 #[derive(TypedBuilder)]
 #[builder(field_defaults(default, setter(strip_option)))]
@@ -15,7 +15,7 @@ pub struct TestingAppContext {
     mikan: Option<crate::extract::mikan::MikanClient>,
     auth: Option<crate::auth::AuthService>,
     graphql: Option<crate::graphql::GraphQLService>,
-    storage: Option<crate::storage::StorageService>,
+    storage: Option<TestingStorageService>,
     crypto: Option<crate::crypto::CryptoService>,
     #[builder(default = Arc::new(OnceCell::new()), setter(!strip_option))]
     task: Arc<OnceCell<crate::task::TaskService>>,

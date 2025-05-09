@@ -17,7 +17,7 @@ use crate::{
             MikanBangumiHash, MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url,
             scrape_mikan_poster_meta_from_image_url,
         },
-        rawname::parse_episode_meta_from_raw_name,
+        rawname::extract_season_from_title_body,
     },
 };
 
@@ -27,18 +27,6 @@ use crate::{
 pub struct BangumiFilter {
     pub name: Option<Vec<String>>,
     pub group: Option<Vec<String>>,
-}
-
-#[derive(
-    Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
-)]
-pub struct BangumiExtra {
-    pub name_zh: Option<String>,
-    pub s_name_zh: Option<String>,
-    pub name_en: Option<String>,
-    pub s_name_en: Option<String>,
-    pub name_jp: Option<String>,
-    pub s_name_jp: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
@@ -63,7 +51,6 @@ pub struct Model {
     pub poster_link: Option<String>,
     pub save_path: Option<String>,
     pub homepage: Option<String>,
-    pub extra: Option<BangumiExtra>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -135,8 +122,7 @@ impl ActiveModel {
         let mikan_client = ctx.mikan();
         let storage_service = ctx.storage();
         let mikan_base_url = mikan_client.base_url();
-
-        let rawname_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
+        let (_, season_raw, season_index) = extract_season_from_title_body(&meta.bangumi_title);
 
         let rss_url = build_mikan_bangumi_subscription_rss_url(
             mikan_base_url.clone(),
@@ -163,20 +149,12 @@ impl ActiveModel {
             subscriber_id: ActiveValue::Set(subscriber_id),
             display_name: ActiveValue::Set(meta.bangumi_title.clone()),
             raw_name: ActiveValue::Set(meta.bangumi_title),
-            season: ActiveValue::Set(rawname_meta.season),
-            season_raw: ActiveValue::Set(rawname_meta.season_raw),
+            season: ActiveValue::Set(season_index),
+            season_raw: ActiveValue::Set(season_raw),
             fansub: ActiveValue::Set(Some(meta.fansub)),
             poster_link: ActiveValue::Set(poster_link),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
-            extra: ActiveValue::Set(Some(BangumiExtra {
-                name_zh: rawname_meta.name_zh,
-                name_en: rawname_meta.name_en,
-                name_jp: rawname_meta.name_jp,
-                s_name_en: rawname_meta.name_en_no_season,
-                s_name_jp: rawname_meta.name_jp_no_season,
-                s_name_zh: rawname_meta.name_zh_no_season,
-            })),
             ..Default::default()
         })
     }
@@ -218,15 +196,16 @@ impl Model {
                 Expr::col((
                     subscription_bangumi_alias.clone(),
                     subscription_bangumi::Column::SubscriptionId,
-                )),
+                ))
+                .is_not_null(),
                 "is_subscribed",
             )
             .join_as_rev(
                 JoinType::LeftJoin,
                 subscription_bangumi::Relation::Bangumi
                     .def()
-                    .on_condition(move |_left, right| {
-                        Expr::col((right, subscription_bangumi::Column::SubscriptionId))
+                    .on_condition(move |left, _right| {
+                        Expr::col((left, subscription_bangumi::Column::SubscriptionId))
                             .eq(subscription_id)
                             .into_condition()
                     }),

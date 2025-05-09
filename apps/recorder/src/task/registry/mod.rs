@@ -12,6 +12,7 @@ use super::SubscriberAsyncTaskTrait;
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
+    models::subscriptions::SubscriptionTrait,
 };
 
 #[derive(async_graphql::Enum, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Copy)]
@@ -27,9 +28,26 @@ pub enum SubscriberTaskType {
     SyncOneSubscriptionSources,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+impl TryFrom<&SubscriberTask> for serde_json::Value {
+    type Error = RecorderError;
+
+    fn try_from(value: &SubscriberTask) -> Result<Self, Self::Error> {
+        let json_value = serde_json::to_value(value)?;
+        Ok(match json_value {
+            serde_json::Value::Object(mut map) => {
+                map.remove("task_type");
+                serde_json::Value::Object(map)
+            }
+            _ => {
+                unreachable!("subscriber task must be an json object");
+            }
+        })
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult)]
 #[serde(tag = "task_type")]
-pub enum SubscriberTaskPayload {
+pub enum SubscriberTask {
     #[serde(rename = "sync_one_subscription_feeds_incremental")]
     SyncOneSubscriptionFeedsIncremental(SyncOneSubscriptionFeedsIncrementalTask),
     #[serde(rename = "sync_one_subscription_feeds_full")]
@@ -38,7 +56,15 @@ pub enum SubscriberTaskPayload {
     SyncOneSubscriptionSources(SyncOneSubscriptionSourcesTask),
 }
 
-impl SubscriberTaskPayload {
+impl SubscriberTask {
+    pub fn get_subscriber_id(&self) -> i32 {
+        match self {
+            Self::SyncOneSubscriptionFeedsIncremental(task) => task.0.get_subscriber_id(),
+            Self::SyncOneSubscriptionFeedsFull(task) => task.0.get_subscriber_id(),
+            Self::SyncOneSubscriptionSources(task) => task.0.get_subscriber_id(),
+        }
+    }
+
     pub async fn run(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
         match self {
             Self::SyncOneSubscriptionFeedsIncremental(task) => task.run(ctx).await,
@@ -58,28 +84,4 @@ impl SubscriberTaskPayload {
             Self::SyncOneSubscriptionSources(_) => SubscriberTaskType::SyncOneSubscriptionSources,
         }
     }
-}
-
-impl TryFrom<&SubscriberTaskPayload> for serde_json::Value {
-    type Error = RecorderError;
-
-    fn try_from(value: &SubscriberTaskPayload) -> Result<Self, Self::Error> {
-        let json_value = serde_json::to_value(value)?;
-        Ok(match json_value {
-            serde_json::Value::Object(mut map) => {
-                map.remove("task_type");
-                serde_json::Value::Object(map)
-            }
-            _ => {
-                unreachable!("subscriber task payload must be an json object");
-            }
-        })
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult)]
-pub struct SubscriberTask {
-    pub subscriber_id: i32,
-    #[serde(flatten)]
-    pub payload: SubscriberTaskPayload,
 }

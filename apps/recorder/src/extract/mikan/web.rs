@@ -32,9 +32,8 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MikanRssItem {
+pub struct MikanRssEpisodeItem {
     pub title: String,
-    pub homepage: Url,
     pub url: Url,
     pub content_length: Option<u64>,
     pub mime: String,
@@ -42,7 +41,13 @@ pub struct MikanRssItem {
     pub mikan_episode_id: String,
 }
 
-impl TryFrom<rss::Item> for MikanRssItem {
+impl MikanRssEpisodeItem {
+    pub fn build_homepage_url(&self, mikan_base_url: Url) -> Url {
+        build_mikan_episode_homepage_url(mikan_base_url, &self.mikan_episode_id)
+    }
+}
+
+impl TryFrom<rss::Item> for MikanRssEpisodeItem {
     type Error = RecorderError;
 
     fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
@@ -83,9 +88,8 @@ impl TryFrom<rss::Item> for MikanRssItem {
             RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
-        Ok(MikanRssItem {
+        Ok(MikanRssEpisodeItem {
             title,
-            homepage,
             url: enclosure_url,
             content_length: enclosure.length.parse().ok(),
             mime: mime_type,
@@ -436,6 +440,10 @@ impl MikanSeasonFlowUrlMeta {
             None
         }
     }
+
+    pub fn build_season_flow_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_season_flow_url(mikan_base_url, self.year, self.season_str)
+    }
 }
 pub fn build_mikan_bangumi_homepage_url(
     mikan_base_url: Url,
@@ -511,6 +519,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
         .select(&Selector::parse("title").unwrap())
         .next()
         .map(extract_inner_text_from_element_ref)
+        .map(|s| s.replace(" - Mikan Project", ""))
         .ok_or_else(|| {
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title"))
         })?;
@@ -543,7 +552,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
             })
     });
 
-    tracing::trace!(
+    tracing::debug!(
         bangumi_title,
         mikan_bangumi_id,
         episode_title,
@@ -566,7 +575,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
     })
 }
 
-#[instrument(skip_all, fields(mikan_episode_homepage_url = mikan_episode_homepage_url.as_str()))]
+#[instrument(err, skip_all, fields(mikan_episode_homepage_url = mikan_episode_homepage_url.as_str()))]
 pub async fn scrape_mikan_episode_meta_from_episode_homepage_url(
     http_client: &MikanClient,
     mikan_episode_homepage_url: Url,

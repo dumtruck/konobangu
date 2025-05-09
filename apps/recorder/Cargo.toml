@@ -15,7 +15,7 @@ required-features = []
 
 [features]
 default = []
-playground = ["dep:mockito", "dep:inquire", "dep:color-eyre"]
+playground = ["dep:inquire", "dep:color-eyre"]
 testcontainers = [
     "dep:testcontainers",
     "dep:testcontainers-modules",
@@ -54,7 +54,7 @@ serde_with = { workspace = true }
 moka = { workspace = true }
 chrono = { workspace = true }
 tracing-subscriber = { workspace = true }
-mockito = { workspace = true, optional = true }
+mockito = { workspace = true }
 
 sea-orm = { version = "1.1", features = [
     "sqlx-sqlite",
@@ -122,11 +122,11 @@ color-eyre = { workspace = true, optional = true }
 inquire = { workspace = true, optional = true }
 percent-encoding = "2.3.1"
 
+
 [dev-dependencies]
 serial_test = "3"
 insta = { version = "1", features = ["redactions", "toml", "filters"] }
 rstest = "0.25"
 ctor = "0.4.0"
-mockito = { workspace = true }
 inquire = { workspace = true }
 color-eyre = { workspace = true }

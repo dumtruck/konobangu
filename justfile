@@ -14,8 +14,8 @@ dev-webui:
     pnpm run --filter=webui dev
 
 dev-proxy:
-    npx kill-port 8899
-    pnpm run --filter=proxy dev
+    npx --yes kill-port --port 8899,5010
+    pnpm run --parallel --filter=proxy dev
 
 dev-recorder:
     watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin recorder_cli -- --environment development

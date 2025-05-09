@@ -20,10 +20,10 @@ use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
     extract::mikan::{
-        MikanBangumiHash, MikanBangumiMeta, MikanEpisodeHash, MikanEpisodeMeta, MikanRssItem,
-        MikanSeasonFlowUrlMeta, MikanSeasonStr, MikanSubscriberSubscriptionRssUrlMeta,
-        build_mikan_bangumi_subscription_rss_url, build_mikan_season_flow_url,
-        build_mikan_subscriber_subscription_rss_url,
+        MikanBangumiHash, MikanBangumiMeta, MikanEpisodeHash, MikanEpisodeMeta,
+        MikanRssEpisodeItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
+        MikanSubscriberSubscriptionRssUrlMeta, build_mikan_bangumi_subscription_rss_url,
+        build_mikan_season_flow_url, build_mikan_subscriber_subscription_rss_url,
         scrape_mikan_episode_meta_from_episode_homepage_url,
     },
     models::{
@@ -35,10 +35,11 @@ use crate::{
 #[tracing::instrument(err, skip(ctx, rss_item_list))]
 async fn sync_mikan_feeds_from_rss_item_list(
     ctx: &dyn AppContextTrait,
-    rss_item_list: Vec<MikanRssItem>,
+    rss_item_list: Vec<MikanRssEpisodeItem>,
     subscriber_id: i32,
     subscription_id: i32,
 ) -> RecorderResult<()> {
+    let mikan_base_url = ctx.mikan().base_url().clone();
     let (new_episode_meta_list, existed_episode_hash2id_map) = {
         let existed_episode_hash2id_map = episodes::Model::get_existed_mikan_episode_list(
             ctx,
@@ -60,7 +61,7 @@ async fn sync_mikan_feeds_from_rss_item_list(
         }) {
             let episode_meta = scrape_mikan_episode_meta_from_episode_homepage_url(
                 mikan_client,
-                to_insert_rss_item.homepage,
+                to_insert_rss_item.build_homepage_url(mikan_base_url.clone()),
             )
             .await?;
             new_episode_meta_list.push(episode_meta);
@@ -215,7 +216,7 @@ impl MikanSubscriberSubscription {
     async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssItem>> {
+    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let rss_url = build_mikan_subscriber_subscription_rss_url(
             mikan_base_url.clone(),
@@ -227,7 +228,7 @@ impl MikanSubscriberSubscription {
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssItem::try_from(item)
+            let item = MikanRssEpisodeItem::try_from(item)
                 .with_whatever_context::<_, String, RecorderError>(|_| {
                     format!("failed to extract rss item at idx {idx}")
                 })?;
@@ -240,7 +241,7 @@ impl MikanSubscriberSubscription {
     async fn get_rss_item_list_from_subsribed_url_rss_link(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssItem>> {
+    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
         let subscribed_bangumi_list =
             bangumi::Model::get_subsribed_bangumi_list_from_subscription(ctx, self.id).await?;
 
@@ -259,7 +260,7 @@ impl MikanSubscriberSubscription {
             let channel = rss::Channel::read_from(&bytes[..])?;
 
             for (idx, item) in channel.items.into_iter().enumerate() {
-                let item = MikanRssItem::try_from(item)
+                let item = MikanRssEpisodeItem::try_from(item)
                     .with_whatever_context::<_, String, RecorderError>(|_| {
                         format!("failed to extract rss item at idx {idx}")
                     })?;
@@ -395,7 +396,7 @@ impl MikanSeasonSubscription {
     async fn get_rss_item_list_from_subsribed_url_rss_link(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssItem>> {
+    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
         let db = ctx.db();
 
         let subscribed_bangumi_list = bangumi::Entity::find()
@@ -422,7 +423,7 @@ impl MikanSeasonSubscription {
             let channel = rss::Channel::read_from(&bytes[..])?;
 
             for (idx, item) in channel.items.into_iter().enumerate() {
-                let item = MikanRssItem::try_from(item)
+                let item = MikanRssEpisodeItem::try_from(item)
                     .with_whatever_context::<_, String, RecorderError>(|_| {
                         format!("failed to extract rss item at idx {idx}")
                     })?;
@@ -499,7 +500,7 @@ impl MikanBangumiSubscription {
     async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssItem>> {
+    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let rss_url = build_mikan_bangumi_subscription_rss_url(
             mikan_base_url.clone(),
@@ -512,7 +513,7 @@ impl MikanBangumiSubscription {
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssItem::try_from(item)
+            let item = MikanRssEpisodeItem::try_from(item)
                 .with_whatever_context::<_, String, RecorderError>(|_| {
                     format!("failed to extract rss item at idx {idx}")
                 })?;
@@ -522,106 +523,216 @@ impl MikanBangumiSubscription {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::assert_matches::assert_matches;
+#[cfg(test)]
+#[allow(unused_variables)]
+mod tests {
+    use std::sync::Arc;
 
-//     use downloader::bittorrent::BITTORRENT_MIME_TYPE;
-//     use rstest::rstest;
-//     use url::Url;
+    use rstest::{fixture, rstest};
+    use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
+    use tracing::Level;
 
-//     use crate::{
-//         errors::RecorderResult,
-//         extract::mikan::{
-//             MikanBangumiIndexRssChannel, MikanBangumiRssChannel,
-// MikanRssChannel,             build_mikan_bangumi_subscription_rss_url,
-// extract_mikan_rss_channel_from_rss_link,         },
-//         test_utils::mikan::build_testing_mikan_client,
-//     };
+    use crate::{
+        app::AppContextTrait,
+        errors::RecorderResult,
+        extract::mikan::{
+            MikanBangumiHash, MikanSeasonFlowUrlMeta, MikanSeasonStr,
+            MikanSubscriberSubscriptionRssUrlMeta,
+        },
+        models::{
+            bangumi,
+            subscriptions::{self, SubscriptionTrait},
+        },
+        test_utils::{
+            app::TestingAppContext,
+            crypto::build_testing_crypto_service,
+            database::build_testing_database_service,
+            mikan::{
+                MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form,
+            },
+            storage::build_testing_storage_service,
+            tracing::try_init_testing_tracing,
+        },
+    };
 
-// #[rstest]
-// #[tokio::test]
-// async fn test_parse_mikan_rss_channel_from_rss_link() ->
-// RecorderResult<()> {     let mut mikan_server =
-// mockito::Server::new_async().await;
+    struct TestingResources {
+        pub app_ctx: Arc<dyn AppContextTrait>,
+        pub mikan_server: MikanMockServer,
+    }
 
-//     let mikan_base_url = Url::parse(&mikan_server.url())?;
+    async fn build_testing_app_context() -> RecorderResult<TestingResources> {
+        let mikan_server = MikanMockServer::new().await?;
 
-//     let mikan_client =
-// build_testing_mikan_client(mikan_base_url.clone()).await?;
+        let mikan_base_url = mikan_server.base_url().clone();
 
-//     {
-//         let bangumi_rss_url = build_mikan_bangumi_subscription_rss_url(
-//             mikan_base_url.clone(),
-//             "3141",
-//             Some("370"),
-//         );
+        let app_ctx = {
+            let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
+            let db_service = build_testing_database_service(Default::default()).await?;
+            let crypto_service = build_testing_crypto_service().await?;
+            let storage_service = build_testing_storage_service().await?;
+            let app_ctx = TestingAppContext::builder()
+                .mikan(mikan_client)
+                .db(db_service)
+                .crypto(crypto_service)
+                .storage(storage_service)
+                .build();
 
-//         let bangumi_rss_mock = mikan_server
-//             .mock("GET", bangumi_rss_url.path())
-//
-// .with_body_from_file("tests/resources/mikan/Bangumi-3141-370.rss")
-//             .match_query(mockito::Matcher::Any)
-//             .create_async()
-//             .await;
+            Arc::new(app_ctx)
+        };
 
-//         let channel =
-// scrape_mikan_rss_channel_from_rss_link(&mikan_client, bangumi_rss_url)
-//             .await
-//             .expect("should get mikan channel from rss url");
+        Ok(TestingResources {
+            app_ctx,
+            mikan_server,
+        })
+    }
 
-//         assert_matches!(
-//             &channel,
-//             MikanRssChannel::Bangumi(MikanBangumiRssChannel { .. })
-//         );
+    #[fixture]
+    fn before_each() {
+        try_init_testing_tracing(Level::DEBUG);
+    }
 
-//         assert_matches!(&channel.name(), Some("葬送的芙莉莲"));
+    #[rstest]
+    #[tokio::test]
+    async fn test_mikan_season_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
+        let TestingResources {
+            app_ctx,
+            mut mikan_server,
+        } = build_testing_app_context().await?;
 
-//         let items = channel.items();
-//         let first_sub_item = items
-//             .first()
-//             .expect("mikan subscriptions should have at least one subs");
+        let _resources_mock = mikan_server.mock_resources_with_doppel();
 
-//         assert_eq!(first_sub_item.mime, BITTORRENT_MIME_TYPE);
+        let _login_mock = mikan_server.mock_get_login_page();
 
-//         assert!(
-//             &first_sub_item
-//                 .homepage
-//                 .as_str()
-//                 .starts_with("https://mikanani.me/Home/Episode")
-//         );
+        let mikan_client = app_ctx.mikan();
 
-//         let name = first_sub_item.title.as_str();
-//         assert!(name.contains("葬送的芙莉莲"));
+        let subscriber_id = 1;
 
-//         bangumi_rss_mock.expect(1);
-//     }
-//     {
-//         let bangumi_rss_url =
-// mikan_base_url.join("/RSS/Bangumi?bangumiId=3416")?;
+        let credential = mikan_client
+            .submit_credential_form(
+                app_ctx.as_ref(),
+                subscriber_id,
+                build_testing_mikan_credential_form(),
+            )
+            .await?;
 
-//         let bangumi_rss_mock = mikan_server
-//             .mock("GET", bangumi_rss_url.path())
-//             .match_query(mockito::Matcher::Any)
-//
-// .with_body_from_file("tests/resources/mikan/Bangumi-3416.rss")
-//             .create_async()
-//             .await;
+        let subscription_am = subscriptions::ActiveModel {
+            display_name: ActiveValue::Set("test subscription".to_string()),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            category: ActiveValue::Set(subscriptions::SubscriptionCategory::MikanSeason),
+            source_url: ActiveValue::Set(
+                MikanSeasonFlowUrlMeta {
+                    year: 2025,
+                    season_str: MikanSeasonStr::Spring,
+                }
+                .build_season_flow_url(mikan_server.base_url().clone())
+                .to_string(),
+            ),
+            enabled: ActiveValue::Set(true),
+            credential_id: ActiveValue::Set(Some(credential.id)),
+            ..Default::default()
+        };
 
-//         let channel =
-// scrape_mikan_rss_channel_from_rss_link(&mikan_client, bangumi_rss_url)
-//             .await
-//             .expect("should get mikan channel from rss url");
+        let subscription_model = subscription_am.insert(app_ctx.db()).await?;
 
-//         assert_matches!(
-//             &channel,
-//             MikanRssChannel::BangumiIndex(MikanBangumiIndexRssChannel {
-// .. })         );
+        let subscription = subscriptions::Subscription::try_from_model(&subscription_model)?;
 
-//         assert_matches!(&channel.name(), Some("叹气的亡灵想隐退"));
+        {
+            subscription.sync_feeds_incremental(app_ctx.clone()).await?;
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
 
-//         bangumi_rss_mock.expect(1);
-//     }
-//     Ok(())
-// }
-// }
+            assert!(bangumi_list.is_empty());
+        }
+
+        {
+            subscription.sync_feeds_full(app_ctx.clone()).await?;
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!bangumi_list.is_empty());
+        }
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_mikan_subscriber_subscription_sync_feeds_incremental(
+        before_each: (),
+    ) -> RecorderResult<()> {
+        let TestingResources {
+            app_ctx,
+            mut mikan_server,
+        } = build_testing_app_context().await?;
+
+        let _resources_mock = mikan_server.mock_resources_with_doppel();
+
+        let _login_mock = mikan_server.mock_get_login_page();
+
+        let subscriber_id = 1;
+
+        let subscription_am = subscriptions::ActiveModel {
+            display_name: ActiveValue::Set("test subscription".to_string()),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            category: ActiveValue::Set(subscriptions::SubscriptionCategory::MikanSubscriber),
+            source_url: ActiveValue::Set(
+                MikanSubscriberSubscriptionRssUrlMeta {
+                    mikan_subscription_token: "123".into(),
+                }
+                .build_rss_url(mikan_server.base_url().clone())
+                .to_string(),
+            ),
+            enabled: ActiveValue::Set(true),
+            ..Default::default()
+        };
+
+        let subscription_model = subscription_am.insert(app_ctx.db()).await?;
+
+        let subscription_task = subscriptions::Subscription::try_from_model(&subscription_model)?;
+
+        subscription_task
+            .sync_feeds_incremental(app_ctx.clone())
+            .await?;
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[tokio::test]
+    async fn test_mikan_bangumi_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
+        let TestingResources {
+            app_ctx,
+            mut mikan_server,
+        } = build_testing_app_context().await?;
+
+        let _resources_mock = mikan_server.mock_resources_with_doppel();
+
+        let _login_mock = mikan_server.mock_get_login_page();
+
+        let subscriber_id = 1;
+
+        let subscription_am = subscriptions::ActiveModel {
+            display_name: ActiveValue::Set("test subscription".to_string()),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            category: ActiveValue::Set(subscriptions::SubscriptionCategory::MikanBangumi),
+            source_url: ActiveValue::Set(
+                MikanBangumiHash {
+                    mikan_bangumi_id: "3600".into(),
+                    mikan_fansub_id: "370".into(),
+                }
+                .build_rss_url(mikan_server.base_url().clone())
+                .to_string(),
+            ),
+            enabled: ActiveValue::Set(true),
+            ..Default::default()
+        };
+
+        let subscription_model = subscription_am.insert(app_ctx.db()).await?;
+
+        let subscription_task = subscriptions::Subscription::try_from_model(&subscription_model)?;
+
+        subscription_task
+            .sync_feeds_incremental(app_ctx.clone())
+            .await?;
+
+        Ok(())
+    }
+}

@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveValue, FromJsonQueryResult, IntoSimpleExpr, QuerySelect, entity::prelude::*,
-    sea_query::OnConflict,
+    ActiveValue, IntoSimpleExpr, QuerySelect, entity::prelude::*, sea_query::OnConflict,
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,19 +10,9 @@ use crate::{
     errors::RecorderResult,
     extract::{
         mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
-        rawname::parse_episode_meta_from_raw_name,
+        rawname::extract_episode_meta_from_raw_name,
     },
 };
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, Default)]
-pub struct EpisodeExtra {
-    pub name_zh: Option<String>,
-    pub s_name_zh: Option<String>,
-    pub name_en: Option<String>,
-    pub s_name_en: Option<String>,
-    pub name_jp: Option<String>,
-    pub s_name_jp: Option<String>,
-}
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "episodes")]
@@ -50,7 +39,6 @@ pub struct Model {
     pub homepage: Option<String>,
     pub subtitle: Option<String>,
     pub source: Option<String>,
-    pub extra: EpisodeExtra,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -135,42 +123,51 @@ impl ActiveModel {
         episode: MikanEpisodeMeta,
     ) -> RecorderResult<Self> {
         let mikan_base_url = ctx.mikan().base_url().clone();
-        let rawname_meta = parse_episode_meta_from_raw_name(&episode.episode_title)?;
+        let episode_extention_meta = extract_episode_meta_from_raw_name(&episode.episode_title)
+            .inspect_err(|err| {
+                tracing::error!(
+                    err = ?err,
+                    episode_title = ?episode.episode_title,
+                    "Failed to parse episode extension meta from episode title, skip"
+                );
+            })
+            .ok();
         let homepage = build_mikan_episode_homepage_url(mikan_base_url, &episode.mikan_episode_id);
 
-        Ok(Self {
+        let mut episode_active_model = Self {
             mikan_episode_id: ActiveValue::Set(Some(episode.mikan_episode_id)),
             raw_name: ActiveValue::Set(episode.episode_title.clone()),
             display_name: ActiveValue::Set(episode.episode_title.clone()),
             bangumi_id: ActiveValue::Set(bangumi.id),
             subscriber_id: ActiveValue::Set(bangumi.subscriber_id),
-            resolution: ActiveValue::Set(rawname_meta.resolution),
-            season: ActiveValue::Set(if rawname_meta.season > 0 {
-                rawname_meta.season
-            } else {
-                bangumi.season
-            }),
-            season_raw: ActiveValue::Set(
-                rawname_meta
-                    .season_raw
-                    .or_else(|| bangumi.season_raw.clone()),
-            ),
-            fansub: ActiveValue::Set(rawname_meta.fansub.or_else(|| bangumi.fansub.clone())),
-            poster_link: ActiveValue::Set(bangumi.poster_link.clone()),
-            episode_index: ActiveValue::Set(rawname_meta.episode_index),
             homepage: ActiveValue::Set(Some(homepage.to_string())),
-            subtitle: ActiveValue::Set(rawname_meta.subtitle),
-            source: ActiveValue::Set(rawname_meta.source),
-            extra: ActiveValue::Set(EpisodeExtra {
-                name_zh: rawname_meta.name_zh,
-                name_en: rawname_meta.name_en,
-                name_jp: rawname_meta.name_jp,
-                s_name_en: rawname_meta.name_en_no_season,
-                s_name_jp: rawname_meta.name_jp_no_season,
-                s_name_zh: rawname_meta.name_zh_no_season,
-            }),
+            season_raw: ActiveValue::Set(bangumi.season_raw.clone()),
+            season: ActiveValue::Set(bangumi.season),
+            fansub: ActiveValue::Set(bangumi.fansub.clone()),
+            poster_link: ActiveValue::Set(bangumi.poster_link.clone()),
+            episode_index: ActiveValue::Set(0),
             ..Default::default()
-        })
+        };
+
+        if let Some(episode_extention_meta) = episode_extention_meta {
+            episode_active_model.episode_index =
+                ActiveValue::Set(episode_extention_meta.episode_index);
+            episode_active_model.subtitle = ActiveValue::Set(episode_extention_meta.subtitle);
+            episode_active_model.source = ActiveValue::Set(episode_extention_meta.source);
+            episode_active_model.resolution = ActiveValue::Set(episode_extention_meta.resolution);
+            if episode_extention_meta.season > 0 {
+                episode_active_model.season = ActiveValue::Set(episode_extention_meta.season);
+            }
+            if episode_extention_meta.season_raw.is_some() {
+                episode_active_model.season_raw =
+                    ActiveValue::Set(episode_extention_meta.season_raw);
+            }
+            if episode_extention_meta.fansub.is_some() {
+                episode_active_model.fansub = ActiveValue::Set(episode_extention_meta.fansub);
+            }
+        }
+
+        Ok(episode_active_model)
     }
 }
 

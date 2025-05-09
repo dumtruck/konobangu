@@ -39,7 +39,5 @@
             "username": "konobangu"
         }
     ],
-    "rust-analyzer.cargo.extraArgs": [
-        "--all-features"
-    ]
+    "rust-analyzer.cargo.features": "all"
 }

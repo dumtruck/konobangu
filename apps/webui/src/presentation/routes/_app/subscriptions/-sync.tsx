@@ -126,7 +126,7 @@ export const SubscriptionSyncView = memo(
 
 export interface SubscriptionSyncDialogContentProps {
   id: number;
-  onCancel: VoidFunction;
+  onCancel?: VoidFunction;
 }
 
 export const SubscriptionSyncDialogContent = memo(

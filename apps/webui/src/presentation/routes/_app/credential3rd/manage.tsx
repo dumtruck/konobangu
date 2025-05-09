@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DataTableRowActions } from '@/components/ui/data-table-row-actions';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
+import { DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -28,6 +30,7 @@ import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleto
 import { useEvent } from '@/presentation/hooks/use-event';
 import { cn } from '@/presentation/utils';
 import { useMutation, useQuery } from '@apollo/client';
+import { Dialog } from '@radix-ui/react-dialog';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   type ColumnDef,
@@ -44,6 +47,7 @@ import { format } from 'date-fns';
 import { Eye, EyeOff, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { Credential3rdCheckAvailableViewDialogContent } from './-check-available';
 
 export const Route = createFileRoute('/_app/credential3rd/manage')({
   component: CredentialManageRouteComponent,
@@ -246,7 +250,18 @@ function CredentialManageRouteComponent() {
               });
             }}
             onDelete={handleDeleteRecord(row)}
-          />
+          >
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Check Available
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <Credential3rdCheckAvailableViewDialogContent
+                id={row.original.id}
+              />
+            </Dialog>
+          </DataTableRowActions>
         ),
       },
     ];

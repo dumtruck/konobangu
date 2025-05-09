@@ -6,7 +6,7 @@ use inquire::{Password, Text, validator::Validation};
 use recorder::{
     crypto::UserPassCredential,
     extract::mikan::{
-        MikanClient, MikanConfig, MikanRssItem, build_mikan_bangumi_expand_subscribed_url,
+        MikanClient, MikanConfig, MikanRssEpisodeItem, build_mikan_bangumi_expand_subscribed_url,
         extract_mikan_bangumi_index_meta_list_from_season_flow_fragment,
         extract_mikan_bangumi_meta_from_expand_subscribed_fragment,
     },
@@ -193,12 +193,12 @@ async fn main() -> Result<()> {
             let rss_items = rss::Channel::read_from(bangumi_rss_data.as_bytes())?.items;
             rss_items
                 .into_iter()
-                .map(MikanRssItem::try_from)
+                .map(MikanRssEpisodeItem::try_from)
                 .collect::<Result<Vec<_>, _>>()
         }?;
         for rss_item in rss_items {
             {
-                let episode_homepage_url = rss_item.homepage;
+                let episode_homepage_url = rss_item.build_homepage_url(mikan_base_url.clone());
                 let episode_homepage_doppel_path =
                     MikanDoppelPath::new(episode_homepage_url.clone());
                 tracing::info!(title = rss_item.title, "Scraping episode...");

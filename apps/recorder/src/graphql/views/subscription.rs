@@ -11,7 +11,7 @@ use crate::{
     app::AppContextTrait,
     auth::AuthUserInfo,
     models::subscriptions::{self, SubscriptionTrait},
-    task::SubscriberTaskPayload,
+    task::SubscriberTask,
 };
 
 #[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
@@ -106,7 +106,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
                     let task_id = task_service
                         .add_subscriber_task(
                             auth_user_info.subscriber_auth.subscriber_id,
-                            SubscriberTaskPayload::SyncOneSubscriptionFeedsIncremental(
+                            SubscriberTask::SyncOneSubscriptionFeedsIncremental(
                                 subscription.into(),
                             ),
                         )
@@ -156,9 +156,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
                     let task_id = task_service
                         .add_subscriber_task(
                             auth_user_info.subscriber_auth.subscriber_id,
-                            SubscriberTaskPayload::SyncOneSubscriptionFeedsFull(
-                                subscription.into(),
-                            ),
+                            SubscriberTask::SyncOneSubscriptionFeedsFull(subscription.into()),
                         )
                         .await?;
 
@@ -206,7 +204,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
                     let task_id = task_service
                         .add_subscriber_task(
                             auth_user_info.subscriber_auth.subscriber_id,
-                            SubscriberTaskPayload::SyncOneSubscriptionSources(subscription.into()),
+                            SubscriberTask::SyncOneSubscriptionSources(subscription.into()),
                         )
                         .await?;
 

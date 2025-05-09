@@ -1,10 +1,12 @@
 use std::{
     collections::HashMap,
-    path::{self, Path},
+    ops::{Deref, DerefMut},
+    path::{self, PathBuf},
 };
 
 use chrono::{Duration, Utc};
 use fetch::{FetchError, HttpClientConfig, IntoUrl, get_random_ua};
+use lazy_static::lazy_static;
 use percent_encoding::{AsciiSet, CONTROLS, percent_decode, utf8_percent_encode};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -43,9 +45,7 @@ pub async fn build_testing_mikan_client(
     base_mikan_url: impl IntoUrl,
 ) -> RecorderResult<MikanClient> {
     let mikan_client = MikanClient::from_config(MikanConfig {
-        http_client: HttpClientConfig {
-            ..Default::default()
-        },
+        http_client: HttpClientConfig::default(),
         base_url: base_mikan_url.into_url().map_err(FetchError::from)?,
     })
     .await?;
@@ -147,10 +147,19 @@ impl AsRef<path::Path> for MikanDoppelPath {
     }
 }
 
+lazy_static! {
+    static ref TEST_RESOURCES_DIR: String =
+        if cfg!(any(test, debug_assertions, feature = "playground")) {
+            format!("{}/tests/resources", env!("CARGO_MANIFEST_DIR"))
+        } else {
+            "tests/resources".to_string()
+        };
+}
+
 impl From<Url> for MikanDoppelPath {
     fn from(value: Url) -> Self {
-        let base_path =
-            Path::new("tests/resources/mikan/doppel").join(value.path().trim_matches('/'));
+        let doppel_path = PathBuf::from(format!("{}/mikan/doppel", TEST_RESOURCES_DIR.as_str()));
+        let base_path = doppel_path.join(value.path().trim_matches('/'));
         let dirname = base_path.parent();
         let stem = base_path.file_stem();
         debug_assert!(dirname.is_some() && stem.is_some());
@@ -187,17 +196,60 @@ pub struct MikanMockServerResourcesMock {
     pub season_flow_noauth_mock: mockito::Mock,
 }
 
+pub enum MikanMockServerInner {
+    Server(mockito::Server),
+    ServerGuard(mockito::ServerGuard),
+}
+
+impl Deref for MikanMockServerInner {
+    type Target = mockito::Server;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            MikanMockServerInner::Server(server) => server,
+            MikanMockServerInner::ServerGuard(server) => server,
+        }
+    }
+}
+
+impl DerefMut for MikanMockServerInner {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        match self {
+            MikanMockServerInner::Server(server) => server,
+            MikanMockServerInner::ServerGuard(server) => server,
+        }
+    }
+}
+
 pub struct MikanMockServer {
-    pub server: mockito::ServerGuard,
+    pub server: MikanMockServerInner,
     base_url: Url,
 }
 
 impl MikanMockServer {
+    pub async fn new_with_port(port: u16) -> RecorderResult<Self> {
+        let server = mockito::Server::new_with_opts_async(mockito::ServerOpts {
+            host: "0.0.0.0",
+            port,
+            ..Default::default()
+        })
+        .await;
+        let base_url = Url::parse(&server.url())?;
+
+        Ok(Self {
+            server: MikanMockServerInner::Server(server),
+            base_url,
+        })
+    }
+
     pub async fn new() -> RecorderResult<Self> {
         let server = mockito::Server::new_async().await;
         let base_url = Url::parse(&server.url())?;
 
-        Ok(Self { server, base_url })
+        Ok(Self {
+            server: MikanMockServerInner::ServerGuard(server),
+            base_url,
+        })
     }
 
     pub fn base_url(&self) -> &Url {
@@ -230,7 +282,10 @@ impl MikanMockServer {
                      SameSite=Strict; Path=/"
                 ),
             )
-            .with_body_from_file("tests/resources/mikan/LoginPage.html")
+            .with_body_from_file(format!(
+                "{}/mikan/LoginPage.html",
+                TEST_RESOURCES_DIR.as_str()
+            ))
             .create();
 
         let test_identity_expires = (Utc::now() + Duration::days(30)).to_rfc2822();
@@ -284,7 +339,10 @@ impl MikanMockServer {
             .match_query(mockito::Matcher::Any)
             .match_request(move |req| !match_post_login_body(req))
             .with_status(200)
-            .with_body_from_file("tests/resources/mikan/LoginError.html")
+            .with_body_from_file(format!(
+                "{}/mikan/LoginError.html",
+                TEST_RESOURCES_DIR.as_str()
+            ))
             .create();
 
         let account_get_success_mock = self
@@ -428,7 +486,10 @@ impl MikanMockServer {
                         .starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
             })
             .with_status(200)
-            .with_body_from_file("tests/resources/mikan/ExpandBangumi-noauth.html")
+            .with_body_from_file(format!(
+                "{}/mikan/ExpandBangumi-noauth.html",
+                TEST_RESOURCES_DIR.as_str()
+            ))
             .create();
 
         let season_flow_noauth_mock = self
@@ -439,7 +500,10 @@ impl MikanMockServer {
                     && req.path().starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
             })
             .with_status(200)
-            .with_body_from_file("tests/resources/mikan/BangumiCoverFlow-noauth.html")
+            .with_body_from_file(format!(
+                "{}/mikan/BangumiCoverFlow-noauth.html",
+                TEST_RESOURCES_DIR.as_str()
+            ))
             .create();
 
         MikanMockServerResourcesMock {

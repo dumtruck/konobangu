@@ -11,14 +11,16 @@ use super::DatabaseConfig;
 use crate::{errors::RecorderResult, migrations::Migrator};
 
 pub struct DatabaseService {
+    pub config: DatabaseConfig,
     connection: DatabaseConnection,
-    #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]
+    #[cfg(feature = "testcontainers")]
     pub container:
         Option<testcontainers::ContainerAsync<testcontainers_modules::postgres::Postgres>>,
 }
 
 impl DatabaseService {
     pub async fn from_config(config: DatabaseConfig) -> RecorderResult<Self> {
+        let db_config = config.clone();
         let mut opt = ConnectOptions::new(&config.uri);
         opt.max_connections(config.max_connections)
             .min_connections(config.min_connections)
@@ -50,8 +52,9 @@ impl DatabaseService {
 
         let me = Self {
             connection: db,
-            #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]
+            #[cfg(feature = "testcontainers")]
             container: None,
+            config: db_config,
         };
 
         if config.auto_migrate {

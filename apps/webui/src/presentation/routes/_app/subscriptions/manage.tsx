@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DataTableRowActions } from '@/components/ui/data-table-row-actions';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -49,6 +51,7 @@ import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { SubscriptionSyncDialogContent } from './-sync';
 
 export const Route = createFileRoute('/_app/subscriptions/manage')({
   component: SubscriptionManageRouteComponent,
@@ -240,7 +243,16 @@ function SubscriptionManageRouteComponent() {
               });
             }}
             onDelete={handleDeleteRecord(row)}
-          />
+          >
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Sync
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <SubscriptionSyncDialogContent id={row.original.id} />
+            </Dialog>
+          </DataTableRowActions>
         ),
       },
     ];

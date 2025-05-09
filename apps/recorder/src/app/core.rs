@@ -6,7 +6,7 @@ use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-    errors::RecorderResult,
+    errors::{RecorderError, RecorderResult},
     web::{
         controller::{self, core::ControllerTrait},
         middleware::default_middleware_stack,
@@ -71,12 +71,38 @@ impl App {
             .with_state(context.clone())
             .into_make_service_with_connect_info::<SocketAddr>();
 
-        axum::serve(listener, router)
-            .with_graceful_shutdown(async move {
-                Self::shutdown_signal().await;
-                tracing::info!("shutting down...");
-            })
-            .await?;
+        let task = context.task();
+
+        tokio::try_join!(
+            async {
+                axum::serve(listener, router)
+                    .with_graceful_shutdown(async move {
+                        Self::shutdown_signal().await;
+                        tracing::info!("axum shutting down...");
+                    })
+                    .await?;
+                Ok::<(), RecorderError>(())
+            },
+            async {
+                let monitor = task.setup_monitor().await?;
+
+                monitor
+                    .run_with_signal(async move {
+                        Self::shutdown_signal().await;
+                        tracing::info!("apalis shutting down...");
+                        Ok(())
+                    })
+                    .await?;
+
+                Ok::<(), RecorderError>(())
+            },
+            async {
+                let listener = task.setup_listener().await?;
+                listener.listen().await?;
+
+                Ok::<(), RecorderError>(())
+            }
+        )?;
 
         Ok(())
     }

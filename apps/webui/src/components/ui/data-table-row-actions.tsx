@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import type { Row } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
+import type { Row } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
-import { useMemo } from 'react';
+import { PropsWithChildren, useMemo } from "react";
 
 interface DataTableRowActionsProps<DataView, Id> {
   row: Row<DataView>;
@@ -24,6 +24,7 @@ interface DataTableRowActionsProps<DataView, Id> {
   onDetail?: (id: Id) => void;
   onDelete?: (id: Id) => void;
   onEdit?: (id: Id) => void;
+  modal?: boolean;
 }
 
 export function DataTableRowActions<DataView, Id>({
@@ -35,10 +36,12 @@ export function DataTableRowActions<DataView, Id>({
   onDetail,
   onDelete,
   onEdit,
-}: DataTableRowActionsProps<DataView, Id>) {
+  children,
+  modal,
+}: PropsWithChildren<DataTableRowActionsProps<DataView, Id>>) {
   const id = useMemo(() => getId(row), [getId, row]);
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={modal}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -49,6 +52,7 @@ export function DataTableRowActions<DataView, Id>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
+        {children}
         {showDetail && (
           <DropdownMenuItem onClick={() => onDetail?.(id)}>
             Detail

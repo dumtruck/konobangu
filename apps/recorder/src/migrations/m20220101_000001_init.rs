@@ -106,7 +106,6 @@ impl MigrationTrait for Migration {
                     .col(text_null(Bangumi::PosterLink))
                     .col(text_null(Bangumi::SavePath))
                     .col(text_null(Bangumi::Homepage))
-                    .col(json_binary_null(Bangumi::Extra))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_bangumi_subscriber_id")
@@ -209,7 +208,7 @@ impl MigrationTrait for Migration {
             .create_index(
                 Index::create()
                     .if_not_exists()
-                    .name("index_subscription_bangumi_subscriber_id")
+                    .name("idx_subscription_bangumi_subscriber_id")
                     .table(SubscriptionBangumi::Table)
                     .col(SubscriptionBangumi::SubscriberId)
                     .to_owned(),
@@ -235,7 +234,6 @@ impl MigrationTrait for Migration {
                     .col(text_null(Episodes::Homepage))
                     .col(text_null(Episodes::Subtitle))
                     .col(text_null(Episodes::Source))
-                    .col(json_binary_null(Episodes::Extra))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_episodes_bangumi_id")
@@ -252,6 +250,15 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Cascade)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
+                    .index(
+                        Index::create()
+                            .if_not_exists()
+                            .name("idx_episodes_mikan_episode_id_subscriber_id")
+                            .table(Episodes::Table)
+                            .col(Episodes::MikanEpisodeId)
+                            .col(Episodes::SubscriberId)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -263,19 +270,6 @@ impl MigrationTrait for Migration {
                     .name("idx_episodes_mikan_episode_id")
                     .table(Episodes::Table)
                     .col(Episodes::MikanEpisodeId)
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_index(
-                Index::create()
-                    .if_not_exists()
-                    .name("idx_episodes_bangumi_id_mikan_episode_id")
-                    .table(Episodes::Table)
-                    .col(Episodes::BangumiId)
-                    .col(Episodes::MikanEpisodeId)
-                    .unique()
                     .to_owned(),
             )
             .await?;
@@ -338,7 +332,7 @@ impl MigrationTrait for Migration {
             .create_index(
                 Index::create()
                     .if_not_exists()
-                    .name("index_subscription_episode_subscriber_id")
+                    .name("idx_subscription_episode_subscriber_id")
                     .table(SubscriptionEpisode::Table)
                     .col(SubscriptionEpisode::SubscriberId)
                     .to_owned(),
@@ -353,7 +347,7 @@ impl MigrationTrait for Migration {
             .drop_index(
                 Index::drop()
                     .if_exists()
-                    .name("index_subscription_episode_subscriber_id")
+                    .name("idx_subscription_episode_subscriber_id")
                     .table(SubscriptionBangumi::Table)
                     .to_owned(),
             )
@@ -380,7 +374,7 @@ impl MigrationTrait for Migration {
             .drop_index(
                 Index::drop()
                     .if_exists()
-                    .name("index_subscription_bangumi_subscriber_id")
+                    .name("idx_subscription_bangumi_subscriber_id")
                     .table(SubscriptionBangumi::Table)
                     .to_owned(),
             )

@@ -53,7 +53,6 @@ pub enum Bangumi {
     PosterLink,
     SavePath,
     Homepage,
-    Extra,
 }
 
 #[derive(DeriveIden)]

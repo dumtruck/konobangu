@@ -22,7 +22,7 @@ pub use subscription::{
 };
 pub use web::{
     MikanBangumiHash, MikanBangumiIndexHash, MikanBangumiIndexMeta, MikanBangumiMeta,
-    MikanBangumiPosterMeta, MikanEpisodeHash, MikanEpisodeMeta, MikanRssItem,
+    MikanBangumiPosterMeta, MikanEpisodeHash, MikanEpisodeMeta, MikanRssEpisodeItem,
     MikanSeasonFlowUrlMeta, MikanSeasonStr, MikanSubscriberSubscriptionRssUrlMeta,
     build_mikan_bangumi_expand_subscribed_url, build_mikan_bangumi_homepage_url,
     build_mikan_bangumi_subscription_rss_url, build_mikan_episode_homepage_url,

@@ -8,6 +8,7 @@ members = [
     "packages/fetch",
     "packages/downloader",
     "apps/recorder",
+    "apps/proxy",
 ]
 resolver = "2"
 
@@ -22,6 +23,8 @@ util = { path = "./packages/util" }
 util-derive = { path = "./packages/util-derive" }
 fetch = { path = "./packages/fetch" }
 downloader = { path = "./packages/downloader" }
+recorder = { path = "./apps/recorder" }
+proxy = { path = "./apps/proxy" }
 
 reqwest = { version = "0.12", features = [
     "charset",

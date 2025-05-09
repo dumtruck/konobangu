@@ -4,7 +4,7 @@ use fetch::{FetchError, HttpClientConfig, fetch_bytes, fetch_html, fetch_image, 
 use recorder::{
     errors::RecorderResult,
     extract::mikan::{
-        MikanClient, MikanConfig, MikanRssItem,
+        MikanClient, MikanConfig, MikanRssEpisodeItem,
         extract_mikan_episode_meta_from_episode_homepage_html,
     },
     test_utils::mikan::{MikanDoppelMeta, MikanDoppelPath},
@@ -43,15 +43,15 @@ async fn main() -> RecorderResult<()> {
     let subscriber_subscription =
         fs::read("tests/resources/mikan/MyBangumi-2025-spring.rss").await?;
     let channel = rss::Channel::read_from(&subscriber_subscription[..])?;
-    let rss_items: Vec<MikanRssItem> = channel
+    let rss_items: Vec<MikanRssEpisodeItem> = channel
         .items
         .into_iter()
-        .map(MikanRssItem::try_from)
+        .map(MikanRssEpisodeItem::try_from)
         .collect::<Result<Vec<_>, _>>()?;
     for rss_item in rss_items {
         let episode_homepage_meta = {
             tracing::info!(title = rss_item.title, "Scraping episode homepage...");
-            let episode_homepage_url = rss_item.homepage;
+            let episode_homepage_url = rss_item.build_homepage_url(mikan_base_url.clone());
             let episode_homepage_doppel_path = MikanDoppelPath::new(episode_homepage_url.clone());
             let episode_homepage_data = if !episode_homepage_doppel_path.exists_any() {
                 let episode_homepage_data =

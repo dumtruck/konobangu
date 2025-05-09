@@ -35,14 +35,14 @@ AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#,
         ))
         .await?;
 
-        db.execute_unprepared(&format!(
-            r#"CREATE INDEX IF NOT EXISTS idx_apalis_jobs_subscriber_id
-             ON apalis.jobs ((job -> 'subscriber_id'))
-             WHERE job_type = '{SUBSCRIBER_TASK_APALIS_NAME}'
-AND jsonb_path_exists(job, '$.subscriber_id ? (@.type() == "number")')
-AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#
-        ))
-        .await?;
+        //         db.execute_unprepared(&format!(
+        //             r#"CREATE INDEX IF NOT EXISTS idx_apalis_jobs_subscriber_id
+        //              ON apalis.jobs (((job -> 'subscriber_id')::integer))
+        //              WHERE job_type = '{SUBSCRIBER_TASK_APALIS_NAME}'
+        // AND jsonb_path_exists(job, '$.subscriber_id ? (@.type() == "number")')
+        // AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#
+        //         ))
+        //         .await?;
 
         Ok(())
     }

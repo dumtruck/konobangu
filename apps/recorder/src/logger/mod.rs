@@ -5,4 +5,4 @@ pub mod service;
 pub use core::{LogFormat, LogLevel, LogRotation};
 
 pub use config::{LoggerConfig, LoggerFileAppender};
-pub use service::LoggerService;
+pub use service::{LoggerService, MODULE_WHITELIST};
