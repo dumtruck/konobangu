@@ -20,10 +20,11 @@ pub mod errors;
 pub mod extract;
 pub mod graphql;
 pub mod logger;
+pub mod message;
 pub mod migrations;
 pub mod models;
 pub mod storage;
-pub mod tasks;
+pub mod task;
 #[cfg(test)]
 pub mod test_utils;
 pub mod web;

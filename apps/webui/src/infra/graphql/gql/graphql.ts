@@ -1189,6 +1189,7 @@ export type Subscriptions = {
   bangumi: BangumiConnection;
   category: SubscriptionCategoryEnum;
   createdAt: Scalars['String']['output'];
+  credentialId?: Maybe<Scalars['Int']['output']>;
   displayName: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   episode: EpisodesConnection;
@@ -1233,6 +1234,7 @@ export type SubscriptionsBasic = {
   __typename?: 'SubscriptionsBasic';
   category: SubscriptionCategoryEnum;
   createdAt: Scalars['String']['output'];
+  credentialId?: Maybe<Scalars['Int']['output']>;
   displayName: Scalars['String']['output'];
   enabled: Scalars['Boolean']['output'];
   id: Scalars['Int']['output'];
@@ -1259,6 +1261,7 @@ export type SubscriptionsFilterInput = {
   and?: InputMaybe<Array<SubscriptionsFilterInput>>;
   category?: InputMaybe<SubscriptionCategoryEnumFilterInput>;
   createdAt?: InputMaybe<TextFilterInput>;
+  credentialId?: InputMaybe<IntegerFilterInput>;
   displayName?: InputMaybe<StringFilterInput>;
   enabled?: InputMaybe<BooleanFilterInput>;
   id?: InputMaybe<IntegerFilterInput>;
@@ -1271,6 +1274,7 @@ export type SubscriptionsFilterInput = {
 export type SubscriptionsInsertInput = {
   category: SubscriptionCategoryEnum;
   createdAt?: InputMaybe<Scalars['String']['input']>;
+  credentialId?: InputMaybe<Scalars['Int']['input']>;
   displayName: Scalars['String']['input'];
   enabled: Scalars['Boolean']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
@@ -1281,6 +1285,7 @@ export type SubscriptionsInsertInput = {
 export type SubscriptionsOrderInput = {
   category?: InputMaybe<OrderByEnum>;
   createdAt?: InputMaybe<OrderByEnum>;
+  credentialId?: InputMaybe<OrderByEnum>;
   displayName?: InputMaybe<OrderByEnum>;
   enabled?: InputMaybe<OrderByEnum>;
   id?: InputMaybe<OrderByEnum>;
@@ -1292,6 +1297,7 @@ export type SubscriptionsOrderInput = {
 export type SubscriptionsUpdateInput = {
   category?: InputMaybe<SubscriptionCategoryEnum>;
   createdAt?: InputMaybe<Scalars['String']['input']>;
+  credentialId?: InputMaybe<Scalars['Int']['input']>;
   displayName?: InputMaybe<Scalars['String']['input']>;
   enabled?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;

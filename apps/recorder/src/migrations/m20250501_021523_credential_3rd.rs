@@ -48,6 +48,7 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 Index::create()
+                    .if_not_exists()
                     .name("idx_credential_3rd_credential_type")
                     .table(Credential3rd::Table)
                     .col(Credential3rd::CredentialType)
@@ -95,7 +96,19 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Credential3rd::Table).to_owned())
+            .drop_postgres_auto_update_ts_trigger_for_col(
+                Credential3rd::Table,
+                GeneralIds::UpdatedAt,
+            )
+            .await?;
+
+        manager
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(Credential3rd::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager

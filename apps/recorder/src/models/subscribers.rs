@@ -39,6 +39,8 @@ pub enum Relation {
     Episode,
     #[sea_orm(has_many = "super::auth::Entity")]
     Auth,
+    #[sea_orm(has_many = "super::subscriber_tasks::Entity")]
+    SubscriberTasks,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -71,6 +73,12 @@ impl Related<super::auth::Entity> for Entity {
     }
 }
 
+impl Related<super::subscriber_tasks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriberTasks.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscriptions::Entity")]
@@ -81,6 +89,8 @@ pub enum RelatedEntity {
     Bangumi,
     #[sea_orm(entity = "super::episodes::Entity")]
     Episode,
+    #[sea_orm(entity = "super::subscriber_tasks::Entity")]
+    SubscriberTasks,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

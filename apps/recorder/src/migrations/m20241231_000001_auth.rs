@@ -52,6 +52,7 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 Index::create()
+                    .if_not_exists()
                     .name("idx_auth_pid_auth_type")
                     .unique()
                     .table(Auth::Table)
@@ -102,7 +103,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Auth::Table).to_owned())
+            .drop_table(Table::drop().if_exists().table(Auth::Table).to_owned())
             .await?;
 
         manager

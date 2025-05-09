@@ -1,7 +1,9 @@
 use std::{borrow::Cow, fmt, sync::Arc};
 
+use async_stream::try_stream;
 use bytes::Bytes;
 use fetch::{html::fetch_html, image::fetch_image};
+use futures::{Stream, TryStreamExt, pin_mut};
 use html_escape::decode_html_entities;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
@@ -24,7 +26,7 @@ use crate::{
     storage::{StorageContentCategory, StorageServiceTrait},
 };
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct MikanBangumiIndexMeta {
     pub homepage: Url,
     pub origin_poster_src: Option<Url>,
@@ -32,13 +34,13 @@ pub struct MikanBangumiIndexMeta {
     pub mikan_bangumi_id: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct MikanFansubMeta {
     pub mikan_fansub_id: String,
     pub fansub: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct MikanBangumiMeta {
     pub homepage: Url,
     pub origin_poster_src: Option<Url>,
@@ -675,66 +677,83 @@ pub fn extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
     }
 }
 
+pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
+    ctx: Arc<dyn AppContextTrait>,
+    mikan_season_flow_url: Url,
+    credential_id: i32,
+) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
+    try_stream! {
+        let mikan_client = ctx.mikan()
+        .fork_with_credential(ctx.clone(), credential_id)
+        .await?;
+
+        let mikan_base_url = mikan_client.base_url();
+        let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
+        let mut bangumi_indices_meta = {
+            let html = Html::parse_document(&content);
+            extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url)
+        };
+
+        if bangumi_indices_meta.is_empty() && !mikan_client.has_login().await? {
+            mikan_client.login().await?;
+            let content = fetch_html(&mikan_client, mikan_season_flow_url).await?;
+            let html = Html::parse_document(&content);
+            bangumi_indices_meta =
+                extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url);
+        }
+
+
+        mikan_client
+            .sync_credential_cookies(ctx.clone(), credential_id)
+            .await?;
+
+        for bangumi_index in bangumi_indices_meta {
+            let bangumi_title = bangumi_index.bangumi_title.clone();
+            let bangumi_expand_subscribed_fragment_url = build_mikan_bangumi_expand_subscribed_url(
+                mikan_base_url.clone(),
+                &bangumi_index.mikan_bangumi_id,
+            );
+            let bangumi_expand_subscribed_fragment =
+                fetch_html(&mikan_client, bangumi_expand_subscribed_fragment_url).await?;
+
+            let bangumi_meta = {
+                let html = Html::parse_document(&bangumi_expand_subscribed_fragment);
+
+                extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
+                    &html,
+                    bangumi_index,
+                    mikan_base_url.clone(),
+                )
+                .with_whatever_context::<_, String, RecorderError>(|| {
+                    format!("failed to extract mikan bangumi fansub of title = {bangumi_title}")
+                })
+            }?;
+
+            yield bangumi_meta;
+        }
+
+        mikan_client
+        .sync_credential_cookies(ctx, credential_id)
+        .await?;
+    }
+}
+
 #[instrument(err, skip_all, fields(mikan_season_flow_url = mikan_season_flow_url.as_str(), credential_id = credential_id))]
 pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
-    mikan_client: &MikanClient,
+    _mikan_client: &MikanClient,
     ctx: Arc<dyn AppContextTrait>,
     mikan_season_flow_url: Url,
     credential_id: i32,
 ) -> RecorderResult<Vec<MikanBangumiMeta>> {
-    let mikan_client = mikan_client
-        .fork_with_credential(ctx.clone(), credential_id)
-        .await?;
+    let stream = scrape_mikan_bangumi_meta_stream_from_season_flow_url(
+        ctx,
+        mikan_season_flow_url,
+        credential_id,
+    );
 
-    let mikan_base_url = mikan_client.base_url();
-    let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
-    let mut bangumi_indices_meta = {
-        let html = Html::parse_document(&content);
-        extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url)
-    };
+    pin_mut!(stream);
 
-    if bangumi_indices_meta.is_empty() && !mikan_client.has_login().await? {
-        mikan_client.login().await?;
-        let content = fetch_html(&mikan_client, mikan_season_flow_url).await?;
-        let html = Html::parse_document(&content);
-        bangumi_indices_meta =
-            extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url);
-    }
-
-    let mut bangumi_metas = vec![];
-
-    mikan_client
-        .sync_credential_cookies(ctx.clone(), credential_id)
-        .await?;
-
-    for bangumi_index in bangumi_indices_meta {
-        let bangumi_title = bangumi_index.bangumi_title.clone();
-        let bangumi_expand_subscribed_fragment_url = build_mikan_bangumi_expand_subscribed_url(
-            mikan_base_url.clone(),
-            &bangumi_index.mikan_bangumi_id,
-        );
-        let bangumi_expand_subscribed_fragment =
-            fetch_html(&mikan_client, bangumi_expand_subscribed_fragment_url).await?;
-
-        let bangumi_meta = {
-            let html = Html::parse_document(&bangumi_expand_subscribed_fragment);
-
-            extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
-                &html,
-                bangumi_index,
-                mikan_base_url.clone(),
-            )
-            .with_whatever_context::<_, String, RecorderError>(|| {
-                format!("failed to extract mikan bangumi fansub of title = {bangumi_title}")
-            })
-        }?;
-
-        bangumi_metas.push(bangumi_meta);
-    }
-
-    mikan_client
-        .sync_credential_cookies(ctx, credential_id)
-        .await?;
+    let bangumi_metas = stream.try_collect().await?;
 
     Ok(bangumi_metas)
 }

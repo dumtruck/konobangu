@@ -88,7 +88,7 @@ impl MigrationTrait for Migration {
                     .col(enumeration(
                         Downloads::Status,
                         DownloadStatusEnum,
-                        DownloadMime::iden_values(),
+                        DownloadStatus::iden_values(),
                     ))
                     .col(enumeration(
                         Downloads::Mime,
@@ -158,7 +158,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Downloads::Table).to_owned())
+            .drop_table(Table::drop().if_exists().table(Downloads::Table).to_owned())
             .await?;
 
         manager
@@ -174,7 +174,12 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Downloaders::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(Downloaders::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager

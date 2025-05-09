@@ -12,8 +12,9 @@ use crate::{
     extract::mikan::MikanClient,
     graphql::GraphQLService,
     logger::LoggerService,
+    message::MessageService,
     storage::{StorageService, StorageServiceTrait},
-    tasks::TaskService,
+    task::TaskService,
 };
 
 pub trait AppContextTrait: Send + Sync + Debug {
@@ -29,6 +30,7 @@ pub trait AppContextTrait: Send + Sync + Debug {
     fn environment(&self) -> &Environment;
     fn crypto(&self) -> &CryptoService;
     fn task(&self) -> &TaskService;
+    fn message(&self) -> &MessageService;
 }
 
 pub struct AppContext {
@@ -43,6 +45,7 @@ pub struct AppContext {
     crypto: CryptoService,
     working_dir: String,
     environment: Environment,
+    message: MessageService,
     task: OnceCell<TaskService>,
 }
 
@@ -58,6 +61,7 @@ impl AppContext {
         let cache = CacheService::from_config(config.cache).await?;
         let db = DatabaseService::from_config(config.database).await?;
         let storage = StorageService::from_config(config.storage).await?;
+        let message = MessageService::from_config(config.message).await?;
         let auth = AuthService::from_conf(config.auth).await?;
         let mikan = MikanClient::from_config(config.mikan).await?;
         let crypto = CryptoService::from_config(config.crypto).await?;
@@ -75,12 +79,13 @@ impl AppContext {
             working_dir: working_dir.to_string(),
             graphql,
             crypto,
+            message,
             task: OnceCell::new(),
         });
 
         ctx.task
             .get_or_try_init(async || {
-                TaskService::from_config_and_ctx(config.tasks, ctx.clone()).await
+                TaskService::from_config_and_ctx(config.task, ctx.clone()).await
             })
             .await?;
 
@@ -130,5 +135,8 @@ impl AppContextTrait for AppContext {
     }
     fn task(&self) -> &TaskService {
         self.task.get().expect("task should be set")
+    }
+    fn message(&self) -> &MessageService {
+        &self.message
     }
 }

@@ -19,6 +19,9 @@ dev-proxy:
 dev-recorder:
     watchexec -r -w apps/recorder -- cargo run -p recorder --bin recorder_cli -- --environment development
 
+dev-recorder-migrate-down:
+    cargo run -p recorder --bin migrate_down -- --environment development
+
 dev-deps:
     docker compose -f devdeps.compose.yaml up
 

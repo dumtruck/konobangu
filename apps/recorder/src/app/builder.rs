@@ -67,19 +67,9 @@ impl AppBuilder {
     }
 
     pub async fn build(self) -> RecorderResult<App> {
-        AppConfig::load_dotenv(
-            &self.environment,
-            &self.working_dir,
-            self.dotenv_file.as_deref(),
-        )
-        .await?;
+        self.load_env().await?;
 
-        let config = AppConfig::load_config(
-            &self.environment,
-            &self.working_dir,
-            self.config_file.as_deref(),
-        )
-        .await?;
+        let config = self.load_config().await?;
 
         let app_context =
             AppContext::new(self.environment.clone(), config, self.working_dir.clone()).await?;
@@ -88,6 +78,26 @@ impl AppBuilder {
             context: app_context,
             builder: self,
         })
+    }
+
+    pub async fn load_env(&self) -> RecorderResult<()> {
+        AppConfig::load_dotenv(
+            &self.environment,
+            &self.working_dir,
+            self.dotenv_file.as_deref(),
+        )
+        .await?;
+        Ok(())
+    }
+
+    pub async fn load_config(&self) -> RecorderResult<AppConfig> {
+        let config = AppConfig::load_config(
+            &self.environment,
+            &self.working_dir,
+            self.config_file.as_deref(),
+        )
+        .await?;
+        Ok(config)
     }
 
     pub fn working_dir(self, working_dir: String) -> Self {

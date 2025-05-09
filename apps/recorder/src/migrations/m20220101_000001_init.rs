@@ -338,7 +338,12 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(SubscriptionEpisode::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(SubscriptionEpisode::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -346,7 +351,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Episodes::Table).to_owned())
+            .drop_table(Table::drop().if_exists().table(Episodes::Table).to_owned())
             .await?;
 
         manager
@@ -360,7 +365,12 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(SubscriptionBangumi::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(SubscriptionBangumi::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -368,7 +378,7 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Bangumi::Table).to_owned())
+            .drop_table(Table::drop().if_exists().table(Bangumi::Table).to_owned())
             .await?;
 
         manager
@@ -379,7 +389,12 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Subscriptions::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(Subscriptions::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager
@@ -387,7 +402,12 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Subscribers::Table).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(Subscribers::Table)
+                    .to_owned(),
+            )
             .await?;
 
         manager

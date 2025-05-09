@@ -29,6 +29,7 @@ pub use web::{
     extract_mikan_episode_meta_from_episode_homepage_html,
     scrape_mikan_bangumi_meta_from_bangumi_homepage_url,
     scrape_mikan_bangumi_meta_list_from_season_flow_url,
+    scrape_mikan_bangumi_meta_stream_from_season_flow_url,
     scrape_mikan_episode_meta_from_episode_homepage_url, scrape_mikan_poster_data_from_image_url,
     scrape_mikan_poster_meta_from_image_url,
 };

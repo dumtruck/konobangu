@@ -16,7 +16,8 @@ pub struct UnitTestAppContext {
     graphql: Option<crate::graphql::GraphQLService>,
     storage: Option<crate::storage::StorageService>,
     crypto: Option<crate::crypto::CryptoService>,
-    tasks: Option<crate::tasks::TaskService>,
+    task: Option<crate::task::TaskService>,
+    message: Option<crate::message::MessageService>,
     #[builder(default = Some(String::from(env!("CARGO_MANIFEST_DIR"))))]
     working_dir: Option<String>,
     #[builder(default = crate::app::Environment::Testing, setter(!strip_option))]
@@ -74,7 +75,11 @@ impl AppContextTrait for UnitTestAppContext {
         self.crypto.as_ref().expect("should set crypto")
     }
 
-    fn task(&self) -> &crate::tasks::TaskService {
-        self.tasks.as_ref().expect("should set tasks")
+    fn task(&self) -> &crate::task::TaskService {
+        self.task.as_ref().expect("should set tasks")
+    }
+
+    fn message(&self) -> &crate::message::MessageService {
+        self.message.as_ref().expect("should set message")
     }
 }

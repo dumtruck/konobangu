@@ -111,6 +111,10 @@ pub fn schema(
             &mut context,
             &subscription_episode::Column::SubscriberId,
         );
+        restrict_subscriber_for_entity::<subscriber_tasks::Entity>(
+            &mut context,
+            &subscriber_tasks::Column::SubscriberId,
+        );
         for column in subscribers::Column::iter() {
             if !matches!(column, subscribers::Column::Id) {
                 restrict_filter_input_for_entity::<subscribers::Entity>(
@@ -151,7 +155,8 @@ pub fn schema(
             episodes,
             subscription_bangumi,
             subscription_episode,
-            subscriptions
+            subscriptions,
+            subscriber_tasks,
         ]
     );
 
@@ -160,6 +165,7 @@ pub fn schema(
         builder.register_enumeration::<subscriptions::SubscriptionCategory>();
         builder.register_enumeration::<downloaders::DownloaderCategory>();
         builder.register_enumeration::<downloads::DownloadMime>();
+        builder.register_enumeration::<subscriber_tasks::SubscriberTaskType>();
     }
 
     let schema = builder.schema_builder();

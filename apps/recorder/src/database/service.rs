@@ -52,19 +52,34 @@ impl DatabaseService {
         //     .await?;
         // }
 
-        if config.auto_migrate {
-            Migrator::up(&db, None).await?;
-            {
-                let pool = db.get_postgres_connection_pool();
-                PostgresStorage::setup(pool).await?;
-            }
-        }
-
-        Ok(Self {
+        let me = Self {
             connection: db,
             #[cfg(all(test, feature = "testcontainers"))]
             container: None,
-        })
+        };
+
+        if config.auto_migrate {
+            me.migrate_up().await?;
+        }
+
+        Ok(me)
+    }
+
+    pub async fn migrate_up(&self) -> RecorderResult<()> {
+        Migrator::up(&self.connection, None).await?;
+        {
+            let pool = &self.get_postgres_connection_pool();
+            PostgresStorage::setup(pool).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn migrate_down(&self) -> RecorderResult<()> {
+        Migrator::down(&self.connection, None).await?;
+        {
+            let _pool = &self.get_postgres_connection_pool();
+        }
+        Ok(())
     }
 }
 
