@@ -248,8 +248,15 @@ impl Model {
                 subscriber_id: ActiveValue::Set(subscriber_id),
                 ..Default::default()
             })
-            .on_conflict_do_nothing()
-            .exec(db)
+            .on_conflict(
+                OnConflict::columns([
+                    subscription_bangumi::Column::SubscriptionId,
+                    subscription_bangumi::Column::BangumiId,
+                ])
+                .do_nothing()
+                .to_owned(),
+            )
+            .exec_without_returning(db)
             .await?;
         }
         Ok(new_bangumi_model)

@@ -18,7 +18,8 @@ use crate::{
         MIKAN_ACCOUNT_MANAGE_PAGE_PATH, MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH,
         MIKAN_BANGUMI_HOMEPAGE_PATH, MIKAN_BANGUMI_POSTER_PATH, MIKAN_BANGUMI_RSS_PATH,
         MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_EPISODE_TORRENT_PATH, MIKAN_LOGIN_PAGE_PATH,
-        MIKAN_SEASON_FLOW_PAGE_PATH, MikanClient, MikanConfig, MikanCredentialForm,
+        MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH, MikanClient,
+        MikanConfig, MikanCredentialForm,
     },
 };
 
@@ -382,6 +383,7 @@ impl MikanMockServer {
                     if !path.starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
                         && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
                         && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                            || path.starts_with(MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH)
                             || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
                             || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
                             || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
@@ -420,6 +422,7 @@ impl MikanMockServer {
                     if !path.starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
                         && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
                         && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                            || path.starts_with(MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH)
                             || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
                             || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
                             || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)

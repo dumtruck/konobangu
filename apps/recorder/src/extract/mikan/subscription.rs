@@ -540,7 +540,7 @@ mod tests {
             MikanSubscriberSubscriptionRssUrlMeta,
         },
         models::{
-            bangumi,
+            bangumi, episodes,
             subscriptions::{self, SubscriptionTrait},
         },
         test_utils::{
@@ -655,9 +655,7 @@ mod tests {
 
     #[rstest]
     #[tokio::test]
-    async fn test_mikan_subscriber_subscription_sync_feeds_incremental(
-        before_each: (),
-    ) -> RecorderResult<()> {
+    async fn test_mikan_subscriber_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
         let TestingResources {
             app_ctx,
             mut mikan_server,
@@ -675,7 +673,7 @@ mod tests {
             category: ActiveValue::Set(subscriptions::SubscriptionCategory::MikanSubscriber),
             source_url: ActiveValue::Set(
                 MikanSubscriberSubscriptionRssUrlMeta {
-                    mikan_subscription_token: "123".into(),
+                    mikan_subscription_token: "test".into(),
                 }
                 .build_rss_url(mikan_server.base_url().clone())
                 .to_string(),
@@ -686,11 +684,38 @@ mod tests {
 
         let subscription_model = subscription_am.insert(app_ctx.db()).await?;
 
-        let subscription_task = subscriptions::Subscription::try_from_model(&subscription_model)?;
+        let subscription = subscriptions::Subscription::try_from_model(&subscription_model)?;
 
-        subscription_task
-            .sync_feeds_incremental(app_ctx.clone())
-            .await?;
+        let (incremental_bangumi_list, incremental_episode_list) = {
+            subscription.sync_feeds_incremental(app_ctx.clone()).await?;
+
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!bangumi_list.is_empty());
+
+            let episode_list = episodes::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!episode_list.is_empty());
+
+            (bangumi_list, episode_list)
+        };
+
+        let (full_bangumi_list, full_episode_list) = {
+            subscription.sync_feeds_full(app_ctx.clone()).await?;
+
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!bangumi_list.is_empty());
+
+            let episode_list = episodes::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!episode_list.is_empty());
+
+            (bangumi_list, episode_list)
+        };
+
+        assert_eq!(incremental_bangumi_list.len(), full_bangumi_list.len());
+        assert!(incremental_episode_list.len() < full_episode_list.len());
 
         Ok(())
     }
@@ -727,11 +752,21 @@ mod tests {
 
         let subscription_model = subscription_am.insert(app_ctx.db()).await?;
 
-        let subscription_task = subscriptions::Subscription::try_from_model(&subscription_model)?;
+        let subscription = subscriptions::Subscription::try_from_model(&subscription_model)?;
 
-        subscription_task
-            .sync_feeds_incremental(app_ctx.clone())
-            .await?;
+        {
+            subscription.sync_feeds_incremental(app_ctx.clone()).await?;
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!bangumi_list.is_empty());
+        };
+
+        {
+            subscription.sync_feeds_full(app_ctx.clone()).await?;
+            let bangumi_list = bangumi::Entity::find().all(app_ctx.db()).await?;
+
+            assert!(!bangumi_list.is_empty());
+        }
 
         Ok(())
     }

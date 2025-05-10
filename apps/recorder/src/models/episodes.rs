@@ -224,6 +224,10 @@ impl Model {
             })
             .collect::<Result<_, _>>()?;
 
+        if new_episode_active_modes.is_empty() {
+            return Ok(());
+        }
+
         let new_episode_ids = Entity::insert_many(new_episode_active_modes)
             .on_conflict(
                 OnConflict::columns([Column::MikanEpisodeId, Column::SubscriberId])

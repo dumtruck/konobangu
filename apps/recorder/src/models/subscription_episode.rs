@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sea_orm::{ActiveValue, entity::prelude::*};
+use sea_orm::{ActiveValue, entity::prelude::*, sea_query::OnConflict};
 use serde::{Deserialize, Serialize};
 
 use crate::{app::AppContextTrait, errors::RecorderResult};
@@ -81,15 +81,28 @@ impl Model {
         subscription_id: i32,
     ) -> RecorderResult<()> {
         let db = ctx.db();
-        Entity::insert_many(episode_ids.map(|episode_id| ActiveModel {
-            episode_id: ActiveValue::Set(episode_id),
-            subscription_id: ActiveValue::Set(subscription_id),
-            subscriber_id: ActiveValue::Set(subscriber_id),
-            ..Default::default()
-        }))
-        .on_conflict_do_nothing()
-        .exec(db)
-        .await?;
+
+        let active_models = episode_ids
+            .map(|episode_id| ActiveModel {
+                episode_id: ActiveValue::Set(episode_id),
+                subscription_id: ActiveValue::Set(subscription_id),
+                subscriber_id: ActiveValue::Set(subscriber_id),
+                ..Default::default()
+            })
+            .collect::<Vec<_>>();
+
+        if active_models.is_empty() {
+            return Ok(());
+        }
+
+        Entity::insert_many(active_models)
+            .on_conflict(
+                OnConflict::columns([Column::SubscriptionId, Column::EpisodeId])
+                    .do_nothing()
+                    .to_owned(),
+            )
+            .exec_without_returning(db)
+            .await?;
 
         Ok(())
     }

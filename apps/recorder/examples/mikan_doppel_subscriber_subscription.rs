@@ -41,7 +41,7 @@ async fn main() -> RecorderResult<()> {
     let mikan_base_url = mikan_scrape_client.base_url().clone();
     tracing::info!("Scraping subscriber subscription...");
     let subscriber_subscription =
-        fs::read("tests/resources/mikan/MyBangumi-2025-spring.rss").await?;
+        fs::read("tests/resources/mikan/doppel/RSS/MyBangumi-token%3Dtest.html").await?;
     let channel = rss::Channel::read_from(&subscriber_subscription[..])?;
     let rss_items: Vec<MikanRssEpisodeItem> = channel
         .items
@@ -133,6 +133,81 @@ async fn main() -> RecorderResult<()> {
             } else {
                 tracing::info!(title = rss_item.title, "Bangumi homepage already exists");
             };
+        }
+        {
+            let bangumi_rss_url = episode_homepage_meta
+                .bangumi_hash()
+                .build_rss_url(mikan_base_url.clone());
+            let bangumi_rss_doppel_path = MikanDoppelPath::new(bangumi_rss_url.clone());
+            tracing::info!(title = rss_item.title, "Scraping bangumi rss...");
+            let bangumi_rss_data = if !bangumi_rss_doppel_path.exists_any() {
+                let bangumi_rss_data = fetch_html(&mikan_scrape_client, bangumi_rss_url).await?;
+                bangumi_rss_doppel_path.write(&bangumi_rss_data)?;
+                tracing::info!(title = rss_item.title, "Bangumi rss saved");
+                bangumi_rss_data
+            } else {
+                tracing::info!(title = rss_item.title, "Bangumi rss already exists");
+                String::from_utf8(bangumi_rss_doppel_path.read()?)?
+            };
+
+            let channel = rss::Channel::read_from(bangumi_rss_data.as_bytes())?;
+            let rss_items: Vec<MikanRssEpisodeItem> = channel
+                .items
+                .into_iter()
+                .map(MikanRssEpisodeItem::try_from)
+                .collect::<Result<Vec<_>, _>>()?;
+            for rss_item in rss_items {
+                {
+                    tracing::info!(title = rss_item.title, "Scraping episode homepage...");
+                    let episode_homepage_url = rss_item.build_homepage_url(mikan_base_url.clone());
+                    let episode_homepage_doppel_path =
+                        MikanDoppelPath::new(episode_homepage_url.clone());
+                    if !episode_homepage_doppel_path.exists_any() {
+                        let episode_homepage_data =
+                            fetch_html(&mikan_scrape_client, episode_homepage_url.clone()).await?;
+                        episode_homepage_doppel_path.write(&episode_homepage_data)?;
+                        tracing::info!(title = rss_item.title, "Episode homepage saved");
+                    } else {
+                        tracing::info!(title = rss_item.title, "Episode homepage already exists");
+                    };
+                };
+
+                {
+                    let episode_torrent_url = rss_item.url;
+                    let episode_torrent_doppel_path =
+                        MikanDoppelPath::new(episode_torrent_url.clone());
+                    tracing::info!(title = rss_item.title, "Scraping episode torrent...");
+                    if !episode_torrent_doppel_path.exists_any() {
+                        match fetch_bytes(&mikan_scrape_client, episode_torrent_url).await {
+                            Ok(episode_torrent_data) => {
+                                episode_torrent_doppel_path.write(&episode_torrent_data)?;
+                                tracing::info!(title = rss_item.title, "Episode torrent saved");
+                            }
+                            Err(e) => {
+                                if let FetchError::ReqwestError { source } = &e
+                                    && source.status().is_some_and(|status| {
+                                        status == reqwest::StatusCode::NOT_FOUND
+                                    })
+                                {
+                                    tracing::warn!(
+                                        title = rss_item.title,
+                                        "Episode torrent not found, maybe deleted since new \
+                                         version"
+                                    );
+                                    episode_torrent_doppel_path
+                                        .write_meta(MikanDoppelMeta { status: 404 })?;
+                                } else {
+                                    Err(e)?;
+                                }
+                            }
+                        }
+
+                        tracing::info!(title = rss_item.title, "Episode torrent saved");
+                    } else {
+                        tracing::info!(title = rss_item.title, "Episode torrent already exists");
+                    }
+                }
+            }
         }
     }
     tracing::info!("Scraping subscriber subscription done");
