@@ -50,7 +50,9 @@ impl MigrationTrait for Migration {
         create_postgres_enum_for_active_enum!(
             manager,
             subscriptions::SubscriptionCategoryEnum,
-            subscriptions::SubscriptionCategory::Mikan,
+            subscriptions::SubscriptionCategory::MikanSubscriber,
+            subscriptions::SubscriptionCategory::MikanBangumi,
+            subscriptions::SubscriptionCategory::MikanSeason,
             subscriptions::SubscriptionCategory::Manual
         )
         .await?;

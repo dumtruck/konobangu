@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt, sync::Arc};
+use std::{borrow::Cow, fmt, str::FromStr, sync::Arc};
 
 use async_stream::try_stream;
 use bytes::Bytes;
@@ -7,14 +7,13 @@ use futures::{Stream, TryStreamExt, pin_mut};
 use html_escape::decode_html_entities;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
-use snafu::OptionExt;
+use snafu::FromString;
 use tracing::instrument;
 use url::Url;
 
 use super::{
     MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_POSTER_BUCKET_KEY,
     MIKAN_SEASON_FLOW_PAGE_PATH, MikanBangumiRssUrlMeta, MikanClient,
-    extract_mikan_bangumi_id_from_rss_url,
 };
 use crate::{
     app::AppContextTrait,
@@ -77,6 +76,19 @@ impl MikanBangumiMeta {
     }
 }
 
+impl From<MikanEpisodeMeta> for MikanBangumiMeta {
+    fn from(episode_meta: MikanEpisodeMeta) -> Self {
+        Self {
+            homepage: episode_meta.homepage,
+            origin_poster_src: episode_meta.origin_poster_src,
+            bangumi_title: episode_meta.bangumi_title,
+            mikan_bangumi_id: episode_meta.mikan_bangumi_id,
+            mikan_fansub_id: episode_meta.mikan_fansub_id,
+            fansub: episode_meta.fansub,
+        }
+    }
+}
+
 impl MikanBangumiMeta {
     pub fn from_bangumi_index_and_fansub_meta(
         bangumi_index_meta: MikanBangumiIndexMeta,
@@ -128,7 +140,7 @@ impl MikanBangumiIndexHomepageUrlMeta {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct MikanBangumiHomepageUrlMeta {
     pub mikan_bangumi_id: String,
     pub mikan_fansub_id: String,
@@ -194,12 +206,49 @@ impl fmt::Display for MikanSeasonStr {
     }
 }
 
+impl FromStr for MikanSeasonStr {
+    type Err = RecorderError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "春" => Ok(MikanSeasonStr::Spring),
+            "夏" => Ok(MikanSeasonStr::Summer),
+            "秋" => Ok(MikanSeasonStr::Autumn),
+            "冬" => Ok(MikanSeasonStr::Winter),
+            _ => Err(RecorderError::without_source(format!(
+                "MikanSeasonStr must be one of '春', '夏', '秋', '冬', but got '{}'",
+                s
+            ))),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct MikanSeasonFlowUrlMeta {
     pub year: i32,
     pub season_str: MikanSeasonStr,
 }
 
+impl MikanSeasonFlowUrlMeta {
+    pub fn from_url(url: &Url) -> Option<Self> {
+        if url.path().starts_with(MIKAN_SEASON_FLOW_PAGE_PATH) {
+            if let (Some(year), Some(season_str)) = (
+                url.query_pairs()
+                    .find(|(key, _)| key == "year")
+                    .and_then(|(_, value)| value.parse::<i32>().ok()),
+                url.query_pairs()
+                    .find(|(key, _)| key == "seasonStr")
+                    .and_then(|(_, value)| MikanSeasonStr::from_str(&value).ok()),
+            ) {
+                Some(Self { year, season_str })
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
 pub fn build_mikan_bangumi_homepage_url(
     mikan_base_url: Url,
     mikan_bangumi_id: &str,
@@ -271,14 +320,10 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
         .next()
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_episode_homepage_url.join(s).ok())
-        .and_then(|rss_link_url| extract_mikan_bangumi_id_from_rss_url(&rss_link_url))
+        .and_then(|rss_link_url| MikanBangumiRssUrlMeta::from_url(&rss_link_url))
         .ok_or_else(|| {
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
         })?;
-
-    let mikan_fansub_id = mikan_fansub_id.ok_or_else(|| {
-        RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))
-    })?;
 
     let episode_title = html
         .select(&Selector::parse("title").unwrap())
@@ -379,7 +424,7 @@ pub fn extract_mikan_bangumi_index_meta_from_bangumi_homepage_html(
         .next()
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_bangumi_homepage_url.join(s).ok())
-        .and_then(|rss_link_url| extract_mikan_bangumi_id_from_rss_url(&rss_link_url))
+        .and_then(|rss_link_url| MikanBangumiRssUrlMeta::from_url(&rss_link_url))
         .map(
             |MikanBangumiRssUrlMeta {
                  mikan_bangumi_id, ..
@@ -675,87 +720,6 @@ pub fn extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
         );
         None
     }
-}
-
-pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
-    ctx: Arc<dyn AppContextTrait>,
-    mikan_season_flow_url: Url,
-    credential_id: i32,
-) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
-    try_stream! {
-        let mikan_client = ctx.mikan()
-        .fork_with_credential(ctx.clone(), credential_id)
-        .await?;
-
-        let mikan_base_url = mikan_client.base_url();
-        let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
-        let mut bangumi_indices_meta = {
-            let html = Html::parse_document(&content);
-            extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url)
-        };
-
-        if bangumi_indices_meta.is_empty() && !mikan_client.has_login().await? {
-            mikan_client.login().await?;
-            let content = fetch_html(&mikan_client, mikan_season_flow_url).await?;
-            let html = Html::parse_document(&content);
-            bangumi_indices_meta =
-                extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, mikan_base_url);
-        }
-
-
-        mikan_client
-            .sync_credential_cookies(ctx.clone(), credential_id)
-            .await?;
-
-        for bangumi_index in bangumi_indices_meta {
-            let bangumi_title = bangumi_index.bangumi_title.clone();
-            let bangumi_expand_subscribed_fragment_url = build_mikan_bangumi_expand_subscribed_url(
-                mikan_base_url.clone(),
-                &bangumi_index.mikan_bangumi_id,
-            );
-            let bangumi_expand_subscribed_fragment =
-                fetch_html(&mikan_client, bangumi_expand_subscribed_fragment_url).await?;
-
-            let bangumi_meta = {
-                let html = Html::parse_document(&bangumi_expand_subscribed_fragment);
-
-                extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
-                    &html,
-                    bangumi_index,
-                    mikan_base_url.clone(),
-                )
-                .with_whatever_context::<_, String, RecorderError>(|| {
-                    format!("failed to extract mikan bangumi fansub of title = {bangumi_title}")
-                })
-            }?;
-
-            yield bangumi_meta;
-        }
-
-        mikan_client
-        .sync_credential_cookies(ctx, credential_id)
-        .await?;
-    }
-}
-
-#[instrument(err, skip_all, fields(mikan_season_flow_url = mikan_season_flow_url.as_str(), credential_id = credential_id))]
-pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
-    _mikan_client: &MikanClient,
-    ctx: Arc<dyn AppContextTrait>,
-    mikan_season_flow_url: Url,
-    credential_id: i32,
-) -> RecorderResult<Vec<MikanBangumiMeta>> {
-    let stream = scrape_mikan_bangumi_meta_stream_from_season_flow_url(
-        ctx,
-        mikan_season_flow_url,
-        credential_id,
-    );
-
-    pin_mut!(stream);
-
-    let bangumi_metas = stream.try_collect().await?;
-
-    Ok(bangumi_metas)
 }
 
 #[cfg(test)]

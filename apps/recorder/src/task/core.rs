@@ -48,10 +48,11 @@ pub trait SubscriberStreamTaskTrait: Serialize + DeserializeOwned + Sized {
     fn run_stream(
         self,
         ctx: Arc<dyn AppContextTrait>,
+        id: i32,
     ) -> impl Stream<Item = RecorderResult<Self::Yield>> + Send;
 
     async fn run(self, ctx: Arc<dyn AppContextTrait>, id: i32) -> RecorderResult<()> {
-        let stream = self.run_stream(ctx.clone());
+        let stream = self.run_stream(ctx.clone(), id);
 
         pin_mut!(stream);
 

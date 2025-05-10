@@ -4,7 +4,11 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, JsonValue, TryIntoModel, prelude
 use serde::{Deserialize, Serialize};
 
 pub use crate::task::{SubscriberTaskType, SubscriberTaskTypeEnum};
-use crate::{app::AppContextTrait, errors::RecorderResult, task::SubscriberTask};
+use crate::{
+    app::AppContextTrait,
+    errors::RecorderResult,
+    task::{SubscriberTask, SubscriberTaskPayload},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromJsonQueryResult, PartialEq, Eq)]
 pub struct SubscriberTaskErrorSnapshot {
@@ -125,9 +129,11 @@ impl Model {
     pub async fn add_subscriber_task(
         ctx: Arc<dyn AppContextTrait>,
         subscriber_id: i32,
-        task_type: SubscriberTaskType,
-        request: JsonValue,
-    ) -> RecorderResult<Model> {
+        payload: SubscriberTaskPayload,
+    ) -> RecorderResult<SubscriberTask> {
+        let task_type = payload.task_type();
+        let request: JsonValue = payload.clone().try_into()?;
+
         let am = ActiveModel {
             subscriber_id: ActiveValue::Set(subscriber_id),
             task_type: ActiveValue::Set(task_type.clone()),
@@ -137,17 +143,18 @@ impl Model {
 
         let db = ctx.db();
 
-        let model = am.insert(db).await?.try_into_model()?;
+        let task_id = Entity::insert(am).exec(db).await?.last_insert_id;
 
-        let task_value: SubscriberTask = serde_json::from_value(serde_json::json!({
-            "id": model.id,
-            "subscriber_id": model.subscriber_id.clone(),
-            "task_type": model.task_type.clone(),
-            "request": model.request.clone(),
-        }))?;
+        let subscriber_task = SubscriberTask {
+            id: task_id,
+            subscriber_id,
+            payload,
+        };
 
-        ctx.task().add_subscriber_task(task_value).await?;
+        ctx.task()
+            .add_subscriber_task(subscriber_task.clone())
+            .await?;
 
-        Ok(model)
+        Ok(subscriber_task)
     }
 }

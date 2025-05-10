@@ -1,10 +1,19 @@
+use std::sync::Arc;
+
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
-use crate::{app::AppContextTrait, errors::RecorderResult};
+use crate::{
+    app::AppContextTrait,
+    errors::RecorderResult,
+    extract::{
+        mikan::{MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url},
+        rawname::parse_episode_meta_from_raw_name,
+    },
+};
 
 #[derive(
     Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult, SimpleObject,
@@ -171,6 +180,39 @@ impl Model {
             .await?;
             Ok(bgm)
         }
+    }
+}
+
+impl ActiveModel {
+    pub fn from_mikan_bangumi_meta(
+        ctx: Arc<dyn AppContextTrait>,
+        meta: MikanBangumiMeta,
+        subscriber_id: i32,
+    ) -> RecorderResult<Self> {
+        let mikan_base_url = ctx.mikan().base_url();
+
+        let raw_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
+
+        let rss_url = build_mikan_bangumi_subscription_rss_url(
+            mikan_base_url.clone(),
+            &meta.mikan_bangumi_id,
+            Some(&meta.mikan_fansub_id),
+        );
+
+        Ok(Self {
+            mikan_bangumi_id: ActiveValue::Set(Some(meta.mikan_bangumi_id)),
+            mikan_fansub_id: ActiveValue::Set(Some(meta.mikan_fansub_id)),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            display_name: ActiveValue::Set(meta.bangumi_title.clone()),
+            raw_name: ActiveValue::Set(meta.bangumi_title),
+            season: ActiveValue::Set(raw_meta.season),
+            season_raw: ActiveValue::Set(raw_meta.season_raw),
+            fansub: ActiveValue::Set(Some(meta.fansub)),
+            poster_link: ActiveValue::Set(meta.origin_poster_src.map(|url| url.to_string())),
+            homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
+            rss_link: ActiveValue::Set(Some(rss_url.to_string())),
+            ..Default::default()
+        })
     }
 }
 

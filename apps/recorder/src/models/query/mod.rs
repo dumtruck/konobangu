@@ -1,9 +1,9 @@
 use async_trait::async_trait;
 use sea_orm::{
-    prelude::Expr,
-    sea_query::{Alias, IntoColumnRef, IntoTableRef, Query, SelectStatement},
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, EntityTrait, Insert, IntoActiveModel,
     Iterable, QueryResult, QueryTrait, SelectModel, SelectorRaw, Value,
+    prelude::Expr,
+    sea_query::{Alias, IntoColumnRef, IntoTableRef, Query, SelectStatement},
 };
 
 pub fn filter_values_in<
@@ -17,12 +17,9 @@ pub fn filter_values_in<
     values: I,
 ) -> SelectStatement {
     Query::select()
-        .expr(Expr::col((Alias::new("t"), Alias::new("column1"))))
-        .from_values(values, Alias::new("t"))
-        .left_join(
-            tbl_ref,
-            Expr::col((Alias::new("t"), Alias::new("column1"))).equals(col_ref),
-        )
+        .expr(Expr::col(("t", "column1")))
+        .from_values(values, "t")
+        .left_join(tbl_ref, Expr::col(("t", "column1")).equals(col_ref))
         .and_where(Expr::col(col_ref).is_not_null())
         .to_owned()
 }

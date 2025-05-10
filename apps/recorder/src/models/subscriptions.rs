@@ -8,11 +8,12 @@ use serde::{Deserialize, Serialize};
 use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
     app::AppContextTrait,
-    errors::RecorderResult,
+    errors::{RecorderError, RecorderResult},
     extract::{
         mikan::{
-            MikanBangumiPosterMeta, build_mikan_bangumi_homepage_url, build_mikan_bangumi_rss_url,
-            extract_mikan_rss_channel_from_rss_link,
+            MikanBangumiPosterMeta, MikanBangumiSubscription, MikanSeasonSubscription,
+            MikanSubscriberSubscription, build_mikan_bangumi_homepage_url,
+            build_mikan_bangumi_subscription_rss_url,
             scrape_mikan_bangumi_meta_from_bangumi_homepage_url,
             scrape_mikan_episode_meta_from_episode_homepage_url,
             scrape_mikan_poster_meta_from_image_url,
@@ -32,10 +33,53 @@ use crate::{
 )]
 #[serde(rename_all = "snake_case")]
 pub enum SubscriptionCategory {
-    #[sea_orm(string_value = "mikan")]
-    Mikan,
+    #[sea_orm(string_value = "mikan_subscriber")]
+    MikanSubscriber,
+    #[sea_orm(string_value = "mikan_season")]
+    MikanSeason,
+    #[sea_orm(string_value = "mikan_bangumi")]
+    MikanBangumi,
     #[sea_orm(string_value = "manual")]
     Manual,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "category")]
+pub enum SubscriptionPayload {
+    #[serde(rename = "mikan_subscriber")]
+    MikanSubscriber(MikanSubscriberSubscription),
+    #[serde(rename = "mikan_season")]
+    MikanSeason(MikanSeasonSubscription),
+    #[serde(rename = "mikan_bangumi")]
+    MikanBangumi(MikanBangumiSubscription),
+    #[serde(rename = "manual")]
+    Manual,
+}
+
+impl SubscriptionPayload {
+    pub fn category(&self) -> SubscriptionCategory {
+        match self {
+            Self::MikanSubscriber(_) => SubscriptionCategory::MikanSubscriber,
+            Self::MikanSeason(_) => SubscriptionCategory::MikanSeason,
+            Self::MikanBangumi(_) => SubscriptionCategory::MikanBangumi,
+            Self::Manual => SubscriptionCategory::Manual,
+        }
+    }
+
+    pub fn try_from_model(model: &Model) -> RecorderResult<Self> {
+        Ok(match model.category {
+            SubscriptionCategory::MikanSubscriber => {
+                Self::MikanSubscriber(MikanSubscriberSubscription::try_from_model(model)?)
+            }
+            SubscriptionCategory::MikanSeason => {
+                Self::MikanSeason(MikanSeasonSubscription::try_from_model(model)?)
+            }
+            SubscriptionCategory::MikanBangumi => {
+                Self::MikanBangumi(MikanBangumiSubscription::try_from_model(model)?)
+            }
+            SubscriptionCategory::Manual => Self::Manual,
+        })
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
@@ -149,57 +193,15 @@ pub enum RelatedEntity {
     SubscriptionBangumi,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SubscriptionCreateFromRssDto {
-    pub rss_link: String,
-    pub display_name: String,
-    pub enabled: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(tag = "category")]
-pub enum SubscriptionCreateDto {
-    Mikan(SubscriptionCreateFromRssDto),
-}
-
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
-impl ActiveModel {
-    pub fn from_create_dto(create_dto: SubscriptionCreateDto, subscriber_id: i32) -> Self {
-        match create_dto {
-            SubscriptionCreateDto::Mikan(create_dto) => {
-                Self::from_rss_create_dto(SubscriptionCategory::Mikan, create_dto, subscriber_id)
-            }
-        }
-    }
-
-    fn from_rss_create_dto(
-        category: SubscriptionCategory,
-        create_dto: SubscriptionCreateFromRssDto,
-        subscriber_id: i32,
-    ) -> Self {
-        Self {
-            display_name: ActiveValue::Set(create_dto.display_name),
-            enabled: ActiveValue::Set(create_dto.enabled.unwrap_or(false)),
-            subscriber_id: ActiveValue::Set(subscriber_id),
-            category: ActiveValue::Set(category),
-            source_url: ActiveValue::Set(create_dto.rss_link),
-            ..Default::default()
-        }
-    }
-}
+impl ActiveModel {}
 
 impl Model {
-    pub async fn add_subscription(
-        ctx: &dyn AppContextTrait,
-        create_dto: SubscriptionCreateDto,
-        subscriber_id: i32,
-    ) -> RecorderResult<Self> {
+    pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RecorderResult<Option<Self>> {
         let db = ctx.db();
-        let subscription = ActiveModel::from_create_dto(create_dto, subscriber_id);
-
-        Ok(subscription.insert(db).await?)
+        Ok(Entity::find_by_id(id).one(db).await?)
     }
 
     pub async fn toggle_with_ids(
@@ -229,8 +231,8 @@ impl Model {
     }
 
     pub async fn pull_subscription(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
-        match &self.category {
-            SubscriptionCategory::Mikan => {
+        match payload {
+            SubscriptionPayload::MikanSubscriber(payload) => {
                 let mikan_client = ctx.mikan();
                 let channel =
                     extract_mikan_rss_channel_from_rss_link(mikan_client, &self.source_url).await?;
@@ -288,7 +290,7 @@ impl Model {
                         &mikan_bangumi_id,
                         Some(&mikan_fansub_id),
                     );
-                    let bgm_rss_link = build_mikan_bangumi_rss_url(
+                    let bgm_rss_link = build_mikan_bangumi_subscription_rss_url(
                         mikan_base_url.clone(),
                         &mikan_bangumi_id,
                         Some(&mikan_fansub_id),
