@@ -11,6 +11,7 @@ use openidconnect::{
 };
 use serde::{Deserialize, Serialize};
 use snafu::prelude::*;
+use util::OptDynErr;
 
 use crate::models::auth::AuthType;
 
@@ -87,23 +88,29 @@ pub enum AuthError {
         (if column.is_empty() { "" } else { "." }),
         source.message
     ))]
-    GraphQLPermissionError {
+    GraphqlDynamicPermissionError {
         #[snafu(source(false))]
         source: Box<async_graphql::Error>,
         field: String,
         column: String,
         context_path: String,
     },
+    #[snafu(display("GraphQL permission denied since {field}"))]
+    GraphqlStaticPermissionError {
+        #[snafu(source)]
+        source: OptDynErr,
+        field: String,
+    },
 }
 
 impl AuthError {
-    pub fn from_graphql_subscribe_id_guard(
+    pub fn from_graphql_dynamic_subscribe_id_guard(
         source: async_graphql::Error,
         context: &ResolverContext,
         field_name: &str,
         column_name: &str,
     ) -> AuthError {
-        AuthError::GraphQLPermissionError {
+        AuthError::GraphqlDynamicPermissionError {
             source: Box::new(source),
             field: field_name.to_string(),
             column: column_name.to_string(),

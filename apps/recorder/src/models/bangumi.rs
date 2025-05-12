@@ -1,18 +1,17 @@
-use std::sync::Arc;
-
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveValue, FromJsonQueryResult, FromQueryResult, IntoSimpleExpr, JoinType, QuerySelect,
+    ActiveValue, Condition, FromJsonQueryResult, FromQueryResult, IntoSimpleExpr, JoinType,
+    QuerySelect,
     entity::prelude::*,
-    sea_query::{IntoCondition, OnConflict},
+    sea_query::{Alias, IntoCondition, OnConflict},
 };
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
 use crate::{
     app::AppContextTrait,
-    errors::{RecorderError, RecorderResult},
+    errors::RecorderResult,
     extract::{
         mikan::{
             MikanBangumiHash, MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url,
@@ -63,8 +62,6 @@ pub struct Model {
     pub rss_link: Option<String>,
     pub poster_link: Option<String>,
     pub save_path: Option<String>,
-    #[sea_orm(default = "false")]
-    pub deleted: bool,
     pub homepage: Option<String>,
     pub extra: Option<BangumiExtra>,
 }
@@ -139,7 +136,7 @@ impl ActiveModel {
         let storage_service = ctx.storage();
         let mikan_base_url = mikan_client.base_url();
 
-        let raw_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
+        let rawname_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
 
         let rss_url = build_mikan_bangumi_subscription_rss_url(
             mikan_base_url.clone(),
@@ -166,12 +163,20 @@ impl ActiveModel {
             subscriber_id: ActiveValue::Set(subscriber_id),
             display_name: ActiveValue::Set(meta.bangumi_title.clone()),
             raw_name: ActiveValue::Set(meta.bangumi_title),
-            season: ActiveValue::Set(raw_meta.season),
-            season_raw: ActiveValue::Set(raw_meta.season_raw),
+            season: ActiveValue::Set(rawname_meta.season),
+            season_raw: ActiveValue::Set(rawname_meta.season_raw),
             fansub: ActiveValue::Set(Some(meta.fansub)),
             poster_link: ActiveValue::Set(poster_link),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
+            extra: ActiveValue::Set(Some(BangumiExtra {
+                name_zh: rawname_meta.name_zh,
+                name_en: rawname_meta.name_en,
+                name_jp: rawname_meta.name_jp,
+                s_name_en: rawname_meta.name_en_no_season,
+                s_name_jp: rawname_meta.name_jp_no_season,
+                s_name_zh: rawname_meta.name_zh_no_season,
+            })),
             ..Default::default()
         })
     }
@@ -183,35 +188,60 @@ impl ActiveModelBehavior for ActiveModel {}
 impl Model {
     pub async fn get_or_insert_from_mikan<F>(
         ctx: &dyn AppContextTrait,
+        hash: MikanBangumiHash,
         subscriber_id: i32,
         subscription_id: i32,
-        mikan_bangumi_id: String,
-        mikan_fansub_id: String,
-        f: F,
-    ) -> RecorderResult<Model>
+        create_bangumi_fn: F,
+    ) -> RecorderResult<Self>
     where
-        F: AsyncFnOnce(&mut ActiveModel) -> RecorderResult<()>,
+        F: AsyncFnOnce() -> RecorderResult<ActiveModel>,
     {
+        #[derive(FromQueryResult)]
+        struct ModelWithIsSubscribed {
+            #[sea_orm(nested)]
+            bangumi: Model,
+            is_subscribed: bool,
+        }
+
         let db = ctx.db();
-        if let Some(existed) = Entity::find()
+
+        let subscription_bangumi_alias = Alias::new("sb");
+        let mut is_subscribed = false;
+        let new_bangumi_model = if let Some(existed) = Entity::find()
             .filter(
-                Column::MikanBangumiId
-                    .eq(Some(mikan_bangumi_id.clone()))
-                    .and(Column::MikanFansubId.eq(Some(mikan_fansub_id.clone()))),
+                Condition::all()
+                    .add(Column::MikanBangumiId.eq(Some(hash.mikan_bangumi_id)))
+                    .add(Column::MikanFansubId.eq(Some(hash.mikan_fansub_id)))
+                    .add(Column::SubscriberId.eq(subscriber_id)),
             )
+            .column_as(
+                Expr::col((
+                    subscription_bangumi_alias.clone(),
+                    subscription_bangumi::Column::SubscriptionId,
+                )),
+                "is_subscribed",
+            )
+            .join_as_rev(
+                JoinType::LeftJoin,
+                subscription_bangumi::Relation::Bangumi
+                    .def()
+                    .on_condition(move |_left, right| {
+                        Expr::col((right, subscription_bangumi::Column::SubscriptionId))
+                            .eq(subscription_id)
+                            .into_condition()
+                    }),
+                subscription_bangumi_alias.clone(),
+            )
+            .into_model::<ModelWithIsSubscribed>()
             .one(db)
             .await?
         {
-            Ok(existed)
+            is_subscribed = existed.is_subscribed;
+            existed.bangumi
         } else {
-            let mut bgm = ActiveModel {
-                mikan_bangumi_id: ActiveValue::Set(Some(mikan_bangumi_id)),
-                mikan_fansub_id: ActiveValue::Set(Some(mikan_fansub_id)),
-                subscriber_id: ActiveValue::Set(subscriber_id),
-                ..Default::default()
-            };
-            f(&mut bgm).await?;
-            let bgm = Entity::insert(bgm)
+            let new_bangumi_active_model = create_bangumi_fn().await?;
+
+            Entity::insert(new_bangumi_active_model)
                 .on_conflict(
                     OnConflict::columns([
                         Column::MikanBangumiId,
@@ -220,26 +250,30 @@ impl Model {
                     ])
                     .update_columns([
                         Column::RawName,
-                        Column::Extra,
                         Column::Fansub,
                         Column::PosterLink,
                         Column::Season,
                         Column::SeasonRaw,
+                        Column::RssLink,
+                        Column::Homepage,
                     ])
                     .to_owned(),
                 )
                 .exec_with_returning(db)
-                .await?;
+                .await?
+        };
+        if !is_subscribed {
             subscription_bangumi::Entity::insert(subscription_bangumi::ActiveModel {
                 subscription_id: ActiveValue::Set(subscription_id),
-                bangumi_id: ActiveValue::Set(bgm.id),
+                bangumi_id: ActiveValue::Set(new_bangumi_model.id),
+                subscriber_id: ActiveValue::Set(subscriber_id),
                 ..Default::default()
             })
             .on_conflict_do_nothing()
             .exec(db)
             .await?;
-            Ok(bgm)
         }
+        Ok(new_bangumi_model)
     }
 
     pub async fn get_existed_mikan_bangumi_list(

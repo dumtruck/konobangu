@@ -7,10 +7,7 @@ use tokio::sync::RwLock;
 use crate::{
     app::AppContextTrait,
     errors::RecorderResult,
-    task::{
-        SUBSCRIBER_TASK_APALIS_NAME, SubscriberStreamTaskTrait, SubscriberTask,
-        SubscriberTaskPayload, TaskConfig,
-    },
+    task::{SUBSCRIBER_TASK_APALIS_NAME, SubscriberTask, SubscriberTaskPayload, TaskConfig},
 };
 
 pub struct TaskService {
@@ -40,20 +37,25 @@ impl TaskService {
     ) -> RecorderResult<()> {
         let ctx = data.deref().clone();
 
-        match job.payload {
-            SubscriberTaskPayload::MikanScrapeSeasonSubscription(task) => {
-                task.run(ctx, job.id).await
-            }
-        }
+        job.payload.run(ctx).await
     }
 
-    pub async fn add_subscriber_task(&self, job: SubscriberTask) -> RecorderResult<()> {
-        {
-            let mut storage = self.subscriber_task_storage.write().await;
-            storage.push(job).await?;
-        }
+    pub async fn add_subscriber_task(
+        &self,
+        subscriber_id: i32,
+        task_payload: SubscriberTaskPayload,
+    ) -> RecorderResult<TaskId> {
+        let subscriber_task = SubscriberTask {
+            subscriber_id,
+            payload: task_payload,
+        };
 
-        Ok(())
+        let task_id = {
+            let mut storage = self.subscriber_task_storage.write().await;
+            storage.push(subscriber_task).await?.task_id
+        };
+
+        Ok(task_id)
     }
 
     pub async fn setup(&self) -> RecorderResult<()> {

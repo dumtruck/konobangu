@@ -32,6 +32,7 @@ pub enum Subscriptions {
     SubscriberId,
     Category,
     SourceUrl,
+    SourceUrls,
     Enabled,
     CredentialId,
 }
@@ -52,7 +53,6 @@ pub enum Bangumi {
     RssLink,
     PosterLink,
     SavePath,
-    Deleted,
     Homepage,
     Extra,
 }
@@ -85,7 +85,6 @@ pub enum Episodes {
     EpisodeIndex,
     Homepage,
     Subtitle,
-    Deleted,
     Source,
     Extra,
 }
@@ -148,18 +147,6 @@ pub enum Credential3rd {
     Username,
     Password,
     UserAgent,
-}
-
-#[derive(DeriveIden)]
-pub enum SubscriberTasks {
-    Table,
-    Id,
-    SubscriberId,
-    TaskType,
-    Request,
-    Result,
-    Error,
-    Yields,
 }
 
 macro_rules! create_postgres_enum_for_active_enum {

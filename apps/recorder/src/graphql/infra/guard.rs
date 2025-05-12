@@ -4,8 +4,10 @@ use async_graphql::dynamic::{ResolverContext, ValueAccessor};
 use sea_orm::EntityTrait;
 use seaography::{BuilderContext, FnGuard, GuardAction};
 
-use super::util::{get_column_key, get_entity_key};
-use crate::auth::{AuthError, AuthUserInfo};
+use crate::{
+    auth::{AuthError, AuthUserInfo},
+    graphql::infra::util::{get_column_key, get_entity_key},
+};
 
 fn guard_data_object_accessor_with_subscriber_id(
     value: ValueAccessor<'_>,
@@ -108,7 +110,7 @@ where
                                 subscriber_id,
                             )
                             .map_err(|inner_error| {
-                                AuthError::from_graphql_subscribe_id_guard(
+                                AuthError::from_graphql_dynamic_subscribe_id_guard(
                                     inner_error,
                                     context,
                                     &entity_create_one_mutation_data_field_name,
@@ -136,7 +138,7 @@ where
                                     })
                                 })
                                 .map_err(|inner_error| {
-                                    AuthError::from_graphql_subscribe_id_guard(
+                                    AuthError::from_graphql_dynamic_subscribe_id_guard(
                                         inner_error,
                                         context,
                                         &entity_create_batch_mutation_data_field_name,
@@ -157,7 +159,7 @@ where
                                 subscriber_id,
                             )
                             .map_err(|inner_error| {
-                                AuthError::from_graphql_subscribe_id_guard(
+                                AuthError::from_graphql_dynamic_subscribe_id_guard(
                                     inner_error,
                                     context,
                                     &entity_update_mutation_data_field_name,

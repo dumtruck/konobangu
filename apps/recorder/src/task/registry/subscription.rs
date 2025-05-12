@@ -1,0 +1,45 @@
+use std::sync::Arc;
+
+use sea_orm::prelude::*;
+use serde::{Deserialize, Serialize};
+
+use crate::{
+    app::AppContextTrait,
+    errors::RecorderResult,
+    models::subscriptions::{self, SubscriptionTrait},
+    task::SubscriberAsyncTaskTrait,
+};
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncOneSubscriptionFeedsTask(pub subscriptions::Subscription);
+
+impl From<subscriptions::Subscription> for SyncOneSubscriptionFeedsTask {
+    fn from(subscription: subscriptions::Subscription) -> Self {
+        Self(subscription)
+    }
+}
+
+#[async_trait::async_trait]
+impl SubscriberAsyncTaskTrait for SyncOneSubscriptionFeedsTask {
+    async fn run_async(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.0.sync_feeds(ctx).await?;
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncOneSubscriptionSourcesTask(pub subscriptions::Subscription);
+
+#[async_trait::async_trait]
+impl SubscriberAsyncTaskTrait for SyncOneSubscriptionSourcesTask {
+    async fn run_async(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.0.sync_sources(ctx).await?;
+        Ok(())
+    }
+}
+
+impl From<subscriptions::Subscription> for SyncOneSubscriptionSourcesTask {
+    fn from(subscription: subscriptions::Subscription) -> Self {
+        Self(subscription)
+    }
+}

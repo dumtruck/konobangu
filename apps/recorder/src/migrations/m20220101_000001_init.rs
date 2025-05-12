@@ -64,6 +64,10 @@ impl MigrationTrait for Migration {
                     .col(string(Subscriptions::DisplayName))
                     .col(integer(Subscriptions::SubscriberId))
                     .col(text(Subscriptions::SourceUrl))
+                    .col(array_null(
+                        Subscriptions::SourceUrls,
+                        ColumnType::String(StringLen::None),
+                    ))
                     .col(boolean(Subscriptions::Enabled))
                     .col(enumeration(
                         Subscriptions::Category,
@@ -105,7 +109,6 @@ impl MigrationTrait for Migration {
                     .col(text_null(Bangumi::RssLink))
                     .col(text_null(Bangumi::PosterLink))
                     .col(text_null(Bangumi::SavePath))
-                    .col(boolean(Bangumi::Deleted).default(false))
                     .col(text_null(Bangumi::Homepage))
                     .col(json_binary_null(Bangumi::Extra))
                     .foreign_key(
@@ -224,7 +227,6 @@ impl MigrationTrait for Migration {
                     .col(integer(Episodes::EpisodeIndex))
                     .col(text_null(Episodes::Homepage))
                     .col(text_null(Episodes::Subtitle))
-                    .col(boolean(Episodes::Deleted).default(false))
                     .col(text_null(Episodes::Source))
                     .col(json_binary_null(Episodes::Extra))
                     .foreign_key(

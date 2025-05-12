@@ -2,28 +2,131 @@ use std::{borrow::Cow, fmt, str::FromStr, sync::Arc};
 
 use async_stream::try_stream;
 use bytes::Bytes;
+use chrono::DateTime;
+use downloader::bittorrent::defs::BITTORRENT_MIME_TYPE;
 use fetch::{html::fetch_html, image::fetch_image};
 use futures::{Stream, TryStreamExt, pin_mut};
 use html_escape::decode_html_entities;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
-use snafu::FromString;
+use snafu::{FromString, OptionExt};
 use tracing::instrument;
 use url::Url;
 
-use super::{
-    MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_POSTER_BUCKET_KEY,
-    MIKAN_SEASON_FLOW_PAGE_PATH, MikanBangumiRssUrlMeta, MikanClient,
-};
 use crate::{
     app::AppContextTrait,
     errors::app_error::{RecorderError, RecorderResult},
     extract::{
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
+        mikan::{
+            MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_POSTER_BUCKET_KEY,
+            MIKAN_SEASON_FLOW_PAGE_PATH, MikanClient,
+        },
     },
     storage::{StorageContentCategory, StorageServiceTrait},
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MikanRssItem {
+    pub title: String,
+    pub homepage: Url,
+    pub url: Url,
+    pub content_length: Option<u64>,
+    pub mime: String,
+    pub pub_date: Option<i64>,
+    pub mikan_episode_id: String,
+}
+
+impl TryFrom<rss::Item> for MikanRssItem {
+    type Error = RecorderError;
+
+    fn try_from(item: rss::Item) -> Result<Self, Self::Error> {
+        let enclosure = item.enclosure.ok_or_else(|| {
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("enclosure"))
+        })?;
+
+        let mime_type = enclosure.mime_type;
+        if mime_type != BITTORRENT_MIME_TYPE {
+            return Err(RecorderError::MimeError {
+                expected: String::from(BITTORRENT_MIME_TYPE),
+                found: mime_type.to_string(),
+                desc: String::from("MikanRssItem"),
+            });
+        }
+
+        let title = item.title.ok_or_else(|| {
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("title:title"))
+        })?;
+
+        let enclosure_url = Url::parse(&enclosure.url).map_err(|err| {
+            RecorderError::from_mikan_rss_invalid_field_and_source(
+                "enclosure_url:enclosure.link".into(),
+                err,
+            )
+        })?;
+
+        let homepage = item
+            .link
+            .and_then(|link| Url::parse(&link).ok())
+            .ok_or_else(|| {
+                RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
+            })?;
+
+        let MikanEpisodeHash {
+            mikan_episode_id, ..
+        } = MikanEpisodeHash::from_homepage_url(&homepage).ok_or_else(|| {
+            RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
+        })?;
+
+        Ok(MikanRssItem {
+            title,
+            homepage,
+            url: enclosure_url,
+            content_length: enclosure.length.parse().ok(),
+            mime: mime_type,
+            pub_date: item
+                .pub_date
+                .and_then(|s| DateTime::parse_from_rfc2822(&s).ok())
+                .map(|s| s.timestamp_millis()),
+            mikan_episode_id,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MikanSubscriberSubscriptionRssUrlMeta {
+    pub mikan_subscription_token: String,
+}
+
+impl MikanSubscriberSubscriptionRssUrlMeta {
+    pub fn from_rss_url(url: &Url) -> Option<Self> {
+        if url.path() == "/RSS/MyBangumi" {
+            url.query_pairs().find(|(k, _)| k == "token").map(|(_, v)| {
+                MikanSubscriberSubscriptionRssUrlMeta {
+                    mikan_subscription_token: v.to_string(),
+                }
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn build_rss_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_subscriber_subscription_rss_url(mikan_base_url, &self.mikan_subscription_token)
+    }
+}
+
+pub fn build_mikan_subscriber_subscription_rss_url(
+    mikan_base_url: Url,
+    mikan_subscription_token: &str,
+) -> Url {
+    let mut url = mikan_base_url;
+    url.set_path("/RSS/MyBangumi");
+    url.query_pairs_mut()
+        .append_pair("token", mikan_subscription_token);
+    url
+}
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
 pub struct MikanBangumiIndexMeta {
@@ -147,6 +250,26 @@ impl MikanBangumiIndexHash {
             None
         }
     }
+
+    pub fn build_homepage_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_bangumi_homepage_url(mikan_base_url, &self.mikan_bangumi_id, None)
+    }
+}
+
+pub fn build_mikan_bangumi_subscription_rss_url(
+    mikan_base_url: Url,
+    mikan_bangumi_id: &str,
+    mikan_fansub_id: Option<&str>,
+) -> Url {
+    let mut url = mikan_base_url;
+    url.set_path("/RSS/Bangumi");
+    url.query_pairs_mut()
+        .append_pair("bangumiId", mikan_bangumi_id);
+    if let Some(mikan_fansub_id) = mikan_fansub_id {
+        url.query_pairs_mut()
+            .append_pair("subgroupid", mikan_fansub_id);
+    };
+    url
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -170,23 +293,69 @@ impl MikanBangumiHash {
             None
         }
     }
+
+    pub fn from_rss_url(url: &Url) -> Option<Self> {
+        if url.path() == "/RSS/Bangumi" {
+            if let (Some(mikan_fansub_id), Some(mikan_bangumi_id)) = (
+                url.query_pairs()
+                    .find(|(k, _)| k == "subgroupid")
+                    .map(|(_, v)| v.to_string()),
+                url.query_pairs()
+                    .find(|(k, _)| k == "bangumiId")
+                    .map(|(_, v)| v.to_string()),
+            ) {
+                Some(Self {
+                    mikan_bangumi_id,
+                    mikan_fansub_id,
+                })
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn build_rss_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_bangumi_subscription_rss_url(
+            mikan_base_url,
+            &self.mikan_bangumi_id,
+            Some(&self.mikan_fansub_id),
+        )
+    }
+
+    pub fn build_homepage_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_bangumi_homepage_url(
+            mikan_base_url,
+            &self.mikan_bangumi_id,
+            Some(&self.mikan_fansub_id),
+        )
+    }
+}
+
+pub fn build_mikan_episode_homepage_url(mikan_base_url: Url, mikan_episode_id: &str) -> Url {
+    let mut url = mikan_base_url;
+    url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
+    url
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct MikanEpisodeHash {
-    pub mikan_episode_token: String,
+    pub mikan_episode_id: String,
 }
 
 impl MikanEpisodeHash {
     pub fn from_homepage_url(url: &Url) -> Option<Self> {
         if url.path().starts_with("/Home/Episode/") {
             let mikan_episode_id = url.path().replace("/Home/Episode/", "");
-            Some(Self {
-                mikan_episode_token: mikan_episode_id,
-            })
+            Some(Self { mikan_episode_id })
         } else {
             None
         }
+    }
+
+    pub fn build_homepage_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_episode_homepage_url(mikan_base_url, &self.mikan_episode_id)
     }
 }
 
@@ -227,8 +396,7 @@ impl FromStr for MikanSeasonStr {
             "秋" => Ok(MikanSeasonStr::Autumn),
             "冬" => Ok(MikanSeasonStr::Winter),
             _ => Err(RecorderError::without_source(format!(
-                "MikanSeasonStr must be one of '春', '夏', '秋', '冬', but got '{}'",
-                s
+                "MikanSeasonStr must be one of '春', '夏', '秋', '冬', but got '{s}'"
             ))),
         }
     }
@@ -284,12 +452,6 @@ pub fn build_mikan_season_flow_url(
     url
 }
 
-pub fn build_mikan_episode_homepage_url(mikan_base_url: Url, mikan_episode_id: &str) -> Url {
-    let mut url = mikan_base_url;
-    url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
-    url
-}
-
 pub fn build_mikan_bangumi_expand_subscribed_url(
     mikan_base_url: Url,
     mikan_bangumi_id: &str,
@@ -322,7 +484,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("bangumi_title"))
         })?;
 
-    let MikanBangumiRssUrlMeta {
+    let MikanBangumiHash {
         mikan_bangumi_id,
         mikan_fansub_id,
         ..
@@ -331,7 +493,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
         .next()
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_episode_homepage_url.join(s).ok())
-        .and_then(|rss_link_url| MikanBangumiRssUrlMeta::from_url(&rss_link_url))
+        .and_then(|rss_link_url| MikanBangumiHash::from_rss_url(&rss_link_url))
         .ok_or_else(|| {
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
         })?;
@@ -345,8 +507,7 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
         })?;
 
     let MikanEpisodeHash {
-        mikan_episode_token,
-        ..
+        mikan_episode_id, ..
     } = MikanEpisodeHash::from_homepage_url(&mikan_episode_homepage_url).ok_or_else(|| {
         RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
     })?;
@@ -436,9 +597,9 @@ pub fn extract_mikan_bangumi_index_meta_from_bangumi_homepage_html(
         .next()
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_bangumi_homepage_url.join(s).ok())
-        .and_then(|rss_link_url| MikanBangumiRssUrlMeta::from_url(&rss_link_url))
+        .and_then(|rss_link_url| MikanBangumiHash::from_rss_url(&rss_link_url))
         .map(
-            |MikanBangumiRssUrlMeta {
+            |MikanBangumiHash {
                  mikan_bangumi_id, ..
              }| mikan_bangumi_id,
         )
@@ -734,10 +895,86 @@ pub fn extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
     }
 }
 
+pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
+    ctx: Arc<dyn AppContextTrait>,
+    mikan_season_flow_url: Url,
+    credential_id: i32,
+) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
+    try_stream! {
+        let mikan_base_url = ctx.mikan().base_url().clone();
+        let mikan_client = ctx.mikan().fork_with_credential(ctx.clone(), credential_id).await?;
+
+        let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
+
+        let mut bangumi_indices_meta = {
+            let html = Html::parse_document(&content);
+            extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, &mikan_base_url)
+        };
+
+        if bangumi_indices_meta.is_empty() && !mikan_client.has_login().await? {
+            mikan_client.login().await?;
+            let content = fetch_html(&mikan_client, mikan_season_flow_url).await?;
+            let html = Html::parse_document(&content);
+            bangumi_indices_meta =
+                extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(&html, &mikan_base_url);
+        }
+
+
+        mikan_client
+            .sync_credential_cookies(ctx.clone(), credential_id)
+            .await?;
+
+        for bangumi_index in bangumi_indices_meta {
+            let bangumi_title = bangumi_index.bangumi_title.clone();
+            let bangumi_expand_subscribed_fragment_url = build_mikan_bangumi_expand_subscribed_url(
+                mikan_base_url.clone(),
+                &bangumi_index.mikan_bangumi_id,
+            );
+            let bangumi_expand_subscribed_fragment =
+                fetch_html(&mikan_client, bangumi_expand_subscribed_fragment_url).await?;
+
+            let bangumi_meta = {
+                let html = Html::parse_document(&bangumi_expand_subscribed_fragment);
+
+                extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
+                    &html,
+                    bangumi_index,
+                    mikan_base_url.clone(),
+                )
+                .with_whatever_context::<_, String, RecorderError>(|| {
+                    format!("failed to extract mikan bangumi fansub of title = {bangumi_title}")
+                })
+            }?;
+
+            yield bangumi_meta;
+        }
+
+        mikan_client
+        .sync_credential_cookies(ctx, credential_id)
+        .await?;
+    }
+}
+
+pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
+    ctx: Arc<dyn AppContextTrait>,
+    mikan_season_flow_url: Url,
+    credential_id: i32,
+) -> RecorderResult<Vec<MikanBangumiMeta>> {
+    let stream = scrape_mikan_bangumi_meta_stream_from_season_flow_url(
+        ctx,
+        mikan_season_flow_url,
+        credential_id,
+    );
+
+    pin_mut!(stream);
+
+    stream.try_collect().await
+}
+
 #[cfg(test)]
 mod test {
     #![allow(unused_variables)]
-    use std::fs;
+    use std::{fs, sync::Arc};
 
     use rstest::{fixture, rstest};
     use tracing::Level;
@@ -1035,7 +1272,6 @@ mod test {
             build_mikan_season_flow_url(mikan_base_url.clone(), 2025, MikanSeasonStr::Spring);
 
         let bangumi_meta_list = scrape_mikan_bangumi_meta_list_from_season_flow_url(
-            mikan_client,
             app_ctx.clone(),
             mikan_season_flow_url,
             credential.id,

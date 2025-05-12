@@ -57,21 +57,6 @@ pub enum RelatedEntity {
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 
-impl ActiveModel {
-    pub fn from_subscription_and_episode(
-        subscriber_id: i32,
-        subscription_id: i32,
-        episode_id: i32,
-    ) -> Self {
-        Self {
-            subscriber_id: ActiveValue::Set(subscriber_id),
-            subscription_id: ActiveValue::Set(subscription_id),
-            episode_id: ActiveValue::Set(episode_id),
-            ..Default::default()
-        }
-    }
-}
-
 impl Model {
     pub async fn add_episodes_for_subscription(
         ctx: &dyn AppContextTrait,

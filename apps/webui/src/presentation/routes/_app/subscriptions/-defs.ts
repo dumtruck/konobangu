@@ -92,7 +92,6 @@ query GetSubscriptionDetail ($id: Int!) {
           rssLink
           posterLink
           savePath
-          deleted
           homepage
         }
       }

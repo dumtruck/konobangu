@@ -1,26 +1,15 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
-use itertools::Itertools;
-use sea_orm::{ActiveValue, entity::prelude::*};
+use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::{bangumi, episodes, query::filter_values_in};
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
-    extract::{
-        mikan::{
-            MikanBangumiPosterMeta, MikanBangumiSubscription, MikanSeasonSubscription,
-            MikanSubscriberSubscription, build_mikan_bangumi_homepage_url,
-            build_mikan_bangumi_subscription_rss_url,
-            scrape_mikan_bangumi_meta_from_bangumi_homepage_url,
-            scrape_mikan_episode_meta_from_episode_homepage_url,
-            scrape_mikan_poster_meta_from_image_url,
-        },
-        rawname::extract_season_from_title_body,
+    extract::mikan::{
+        MikanBangumiSubscription, MikanSeasonSubscription, MikanSubscriberSubscription,
     },
-    models::episodes::MikanEpsiodeCreation,
 };
 
 #[derive(
@@ -43,45 +32,6 @@ pub enum SubscriptionCategory {
     Manual,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "category")]
-pub enum SubscriptionPayload {
-    #[serde(rename = "mikan_subscriber")]
-    MikanSubscriber(MikanSubscriberSubscription),
-    #[serde(rename = "mikan_season")]
-    MikanSeason(MikanSeasonSubscription),
-    #[serde(rename = "mikan_bangumi")]
-    MikanBangumi(MikanBangumiSubscription),
-    #[serde(rename = "manual")]
-    Manual,
-}
-
-impl SubscriptionPayload {
-    pub fn category(&self) -> SubscriptionCategory {
-        match self {
-            Self::MikanSubscriber(_) => SubscriptionCategory::MikanSubscriber,
-            Self::MikanSeason(_) => SubscriptionCategory::MikanSeason,
-            Self::MikanBangumi(_) => SubscriptionCategory::MikanBangumi,
-            Self::Manual => SubscriptionCategory::Manual,
-        }
-    }
-
-    pub fn try_from_model(model: &Model) -> RecorderResult<Self> {
-        Ok(match model.category {
-            SubscriptionCategory::MikanSubscriber => {
-                Self::MikanSubscriber(MikanSubscriberSubscription::try_from_model(model)?)
-            }
-            SubscriptionCategory::MikanSeason => {
-                Self::MikanSeason(MikanSeasonSubscription::try_from_model(model)?)
-            }
-            SubscriptionCategory::MikanBangumi => {
-                Self::MikanBangumi(MikanBangumiSubscription::try_from_model(model)?)
-            }
-            SubscriptionCategory::Manual => Self::Manual,
-        })
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscriptions")]
 pub struct Model {
@@ -95,6 +45,7 @@ pub struct Model {
     pub subscriber_id: i32,
     pub category: SubscriptionCategory,
     pub source_url: String,
+    pub source_urls: Option<Vec<String>>,
     pub enabled: bool,
     pub credential_id: Option<i32>,
 }
@@ -199,11 +150,6 @@ impl ActiveModelBehavior for ActiveModel {}
 impl ActiveModel {}
 
 impl Model {
-    pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RecorderResult<Option<Self>> {
-        let db = ctx.db();
-        Ok(Entity::find_by_id(id).one(db).await?)
-    }
-
     pub async fn toggle_with_ids(
         ctx: &dyn AppContextTrait,
         ids: impl Iterator<Item = i32>,
@@ -230,127 +176,112 @@ impl Model {
         Ok(())
     }
 
-    pub async fn pull_subscription(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
-        match payload {
-            SubscriptionPayload::MikanSubscriber(payload) => {
-                let mikan_client = ctx.mikan();
-                let channel =
-                    extract_mikan_rss_channel_from_rss_link(mikan_client, &self.source_url).await?;
-
-                let items = channel.into_items();
-
-                let db = ctx.db();
-                let items = items.into_iter().collect_vec();
-
-                let mut stmt = filter_values_in(
-                    episodes::Entity,
-                    episodes::Column::MikanEpisodeId,
-                    items
-                        .iter()
-                        .map(|s| Value::from(s.mikan_episode_id.clone())),
-                );
-                stmt.and_where(Expr::col(episodes::Column::SubscriberId).eq(self.subscriber_id));
-
-                let builder = &db.get_database_backend();
-
-                let old_rss_item_mikan_episode_ids_set = db
-                    .query_all(builder.build(&stmt))
-                    .await?
-                    .into_iter()
-                    .flat_map(|qs| qs.try_get_by_index(0))
-                    .collect::<HashSet<String>>();
-
-                let new_rss_items = items
-                    .into_iter()
-                    .filter(|item| {
-                        !old_rss_item_mikan_episode_ids_set.contains(&item.mikan_episode_id)
-                    })
-                    .collect_vec();
-
-                let mut new_metas = vec![];
-                for new_rss_item in new_rss_items.iter() {
-                    new_metas.push(
-                        scrape_mikan_episode_meta_from_episode_homepage_url(
-                            mikan_client,
-                            new_rss_item.homepage.clone(),
-                        )
-                        .await?,
-                    );
-                }
-
-                let new_mikan_bangumi_groups = new_metas
-                    .into_iter()
-                    .into_group_map_by(|s| (s.mikan_bangumi_id.clone(), s.mikan_fansub_id.clone()));
-
-                for ((mikan_bangumi_id, mikan_fansub_id), new_ep_metas) in new_mikan_bangumi_groups
-                {
-                    let mikan_base_url = ctx.mikan().base_url();
-                    let bgm_homepage = build_mikan_bangumi_homepage_url(
-                        mikan_base_url.clone(),
-                        &mikan_bangumi_id,
-                        Some(&mikan_fansub_id),
-                    );
-                    let bgm_rss_link = build_mikan_bangumi_subscription_rss_url(
-                        mikan_base_url.clone(),
-                        &mikan_bangumi_id,
-                        Some(&mikan_fansub_id),
-                    )?;
-                    let bgm = Arc::new(
-                        bangumi::Model::get_or_insert_from_mikan(
-                            ctx,
-                            self.subscriber_id,
-                            self.id,
-                            mikan_bangumi_id.to_string(),
-                            mikan_fansub_id.to_string(),
-                            async |am| -> RecorderResult<()> {
-                                let bgm_meta = scrape_mikan_bangumi_meta_from_bangumi_homepage_url(
-                                    mikan_client,
-                                    bgm_homepage.clone(),
-                                )
-                                .await?;
-                                let bgm_name = bgm_meta.bangumi_title;
-                                let (_, bgm_season_raw, bgm_season) =
-                                    extract_season_from_title_body(&bgm_name);
-                                am.raw_name = ActiveValue::Set(bgm_name.clone());
-                                am.display_name = ActiveValue::Set(bgm_name);
-                                am.season = ActiveValue::Set(bgm_season);
-                                am.season_raw = ActiveValue::Set(bgm_season_raw);
-                                am.rss_link = ActiveValue::Set(Some(bgm_rss_link.to_string()));
-                                am.homepage = ActiveValue::Set(Some(bgm_homepage.to_string()));
-                                am.fansub = ActiveValue::Set(Some(bgm_meta.fansub));
-                                if let Some(origin_poster_src) = bgm_meta.origin_poster_src
-                                    && let MikanBangumiPosterMeta {
-                                        poster_src: Some(poster_src),
-                                        ..
-                                    } = scrape_mikan_poster_meta_from_image_url(
-                                        mikan_client,
-                                        ctx.storage(),
-                                        origin_poster_src,
-                                        self.subscriber_id,
-                                    )
-                                    .await?
-                                {
-                                    am.poster_link = ActiveValue::Set(Some(poster_src))
-                                }
-                                Ok(())
-                            },
-                        )
-                        .await?,
-                    );
-                    episodes::Model::add_episodes(
-                        ctx,
-                        self.subscriber_id,
-                        self.id,
-                        new_ep_metas.into_iter().map(|item| MikanEpsiodeCreation {
-                            episode: item,
-                            bangumi: bgm.clone(),
-                        }),
-                    )
-                    .await?;
-                }
-                Ok(())
-            }
-            _ => todo!(),
+    pub async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        let subscription = self.try_into()?;
+        match subscription {
+            Subscription::MikanSubscriber(subscription) => subscription.sync_feeds(ctx).await,
+            Subscription::MikanSeason(subscription) => subscription.sync_feeds(ctx).await,
+            Subscription::MikanBangumi(subscription) => subscription.sync_feeds(ctx).await,
+            Subscription::Manual => Ok(()),
         }
+    }
+}
+
+#[async_trait]
+pub trait SubscriptionTrait: Sized + Debug {
+    fn get_subscriber_id(&self) -> i32;
+
+    fn get_subscription_id(&self) -> i32;
+
+    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
+
+    async fn sync_sources(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
+
+    fn try_from_model(model: &Model) -> RecorderResult<Self>;
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "category")]
+pub enum Subscription {
+    #[serde(rename = "mikan_subscriber")]
+    MikanSubscriber(MikanSubscriberSubscription),
+    #[serde(rename = "mikan_season")]
+    MikanSeason(MikanSeasonSubscription),
+    #[serde(rename = "mikan_bangumi")]
+    MikanBangumi(MikanBangumiSubscription),
+    #[serde(rename = "manual")]
+    Manual,
+}
+
+impl Subscription {
+    pub fn category(&self) -> SubscriptionCategory {
+        match self {
+            Self::MikanSubscriber(_) => SubscriptionCategory::MikanSubscriber,
+            Self::MikanSeason(_) => SubscriptionCategory::MikanSeason,
+            Self::MikanBangumi(_) => SubscriptionCategory::MikanBangumi,
+            Self::Manual => SubscriptionCategory::Manual,
+        }
+    }
+}
+
+#[async_trait]
+impl SubscriptionTrait for Subscription {
+    fn get_subscriber_id(&self) -> i32 {
+        match self {
+            Self::MikanSubscriber(subscription) => subscription.get_subscriber_id(),
+            Self::MikanSeason(subscription) => subscription.get_subscriber_id(),
+            Self::MikanBangumi(subscription) => subscription.get_subscriber_id(),
+            Self::Manual => unreachable!(),
+        }
+    }
+
+    fn get_subscription_id(&self) -> i32 {
+        match self {
+            Self::MikanSubscriber(subscription) => subscription.get_subscription_id(),
+            Self::MikanSeason(subscription) => subscription.get_subscription_id(),
+            Self::MikanBangumi(subscription) => subscription.get_subscription_id(),
+            Self::Manual => unreachable!(),
+        }
+    }
+
+    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        match self {
+            Self::MikanSubscriber(subscription) => subscription.sync_feeds(ctx).await,
+            Self::MikanSeason(subscription) => subscription.sync_feeds(ctx).await,
+            Self::MikanBangumi(subscription) => subscription.sync_feeds(ctx).await,
+            Self::Manual => Ok(()),
+        }
+    }
+
+    async fn sync_sources(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        match self {
+            Self::MikanSubscriber(subscription) => subscription.sync_sources(ctx).await,
+            Self::MikanSeason(subscription) => subscription.sync_sources(ctx).await,
+            Self::MikanBangumi(subscription) => subscription.sync_sources(ctx).await,
+            Self::Manual => Ok(()),
+        }
+    }
+
+    fn try_from_model(model: &Model) -> RecorderResult<Self> {
+        match model.category {
+            SubscriptionCategory::MikanSubscriber => {
+                MikanSubscriberSubscription::try_from_model(model).map(Self::MikanSubscriber)
+            }
+            SubscriptionCategory::MikanSeason => {
+                MikanSeasonSubscription::try_from_model(model).map(Self::MikanSeason)
+            }
+            SubscriptionCategory::MikanBangumi => {
+                MikanBangumiSubscription::try_from_model(model).map(Self::MikanBangumi)
+            }
+            SubscriptionCategory::Manual => Ok(Self::Manual),
+        }
+    }
+}
+
+impl TryFrom<&Model> for Subscription {
+    type Error = RecorderError;
+
+    fn try_from(model: &Model) -> Result<Self, Self::Error> {
+        Self::try_from_model(model)
     }
 }

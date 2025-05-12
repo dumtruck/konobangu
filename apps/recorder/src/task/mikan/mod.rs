@@ -1,3 +1,0 @@
-mod scrape_season_subscription;
-
-pub use scrape_season_subscription::MikanScrapeSeasonSubscriptionTask;

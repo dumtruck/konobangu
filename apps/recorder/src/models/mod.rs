@@ -5,7 +5,6 @@ pub mod downloaders;
 pub mod downloads;
 pub mod episodes;
 pub mod query;
-pub mod subscriber_tasks;
 pub mod subscribers;
 pub mod subscription_bangumi;
 pub mod subscription_episode;

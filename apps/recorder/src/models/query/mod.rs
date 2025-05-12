@@ -1,28 +1,8 @@
 use async_trait::async_trait;
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbErr, EntityTrait, Insert, IntoActiveModel,
-    Iterable, QueryResult, QueryTrait, SelectModel, SelectorRaw, Value,
-    prelude::Expr,
-    sea_query::{Alias, IntoColumnRef, IntoTableRef, Query, SelectStatement},
+    Iterable, QueryResult, QueryTrait, SelectModel, SelectorRaw, sea_query::Query,
 };
-
-pub fn filter_values_in<
-    I: IntoIterator<Item = T>,
-    T: Into<Value>,
-    R: IntoTableRef,
-    C: IntoColumnRef + Copy,
->(
-    tbl_ref: R,
-    col_ref: C,
-    values: I,
-) -> SelectStatement {
-    Query::select()
-        .expr(Expr::col(("t", "column1")))
-        .from_values(values, "t")
-        .left_join(tbl_ref, Expr::col(("t", "column1")).equals(col_ref))
-        .and_where(Expr::col(col_ref).is_not_null())
-        .to_owned()
-}
 
 #[async_trait]
 pub trait InsertManyReturningExt<A>: Sized

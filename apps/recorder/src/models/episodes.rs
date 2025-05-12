@@ -1,17 +1,14 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use sea_orm::{
-    ActiveValue, ColumnTrait, FromJsonQueryResult, IntoSimpleExpr, JoinType, QuerySelect,
-    entity::prelude::*,
-    sea_query::{Alias, IntoCondition, OnConflict},
+    ActiveValue, FromJsonQueryResult, IntoSimpleExpr, QuerySelect, entity::prelude::*,
+    sea_query::OnConflict,
 };
 use serde::{Deserialize, Serialize};
 
-use super::{bangumi, query::InsertManyReturningExt, subscription_bangumi, subscription_episode};
+use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
 use crate::{
     app::AppContextTrait,
-    errors::{RecorderError, RecorderResult},
+    errors::RecorderResult,
     extract::{
         mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
         rawname::parse_episode_meta_from_raw_name,
@@ -52,8 +49,6 @@ pub struct Model {
     pub episode_index: i32,
     pub homepage: Option<String>,
     pub subtitle: Option<String>,
-    #[sea_orm(default = "false")]
-    pub deleted: bool,
     pub source: Option<String>,
     pub extra: EpisodeExtra,
 }
@@ -132,56 +127,47 @@ pub enum RelatedEntity {
     SubscriptionEpisode,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct MikanEpsiodeCreation {
-    pub episode: MikanEpisodeMeta,
-    pub bangumi: Arc<bangumi::Model>,
-}
-
 impl ActiveModel {
-    pub fn from_mikan_episode_meta(
+    #[tracing::instrument(err, skip(ctx), fields(bangumi_id = ?bangumi.id, mikan_episode_id = ?episode.mikan_episode_id))]
+    pub fn from_mikan_bangumi_and_episode_meta(
         ctx: &dyn AppContextTrait,
-        creation: MikanEpsiodeCreation,
+        bangumi: &bangumi::Model,
+        episode: MikanEpisodeMeta,
     ) -> RecorderResult<Self> {
-        let item = creation.episode;
-        let bgm = creation.bangumi;
-        let raw_meta = parse_episode_meta_from_raw_name(&item.episode_title)
-            .inspect_err(|e| {
-                tracing::warn!("Failed to parse episode meta: {:?}", e);
-            })
-            .ok()
-            .unwrap_or_default();
-        let homepage = build_mikan_episode_homepage_url(
-            ctx.mikan().base_url().clone(),
-            &item.mikan_episode_id,
-        );
+        let mikan_base_url = ctx.mikan().base_url().clone();
+        let rawname_meta = parse_episode_meta_from_raw_name(&episode.episode_title)?;
+        let homepage = build_mikan_episode_homepage_url(mikan_base_url, &episode.mikan_episode_id);
 
         Ok(Self {
-            mikan_episode_id: ActiveValue::Set(Some(item.mikan_episode_id)),
-            raw_name: ActiveValue::Set(item.episode_title.clone()),
-            display_name: ActiveValue::Set(item.episode_title.clone()),
-            bangumi_id: ActiveValue::Set(bgm.id),
-            subscriber_id: ActiveValue::Set(bgm.subscriber_id),
-            resolution: ActiveValue::Set(raw_meta.resolution),
-            season: ActiveValue::Set(if raw_meta.season > 0 {
-                raw_meta.season
+            mikan_episode_id: ActiveValue::Set(Some(episode.mikan_episode_id)),
+            raw_name: ActiveValue::Set(episode.episode_title.clone()),
+            display_name: ActiveValue::Set(episode.episode_title.clone()),
+            bangumi_id: ActiveValue::Set(bangumi.id),
+            subscriber_id: ActiveValue::Set(bangumi.subscriber_id),
+            resolution: ActiveValue::Set(rawname_meta.resolution),
+            season: ActiveValue::Set(if rawname_meta.season > 0 {
+                rawname_meta.season
             } else {
-                bgm.season
+                bangumi.season
             }),
-            season_raw: ActiveValue::Set(raw_meta.season_raw.or_else(|| bgm.season_raw.clone())),
-            fansub: ActiveValue::Set(raw_meta.fansub.or_else(|| bgm.fansub.clone())),
-            poster_link: ActiveValue::Set(bgm.poster_link.clone()),
-            episode_index: ActiveValue::Set(raw_meta.episode_index),
+            season_raw: ActiveValue::Set(
+                rawname_meta
+                    .season_raw
+                    .or_else(|| bangumi.season_raw.clone()),
+            ),
+            fansub: ActiveValue::Set(rawname_meta.fansub.or_else(|| bangumi.fansub.clone())),
+            poster_link: ActiveValue::Set(bangumi.poster_link.clone()),
+            episode_index: ActiveValue::Set(rawname_meta.episode_index),
             homepage: ActiveValue::Set(Some(homepage.to_string())),
-            subtitle: ActiveValue::Set(raw_meta.subtitle),
-            source: ActiveValue::Set(raw_meta.source),
+            subtitle: ActiveValue::Set(rawname_meta.subtitle),
+            source: ActiveValue::Set(rawname_meta.source),
             extra: ActiveValue::Set(EpisodeExtra {
-                name_zh: raw_meta.name_zh,
-                name_en: raw_meta.name_en,
-                name_jp: raw_meta.name_jp,
-                s_name_en: raw_meta.name_en_no_season,
-                s_name_jp: raw_meta.name_jp_no_season,
-                s_name_zh: raw_meta.name_zh_no_season,
+                name_zh: rawname_meta.name_zh,
+                name_en: rawname_meta.name_en,
+                name_jp: rawname_meta.name_jp,
+                s_name_en: rawname_meta.name_en_no_season,
+                s_name_jp: rawname_meta.name_jp_no_season,
+                s_name_zh: rawname_meta.name_zh_no_season,
             }),
             ..Default::default()
         })
@@ -197,13 +183,14 @@ impl Model {
         ids: impl Iterator<Item = MikanEpisodeHash>,
         subscriber_id: i32,
         _subscription_id: i32,
-    ) -> RecorderResult<impl Iterator<Item = (i32, MikanEpisodeHash)>> {
+    ) -> RecorderResult<impl Iterator<Item = (i32, MikanEpisodeHash, i32)>> {
         let db = ctx.db();
 
         Ok(Entity::find()
             .select_only()
             .column(Column::Id)
             .column(Column::MikanEpisodeId)
+            .column(Column::BangumiId)
             .filter(
                 Expr::tuple([
                     Column::MikanEpisodeId.into_simple_expr(),
@@ -211,44 +198,39 @@ impl Model {
                 ])
                 .in_tuples(
                     ids.into_iter()
-                        .map(|id| (id.mikan_episode_token, subscriber_id)),
+                        .map(|id| (id.mikan_episode_id, subscriber_id)),
                 ),
             )
-            .into_tuple::<(i32, String)>()
+            .into_tuple::<(i32, String, i32)>()
             .all(db)
             .await?
             .into_iter()
-            .map(|(id, mikan_episode_id)| {
+            .map(|(episode_id, mikan_episode_id, bangumi_id)| {
                 (
-                    id,
-                    MikanEpisodeHash {
-                        mikan_episode_token: mikan_episode_id,
-                    },
+                    episode_id,
+                    MikanEpisodeHash { mikan_episode_id },
+                    bangumi_id,
                 )
             }))
     }
 
-    pub async fn add_episodes(
+    pub async fn add_mikan_episodes_for_subscription(
         ctx: &dyn AppContextTrait,
+        creations: impl Iterator<Item = (&bangumi::Model, MikanEpisodeMeta)>,
         subscriber_id: i32,
         subscription_id: i32,
-        creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
     ) -> RecorderResult<()> {
         let db = ctx.db();
-        let new_episode_active_modes = creations
-            .into_iter()
-            .map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr))
-            .inspect(|result| {
-                if let Err(e) = result {
-                    tracing::warn!("Failed to create episode: {:?}", e);
-                }
+        let new_episode_active_modes: Vec<ActiveModel> = creations
+            .map(|(bangumi, episode_meta)| {
+                ActiveModel::from_mikan_bangumi_and_episode_meta(ctx, bangumi, episode_meta)
             })
-            .flatten();
+            .collect::<Result<_, _>>()?;
 
-        let inserted_episodes = Entity::insert_many(new_episode_active_modes)
+        let new_episode_ids = Entity::insert_many(new_episode_active_modes)
             .on_conflict(
-                OnConflict::columns([Column::BangumiId, Column::MikanEpisodeId])
-                    .do_nothing()
+                OnConflict::columns([Column::MikanEpisodeId, Column::SubscriberId])
+                    .update_columns([Column::RawName, Column::PosterLink, Column::Homepage])
                     .to_owned(),
             )
             .exec_with_returning_columns(db, [Column::Id])
@@ -256,25 +238,13 @@ impl Model {
             .into_iter()
             .flat_map(|r| r.try_get_many_by_index::<i32>());
 
-        let insert_subscription_episode_links = inserted_episodes.into_iter().map(|episode_id| {
-            subscription_episode::ActiveModel::from_subscription_and_episode(
-                subscriber_id,
-                subscription_id,
-                episode_id,
-            )
-        });
-
-        subscription_episode::Entity::insert_many(insert_subscription_episode_links)
-            .on_conflict(
-                OnConflict::columns([
-                    subscription_episode::Column::SubscriptionId,
-                    subscription_episode::Column::EpisodeId,
-                ])
-                .do_nothing()
-                .to_owned(),
-            )
-            .exec(db)
-            .await?;
+        subscription_episode::Model::add_episodes_for_subscription(
+            ctx,
+            new_episode_ids,
+            subscriber_id,
+            subscription_id,
+        )
+        .await?;
 
         Ok(())
     }
