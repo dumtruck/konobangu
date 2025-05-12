@@ -10,7 +10,10 @@ use futures::Stream;
 use itertools::Itertools;
 use maplit::hashmap;
 use scraper::Html;
-use sea_orm::{ColumnTrait, EntityTrait, IntoSimpleExpr, QueryFilter, QuerySelect, prelude::Expr};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait, IntoSimpleExpr, QueryFilter,
+    QuerySelect, prelude::Expr, sea_query::OnConflict,
+};
 use serde::{Deserialize, Serialize};
 use snafu::{OptionExt, ResultExt};
 use url::Url;
@@ -19,8 +22,8 @@ use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
     extract::mikan::{
-        MikanBangumiHomepageUrlMeta, MikanBangumiMeta, MikanBangumiRssUrlMeta, MikanEpisodeMeta,
-        MikanRssItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
+        MikanBangumiHash, MikanBangumiMeta, MikanBangumiRssUrlMeta, MikanEpisodeHash,
+        MikanEpisodeMeta, MikanRssItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
         MikanSubscriberSubscriptionRssUrlMeta, build_mikan_bangumi_expand_subscribed_url,
         build_mikan_bangumi_subscription_rss_url, build_mikan_season_flow_url,
         build_mikan_subscriber_subscription_rss_url,
@@ -29,7 +32,7 @@ use crate::{
         scrape_mikan_episode_meta_from_episode_homepage_url,
     },
     migrations::defs::Bangumi,
-    models::{bangumi, episodes, subscriptions},
+    models::{bangumi, episodes, subscription_bangumi, subscription_episode, subscriptions},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, InputObject, SimpleObject)]
@@ -46,136 +49,90 @@ impl MikanSubscriberSubscription {
         ctx: Arc<dyn AppContextTrait>,
     ) -> RecorderResult<Vec<MikanBangumiMeta>> {
         let mikan_client = ctx.mikan();
+        let db = ctx.db();
 
-        let new_episode_meta_list: Vec<MikanEpisodeMeta> = {
+        let to_insert_episode_meta_list: Vec<MikanEpisodeMeta> = {
             let rss_item_list = self.pull_rss_items(ctx.clone()).await?;
 
-            let existed_item_set = episodes::Entity::find()
-                .select_only()
-                .column(episodes::Column::MikanEpisodeId)
-                .filter(
-                    episodes::Column::SubscriberId.eq(self.subscriber_id).add(
-                        episodes::Column::MikanEpisodeId
-                            .is_in(rss_item_list.iter().map(|s| s.mikan_episode_id.clone())),
-                    ),
-                )
-                .into_tuple::<(String,)>()
-                .all(ctx.db())
-                .await?
-                .into_iter()
-                .map(|(value,)| value)
-                .collect::<HashSet<_>>();
+            let existed_episode_token_list = episodes::Model::get_existed_mikan_episode_list(
+                ctx.as_ref(),
+                rss_item_list.iter().map(|s| MikanEpisodeHash {
+                    mikan_episode_token: s.mikan_episode_id.clone(),
+                }),
+                self.subscriber_id,
+                self.id,
+            )
+            .await?
+            .into_iter()
+            .map(|(id, hash)| (hash.mikan_episode_token, id))
+            .collect::<HashMap<_, _>>();
 
-            let mut result = vec![];
-            for rss_item in rss_item_list
-                .into_iter()
-                .filter(|rss_item| !existed_item_set.contains(&rss_item.mikan_episode_id))
-            {
+            let mut to_insert_episode_meta_list = vec![];
+
+            for to_insert_rss_item in rss_item_list.into_iter().filter(|rss_item| {
+                !existed_episode_token_list.contains_key(&rss_item.mikan_episode_id)
+            }) {
                 let episode_meta = scrape_mikan_episode_meta_from_episode_homepage_url(
                     mikan_client,
-                    rss_item.homepage,
+                    to_insert_rss_item.homepage,
                 )
                 .await?;
+                to_insert_episode_meta_list.push(episode_meta);
             }
 
-            result
+            subscription_episode::Model::add_episodes_for_subscription(
+                ctx.as_ref(),
+                existed_episode_token_list.into_values(),
+                self.subscriber_id,
+                self.id,
+            )
+            .await?;
+
+            to_insert_episode_meta_list
         };
 
-        {
-            let mut new_bangumi_hash_map = new_episode_meta_list
+        let new_episode_meta_bangumi_map = {
+            let bangumi_hash_map = to_insert_episode_meta_list
                 .iter()
-                .map(|episode_meta| {
-                    (
-                        MikanBangumiHomepageUrlMeta {
-                            mikan_bangumi_id: episode_meta.mikan_bangumi_id.clone(),
-                            mikan_fansub_id: episode_meta.mikan_fansub_id.clone(),
-                        },
-                        episode_meta,
-                    )
-                })
+                .map(|episode_meta| (episode_meta.bangumi_hash(), episode_meta))
                 .collect::<HashMap<_, _>>();
 
-            let mut new_bangumi_meta_map: HashMap<MikanBangumiHomepageUrlMeta, bangumi::Model> =
-                hashmap! {};
+            let existed_bangumi_set = bangumi::Model::get_existed_mikan_bangumi_list(
+                ctx.as_ref(),
+                bangumi_hash_map.keys().cloned(),
+                self.subscriber_id,
+                self.id,
+            )
+            .await?
+            .map(|(_, bangumi_hash)| bangumi_hash)
+            .collect::<HashSet<_>>();
 
-            for bangumi_model in bangumi::Entity::find()
-                .filter({
-                    Expr::tuple([
-                        bangumi::Column::MikanBangumiId.into_simple_expr(),
-                        bangumi::Column::MikanFansubId.into_simple_expr(),
-                        bangumi::Column::SubscriberId.into_simple_expr(),
-                    ])
-                    .in_tuples(new_bangumi_hash_map.iter().map(
-                        |(bangumi_meta, _)| {
-                            (
-                                bangumi_meta.mikan_bangumi_id.clone(),
-                                bangumi_meta.mikan_fansub_id.clone(),
-                                self.subscriber_id,
-                            )
-                        },
-                    ))
-                })
-                .all(ctx.db())
-                .await?
-            {
-                let bangumi_hash = MikanBangumiHomepageUrlMeta {
-                    mikan_bangumi_id: bangumi_model.mikan_bangumi_id.unwrap(),
-                    mikan_fansub_id: bangumi_model.mikan_fansub_id.unwrap(),
-                };
-                new_bangumi_hash_map.remove(&bangumi_hash);
-                new_bangumi_meta_map.insert(bangumi_hash, bangumi_model);
-            }
+            let mut to_insert_bangumi_list = vec![];
 
-            for (bangumi_hash, episode_meta) in new_bangumi_hash_map {
-                let bangumi_meta: MikanBangumiMeta = episode_meta.clone().into();
+            for (bangumi_hash, episode_meta) in bangumi_hash_map.iter() {
+                if !existed_bangumi_set.contains(&bangumi_hash) {
+                    let bangumi_meta: MikanBangumiMeta = (*episode_meta).clone().into();
 
-                let bangumi_active_model = bangumi::ActiveModel::from_mikan_bangumi_meta(
-                    ctx.clone(),
-                    bangumi_meta,
-                    self.subscriber_id,
-                )
-                .with_whatever_context::<_, String, RecorderError>(|_| {
-                    format!(
-                        "failed to create bangumi active model from mikan bangumi meta, \
-                         bangumi_meta = {:?}",
-                        bangumi_meta
+                    let bangumi_active_model = bangumi::ActiveModel::from_mikan_bangumi_meta(
+                        ctx.as_ref(),
+                        bangumi_meta,
+                        self.subscriber_id,
+                        self.id,
                     )
-                })?;
+                    .await?;
 
-                new_bangumi_meta_map.insert(bangumi_hash, bangumi_active_model);
-            }
-        }
-
-        let mut new_bangumi_meta_map: HashMap<MikanBangumiHomepageUrlMeta, bangumi::Model> = {
-            let mut map = hashmap! {};
-
-            for bangumi_model in existed_bangumi_list {
-                let hash = MikanBangumiHomepageUrlMeta {
-                    mikan_bangumi_id: bangumi_model.mikan_bangumi_id.unwrap(),
-                    mikan_fansub_id: bangumi_model.mikan_fansub_id.unwrap(),
-                };
-                new_bangumi_hash_map.remove(&hash);
-                map.insert(hash, bangumi_model);
+                    to_insert_bangumi_list.push(bangumi_active_model);
+                }
             }
 
-            map
+            bangumi::Entity::insert_many(to_insert_bangumi_list)
+                .on_conflict_do_nothing()
+                .exec(db)
+                .await?;
+
+            let mut new_episode_meta_bangumi_map: HashMap<MikanBangumiHash, bangumi::Model> =
+                hashmap! {};
         };
-
-        for bangumi_hash in new_bangumi_hash_map {
-            bangumi::Entity::insert(bangumi::ActiveModel {
-                raw_name: ActiveValue::Set(bangumi_meta.bangumi_title.clone()),
-                display_name: ActiveValue::Set(bangumi_meta.bangumi_title.clone()),
-                ..Default::default()
-            });
-        }
-
-        bangumi::Entity::insert_many(new_bangumi_hash_map.values().map(|bangumi_meta| {
-            bangumi::ActiveModel {
-                raw_name: ActiveValue::Set(bangumi_meta.bangumi_title.clone()),
-                display_name: ActiveValue::Set(bangumi_meta.bangumi_title.clone()),
-                ..Default::default()
-            }
-        }));
 
         todo!()
     }

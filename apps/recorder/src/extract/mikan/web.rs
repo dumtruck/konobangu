@@ -117,6 +117,15 @@ pub struct MikanEpisodeMeta {
     pub mikan_episode_id: String,
 }
 
+impl MikanEpisodeMeta {
+    pub fn bangumi_hash(&self) -> MikanBangumiHash {
+        MikanBangumiHash {
+            mikan_bangumi_id: self.mikan_bangumi_id.clone(),
+            mikan_fansub_id: self.mikan_fansub_id.clone(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct MikanBangumiPosterMeta {
     pub origin_poster_src: Url,
@@ -124,12 +133,12 @@ pub struct MikanBangumiPosterMeta {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct MikanBangumiIndexHomepageUrlMeta {
+pub struct MikanBangumiIndexHash {
     pub mikan_bangumi_id: String,
 }
 
-impl MikanBangumiIndexHomepageUrlMeta {
-    pub fn parse_url(url: &Url) -> Option<Self> {
+impl MikanBangumiIndexHash {
+    pub fn from_homepage_url(url: &Url) -> Option<Self> {
         if url.path().starts_with("/Home/Bangumi/") {
             let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
 
@@ -141,13 +150,13 @@ impl MikanBangumiIndexHomepageUrlMeta {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct MikanBangumiHomepageUrlMeta {
+pub struct MikanBangumiHash {
     pub mikan_bangumi_id: String,
     pub mikan_fansub_id: String,
 }
 
-impl MikanBangumiHomepageUrlMeta {
-    pub fn from_url(url: &Url) -> Option<Self> {
+impl MikanBangumiHash {
+    pub fn from_homepage_url(url: &Url) -> Option<Self> {
         if url.path().starts_with("/Home/Bangumi/") {
             let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
 
@@ -163,16 +172,18 @@ impl MikanBangumiHomepageUrlMeta {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct MikanEpisodeHomepageUrlMeta {
-    pub mikan_episode_id: String,
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct MikanEpisodeHash {
+    pub mikan_episode_token: String,
 }
 
-impl MikanEpisodeHomepageUrlMeta {
-    pub fn parse_url(url: &Url) -> Option<Self> {
+impl MikanEpisodeHash {
+    pub fn from_homepage_url(url: &Url) -> Option<Self> {
         if url.path().starts_with("/Home/Episode/") {
             let mikan_episode_id = url.path().replace("/Home/Episode/", "");
-            Some(Self { mikan_episode_id })
+            Some(Self {
+                mikan_episode_token: mikan_episode_id,
+            })
         } else {
             None
         }
@@ -333,9 +344,10 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("episode_title"))
         })?;
 
-    let MikanEpisodeHomepageUrlMeta {
-        mikan_episode_id, ..
-    } = MikanEpisodeHomepageUrlMeta::parse_url(&mikan_episode_homepage_url).ok_or_else(|| {
+    let MikanEpisodeHash {
+        mikan_episode_token,
+        ..
+    } = MikanEpisodeHash::from_homepage_url(&mikan_episode_homepage_url).ok_or_else(|| {
         RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
     })?;
 
@@ -484,7 +496,7 @@ pub fn extract_mikan_bangumi_meta_from_bangumi_homepage_html(
     mikan_bangumi_homepage_url: Url,
     mikan_base_url: &Url,
 ) -> RecorderResult<MikanBangumiMeta> {
-    let mikan_fansub_id = MikanBangumiHomepageUrlMeta::from_url(&mikan_bangumi_homepage_url)
+    let mikan_fansub_id = MikanBangumiHash::from_homepage_url(&mikan_bangumi_homepage_url)
         .map(|s| s.mikan_fansub_id)
         .ok_or_else(|| {
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_fansub_id"))

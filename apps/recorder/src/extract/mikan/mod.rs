@@ -23,11 +23,11 @@ pub use subscription::{
     MikanBangumiSubscription, MikanSeasonSubscription, MikanSubscriberSubscription,
 };
 pub use web::{
-    MikanBangumiHomepageUrlMeta, MikanBangumiIndexHomepageUrlMeta, MikanBangumiIndexMeta,
-    MikanBangumiMeta, MikanBangumiPosterMeta, MikanEpisodeHomepageUrlMeta, MikanEpisodeMeta,
-    MikanSeasonFlowUrlMeta, MikanSeasonStr, build_mikan_bangumi_expand_subscribed_url,
-    build_mikan_bangumi_homepage_url, build_mikan_episode_homepage_url,
-    build_mikan_season_flow_url, extract_mikan_bangumi_index_meta_list_from_season_flow_fragment,
+    MikanBangumiHash, MikanBangumiIndexHash, MikanBangumiIndexMeta, MikanBangumiMeta,
+    MikanBangumiPosterMeta, MikanEpisodeHash, MikanEpisodeMeta, MikanSeasonFlowUrlMeta,
+    MikanSeasonStr, build_mikan_bangumi_expand_subscribed_url, build_mikan_bangumi_homepage_url,
+    build_mikan_episode_homepage_url, build_mikan_season_flow_url,
+    extract_mikan_bangumi_index_meta_list_from_season_flow_fragment,
     extract_mikan_bangumi_meta_from_expand_subscribed_fragment,
     extract_mikan_episode_meta_from_episode_homepage_html,
     scrape_mikan_bangumi_meta_from_bangumi_homepage_url,

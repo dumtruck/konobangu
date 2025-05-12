@@ -1,15 +1,19 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
+use sea_orm::{
+    ActiveValue, ColumnTrait, FromJsonQueryResult, IntoSimpleExpr, JoinType, QuerySelect,
+    entity::prelude::*,
+    sea_query::{Alias, IntoCondition, OnConflict},
+};
 use serde::{Deserialize, Serialize};
 
-use super::{bangumi, query::InsertManyReturningExt, subscription_episode};
+use super::{bangumi, query::InsertManyReturningExt, subscription_bangumi, subscription_episode};
 use crate::{
     app::AppContextTrait,
-    errors::RecorderResult,
+    errors::{RecorderError, RecorderResult},
     extract::{
-        mikan::{MikanEpisodeMeta, build_mikan_episode_homepage_url},
+        mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
         rawname::parse_episode_meta_from_raw_name,
     },
 };
@@ -134,59 +138,6 @@ pub struct MikanEpsiodeCreation {
     pub bangumi: Arc<bangumi::Model>,
 }
 
-impl Model {
-    pub async fn add_episodes(
-        ctx: &dyn AppContextTrait,
-        subscriber_id: i32,
-        subscription_id: i32,
-        creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
-    ) -> RecorderResult<()> {
-        let db = ctx.db();
-        let new_episode_active_modes = creations
-            .into_iter()
-            .map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr))
-            .inspect(|result| {
-                if let Err(e) = result {
-                    tracing::warn!("Failed to create episode: {:?}", e);
-                }
-            })
-            .flatten();
-
-        let inserted_episodes = Entity::insert_many(new_episode_active_modes)
-            .on_conflict(
-                OnConflict::columns([Column::BangumiId, Column::MikanEpisodeId])
-                    .do_nothing()
-                    .to_owned(),
-            )
-            .exec_with_returning_columns(db, [Column::Id])
-            .await?
-            .into_iter()
-            .flat_map(|r| r.try_get_many_by_index::<i32>());
-
-        let insert_subscription_episode_links = inserted_episodes.into_iter().map(|episode_id| {
-            subscription_episode::ActiveModel::from_subscription_and_episode(
-                subscriber_id,
-                subscription_id,
-                episode_id,
-            )
-        });
-
-        subscription_episode::Entity::insert_many(insert_subscription_episode_links)
-            .on_conflict(
-                OnConflict::columns([
-                    subscription_episode::Column::SubscriptionId,
-                    subscription_episode::Column::EpisodeId,
-                ])
-                .do_nothing()
-                .to_owned(),
-            )
-            .exec(db)
-            .await?;
-
-        Ok(())
-    }
-}
-
 impl ActiveModel {
     pub fn from_mikan_episode_meta(
         ctx: &dyn AppContextTrait,
@@ -239,3 +190,92 @@ impl ActiveModel {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Model {
+    pub async fn get_existed_mikan_episode_list(
+        ctx: &dyn AppContextTrait,
+        ids: impl Iterator<Item = MikanEpisodeHash>,
+        subscriber_id: i32,
+        _subscription_id: i32,
+    ) -> RecorderResult<impl Iterator<Item = (i32, MikanEpisodeHash)>> {
+        let db = ctx.db();
+
+        Ok(Entity::find()
+            .select_only()
+            .column(Column::Id)
+            .column(Column::MikanEpisodeId)
+            .filter(
+                Expr::tuple([
+                    Column::MikanEpisodeId.into_simple_expr(),
+                    Column::SubscriberId.into_simple_expr(),
+                ])
+                .in_tuples(
+                    ids.into_iter()
+                        .map(|id| (id.mikan_episode_token, subscriber_id)),
+                ),
+            )
+            .into_tuple::<(i32, String)>()
+            .all(db)
+            .await?
+            .into_iter()
+            .map(|(id, mikan_episode_id)| {
+                (
+                    id,
+                    MikanEpisodeHash {
+                        mikan_episode_token: mikan_episode_id,
+                    },
+                )
+            }))
+    }
+
+    pub async fn add_episodes(
+        ctx: &dyn AppContextTrait,
+        subscriber_id: i32,
+        subscription_id: i32,
+        creations: impl IntoIterator<Item = MikanEpsiodeCreation>,
+    ) -> RecorderResult<()> {
+        let db = ctx.db();
+        let new_episode_active_modes = creations
+            .into_iter()
+            .map(|cr| ActiveModel::from_mikan_episode_meta(ctx, cr))
+            .inspect(|result| {
+                if let Err(e) = result {
+                    tracing::warn!("Failed to create episode: {:?}", e);
+                }
+            })
+            .flatten();
+
+        let inserted_episodes = Entity::insert_many(new_episode_active_modes)
+            .on_conflict(
+                OnConflict::columns([Column::BangumiId, Column::MikanEpisodeId])
+                    .do_nothing()
+                    .to_owned(),
+            )
+            .exec_with_returning_columns(db, [Column::Id])
+            .await?
+            .into_iter()
+            .flat_map(|r| r.try_get_many_by_index::<i32>());
+
+        let insert_subscription_episode_links = inserted_episodes.into_iter().map(|episode_id| {
+            subscription_episode::ActiveModel::from_subscription_and_episode(
+                subscriber_id,
+                subscription_id,
+                episode_id,
+            )
+        });
+
+        subscription_episode::Entity::insert_many(insert_subscription_episode_links)
+            .on_conflict(
+                OnConflict::columns([
+                    subscription_episode::Column::SubscriptionId,
+                    subscription_episode::Column::EpisodeId,
+                ])
+                .do_nothing()
+                .to_owned(),
+            )
+            .exec(db)
+            .await?;
+
+        Ok(())
+    }
+}

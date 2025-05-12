@@ -2,6 +2,8 @@ use async_trait::async_trait;
 use sea_orm::{ActiveValue, entity::prelude::*};
 use serde::{Deserialize, Serialize};
 
+use crate::{app::AppContextTrait, errors::RecorderResult};
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscription_bangumi")]
 pub struct Model {
@@ -67,5 +69,27 @@ impl ActiveModel {
             bangumi_id: ActiveValue::Set(bangumi_id),
             ..Default::default()
         }
+    }
+}
+
+impl Model {
+    pub async fn add_bangumis_for_subscription(
+        ctx: &dyn AppContextTrait,
+        bangumi_ids: impl Iterator<Item = i32>,
+        subscriber_id: i32,
+        subscription_id: i32,
+    ) -> RecorderResult<()> {
+        let db = ctx.db();
+        Entity::insert_many(bangumi_ids.map(|bangumi_id| ActiveModel {
+            bangumi_id: ActiveValue::Set(bangumi_id),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            subscription_id: ActiveValue::Set(subscription_id),
+            ..Default::default()
+        }))
+        .on_conflict_do_nothing()
+        .exec(db)
+        .await?;
+
+        Ok(())
     }
 }

@@ -2,15 +2,22 @@ use std::sync::Arc;
 
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
-use sea_orm::{ActiveValue, FromJsonQueryResult, entity::prelude::*, sea_query::OnConflict};
+use sea_orm::{
+    ActiveValue, FromJsonQueryResult, FromQueryResult, IntoSimpleExpr, JoinType, QuerySelect,
+    entity::prelude::*,
+    sea_query::{IntoCondition, OnConflict},
+};
 use serde::{Deserialize, Serialize};
 
 use super::subscription_bangumi;
 use crate::{
     app::AppContextTrait,
-    errors::RecorderResult,
+    errors::{RecorderError, RecorderResult},
     extract::{
-        mikan::{MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url},
+        mikan::{
+            MikanBangumiHash, MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url,
+            scrape_mikan_poster_meta_from_image_url,
+        },
         rawname::parse_episode_meta_from_raw_name,
     },
 };
@@ -120,6 +127,59 @@ pub enum RelatedEntity {
     SubscriptionBangumi,
 }
 
+impl ActiveModel {
+    #[tracing::instrument(err, skip_all, fields(mikan_bangumi_id = %meta.mikan_bangumi_id, mikan_fansub_id = %meta.mikan_fansub_id, subscriber_id = %subscriber_id))]
+    pub async fn from_mikan_bangumi_meta(
+        ctx: &dyn AppContextTrait,
+        meta: MikanBangumiMeta,
+        subscriber_id: i32,
+        _subscription_id: i32,
+    ) -> RecorderResult<Self> {
+        let mikan_client = ctx.mikan();
+        let storage_service = ctx.storage();
+        let mikan_base_url = mikan_client.base_url();
+
+        let raw_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
+
+        let rss_url = build_mikan_bangumi_subscription_rss_url(
+            mikan_base_url.clone(),
+            &meta.mikan_bangumi_id,
+            Some(&meta.mikan_fansub_id),
+        );
+
+        let poster_link = if let Some(origin_poster_src) = meta.origin_poster_src {
+            let poster_meta = scrape_mikan_poster_meta_from_image_url(
+                mikan_client,
+                storage_service,
+                origin_poster_src,
+                subscriber_id,
+            )
+            .await?;
+            poster_meta.poster_src
+        } else {
+            None
+        };
+
+        Ok(Self {
+            mikan_bangumi_id: ActiveValue::Set(Some(meta.mikan_bangumi_id)),
+            mikan_fansub_id: ActiveValue::Set(Some(meta.mikan_fansub_id)),
+            subscriber_id: ActiveValue::Set(subscriber_id),
+            display_name: ActiveValue::Set(meta.bangumi_title.clone()),
+            raw_name: ActiveValue::Set(meta.bangumi_title),
+            season: ActiveValue::Set(raw_meta.season),
+            season_raw: ActiveValue::Set(raw_meta.season_raw),
+            fansub: ActiveValue::Set(Some(meta.fansub)),
+            poster_link: ActiveValue::Set(poster_link),
+            homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
+            rss_link: ActiveValue::Set(Some(rss_url.to_string())),
+            ..Default::default()
+        })
+    }
+}
+
+#[async_trait]
+impl ActiveModelBehavior for ActiveModel {}
+
 impl Model {
     pub async fn get_or_insert_from_mikan<F>(
         ctx: &dyn AppContextTrait,
@@ -181,40 +241,44 @@ impl Model {
             Ok(bgm)
         }
     }
-}
 
-impl ActiveModel {
-    pub fn from_mikan_bangumi_meta(
-        ctx: Arc<dyn AppContextTrait>,
-        meta: MikanBangumiMeta,
+    pub async fn get_existed_mikan_bangumi_list(
+        ctx: &dyn AppContextTrait,
+        hashes: impl Iterator<Item = MikanBangumiHash>,
         subscriber_id: i32,
-    ) -> RecorderResult<Self> {
-        let mikan_base_url = ctx.mikan().base_url();
-
-        let raw_meta = parse_episode_meta_from_raw_name(&meta.bangumi_title)?;
-
-        let rss_url = build_mikan_bangumi_subscription_rss_url(
-            mikan_base_url.clone(),
-            &meta.mikan_bangumi_id,
-            Some(&meta.mikan_fansub_id),
-        );
-
-        Ok(Self {
-            mikan_bangumi_id: ActiveValue::Set(Some(meta.mikan_bangumi_id)),
-            mikan_fansub_id: ActiveValue::Set(Some(meta.mikan_fansub_id)),
-            subscriber_id: ActiveValue::Set(subscriber_id),
-            display_name: ActiveValue::Set(meta.bangumi_title.clone()),
-            raw_name: ActiveValue::Set(meta.bangumi_title),
-            season: ActiveValue::Set(raw_meta.season),
-            season_raw: ActiveValue::Set(raw_meta.season_raw),
-            fansub: ActiveValue::Set(Some(meta.fansub)),
-            poster_link: ActiveValue::Set(meta.origin_poster_src.map(|url| url.to_string())),
-            homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
-            rss_link: ActiveValue::Set(Some(rss_url.to_string())),
-            ..Default::default()
-        })
+        _subscription_id: i32,
+    ) -> RecorderResult<impl Iterator<Item = (i32, MikanBangumiHash)>> {
+        Ok(Entity::find()
+            .select_only()
+            .column(Column::Id)
+            .column(Column::MikanBangumiId)
+            .column(Column::MikanFansubId)
+            .filter(
+                Expr::tuple([
+                    Column::MikanBangumiId.into_simple_expr(),
+                    Column::MikanFansubId.into_simple_expr(),
+                    Column::SubscriberId.into_simple_expr(),
+                ])
+                .in_tuples(hashes.map(|hash| {
+                    (
+                        hash.mikan_bangumi_id.clone(),
+                        hash.mikan_fansub_id.clone(),
+                        subscriber_id,
+                    )
+                })),
+            )
+            .into_tuple::<(i32, String, String)>()
+            .all(ctx.db())
+            .await?
+            .into_iter()
+            .map(|(bangumi_id, mikan_bangumi_id, mikan_fansub_id)| {
+                (
+                    bangumi_id,
+                    MikanBangumiHash {
+                        mikan_bangumi_id,
+                        mikan_fansub_id,
+                    },
+                )
+            }))
     }
 }
-
-#[async_trait]
-impl ActiveModelBehavior for ActiveModel {}

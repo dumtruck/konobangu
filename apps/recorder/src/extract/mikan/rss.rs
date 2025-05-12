@@ -1,18 +1,11 @@
 use std::borrow::Cow;
 
-use bytes::Bytes;
 use chrono::DateTime;
 use downloader::bittorrent::defs::BITTORRENT_MIME_TYPE;
-use fetch::{FetchError, IntoUrl, bytes::fetch_bytes};
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use tracing::instrument;
 use url::Url;
 
-use crate::{
-    errors::app_error::{RecorderError, RecorderResult},
-    extract::mikan::{MikanClient, MikanEpisodeHomepageUrlMeta},
-};
+use crate::{errors::app_error::RecorderError, extract::mikan::MikanEpisodeHash};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanRssItem {
@@ -112,9 +105,10 @@ impl TryFrom<rss::Item> for MikanRssItem {
                 RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("homepage:link"))
             })?;
 
-        let MikanEpisodeHomepageUrlMeta {
-            mikan_episode_id, ..
-        } = MikanEpisodeHomepageUrlMeta::parse_url(&homepage).ok_or_else(|| {
+        let MikanEpisodeHash {
+            mikan_episode_token: mikan_episode_id,
+            ..
+        } = MikanEpisodeHash::from_homepage_url(&homepage).ok_or_else(|| {
             RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
