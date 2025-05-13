@@ -79,6 +79,13 @@ pub fn schema(
     let context = CONTEXT.get_or_init(|| {
         let mut context = BuilderContext::default();
 
+        context.pagination_input.type_name = "SeaographyPaginationInput".to_string();
+        context.pagination_info_object.type_name = "SeaographyPaginationInfo".to_string();
+        context.cursor_input.type_name = "SeaographyCursorInput".to_string();
+        context.offset_input.type_name = "SeaographyOffsetInput".to_string();
+        context.page_input.type_name = "SeaographyPageInput".to_string();
+        context.page_info_object.type_name = "SeaographyPageInfo".to_string();
+
         restrict_subscriber_for_entity::<bangumi::Entity>(
             &mut context,
             &bangumi::Column::SubscriberId,

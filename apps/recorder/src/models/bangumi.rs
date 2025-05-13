@@ -315,4 +315,24 @@ impl Model {
                 )
             }))
     }
+
+    pub async fn get_subsribed_bangumi_list_from_subscription(
+        ctx: &dyn AppContextTrait,
+        subscription_id: i32,
+    ) -> RecorderResult<Vec<Self>> {
+        let db = ctx.db();
+        let bangumi_list = Entity::find()
+            .filter(
+                Condition::all()
+                    .add(subscription_bangumi::Column::SubscriptionId.eq(subscription_id)),
+            )
+            .join_rev(
+                JoinType::InnerJoin,
+                subscription_bangumi::Relation::Bangumi.def(),
+            )
+            .all(db)
+            .await?;
+
+        Ok(bangumi_list)
+    }
 }

@@ -13,7 +13,7 @@ use crate::{
 pub struct TaskService {
     pub config: TaskConfig,
     ctx: Arc<dyn AppContextTrait>,
-    subscriber_task_storage: Arc<RwLock<PostgresStorage<SubscriberTask>>>,
+    pub subscriber_task_storage: Arc<RwLock<PostgresStorage<SubscriberTask>>>,
 }
 
 impl TaskService {

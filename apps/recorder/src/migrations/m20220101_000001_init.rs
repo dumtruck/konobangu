@@ -64,10 +64,6 @@ impl MigrationTrait for Migration {
                     .col(string(Subscriptions::DisplayName))
                     .col(integer(Subscriptions::SubscriberId))
                     .col(text(Subscriptions::SourceUrl))
-                    .col(array_null(
-                        Subscriptions::SourceUrls,
-                        ColumnType::String(StringLen::None),
-                    ))
                     .col(boolean(Subscriptions::Enabled))
                     .col(enumeration(
                         Subscriptions::Category,

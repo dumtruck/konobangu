@@ -152,30 +152,12 @@ pub struct MikanBangumiMeta {
     pub fansub: String,
 }
 
-#[async_graphql::Object]
 impl MikanBangumiMeta {
-    async fn homepage(&self) -> &str {
-        self.homepage.as_str()
-    }
-
-    async fn origin_poster_src(&self) -> Option<&str> {
-        self.origin_poster_src.as_ref().map(|url| url.as_str())
-    }
-
-    async fn bangumi_title(&self) -> &str {
-        &self.bangumi_title
-    }
-
-    async fn mikan_bangumi_id(&self) -> &str {
-        &self.mikan_bangumi_id
-    }
-
-    async fn mikan_fansub_id(&self) -> &str {
-        &self.mikan_fansub_id
-    }
-
-    async fn fansub(&self) -> &str {
-        &self.fansub
+    pub fn bangumi_hash(&self) -> MikanBangumiHash {
+        MikanBangumiHash {
+            mikan_bangumi_id: self.mikan_bangumi_id.clone(),
+            mikan_fansub_id: self.mikan_fansub_id.clone(),
+        }
     }
 }
 

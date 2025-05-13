@@ -45,7 +45,6 @@ pub struct Model {
     pub subscriber_id: i32,
     pub category: SubscriptionCategory,
     pub source_url: String,
-    pub source_urls: Option<Vec<String>>,
     pub enabled: bool,
     pub credential_id: Option<i32>,
 }
@@ -176,14 +175,32 @@ impl Model {
         Ok(())
     }
 
-    pub async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        let subscription = self.try_into()?;
-        match subscription {
-            Subscription::MikanSubscriber(subscription) => subscription.sync_feeds(ctx).await,
-            Subscription::MikanSeason(subscription) => subscription.sync_feeds(ctx).await,
-            Subscription::MikanBangumi(subscription) => subscription.sync_feeds(ctx).await,
-            Subscription::Manual => Ok(()),
+    pub async fn find_by_id_and_subscriber_id(
+        ctx: &dyn AppContextTrait,
+        subscriber_id: i32,
+        subscription_id: i32,
+    ) -> RecorderResult<Self> {
+        let db = ctx.db();
+        let subscription_model = Entity::find_by_id(subscription_id)
+            .one(db)
+            .await?
+            .ok_or_else(|| RecorderError::DbError {
+                source: DbErr::RecordNotFound(format!(
+                    "Subscription id {subscription_id} not found or not belong to subscriber \
+                     {subscriber_id}",
+                )),
+            })?;
+
+        if subscription_model.subscriber_id != subscriber_id {
+            Err(RecorderError::DbError {
+                source: DbErr::RecordNotFound(format!(
+                    "Subscription id {subscription_id} not found or not belong to subscriber \
+                     {subscriber_id}",
+                )),
+            })?;
         }
+
+        Ok(subscription_model)
     }
 }
 
@@ -193,7 +210,9 @@ pub trait SubscriptionTrait: Sized + Debug {
 
     fn get_subscription_id(&self) -> i32;
 
-    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
+    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
+
+    async fn sync_feeds_full(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
 
     async fn sync_sources(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
 
@@ -244,11 +263,20 @@ impl SubscriptionTrait for Subscription {
         }
     }
 
-    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
         match self {
-            Self::MikanSubscriber(subscription) => subscription.sync_feeds(ctx).await,
-            Self::MikanSeason(subscription) => subscription.sync_feeds(ctx).await,
-            Self::MikanBangumi(subscription) => subscription.sync_feeds(ctx).await,
+            Self::MikanSubscriber(subscription) => subscription.sync_feeds_incremental(ctx).await,
+            Self::MikanSeason(subscription) => subscription.sync_feeds_incremental(ctx).await,
+            Self::MikanBangumi(subscription) => subscription.sync_feeds_incremental(ctx).await,
+            Self::Manual => Ok(()),
+        }
+    }
+
+    async fn sync_feeds_full(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        match self {
+            Self::MikanSubscriber(subscription) => subscription.sync_feeds_full(ctx).await,
+            Self::MikanSeason(subscription) => subscription.sync_feeds_full(ctx).await,
+            Self::MikanBangumi(subscription) => subscription.sync_feeds_full(ctx).await,
             Self::Manual => Ok(()),
         }
     }

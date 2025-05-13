@@ -6,18 +6,16 @@ use std::{
 
 use async_graphql::{InputObject, SimpleObject};
 use fetch::fetch_bytes;
-use futures::try_join;
-use itertools::Itertools;
+use futures::{Stream, TryStreamExt, pin_mut, try_join};
 use maplit::hashmap;
 use sea_orm::{
-    ActiveValue::Set, ColumnTrait, Condition, EntityTrait, JoinType, QueryFilter, QuerySelect,
-    RelationTrait,
+    ColumnTrait, Condition, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
-use snafu::OptionExt;
+use snafu::{OptionExt, ResultExt};
 use url::Url;
 
-use super::scrape_mikan_bangumi_meta_list_from_season_flow_url;
+use super::scrape_mikan_bangumi_meta_stream_from_season_flow_url;
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
@@ -158,8 +156,8 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
         self.id
     }
 
-    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        let rss_item_list = self.get_rss_item_list(ctx.as_ref()).await?;
+    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        let rss_item_list = self.get_rss_item_list_from_source_url(ctx.as_ref()).await?;
 
         sync_mikan_feeds_from_rss_item_list(
             ctx.as_ref(),
@@ -170,6 +168,22 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
         .await?;
 
         Ok(())
+    }
+
+    async fn sync_feeds_full(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.sync_feeds_incremental(ctx.clone()).await?;
+
+        let rss_item_list = self
+            .get_rss_item_list_from_subsribed_url_rss_link(ctx.as_ref())
+            .await?;
+
+        sync_mikan_feeds_from_rss_item_list(
+            ctx.as_ref(),
+            rss_item_list,
+            self.get_subscriber_id(),
+            self.get_subscription_id(),
+        )
+        .await
     }
 
     async fn sync_sources(&self, _ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -198,7 +212,7 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
 
 impl MikanSubscriberSubscription {
     #[tracing::instrument(err, skip(ctx))]
-    async fn get_rss_item_list(
+    async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
     ) -> RecorderResult<Vec<MikanRssItem>> {
@@ -213,12 +227,46 @@ impl MikanSubscriberSubscription {
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssItem::try_from(item).inspect_err(
-                |error| tracing::warn!(error = %error, "failed to extract rss item idx = {}", idx),
-            )?;
+            let item = MikanRssItem::try_from(item)
+                .with_whatever_context::<_, String, RecorderError>(|_| {
+                    format!("failed to extract rss item at idx {idx}")
+                })?;
             result.push(item);
         }
         Ok(result)
+    }
+
+    #[tracing::instrument(err, skip(ctx))]
+    async fn get_rss_item_list_from_subsribed_url_rss_link(
+        &self,
+        ctx: &dyn AppContextTrait,
+    ) -> RecorderResult<Vec<MikanRssItem>> {
+        let subscribed_bangumi_list =
+            bangumi::Model::get_subsribed_bangumi_list_from_subscription(ctx, self.id).await?;
+
+        let mut rss_item_list = vec![];
+        for subscribed_bangumi in subscribed_bangumi_list {
+            let rss_url = subscribed_bangumi
+                .rss_link
+                .with_whatever_context::<_, String, RecorderError>(|| {
+                    format!(
+                        "rss link is required, subscription_id = {:?}, bangumi_name = {}",
+                        self.id, subscribed_bangumi.display_name
+                    )
+                })?;
+            let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
+
+            let channel = rss::Channel::read_from(&bytes[..])?;
+
+            for (idx, item) in channel.items.into_iter().enumerate() {
+                let item = MikanRssItem::try_from(item)
+                    .with_whatever_context::<_, String, RecorderError>(|_| {
+                        format!("failed to extract rss item at idx {idx}")
+                    })?;
+                rss_item_list.push(item);
+            }
+        }
+        Ok(rss_item_list)
     }
 }
 
@@ -241,8 +289,10 @@ impl SubscriptionTrait for MikanSeasonSubscription {
         self.id
     }
 
-    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        let rss_item_list = self.get_rss_item_list(ctx.as_ref()).await?;
+    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        let rss_item_list = self
+            .get_rss_item_list_from_subsribed_url_rss_link(ctx.as_ref())
+            .await?;
 
         sync_mikan_feeds_from_rss_item_list(
             ctx.as_ref(),
@@ -255,31 +305,36 @@ impl SubscriptionTrait for MikanSeasonSubscription {
         Ok(())
     }
 
+    async fn sync_feeds_full(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.sync_sources(ctx.clone()).await?;
+        self.sync_feeds_incremental(ctx).await
+    }
+
     async fn sync_sources(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        let bangumi_meta_list = self.get_bangumi_meta_list(ctx.clone()).await?;
+        let bangumi_meta_list = self.get_bangumi_meta_stream_from_source_url(ctx.clone());
 
-        let mikan_base_url = ctx.mikan().base_url();
+        pin_mut!(bangumi_meta_list);
 
-        let rss_link_list = bangumi_meta_list
-            .into_iter()
-            .map(|bangumi_meta| {
-                build_mikan_bangumi_subscription_rss_url(
-                    mikan_base_url.clone(),
-                    &bangumi_meta.mikan_bangumi_id,
-                    Some(&bangumi_meta.mikan_fansub_id),
-                )
-                .to_string()
-            })
-            .collect_vec();
-
-        subscriptions::Entity::update_many()
-            .set(subscriptions::ActiveModel {
-                source_urls: Set(Some(rss_link_list)),
-                ..Default::default()
-            })
-            .filter(subscription_bangumi::Column::SubscriptionId.eq(self.id))
-            .exec(ctx.db())
+        while let Some(bangumi_meta) = bangumi_meta_list.try_next().await? {
+            let bangumi_hash = bangumi_meta.bangumi_hash();
+            bangumi::Model::get_or_insert_from_mikan(
+                ctx.as_ref(),
+                bangumi_hash,
+                self.get_subscriber_id(),
+                self.get_subscription_id(),
+                async || {
+                    let bangumi_am = bangumi::ActiveModel::from_mikan_bangumi_meta(
+                        ctx.as_ref(),
+                        bangumi_meta,
+                        self.get_subscriber_id(),
+                        self.get_subscription_id(),
+                    )
+                    .await?;
+                    Ok(bangumi_am)
+                },
+            )
             .await?;
+        }
 
         Ok(())
     }
@@ -290,8 +345,8 @@ impl SubscriptionTrait for MikanSeasonSubscription {
         let source_url_meta = MikanSeasonFlowUrlMeta::from_url(&source_url)
             .with_whatever_context::<_, String, RecorderError>(|| {
                 format!(
-                    "MikanSeasonSubscription should extract season_str and year from source_url, \
-                     source_url = {}, subscription_id = {}",
+                    "season_str and year is required when extracting MikanSeasonSubscription from \
+                     source_url, source_url = {}, subscription_id = {}",
                     source_url, model.id
                 )
             })?;
@@ -300,7 +355,8 @@ impl SubscriptionTrait for MikanSeasonSubscription {
             .credential_id
             .with_whatever_context::<_, String, RecorderError>(|| {
                 format!(
-                    "MikanSeasonSubscription credential_id is required, subscription_id = {}",
+                    "credential_id is required when extracting MikanSeasonSubscription, \
+                     subscription_id = {}",
                     model.id
                 )
             })?;
@@ -316,11 +372,10 @@ impl SubscriptionTrait for MikanSeasonSubscription {
 }
 
 impl MikanSeasonSubscription {
-    #[tracing::instrument(err, skip(ctx))]
-    async fn get_bangumi_meta_list(
+    pub fn get_bangumi_meta_stream_from_source_url(
         &self,
         ctx: Arc<dyn AppContextTrait>,
-    ) -> RecorderResult<Vec<MikanBangumiMeta>> {
+    ) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
         let credential_id = self.credential_id;
         let year = self.year;
         let season_str = self.season_str;
@@ -328,16 +383,15 @@ impl MikanSeasonSubscription {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let mikan_season_flow_url = build_mikan_season_flow_url(mikan_base_url, year, season_str);
 
-        scrape_mikan_bangumi_meta_list_from_season_flow_url(
+        scrape_mikan_bangumi_meta_stream_from_season_flow_url(
             ctx,
             mikan_season_flow_url,
             credential_id,
         )
-        .await
     }
 
     #[tracing::instrument(err, skip(ctx))]
-    async fn get_rss_item_list(
+    async fn get_rss_item_list_from_subsribed_url_rss_link(
         &self,
         ctx: &dyn AppContextTrait,
     ) -> RecorderResult<Vec<MikanRssItem>> {
@@ -358,8 +412,8 @@ impl MikanSeasonSubscription {
                 .rss_link
                 .with_whatever_context::<_, String, RecorderError>(|| {
                     format!(
-                        "MikanSeasonSubscription rss_link is required, subscription_id = {}",
-                        self.id
+                        "rss_link is required, subscription_id = {}, bangumi_name = {}",
+                        self.id, subscribed_bangumi.display_name
                     )
                 })?;
             let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
@@ -367,9 +421,10 @@ impl MikanSeasonSubscription {
             let channel = rss::Channel::read_from(&bytes[..])?;
 
             for (idx, item) in channel.items.into_iter().enumerate() {
-                let item = MikanRssItem::try_from(item).inspect_err(
-                |error| tracing::warn!(error = %error, "failed to extract rss item idx = {}", idx),
-            )?;
+                let item = MikanRssItem::try_from(item)
+                    .with_whatever_context::<_, String, RecorderError>(|_| {
+                        format!("failed to extract rss item at idx {idx}")
+                    })?;
                 rss_item_list.push(item);
             }
         }
@@ -395,18 +450,22 @@ impl SubscriptionTrait for MikanBangumiSubscription {
         self.id
     }
 
-    async fn sync_feeds(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        let rss_item_list = self.get_rss_item_list(ctx.as_ref()).await?;
+    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        let rss_item_list = self.get_rss_item_list_from_source_url(ctx.as_ref()).await?;
 
         sync_mikan_feeds_from_rss_item_list(
             ctx.as_ref(),
             rss_item_list,
-            <Self as SubscriptionTrait>::get_subscriber_id(self),
-            <Self as SubscriptionTrait>::get_subscription_id(self),
+            self.get_subscriber_id(),
+            self.get_subscription_id(),
         )
         .await?;
 
         Ok(())
+    }
+
+    async fn sync_feeds_full(&self, _ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.sync_feeds_incremental(_ctx).await
     }
 
     async fn sync_sources(&self, _ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -419,8 +478,8 @@ impl SubscriptionTrait for MikanBangumiSubscription {
         let meta = MikanBangumiHash::from_rss_url(&source_url)
             .with_whatever_context::<_, String, RecorderError>(|| {
                 format!(
-                    "MikanBangumiSubscription need to extract bangumi id and fansub id from \
-                     source_url = {}, subscription_id = {}",
+                    "bangumi_id and fansub_id is required when extracting \
+                     MikanBangumiSubscription, source_url = {}, subscription_id = {}",
                     source_url, model.id
                 )
             })?;
@@ -436,7 +495,7 @@ impl SubscriptionTrait for MikanBangumiSubscription {
 
 impl MikanBangumiSubscription {
     #[tracing::instrument(err, skip(ctx))]
-    async fn get_rss_item_list(
+    async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
     ) -> RecorderResult<Vec<MikanRssItem>> {
@@ -452,9 +511,10 @@ impl MikanBangumiSubscription {
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssItem::try_from(item).inspect_err(
-                |error| tracing::warn!(error = %error, "failed to extract rss item idx = {}", idx),
-            )?;
+            let item = MikanRssItem::try_from(item)
+                .with_whatever_context::<_, String, RecorderError>(|_| {
+                    format!("failed to extract rss item at idx {idx}")
+                })?;
             result.push(item);
         }
         Ok(result)

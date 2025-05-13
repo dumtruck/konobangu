@@ -11,18 +11,35 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct SyncOneSubscriptionFeedsTask(pub subscriptions::Subscription);
+pub struct SyncOneSubscriptionFeedsIncrementalTask(pub subscriptions::Subscription);
 
-impl From<subscriptions::Subscription> for SyncOneSubscriptionFeedsTask {
+impl From<subscriptions::Subscription> for SyncOneSubscriptionFeedsIncrementalTask {
     fn from(subscription: subscriptions::Subscription) -> Self {
         Self(subscription)
     }
 }
 
 #[async_trait::async_trait]
-impl SubscriberAsyncTaskTrait for SyncOneSubscriptionFeedsTask {
+impl SubscriberAsyncTaskTrait for SyncOneSubscriptionFeedsIncrementalTask {
     async fn run_async(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        self.0.sync_feeds(ctx).await?;
+        self.0.sync_feeds_incremental(ctx).await?;
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncOneSubscriptionFeedsFullTask(pub subscriptions::Subscription);
+
+impl From<subscriptions::Subscription> for SyncOneSubscriptionFeedsFullTask {
+    fn from(subscription: subscriptions::Subscription) -> Self {
+        Self(subscription)
+    }
+}
+
+#[async_trait::async_trait]
+impl SubscriberAsyncTaskTrait for SyncOneSubscriptionFeedsFullTask {
+    async fn run_async(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        self.0.sync_feeds_full(ctx).await?;
         Ok(())
     }
 }

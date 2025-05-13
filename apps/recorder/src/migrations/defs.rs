@@ -32,7 +32,6 @@ pub enum Subscriptions {
     SubscriberId,
     Category,
     SourceUrl,
-    SourceUrls,
     Enabled,
     CredentialId,
 }
