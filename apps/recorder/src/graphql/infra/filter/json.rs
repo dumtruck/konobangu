@@ -1,5 +1,6 @@
 use async_graphql::dynamic::SchemaError;
 use itertools::Itertools;
+use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
     Condition,
     sea_query::{
@@ -231,34 +232,59 @@ impl JsonPath {
     }
 }
 
-fn build_json_path_expr(path: &JsonPath) -> SimpleExpr {
+fn json_path_expr(path: &JsonPath) -> SimpleExpr {
     Expr::val(path.join()).into()
 }
 
-fn build_json_path_exists_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
+fn json_path_exists_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
     Expr::cust_with_exprs(
         "JSON_EXISTS($1, $2)",
-        [col_expr.into(), build_json_path_expr(path)],
+        [col_expr.into(), json_path_expr(path)],
     )
 }
 
-fn build_json_path_query_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
+fn json_path_query_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
     Expr::cust_with_exprs(
         "jsonb_path_query($1, $2)",
-        [col_expr.into(), build_json_path_expr(path)],
+        [col_expr.into(), json_path_expr(path)],
     )
 }
 
-fn build_json_value_is_in_values_expr(
+fn json_path_query_first_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
+    Expr::cust_with_exprs(
+        "jsonb_path_query_first($1, $2)",
+        [col_expr.into(), json_path_expr(path)],
+    )
+}
+
+fn json_path_query_first_cast_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: &JsonValue,
+) -> RecorderResult<SimpleExpr> {
+    let cast_target = match value {
+        JsonValue::Number(..) => "numeric",
+        JsonValue::Bool(..) => "boolean",
+        JsonValue::String(..) => "text",
+        _ => {
+            return Err(SchemaError(
+                "JsonFilterInput leaf can not be only be casted to numeric, boolean or text"
+                    .to_string(),
+            ))?;
+        }
+    };
+    Ok(json_path_query_first_expr(col_expr, path).cast_as(cast_target))
+}
+
+fn json_path_is_in_values_expr(
     col_expr: impl Into<SimpleExpr>,
     path: &JsonPath,
     values: Vec<JsonValue>,
 ) -> SimpleExpr {
     Expr::cust_with_exprs(
-        "jsonb_path_query($1, $2) = ANY($3)",
+        "$1 = ANY($2)",
         [
-            col_expr.into(),
-            build_json_path_expr(path),
+            json_path_query_expr(col_expr, path),
             Expr::val(DbValue::Array(
                 ArrayType::Json,
                 Some(Box::new(
@@ -273,37 +299,38 @@ fn build_json_value_is_in_values_expr(
     )
 }
 
-fn build_json_leaf_cast_expr(
-    expr: impl Into<SimpleExpr>,
-    path: &[&str],
-) -> RecorderResult<SimpleExpr> {
-    if path.is_empty() {
-        Err(async_graphql::dynamic::SchemaError(
-            "JsonFilterInput path must be at least one level deep".to_string(),
-        ))?
-    }
-    let mut expr = expr.into();
-    for key in path.iter().take(path.len() - 1) {
-        expr = expr.get_json_field(*key);
-    }
-    expr = expr.cast_json_field(path[path.len() - 1]);
-    Ok(expr)
-}
-
-fn build_json_path_eq_expr(
+fn json_path_eq_expr(
     col_expr: impl Into<SimpleExpr>,
     path: &JsonPath,
     value: JsonValue,
 ) -> SimpleExpr {
-    build_json_path_query_expr(col_expr, path).eq(value)
+    json_path_query_expr(col_expr, path).eq(value)
 }
 
-fn build_json_path_ne_expr(
+fn json_path_ne_expr(
     col_expr: impl Into<SimpleExpr>,
     path: &JsonPath,
     value: JsonValue,
 ) -> SimpleExpr {
-    build_json_path_query_expr(col_expr, path).ne(value)
+    json_path_query_expr(col_expr, path).ne(value)
+}
+
+fn convert_json_number_to_db_decimal(json_number: serde_json::Number) -> RecorderResult<Decimal> {
+    if let Some(f) = json_number.as_f64() {
+        let decimal = Decimal::from_f64(f).ok_or_else(|| {
+            SchemaError("JsonFilterInput leaf value failed to convert to decimal".to_string())
+        })?;
+        Ok(decimal)
+    } else if let Some(i) = json_number.as_i64() {
+        Ok(Decimal::from(i))
+    } else if let Some(u) = json_number.as_u64() {
+        Ok(Decimal::from(u))
+    } else {
+        Err(
+            SchemaError("JsonFilterInput leaf value failed to convert to a number".to_string())
+                .into(),
+        )
+    }
 }
 
 pub fn prepare_json_leaf_condition(
@@ -317,7 +344,7 @@ pub fn prepare_json_leaf_condition(
             op @ (JsonFilterOperation::Exists | JsonFilterOperation::NotExists),
             JsonValue::Bool(exists),
         ) => {
-            let json_exists_expr = build_json_path_exists_expr(col_expr, path);
+            let json_exists_expr = json_path_exists_expr(col_expr, path);
             if (op == JsonFilterOperation::Exists && exists)
                 || (op == JsonFilterOperation::NotExists && !exists)
             {
@@ -334,16 +361,16 @@ pub fn prepare_json_leaf_condition(
             unreachable!("JsonFilterInput leaf can not be $and or $or with any value")
         }
         (JsonFilterOperation::Equals, value) => {
-            build_json_path_eq_expr(col_expr, path, value).into_condition()
+            json_path_eq_expr(col_expr, path, value).into_condition()
         }
         (JsonFilterOperation::NotEquals, value) => {
-            build_json_path_ne_expr(col_expr, path, value).into_condition()
+            json_path_ne_expr(col_expr, path, value).into_condition()
         }
         (
             op @ (JsonFilterOperation::IsIn | JsonFilterOperation::IsNotIn),
             JsonValue::Array(values),
         ) => {
-            let expr = build_json_value_is_in_values_expr(col_expr, path, values.clone());
+            let expr = json_path_is_in_values_expr(col_expr, path, values.clone());
             if op == JsonFilterOperation::IsIn {
                 expr.into_condition()
             } else {
@@ -358,7 +385,7 @@ pub fn prepare_json_leaf_condition(
             op @ (JsonFilterOperation::IsNull | JsonFilterOperation::IsNotNull),
             JsonValue::Bool(is),
         ) => {
-            let expr = build_json_path_query_expr(col_expr, path);
+            let expr = json_path_query_expr(col_expr, path);
             if op == JsonFilterOperation::IsNull {
                 if is {
                     expr.is_null().into_condition()
@@ -374,13 +401,38 @@ pub fn prepare_json_leaf_condition(
             }
         }
         (
+            op @ (JsonFilterOperation::GreaterThan
+            | JsonFilterOperation::LessThan
+            | JsonFilterOperation::GreaterThanEquals
+            | JsonFilterOperation::LessThanEquals),
+            v @ (JsonValue::Number(..) | JsonValue::Bool(..) | JsonValue::String(..)),
+        ) => {
+            let lexpr = json_path_query_first_cast_expr(col_expr, path, &v)?;
+            let rexpr: SimpleExpr = match v {
+                JsonValue::Number(n) => Expr::val(DbValue::Decimal(Some(Box::new(
+                    convert_json_number_to_db_decimal(n)?,
+                ))))
+                .into(),
+                JsonValue::Bool(b) => Expr::val(b).into(),
+                JsonValue::String(s) => Expr::val(s).into(),
+                _ => unreachable!(),
+            };
+            match op {
+                JsonFilterOperation::GreaterThan => lexpr.gt(rexpr).into_condition(),
+                JsonFilterOperation::GreaterThanEquals => lexpr.gte(rexpr).into_condition(),
+                JsonFilterOperation::LessThan => lexpr.lt(rexpr).into_condition(),
+                JsonFilterOperation::LessThanEquals => lexpr.lte(rexpr).into_condition(),
+                _ => unreachable!(),
+            }
+        }
+        (
             JsonFilterOperation::GreaterThan
             | JsonFilterOperation::GreaterThanEquals
             | JsonFilterOperation::LessThan
             | JsonFilterOperation::LessThanEquals,
-            JsonValue::Array(_),
+            _,
         ) => Err(SchemaError(format!(
-            "JsonFilterInput leaf can not be {} with an array",
+            "JsonFilterInput leaf can not be {} with an array, object or null",
             op.as_ref()
         )))?,
         _ => todo!(),
@@ -516,8 +568,8 @@ mod tests {
     }
 
     #[test]
-    fn test_build_json_path_exists_expr() {
-        let (sql, params) = build_test_query_sql(build_json_path_exists_expr(
+    fn test_json_path_exists_expr() {
+        let (sql, params) = build_test_query_sql(json_path_exists_expr(
             Expr::col((TestTable::Table, TestTable::Job)),
             &build_test_json_path(&["a", "b", "c"]),
         ));
@@ -530,8 +582,8 @@ mod tests {
     }
 
     #[test]
-    fn test_build_json_path_query_expr() -> RecorderResult<()> {
-        let (sql, params) = build_test_query_sql(build_json_value_is_in_values_expr(
+    fn test_json_path_query_expr() -> RecorderResult<()> {
+        let (sql, params) = build_test_query_sql(json_path_is_in_values_expr(
             Expr::col((TestTable::Table, TestTable::Job)),
             &build_test_json_path(&["a", "b", "c"]),
             vec![json!(1), json!("str"), json!(true)],
@@ -550,8 +602,8 @@ mod tests {
     }
 
     #[test]
-    fn test_build_json_path_eq_expr() -> RecorderResult<()> {
-        let (sql, params) = build_test_query_sql(build_json_path_eq_expr(
+    fn test_json_path_eq_expr() -> RecorderResult<()> {
+        let (sql, params) = build_test_query_sql(json_path_eq_expr(
             Expr::col((TestTable::Table, TestTable::Job)),
             &build_test_json_path(&["a", "b", "c"]),
             json!("str"),

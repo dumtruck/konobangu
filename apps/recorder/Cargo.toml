@@ -116,6 +116,7 @@ downloader = { workspace = true }
 util = { workspace = true }
 fetch = { workspace = true }
 nanoid = "0.4.0"
+rust_decimal = "1.37.1"
 
 [dev-dependencies]
 serial_test = "3"
