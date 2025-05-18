@@ -4,7 +4,7 @@ use async_graphql::{
     InputValueResult, Scalar, ScalarType,
     dynamic::{ObjectAccessor, TypeRef},
 };
-pub use json::recursive_prepare_json_node_condition;
+pub use json::prepare_json_filter_input;
 use maplit::btreeset;
 use once_cell::sync::OnceCell;
 use sea_orm::{ColumnTrait, Condition, EntityTrait};

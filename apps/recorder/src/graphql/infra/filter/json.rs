@@ -3,10 +3,7 @@ use itertools::Itertools;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
     Condition,
-    sea_query::{
-        ArrayType, Expr, ExprTrait, IntoCondition, SimpleExpr, Value as DbValue,
-        extension::postgres::PgExpr,
-    },
+    sea_query::{ArrayType, Expr, ExprTrait, IntoLikeExpr, SimpleExpr, Value as DbValue},
 };
 use serde_json::Value as JsonValue;
 
@@ -36,6 +33,8 @@ pub enum JsonFilterOperation {
     And,
     Or,
     JsonbPathQuery,
+    Any,
+    Not,
 }
 
 impl JsonFilterOperation {
@@ -66,7 +65,9 @@ impl JsonFilterOperation {
             "$or" => Ok(Some(JsonFilterOperation::Or)),
             "$exists" => Ok(Some(JsonFilterOperation::Exists)),
             "$not_exists" => Ok(Some(JsonFilterOperation::NotExists)),
-            s if s.starts_with("$jsonb_path_query:") => {
+            "$any" => Ok(Some(JsonFilterOperation::Any)),
+            "$not" => Ok(Some(JsonFilterOperation::Not)),
+            s if s.starts_with("$query:") && s.len() >= 7 => {
                 Ok(Some(JsonFilterOperation::JsonbPathQuery))
             }
             s if Self::is_filter_operation(s) => Err(async_graphql::dynamic::SchemaError(format!(
@@ -101,7 +102,9 @@ impl AsRef<str> for JsonFilterOperation {
             JsonFilterOperation::Or => "$or",
             JsonFilterOperation::Exists => "$exists",
             JsonFilterOperation::NotExists => "$not_exists",
-            JsonFilterOperation::JsonbPathQuery => "$jsonb_path_query",
+            JsonFilterOperation::JsonbPathQuery => "$query",
+            JsonFilterOperation::Any => "$any",
+            JsonFilterOperation::Not => "$not",
         }
     }
 }
@@ -238,14 +241,7 @@ fn json_path_expr(path: &JsonPath) -> SimpleExpr {
 
 fn json_path_exists_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
     Expr::cust_with_exprs(
-        "JSON_EXISTS($1, $2)",
-        [col_expr.into(), json_path_expr(path)],
-    )
-}
-
-fn json_path_query_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
-    Expr::cust_with_exprs(
-        "jsonb_path_query($1, $2)",
+        "jsonb_path_exists($1, $2)",
         [col_expr.into(), json_path_expr(path)],
     )
 }
@@ -257,7 +253,7 @@ fn json_path_query_first_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) 
     )
 }
 
-fn json_path_query_first_cast_expr(
+fn json_path_query_first_auto_cast_expr(
     col_expr: impl Into<SimpleExpr>,
     path: &JsonPath,
     value: &JsonValue,
@@ -284,7 +280,7 @@ fn json_path_is_in_values_expr(
     Expr::cust_with_exprs(
         "$1 = ANY($2)",
         [
-            json_path_query_expr(col_expr, path),
+            json_path_query_first_expr(col_expr, path),
             Expr::val(DbValue::Array(
                 ArrayType::Json,
                 Some(Box::new(
@@ -304,7 +300,7 @@ fn json_path_eq_expr(
     path: &JsonPath,
     value: JsonValue,
 ) -> SimpleExpr {
-    json_path_query_expr(col_expr, path).eq(value)
+    json_path_query_first_expr(col_expr, path).eq(value)
 }
 
 fn json_path_ne_expr(
@@ -312,7 +308,32 @@ fn json_path_ne_expr(
     path: &JsonPath,
     value: JsonValue,
 ) -> SimpleExpr {
-    json_path_query_expr(col_expr, path).ne(value)
+    json_path_query_first_expr(col_expr, path).ne(value)
+}
+
+fn json_path_type_assert_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    typestr: &str,
+) -> SimpleExpr {
+    Expr::cust_with_exprs(
+        format!("jsonb_path_exists($1, $2 || ' ? (@.type = \"{typestr}\")')"),
+        [col_expr.into(), json_path_expr(path)],
+    )
+}
+
+fn json_path_is_null_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
+    Expr::cust_with_exprs(
+        "jsonb_path_exists($1, $2 || ' ? (@ == null)')",
+        [col_expr.into(), json_path_expr(path)],
+    )
+}
+
+fn json_path_is_not_null_expr(col_expr: impl Into<SimpleExpr>, path: &JsonPath) -> SimpleExpr {
+    Expr::cust_with_exprs(
+        "jsonb_path_exists($1, $2 || ' ? (@ != null)')",
+        [col_expr.into(), json_path_expr(path)],
+    )
 }
 
 fn convert_json_number_to_db_decimal(json_number: serde_json::Number) -> RecorderResult<Decimal> {
@@ -333,133 +354,429 @@ fn convert_json_number_to_db_decimal(json_number: serde_json::Number) -> Recorde
     }
 }
 
-pub fn prepare_json_leaf_condition(
+fn json_path_like_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: impl IntoLikeExpr,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "string");
+    left.and(
+        json_path_query_first_expr(col_expr, path)
+            .cast_as("text")
+            .like(value),
+    )
+}
+
+fn json_path_not_like_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: impl IntoLikeExpr,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "string");
+    left.and(
+        json_path_query_first_expr(col_expr, path)
+            .cast_as("text")
+            .not_like(value),
+    )
+}
+
+fn json_path_starts_with_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: String,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let type_assert_expr = json_path_type_assert_expr(col_expr.clone(), path, "string");
+    let get_value_expr = json_path_query_first_expr(col_expr, path).cast_as("text");
+    let starts_with_expr = Expr::cust_with_exprs(
+        "starts_with($1, $2)",
+        [get_value_expr, Expr::val(value).into()],
+    );
+
+    type_assert_expr.and(starts_with_expr)
+}
+
+fn escape_like_expr(value: &str) -> String {
+    value
+        .replace('\\', "\\\\")
+        .replace('%', "\\%")
+        .replace('_', "\\_")
+}
+
+fn json_path_ends_with_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: String,
+) -> SimpleExpr {
+    json_path_like_expr(col_expr, path, format!("%{}", escape_like_expr(&value)))
+}
+
+fn json_path_str_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: String,
+    rhs: String,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "string");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("text")
+        .between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_str_not_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: String,
+    rhs: String,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "string");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("text")
+        .not_between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_num_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: Decimal,
+    rhs: Decimal,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "number");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("numeric")
+        .between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_num_not_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: Decimal,
+    rhs: Decimal,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "number");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("numeric")
+        .not_between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_bool_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: bool,
+    rhs: bool,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "boolean");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("boolean")
+        .between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_bool_not_between_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    lhs: bool,
+    rhs: bool,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let left = json_path_type_assert_expr(col_expr.clone(), path, "boolean");
+    let right = json_path_query_first_expr(col_expr, path)
+        .cast_as("boolean")
+        .not_between(lhs, rhs);
+
+    left.and(right)
+}
+
+fn json_path_contains_expr(
+    col_expr: impl Into<SimpleExpr>,
+    path: &JsonPath,
+    value: JsonValue,
+) -> SimpleExpr {
+    let col_expr = col_expr.into();
+    let json_path_array_contains = Expr::cust_with_exprs(
+        "jsonb_path_query_first($1, $2) @> $3",
+        [
+            col_expr.clone(),
+            json_path_expr(path),
+            Expr::val(DbValue::Json(Some(Box::new(JsonValue::Array(vec![
+                value.clone(),
+            ])))))
+            .into(),
+        ],
+    );
+    let mut case = Expr::case(
+        Condition::all()
+            .add(json_path_type_assert_expr(col_expr.clone(), path, "array"))
+            .add(json_path_array_contains),
+        Expr::cust("true"),
+    );
+
+    if let JsonValue::String(s) = value {
+        let json_path_str_contains = json_path_query_first_expr(col_expr.clone(), path)
+            .cast_as("text")
+            .like(format!("%{}%", escape_like_expr(&s)));
+
+        case = case.case(
+            Condition::all()
+                .add(json_path_type_assert_expr(col_expr, path, "string"))
+                .add(json_path_str_contains),
+            Expr::cust("true"),
+        )
+    };
+
+    case.finally(Expr::cust("false")).eq(Expr::cust("true"))
+}
+
+fn prepare_json_leaf_condition(
     col_expr: impl Into<SimpleExpr>,
     op: JsonFilterOperation,
     value: JsonValue,
     path: &JsonPath,
-) -> RecorderResult<Condition> {
+) -> RecorderResult<SimpleExpr> {
     Ok(match (op, value) {
-        (
-            op @ (JsonFilterOperation::Exists | JsonFilterOperation::NotExists),
-            JsonValue::Bool(exists),
-        ) => {
-            let json_exists_expr = json_path_exists_expr(col_expr, path);
-            if (op == JsonFilterOperation::Exists && exists)
-                || (op == JsonFilterOperation::NotExists && !exists)
-            {
-                json_exists_expr.into_condition()
-            } else {
-                json_exists_expr.not().into_condition()
+        (op @ (JsonFilterOperation::Exists | JsonFilterOperation::NotExists), value) => match value
+        {
+            JsonValue::Bool(exists) => {
+                let json_exists_expr = json_path_exists_expr(col_expr, path);
+                if (op == JsonFilterOperation::Exists && exists)
+                    || (op == JsonFilterOperation::NotExists && !exists)
+                {
+                    json_exists_expr
+                } else {
+                    json_exists_expr.not()
+                }
             }
-        }
-        (JsonFilterOperation::Exists | JsonFilterOperation::NotExists, _) => Err(SchemaError(
-            "JsonFilterInput leaf can not be $exists or $not_exists with a non-boolean value"
-                .to_string(),
-        ))?,
-        (JsonFilterOperation::And | JsonFilterOperation::Or, _) => {
+            _ => Err(SchemaError(
+                "JsonFilterInput leaf can not be $exists or $not_exists with a non-boolean value"
+                    .to_string(),
+            ))?,
+        },
+        (
+            JsonFilterOperation::And
+            | JsonFilterOperation::Or
+            | JsonFilterOperation::JsonbPathQuery
+            | JsonFilterOperation::Any
+            | JsonFilterOperation::Not,
+            _,
+        ) => {
             unreachable!("JsonFilterInput leaf can not be $and or $or with any value")
         }
-        (JsonFilterOperation::Equals, value) => {
-            json_path_eq_expr(col_expr, path, value).into_condition()
-        }
-        (JsonFilterOperation::NotEquals, value) => {
-            json_path_ne_expr(col_expr, path, value).into_condition()
-        }
-        (
-            op @ (JsonFilterOperation::IsIn | JsonFilterOperation::IsNotIn),
-            JsonValue::Array(values),
-        ) => {
-            let expr = json_path_is_in_values_expr(col_expr, path, values.clone());
-            if op == JsonFilterOperation::IsIn {
-                expr.into_condition()
-            } else {
-                expr.not().into_condition()
-            }
-        }
-        (JsonFilterOperation::IsIn | JsonFilterOperation::IsNotIn, _) => Err(SchemaError(
-            "JsonFilterInput leaf can not be $is_in or $is_not_in with a non-array value"
-                .to_string(),
-        ))?,
-        (
-            op @ (JsonFilterOperation::IsNull | JsonFilterOperation::IsNotNull),
-            JsonValue::Bool(is),
-        ) => {
-            let expr = json_path_query_expr(col_expr, path);
-            if op == JsonFilterOperation::IsNull {
-                if is {
-                    expr.is_null().into_condition()
+        (JsonFilterOperation::Equals, value) => json_path_eq_expr(col_expr, path, value),
+        (JsonFilterOperation::NotEquals, value) => json_path_ne_expr(col_expr, path, value),
+        (op @ (JsonFilterOperation::IsIn | JsonFilterOperation::IsNotIn), value) => {
+            if let JsonValue::Array(values) = value {
+                let expr = json_path_is_in_values_expr(col_expr, path, values.clone());
+                if op == JsonFilterOperation::IsIn {
+                    expr
                 } else {
-                    expr.is_null().not().into_condition()
+                    expr.not()
                 }
             } else {
-                if is {
-                    expr.is_not_null().into_condition()
-                } else {
-                    expr.is_not_null().not().into_condition()
-                }
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $is_in or $is_not_in with a non-array value"
+                        .to_string(),
+                ))?
             }
         }
+        (JsonFilterOperation::IsNull, value) => match value {
+            JsonValue::Bool(is) => {
+                let expr = json_path_is_null_expr(col_expr, path);
+                if is { expr } else { expr.not() }
+            }
+            _ => Err(SchemaError(
+                "JsonFilterInput leaf can not be $is_null with a non-boolean value".to_string(),
+            ))?,
+        },
+        (JsonFilterOperation::IsNotNull, value) => match value {
+            JsonValue::Bool(is) => {
+                let expr = json_path_is_not_null_expr(col_expr, path);
+                if is { expr } else { expr.not() }
+            }
+            _ => Err(SchemaError(
+                "JsonFilterInput leaf can not be $is_not_null with a non-boolean value".to_string(),
+            ))?,
+        },
+        (JsonFilterOperation::Contains, value) => json_path_contains_expr(col_expr, path, value),
         (
             op @ (JsonFilterOperation::GreaterThan
             | JsonFilterOperation::LessThan
             | JsonFilterOperation::GreaterThanEquals
             | JsonFilterOperation::LessThanEquals),
-            v @ (JsonValue::Number(..) | JsonValue::Bool(..) | JsonValue::String(..)),
+            value,
         ) => {
-            let lexpr = json_path_query_first_cast_expr(col_expr, path, &v)?;
-            let rexpr: SimpleExpr = match v {
+            let lexpr = json_path_query_first_auto_cast_expr(col_expr, path, &value)?;
+            let rexpr: SimpleExpr = match value {
                 JsonValue::Number(n) => Expr::val(DbValue::Decimal(Some(Box::new(
                     convert_json_number_to_db_decimal(n)?,
                 ))))
                 .into(),
                 JsonValue::Bool(b) => Expr::val(b).into(),
                 JsonValue::String(s) => Expr::val(s).into(),
-                _ => unreachable!(),
+                _ => Err(SchemaError(format!(
+                    "JsonFilterInput leaf can not be {} with an array, object or null",
+                    op.as_ref()
+                )))?,
             };
             match op {
-                JsonFilterOperation::GreaterThan => lexpr.gt(rexpr).into_condition(),
-                JsonFilterOperation::GreaterThanEquals => lexpr.gte(rexpr).into_condition(),
-                JsonFilterOperation::LessThan => lexpr.lt(rexpr).into_condition(),
-                JsonFilterOperation::LessThanEquals => lexpr.lte(rexpr).into_condition(),
+                JsonFilterOperation::GreaterThan => lexpr.gt(rexpr),
+                JsonFilterOperation::GreaterThanEquals => lexpr.gte(rexpr),
+                JsonFilterOperation::LessThan => lexpr.lt(rexpr),
+                JsonFilterOperation::LessThanEquals => lexpr.lte(rexpr),
                 _ => unreachable!(),
             }
         }
-        (
-            JsonFilterOperation::GreaterThan
-            | JsonFilterOperation::GreaterThanEquals
-            | JsonFilterOperation::LessThan
-            | JsonFilterOperation::LessThanEquals,
-            _,
-        ) => Err(SchemaError(format!(
-            "JsonFilterInput leaf can not be {} with an array, object or null",
-            op.as_ref()
-        )))?,
-        _ => todo!(),
+        (JsonFilterOperation::StartsWith, value) => {
+            if let JsonValue::String(s) = value {
+                json_path_starts_with_expr(col_expr, path, s)
+            } else {
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $starts_with with a non-string value"
+                        .to_string(),
+                ))?
+            }
+        }
+        (JsonFilterOperation::EndsWith, value) => {
+            if let JsonValue::String(s) = value {
+                json_path_ends_with_expr(col_expr, path, s)
+            } else {
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $ends_with with a non-string value"
+                        .to_string(),
+                ))?
+            }
+        }
+        (JsonFilterOperation::Like, value) => {
+            if let JsonValue::String(s) = value {
+                json_path_like_expr(col_expr, path, s)
+            } else {
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $like with a non-string value".to_string(),
+                ))?
+            }
+        }
+        (JsonFilterOperation::NotLike, value) => {
+            if let JsonValue::String(s) = value {
+                json_path_not_like_expr(col_expr, path, s)
+            } else {
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $not_like with a non-string value".to_string(),
+                ))?
+            }
+        }
+        (op @ (JsonFilterOperation::Between | JsonFilterOperation::NotBetween), value) => {
+            if let JsonValue::Array(mut values) = value {
+                if values.len() != 2 {
+                    return Err(SchemaError(
+                        "JsonFilterInput leaf can not be $between or $not_between with a \
+                         non-array value"
+                            .to_string(),
+                    )
+                    .into());
+                } else {
+                    let (rhs, lhs) = (values.pop().unwrap(), values.pop().unwrap());
+                    match (lhs, rhs) {
+                        (JsonValue::Number(lhs), JsonValue::Number(rhs)) => {
+                            let (lhs, rhs) = (
+                                convert_json_number_to_db_decimal(lhs)?,
+                                convert_json_number_to_db_decimal(rhs)?,
+                            );
+                            if op == JsonFilterOperation::Between {
+                                json_path_num_between_expr(col_expr, path, lhs, rhs)
+                            } else {
+                                json_path_num_not_between_expr(col_expr, path, lhs, rhs)
+                            }
+                        }
+                        (JsonValue::String(lhs), JsonValue::String(rhs)) => {
+                            if op == JsonFilterOperation::Between {
+                                json_path_str_between_expr(col_expr, path, lhs, rhs)
+                            } else {
+                                json_path_str_not_between_expr(col_expr, path, lhs, rhs)
+                            }
+                        }
+                        (JsonValue::Bool(lhs), JsonValue::Bool(rhs)) => {
+                            if op == JsonFilterOperation::Between {
+                                json_path_bool_between_expr(col_expr, path, lhs, rhs)
+                            } else {
+                                json_path_bool_not_between_expr(col_expr, path, lhs, rhs)
+                            }
+                        }
+                        _ => Err(SchemaError(
+                            "JsonFilterInput leaf can not be $between without two same type \
+                             number, string or boolean value"
+                                .to_string(),
+                        ))?,
+                    }
+                }
+            } else {
+                Err(SchemaError(
+                    "JsonFilterInput leaf can not be $between with a non-array value".to_string(),
+                ))?
+            }
+        }
     })
 }
 
-pub fn recursive_prepare_json_node_condition<E>(
+fn recursive_prepare_json_node_condition<E>(
     expr: &E,
-    mut node: JsonValue,
+    node: JsonValue,
     mut path: JsonPath,
 ) -> RecorderResult<(Condition, JsonPath)>
 where
     E: Into<SimpleExpr> + Clone,
 {
-    let object = {
-        let a = node.as_object_mut().ok_or(SchemaError(
-            "Json filter input node must be an object".to_string(),
-        ))?;
-        let mut b = serde_json::Map::new();
-        std::mem::swap(a, &mut b);
-        b
-    };
+    enum JsonIndex {
+        Str(String),
+        Num(u64),
+    }
 
+    impl TryFrom<JsonIndex> for JsonPathSegment {
+        type Error = SchemaError;
+
+        fn try_from(index: JsonIndex) -> Result<Self, Self::Error> {
+            match index {
+                JsonIndex::Str(s) => s.try_into(),
+                JsonIndex::Num(n) => n.try_into(),
+            }
+        }
+    }
+
+    let map: Vec<(JsonIndex, JsonValue)> = match node {
+        JsonValue::Object(object) => object
+            .into_iter()
+            .map(|(k, v)| (JsonIndex::Str(k), v))
+            .collect(),
+        JsonValue::Array(array) => array
+            .into_iter()
+            .enumerate()
+            .map(|(i, v)| (JsonIndex::Num(i as u64), v))
+            .collect(),
+        _ => Err(SchemaError(format!(
+            "Json filter input node must be an object or array, but got {}",
+            node.to_string()
+        )))?,
+    };
     let mut conditions = Condition::all();
 
-    for (key, mut value) in object {
-        if let Some(operation) = JsonFilterOperation::parse_str(&key)? {
+    for (key, mut value) in map {
+        if let JsonIndex::Str(str_key) = &key
+            && let Some(operation) = JsonFilterOperation::parse_str(str_key)?
+        {
             match operation {
                 JsonFilterOperation::And => {
                     let mut condition = Condition::all();
@@ -482,31 +799,30 @@ where
                 }
                 JsonFilterOperation::Or => {
                     let mut condition = Condition::any();
-                    let mut values = {
+                    let values = {
                         let a = value
                             .as_array_mut()
-                            .and_then(|arr| if arr.len() == 2 { Some(arr) } else { None })
+                            .and_then(|arr| if arr.len() >= 2 { Some(arr) } else { None })
                             .ok_or(SchemaError(
-                                "$between operation must be an array of two values".to_string(),
+                                "$or operation must be an array of at least two sub filters"
+                                    .to_string(),
                             ))?;
                         let mut b = vec![];
                         std::mem::swap(a, &mut b);
                         b
                     };
 
-                    let (lhs, rhs) = (values.pop().unwrap(), values.pop().unwrap());
-                    let (lcondition, lpath) =
-                        recursive_prepare_json_node_condition(expr, lhs, path)?;
-                    condition = condition.add(lcondition);
-                    let (rcondition, rpath) =
-                        recursive_prepare_json_node_condition(expr, rhs, lpath)?;
-                    condition = condition.add(rcondition);
-                    path = rpath;
+                    for value in values {
+                        let (c, rpath) = recursive_prepare_json_node_condition(expr, value, path)?;
+                        condition = condition.add(c);
+                        path = rpath;
+                    }
+
                     conditions = conditions.add(condition);
                 }
                 JsonFilterOperation::JsonbPathQuery => {
                     path.push(JsonPathSegment::JsonbPathQuery(
-                        key.split_at(16).1.to_string(),
+                        str_key.split_at(7).1.to_string(),
                     ))?;
                     let (condition, rpath) =
                         recursive_prepare_json_node_condition(expr, value, path)?;
@@ -514,13 +830,23 @@ where
                     path = rpath;
                     path.pop();
                 }
+                JsonFilterOperation::Any => {
+                    continue;
+                }
+                JsonFilterOperation::Not => {
+                    let (condition, rpath) =
+                        recursive_prepare_json_node_condition(expr, value, path)?;
+                    conditions = conditions.add(condition.not());
+                    path = rpath;
+                }
                 op => {
                     let condition = prepare_json_leaf_condition(expr.clone(), op, value, &path)?;
                     conditions = conditions.add(condition);
                 }
             }
         } else {
-            path.push(JsonPathSegment::Str(key))?;
+            let segment: JsonPathSegment = key.try_into()?;
+            path.push(segment)?;
             let result = recursive_prepare_json_node_condition(expr, value, path)?;
             conditions = conditions.add(result.0);
             path = result.1;
@@ -531,18 +857,27 @@ where
     Ok((conditions, path))
 }
 
+pub fn prepare_json_filter_input<E>(expr: &E, value: JsonValue) -> RecorderResult<Condition>
+where
+    E: Into<SimpleExpr> + Clone,
+{
+    let (condition, _) = recursive_prepare_json_node_condition(expr, value, JsonPath::new())?;
+
+    Ok(condition)
+}
+
 #[cfg(test)]
 mod tests {
     use std::assert_matches::assert_matches;
 
     use sea_orm::{
         DeriveIden,
-        sea_query::{PostgresQueryBuilder, Query, Value, Values},
+        sea_query::{IntoCondition, PostgresQueryBuilder, Query, Value, Values},
     };
     use serde_json::json;
 
     use super::*;
-    use crate::errors::RecorderResult;
+    use crate::errors::{RecorderError, RecorderResult};
 
     #[derive(DeriveIden)]
     enum TestTable {
@@ -550,10 +885,10 @@ mod tests {
         Job,
     }
 
-    fn build_test_query_sql(where_expr: SimpleExpr) -> (String, Vec<Value>) {
+    fn build_test_query_sql(condition: impl IntoCondition) -> (String, Vec<Value>) {
         let (sql, Values(values)) = Query::select()
             .column(TestTable::Job)
-            .and_where(where_expr)
+            .cond_where(condition)
             .from(TestTable::Table)
             .build(PostgresQueryBuilder);
         (sql, values)
@@ -575,14 +910,14 @@ mod tests {
         ));
         assert_eq!(
             sql,
-            "SELECT \"job\" FROM \"test_table\" WHERE JSON_EXISTS(\"test_table\".\"job\", $1)"
+            "SELECT \"job\" FROM \"test_table\" WHERE jsonb_path_exists(\"test_table\".\"job\", \
+             $1)"
         );
-        let expected_params = vec![Value::String(Some(Box::new("$.a.b.c".into())))];
-        assert_eq!(params, expected_params);
+        assert_eq!(params[0], "$.a.b.c".into());
     }
 
     #[test]
-    fn test_json_path_query_expr() -> RecorderResult<()> {
+    fn test_json_path_is_in_expr() -> RecorderResult<()> {
         let (sql, params) = build_test_query_sql(json_path_is_in_values_expr(
             Expr::col((TestTable::Table, TestTable::Job)),
             &build_test_json_path(&["a", "b", "c"]),
@@ -591,8 +926,8 @@ mod tests {
 
         assert_eq!(
             sql,
-            "SELECT \"job\" FROM \"test_table\" WHERE jsonb_path_query(\"test_table\".\"job\", \
-             $1) = ANY($2)"
+            "SELECT \"job\" FROM \"test_table\" WHERE \
+             jsonb_path_query_first(\"test_table\".\"job\", $1) = ANY($2)"
         );
         assert_eq!(params.len(), 2);
         assert_eq!(params[0], DbValue::String(Some(Box::new("$.a.b.c".into()))));
@@ -610,12 +945,290 @@ mod tests {
         ));
         assert_eq!(
             sql,
-            "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_query(\"test_table\".\"job\", \
-             $1)) = $2"
+            "SELECT \"job\" FROM \"test_table\" WHERE \
+             (jsonb_path_query_first(\"test_table\".\"job\", $1)) = $2"
         );
         assert_eq!(params.len(), 2);
         assert_eq!(params[0], DbValue::String(Some(Box::new("$.a.b.c".into()))));
         assert_eq!(params[1], DbValue::Json(Some(Box::new(json!("str")))));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_json_path_type_assert_expr() {
+        let (sql, _) = build_test_query_sql(json_path_type_assert_expr(
+            Expr::col((TestTable::Table, TestTable::Job)),
+            &build_test_json_path(&["a", "b", "c"]),
+            "string",
+        ));
+        assert_eq!(
+            sql,
+            "SELECT \"job\" FROM \"test_table\" WHERE jsonb_path_exists(\"test_table\".\"job\", \
+             $1 || ' ? (@.type = \"string\")')"
+        );
+    }
+
+    #[test]
+    fn test_json_path_contains_expr() {
+        {
+            let (sql, params) = build_test_query_sql(json_path_contains_expr(
+                Expr::col((TestTable::Table, TestTable::Job)),
+                &build_test_json_path(&["a", "b", "c"]),
+                json!(1),
+            ));
+
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE (CASE WHEN \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"array\")')) \
+                 AND (jsonb_path_query_first(\"test_table\".\"job\", $2) @> $3)) THEN true ELSE \
+                 false END) = (true)"
+            );
+            assert_eq!(params.len(), 3);
+            assert_eq!(params[0], "$.a.b.c".into());
+            assert_eq!(params[1], "$.a.b.c".into());
+            assert_eq!(params[2], json!([1]).into());
+        }
+        {
+            let (sql, params) = build_test_query_sql(json_path_contains_expr(
+                Expr::col((TestTable::Table, TestTable::Job)),
+                &build_test_json_path(&["a", "b", "c"]),
+                json!("str"),
+            ));
+
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE (CASE WHEN \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"array\")')) \
+                 AND (jsonb_path_query_first(\"test_table\".\"job\", $2) @> $3)) THEN true WHEN \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $4 || ' ? (@.type = \"string\")')) \
+                 AND CAST((jsonb_path_query_first(\"test_table\".\"job\", $5)) AS text) LIKE $6) \
+                 THEN true ELSE false END) = (true)"
+            );
+            assert_eq!(params.len(), 6);
+            assert_eq!(params[0], "$.a.b.c".into());
+            assert_eq!(params[1], "$.a.b.c".into());
+            assert_eq!(params[2], json!(["str"]).into());
+            assert_eq!(params[3], "$.a.b.c".into());
+            assert_eq!(params[4], "$.a.b.c".into());
+            assert_eq!(params[5], "%str%".into());
+        }
+    }
+
+    #[test]
+    fn test_json_path_between_expr() {
+        {
+            let (sql, params) = build_test_query_sql(json_path_num_between_expr(
+                Expr::col((TestTable::Table, TestTable::Job)),
+                &build_test_json_path(&["a", "b", "c"]),
+                Decimal::from(1),
+                Decimal::from(2),
+            ));
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"number\")')) \
+                 AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS numeric) \
+                 BETWEEN $3 AND $4)"
+            );
+            assert_eq!(params.len(), 4);
+            assert_eq!(params[0], "$.a.b.c".into());
+            assert_eq!(params[1], "$.a.b.c".into());
+            assert_eq!(params[2], Decimal::from(1).into());
+            assert_eq!(params[3], Decimal::from(2).into());
+        }
+        {
+            let (sql, params) = build_test_query_sql(json_path_str_between_expr(
+                Expr::col((TestTable::Table, TestTable::Job)),
+                &build_test_json_path(&["a", "b", "c"]),
+                "1".into(),
+                "2".into(),
+            ));
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"string\")')) \
+                 AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) BETWEEN \
+                 $3 AND $4)"
+            );
+            assert_eq!(params.len(), 4);
+            assert_eq!(params[0], "$.a.b.c".into());
+            assert_eq!(params[1], "$.a.b.c".into());
+            assert_eq!(params[2], "1".into());
+            assert_eq!(params[3], "2".into());
+        }
+        {
+            let (sql, params) = build_test_query_sql(json_path_bool_between_expr(
+                Expr::col((TestTable::Table, TestTable::Job)),
+                &build_test_json_path(&["a", "b", "c"]),
+                true,
+                false,
+            ));
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"boolean\")')) \
+                 AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS boolean) \
+                 BETWEEN $3 AND $4)"
+            );
+            assert_eq!(params.len(), 4);
+            assert_eq!(params[0], "$.a.b.c".into());
+            assert_eq!(params[1], "$.a.b.c".into());
+            assert_eq!(params[2], true.into());
+            assert_eq!(params[3], false.into());
+        }
+    }
+
+    #[test]
+    fn test_json_path_ends_with_expr() {
+        let (sql, params) = build_test_query_sql(json_path_ends_with_expr(
+            Expr::col((TestTable::Table, TestTable::Job)),
+            &build_test_json_path(&["a", "b", "c"]),
+            "str%".into(),
+        ));
+        assert_eq!(
+            sql,
+            "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
+             $1 || ' ? (@.type = \"string\")')) AND \
+             CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) LIKE $3"
+        );
+        assert_eq!(params.len(), 3);
+        assert_eq!(params[0], "$.a.b.c".into());
+        assert_eq!(params[1], "$.a.b.c".into());
+        assert_eq!(params[2], "%str\\%".into());
+    }
+
+    #[test]
+    fn test_json_path_starts_with_expr() {
+        let (sql, params) = build_test_query_sql(json_path_starts_with_expr(
+            Expr::col((TestTable::Table, TestTable::Job)),
+            &build_test_json_path(&["a", "b", "c"]),
+            "%str%".into(),
+        ));
+        assert_eq!(
+            sql,
+            "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
+             $1 || ' ? (@.type = \"string\")')) AND \
+             (starts_with(CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text), $3))"
+        );
+        assert_eq!(params.len(), 3);
+        assert_eq!(params[0], "$.a.b.c".into());
+        assert_eq!(params[1], "$.a.b.c".into());
+        assert_eq!(params[2], "%str%".into());
+    }
+
+    #[test]
+    fn test_json_path_like_expr() {
+        let (sql, params) = build_test_query_sql(json_path_like_expr(
+            Expr::col((TestTable::Table, TestTable::Job)),
+            &build_test_json_path(&["a", "b", "c"]),
+            "%str%",
+        ));
+        assert_eq!(
+            sql,
+            "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
+             $1 || ' ? (@.type = \"string\")')) AND \
+             CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) LIKE $3"
+        );
+        assert_eq!(params.len(), 3);
+        assert_eq!(params[0], "$.a.b.c".into());
+        assert_eq!(params[1], "$.a.b.c".into());
+        assert_eq!(params[2], "%str%".into());
+    }
+
+    #[test]
+    fn test_json_path_is_not_null_expr() {
+        let (sql, params) = build_test_query_sql(json_path_is_not_null_expr(
+            Expr::col((TestTable::Table, TestTable::Job)),
+            &build_test_json_path(&["a", "b", "c"]),
+        ));
+        assert_eq!(
+            sql,
+            "SELECT \"job\" FROM \"test_table\" WHERE jsonb_path_exists(\"test_table\".\"job\", \
+             $1 || ' ? (@ != null)')"
+        );
+        assert_eq!(params.len(), 1);
+        assert_eq!(params[0], "$.a.b.c".into());
+    }
+
+    #[test]
+    fn test_convert_json_number_to_db_decimal() {
+        assert_eq!(
+            convert_json_number_to_db_decimal(
+                serde_json::Number::from_f64(1.234_567_890_123_456_7).unwrap()
+            )
+            .unwrap(),
+            Decimal::from_f64(1.234_567_890_123_456_7).unwrap()
+        );
+        assert_eq!(
+            convert_json_number_to_db_decimal(serde_json::Number::from(9007199254740991i64))
+                .unwrap(),
+            Decimal::from(9007199254740991i64)
+        );
+    }
+
+    #[test]
+    fn test_prepare_json_filter_input() -> RecorderResult<()> {
+        {
+            let condition = prepare_json_filter_input(
+                &Expr::col((TestTable::Table, TestTable::Job)),
+                json!({ "a": { "b": { "c": 1 } } }),
+            );
+
+            assert_matches!(condition, Err(RecorderError::GraphQLSchemaError { .. }));
+        }
+        {
+            let condition = prepare_json_filter_input(
+                &Expr::col((TestTable::Table, TestTable::Job)),
+                json!({ "$and": [
+                    {
+                        "$or": [
+                            {
+                                "a": {
+                                  "b": {
+                                    "$eq": 1
+                                  }
+                                }
+                            },
+                            {
+                                "$not": {
+                                    "$query:.c.d.e": {
+                                        "$is_in": [1, "haha", true]
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "d": [
+                            {
+                                "$any": true
+                            },
+                            {
+                                "$eq": [1, 2, 3]
+                            }
+                        ]
+                    }
+                ] }),
+            )?;
+
+            let (sql, params) = build_test_query_sql(condition);
+            assert_eq!(
+                sql,
+                "SELECT \"job\" FROM \"test_table\" WHERE \
+                 ((jsonb_path_query_first(\"test_table\".\"job\", $1)) = $2 OR (NOT \
+                 (jsonb_path_query_first(\"test_table\".\"job\", $3) = ANY($4)))) AND (TRUE AND \
+                 (jsonb_path_query_first(\"test_table\".\"job\", $5)) = $6)"
+            );
+            assert_eq!(params.len(), 6);
+            assert_eq!(params[0], "$.a.b".into());
+            assert_eq!(params[1], json!(1).into());
+            assert_eq!(params[2], "$.c.d.e".into());
+            assert_matches!(params[3], DbValue::Array(ArrayType::Json, ..));
+            assert_eq!(params[4], "$.d[1]".into());
+            assert_eq!(params[5], json!([1, 2, 3]).into());
+        }
 
         Ok(())
     }
