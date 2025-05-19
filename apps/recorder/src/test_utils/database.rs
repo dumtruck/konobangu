@@ -3,8 +3,20 @@ use crate::{
     errors::RecorderResult,
 };
 
+pub struct TestingDatabaseServiceConfig {
+    pub auto_migrate: bool,
+}
+
+impl Default for TestingDatabaseServiceConfig {
+    fn default() -> Self {
+        Self { auto_migrate: true }
+    }
+}
+
 #[cfg(feature = "testcontainers")]
-pub async fn build_testing_database_service() -> RecorderResult<DatabaseService> {
+pub async fn build_testing_database_service(
+    config: TestingDatabaseServiceConfig,
+) -> RecorderResult<DatabaseService> {
     use testcontainers::{ImageExt, runners::AsyncRunner};
     use testcontainers_ext::{ImageDefaultLogConsumerExt, ImagePruneExistedLabelExt};
     use testcontainers_modules::postgres::Postgres;
@@ -34,7 +46,7 @@ pub async fn build_testing_database_service() -> RecorderResult<DatabaseService>
         connect_timeout: 5000,
         idle_timeout: 10000,
         acquire_timeout: None,
-        auto_migrate: true,
+        auto_migrate: config.auto_migrate,
     })
     .await?;
     db_service.container = Some(container);

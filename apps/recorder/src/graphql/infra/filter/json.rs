@@ -1,12 +1,17 @@
-use async_graphql::dynamic::SchemaError;
+use async_graphql::{
+    Error as GraphqlError, InputValueResult, Scalar, ScalarType, dynamic::SchemaError, to_value,
+};
 use itertools::Itertools;
+use once_cell::sync::OnceCell;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
-    Condition,
+    Condition, EntityTrait,
     sea_query::{ArrayType, Expr, ExprTrait, IntoLikeExpr, SimpleExpr, Value as DbValue},
 };
+use seaography::{BuilderContext, FilterInfo, SeaographyError};
 use serde_json::Value as JsonValue;
 
+use super::subscriber::FnFilterCondition;
 use crate::errors::RecorderResult;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
@@ -317,7 +322,7 @@ fn json_path_type_assert_expr(
     typestr: &str,
 ) -> SimpleExpr {
     Expr::cust_with_exprs(
-        format!("jsonb_path_exists($1, $2 || ' ? (@.type = \"{typestr}\")')"),
+        format!("jsonb_path_exists($1, $2 || ' ? (@.type() = \"{typestr}\")')"),
         [col_expr.into(), json_path_expr(path)],
     )
 }
@@ -767,8 +772,7 @@ where
             .map(|(i, v)| (JsonIndex::Num(i as u64), v))
             .collect(),
         _ => Err(SchemaError(format!(
-            "Json filter input node must be an object or array, but got {}",
-            node.to_string()
+            "Json filter input node must be an object or array, but got {node}"
         )))?,
     };
     let mut conditions = Condition::all();
@@ -864,6 +868,46 @@ where
     let (condition, _) = recursive_prepare_json_node_condition(expr, value, JsonPath::new())?;
 
     Ok(condition)
+}
+
+#[derive(Clone, Debug)]
+pub struct JsonFilterInput(pub serde_json::Value);
+
+#[Scalar(name = "JsonFilterInput")]
+impl ScalarType for JsonFilterInput {
+    fn parse(value: async_graphql::Value) -> InputValueResult<Self> {
+        Ok(JsonFilterInput(value.into_json()?))
+    }
+
+    fn to_value(&self) -> async_graphql::Value {
+        async_graphql::Value::from_json(self.0.clone()).unwrap()
+    }
+}
+
+pub static JSONB_FILTER_INFO: OnceCell<FilterInfo> = OnceCell::new();
+
+pub fn jsonb_filter_condition_function<T>(
+    _context: &BuilderContext,
+    column: &T::Column,
+) -> FnFilterCondition
+where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let column = *column;
+    Box::new(move |mut condition, filter| {
+        let filter_value = to_value(filter.as_index_map())
+            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e)))?;
+
+        let filter = JsonFilterInput::parse(filter_value)
+            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new(format!("{e:?}"))))?;
+
+        let cond_where = prepare_json_filter_input(&Expr::col(column), filter.0)
+            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e)))?;
+
+        condition = condition.add(cond_where);
+        Ok(condition)
+    })
 }
 
 #[cfg(test)]
@@ -965,7 +1009,7 @@ mod tests {
         assert_eq!(
             sql,
             "SELECT \"job\" FROM \"test_table\" WHERE jsonb_path_exists(\"test_table\".\"job\", \
-             $1 || ' ? (@.type = \"string\")')"
+             $1 || ' ? (@.type() = \"string\")')"
         );
     }
 
@@ -981,7 +1025,7 @@ mod tests {
             assert_eq!(
                 sql,
                 "SELECT \"job\" FROM \"test_table\" WHERE (CASE WHEN \
-                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"array\")')) \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type() = \"array\")')) \
                  AND (jsonb_path_query_first(\"test_table\".\"job\", $2) @> $3)) THEN true ELSE \
                  false END) = (true)"
             );
@@ -1000,9 +1044,9 @@ mod tests {
             assert_eq!(
                 sql,
                 "SELECT \"job\" FROM \"test_table\" WHERE (CASE WHEN \
-                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"array\")')) \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type() = \"array\")')) \
                  AND (jsonb_path_query_first(\"test_table\".\"job\", $2) @> $3)) THEN true WHEN \
-                 ((jsonb_path_exists(\"test_table\".\"job\", $4 || ' ? (@.type = \"string\")')) \
+                 ((jsonb_path_exists(\"test_table\".\"job\", $4 || ' ? (@.type() = \"string\")')) \
                  AND CAST((jsonb_path_query_first(\"test_table\".\"job\", $5)) AS text) LIKE $6) \
                  THEN true ELSE false END) = (true)"
             );
@@ -1028,7 +1072,7 @@ mod tests {
             assert_eq!(
                 sql,
                 "SELECT \"job\" FROM \"test_table\" WHERE \
-                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"number\")')) \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type() = \"number\")')) \
                  AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS numeric) \
                  BETWEEN $3 AND $4)"
             );
@@ -1048,7 +1092,7 @@ mod tests {
             assert_eq!(
                 sql,
                 "SELECT \"job\" FROM \"test_table\" WHERE \
-                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"string\")')) \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type() = \"string\")')) \
                  AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) BETWEEN \
                  $3 AND $4)"
             );
@@ -1068,7 +1112,7 @@ mod tests {
             assert_eq!(
                 sql,
                 "SELECT \"job\" FROM \"test_table\" WHERE \
-                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type = \"boolean\")')) \
+                 (jsonb_path_exists(\"test_table\".\"job\", $1 || ' ? (@.type() = \"boolean\")')) \
                  AND (CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS boolean) \
                  BETWEEN $3 AND $4)"
             );
@@ -1090,7 +1134,7 @@ mod tests {
         assert_eq!(
             sql,
             "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
-             $1 || ' ? (@.type = \"string\")')) AND \
+             $1 || ' ? (@.type() = \"string\")')) AND \
              CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) LIKE $3"
         );
         assert_eq!(params.len(), 3);
@@ -1109,7 +1153,7 @@ mod tests {
         assert_eq!(
             sql,
             "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
-             $1 || ' ? (@.type = \"string\")')) AND \
+             $1 || ' ? (@.type() = \"string\")')) AND \
              (starts_with(CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text), $3))"
         );
         assert_eq!(params.len(), 3);
@@ -1128,7 +1172,7 @@ mod tests {
         assert_eq!(
             sql,
             "SELECT \"job\" FROM \"test_table\" WHERE (jsonb_path_exists(\"test_table\".\"job\", \
-             $1 || ' ? (@.type = \"string\")')) AND \
+             $1 || ' ? (@.type() = \"string\")')) AND \
              CAST((jsonb_path_query_first(\"test_table\".\"job\", $2)) AS text) LIKE $3"
         );
         assert_eq!(params.len(), 3);

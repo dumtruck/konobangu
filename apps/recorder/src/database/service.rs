@@ -16,7 +16,7 @@ pub trait DatabaseServiceConnectionTrait {
 
 pub struct DatabaseService {
     connection: DatabaseConnection,
-    #[cfg(all(test, feature = "testcontainers"))]
+    #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]
     pub container:
         Option<testcontainers::ContainerAsync<testcontainers_modules::postgres::Postgres>>,
 }
@@ -54,7 +54,7 @@ impl DatabaseService {
 
         let me = Self {
             connection: db,
-            #[cfg(all(test, feature = "testcontainers"))]
+            #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]
             container: None,
         };
 
@@ -66,18 +66,19 @@ impl DatabaseService {
     }
 
     pub async fn migrate_up(&self) -> RecorderResult<()> {
-        Migrator::up(&self.connection, None).await?;
         {
             let pool = &self.get_postgres_connection_pool();
             PostgresStorage::setup(pool).await?;
         }
+        Migrator::up(&self.connection, None).await?;
         Ok(())
     }
 
     pub async fn migrate_down(&self) -> RecorderResult<()> {
         Migrator::down(&self.connection, None).await?;
         {
-            let _pool = &self.get_postgres_connection_pool();
+            self.execute_unprepared(r#"DROP SCHEMA IF EXISTS apalis CASCADE"#)
+                .await?;
         }
         Ok(())
     }

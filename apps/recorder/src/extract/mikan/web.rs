@@ -967,7 +967,7 @@ mod test {
     use crate::{
         extract::mikan::{MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_SEASON_FLOW_PAGE_PATH},
         test_utils::{
-            app::UnitTestAppContext,
+            app::TestingAppContext,
             crypto::build_testing_crypto_service,
             database::build_testing_database_service,
             mikan::{
@@ -1195,9 +1195,9 @@ mod test {
 
         let app_ctx = {
             let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
-            let db_service = build_testing_database_service().await?;
+            let db_service = build_testing_database_service(Default::default()).await?;
             let crypto_service = build_testing_crypto_service().await?;
-            let app_ctx = UnitTestAppContext::builder()
+            let app_ctx = TestingAppContext::builder()
                 .mikan(mikan_client)
                 .db(db_service)
                 .crypto(crypto_service)

@@ -1,7 +1,7 @@
 use std::{ops::Deref, sync::Arc};
 
 use apalis::prelude::*;
-use apalis_sql::postgres::PostgresStorage;
+use apalis_sql::{Config, postgres::PostgresStorage};
 use tokio::sync::RwLock;
 
 use crate::{
@@ -22,7 +22,11 @@ impl TaskService {
         ctx: Arc<dyn AppContextTrait>,
     ) -> RecorderResult<Self> {
         let pool = ctx.db().get_postgres_connection_pool().clone();
-        let subscriber_task_storage = Arc::new(RwLock::new(PostgresStorage::new(pool)));
+        let storage_config = Config::new(SUBSCRIBER_TASK_APALIS_NAME);
+        let subscriber_task_storage = Arc::new(RwLock::new(PostgresStorage::new_with_config(
+            pool,
+            storage_config,
+        )));
 
         Ok(Self {
             config,

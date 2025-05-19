@@ -253,7 +253,7 @@ mod tests {
 
     use super::*;
     use crate::test_utils::{
-        app::UnitTestAppContext,
+        app::TestingAppContext,
         crypto::build_testing_crypto_service,
         database::build_testing_database_service,
         mikan::{MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form},
@@ -264,9 +264,9 @@ mod tests {
         mikan_base_url: Url,
     ) -> RecorderResult<Arc<dyn AppContextTrait>> {
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
-        let db_service = build_testing_database_service().await?;
+        let db_service = build_testing_database_service(Default::default()).await?;
         let crypto_service = build_testing_crypto_service().await?;
-        let ctx = UnitTestAppContext::builder()
+        let ctx = TestingAppContext::builder()
             .db(db_service)
             .crypto(crypto_service)
             .mikan(mikan_client)

@@ -32,6 +32,14 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Episode,
+    #[sea_orm(
+        belongs_to = "super::subscribers::Entity",
+        from = "Column::SubscriberId",
+        to = "super::subscribers::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    Subscriber,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -46,12 +54,20 @@ impl Related<super::episodes::Entity> for Entity {
     }
 }
 
+impl Related<super::subscribers::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscriber.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscriptions::Entity")]
     Subscription,
     #[sea_orm(entity = "super::episodes::Entity")]
     Episode,
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
 }
 
 #[async_trait]

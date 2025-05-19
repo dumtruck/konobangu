@@ -7,6 +7,7 @@ pub mod m20220101_000001_init;
 pub mod m20240224_082543_add_downloads;
 pub mod m20241231_000001_auth;
 pub mod m20250501_021523_credential_3rd;
+pub mod m20250520_021135_subscriber_tasks;
 
 pub struct Migrator;
 
@@ -18,6 +19,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240224_082543_add_downloads::Migration),
             Box::new(m20241231_000001_auth::Migration),
             Box::new(m20250501_021523_credential_3rd::Migration),
+            Box::new(m20250520_021135_subscriber_tasks::Migration),
         ]
     }
 }

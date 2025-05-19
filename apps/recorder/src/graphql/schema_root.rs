@@ -5,7 +5,8 @@ use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
 use crate::graphql::infra::{
     filter::{
-        SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info, subscriber_id_condition_function,
+        JSONB_FILTER_INFO, SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info,
+        subscriber_id_condition_function,
     },
     guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
     transformer::{filter_condition_transformer, mutation_input_object_transformer},
@@ -24,6 +25,20 @@ fn restrict_filter_input_for_entity<T>(
 {
     let key = get_entity_column_key::<T>(context, column);
     context.filter_types.overwrites.insert(key, filter_type);
+}
+
+fn restrict_jsonb_filter_input_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
+where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let entity_column_key = get_entity_column_key::<T>(context, column);
+    context.filter_types.overwrites.insert(
+        entity_column_key.clone(),
+        Some(FilterType::Custom(
+            JSONB_FILTER_INFO.get().unwrap().type_name.clone(),
+        )),
+    );
 }
 
 fn restrict_subscriber_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
@@ -118,6 +133,14 @@ pub fn schema(
             &mut context,
             &subscription_episode::Column::SubscriberId,
         );
+        restrict_subscriber_for_entity::<subscriber_tasks::Entity>(
+            &mut context,
+            &subscriber_tasks::Column::SubscriberId,
+        );
+        restrict_jsonb_filter_input_for_entity::<subscriber_tasks::Entity>(
+            &mut context,
+            &subscriber_tasks::Column::Job,
+        );
         for column in subscribers::Column::iter() {
             if !matches!(column, subscribers::Column::Id) {
                 restrict_filter_input_for_entity::<subscribers::Entity>(
@@ -159,6 +182,7 @@ pub fn schema(
             subscription_bangumi,
             subscription_episode,
             subscriptions,
+            subscriber_tasks,
         ]
     );
 

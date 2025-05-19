@@ -9,6 +9,7 @@
     associated_type_defaults,
     let_chains
 )]
+#![allow(clippy::enum_variant_names)]
 pub use downloader;
 
 pub mod app;
@@ -25,6 +26,6 @@ pub mod migrations;
 pub mod models;
 pub mod storage;
 pub mod task;
-#[cfg(test)]
+#[cfg(any(test, feature = "playground"))]
 pub mod test_utils;
 pub mod web;

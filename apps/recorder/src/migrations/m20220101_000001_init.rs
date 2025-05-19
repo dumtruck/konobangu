@@ -181,6 +181,17 @@ impl MigrationTrait for Migration {
                             .on_update(ForeignKeyAction::Cascade)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_subscription_bangumi_subscriber_id")
+                            .from(
+                                SubscriptionBangumi::Table,
+                                SubscriptionBangumi::SubscriberId,
+                            )
+                            .to(Subscribers::Table, Subscribers::Id)
+                            .on_update(ForeignKeyAction::Cascade)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .index(
                         Index::create()
                             .if_not_exists()
@@ -296,6 +307,17 @@ impl MigrationTrait for Migration {
                             .name("fk_subscription_episode_episode_id")
                             .from(SubscriptionEpisode::Table, SubscriptionEpisode::EpisodeId)
                             .to(Episodes::Table, Episodes::Id)
+                            .on_update(ForeignKeyAction::Cascade)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_subscription_episode_subscriber_id")
+                            .from(
+                                SubscriptionEpisode::Table,
+                                SubscriptionEpisode::SubscriberId,
+                            )
+                            .to(Subscribers::Table, Subscribers::Id)
                             .on_update(ForeignKeyAction::Cascade)
                             .on_delete(ForeignKeyAction::Cascade),
                     )

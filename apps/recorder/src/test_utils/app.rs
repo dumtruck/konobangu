@@ -1,12 +1,13 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
+use once_cell::sync::OnceCell;
 use typed_builder::TypedBuilder;
 
 use crate::app::AppContextTrait;
 
 #[derive(TypedBuilder)]
 #[builder(field_defaults(default, setter(strip_option)))]
-pub struct UnitTestAppContext {
+pub struct TestingAppContext {
     logger: Option<crate::logger::LoggerService>,
     db: Option<crate::database::DatabaseService>,
     config: Option<crate::app::AppConfig>,
@@ -16,7 +17,8 @@ pub struct UnitTestAppContext {
     graphql: Option<crate::graphql::GraphQLService>,
     storage: Option<crate::storage::StorageService>,
     crypto: Option<crate::crypto::CryptoService>,
-    task: Option<crate::task::TaskService>,
+    #[builder(default = Arc::new(OnceCell::new()), setter(!strip_option))]
+    task: Arc<OnceCell<crate::task::TaskService>>,
     message: Option<crate::message::MessageService>,
     #[builder(default = Some(String::from(env!("CARGO_MANIFEST_DIR"))))]
     working_dir: Option<String>,
@@ -24,13 +26,19 @@ pub struct UnitTestAppContext {
     environment: crate::app::Environment,
 }
 
-impl Debug for UnitTestAppContext {
+impl TestingAppContext {
+    pub fn set_task(&self, task: crate::task::TaskService) {
+        self.task.get_or_init(|| task);
+    }
+}
+
+impl Debug for TestingAppContext {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "UnitTestAppContext")
     }
 }
 
-impl AppContextTrait for UnitTestAppContext {
+impl AppContextTrait for TestingAppContext {
     fn logger(&self) -> &crate::logger::LoggerService {
         self.logger.as_ref().expect("should set logger")
     }
@@ -76,7 +84,7 @@ impl AppContextTrait for UnitTestAppContext {
     }
 
     fn task(&self) -> &crate::task::TaskService {
-        self.task.as_ref().expect("should set tasks")
+        self.task.get().expect("should set task")
     }
 
     fn message(&self) -> &crate::message::MessageService {

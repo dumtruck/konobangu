@@ -1,56 +1,33 @@
-use recorder::errors::RecorderResult;
-// #![allow(unused_imports)]
-// use recorder::{
-//     app::{AppContext, AppContextTrait},
-//     errors::RecorderResult,
-//     migrations::Migrator,
-//     models::{
-//         subscribers::SEED_SUBSCRIBER,
-//         subscriptions::{self, SubscriptionCreateFromRssDto},
-//     },
-// };
-// use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
-// use sea_orm_migration::MigratorTrait;
+#![feature(duration_constructors_lite)]
+use std::{sync::Arc, time::Duration};
 
-// async fn pull_mikan_bangumi_rss(ctx: &dyn AppContextTrait) -> RecorderResult<()> {
-//     let rss_link = "https://mikanani.me/RSS/Bangumi?bangumiId=3416&subgroupid=370";
-
-//     // let rss_link =
-//     //     "https://mikanani.me/RSS/MyBangumi?token=FE9tccsML2nBPUUqpCuJW2uJZydAXCntHJ7RpD9LDP8%3d";
-//     let subscription = if let Some(subscription) =
-// subscriptions::Entity::find()
-//         .filter(subscriptions::Column::SourceUrl.eq(String::from(rss_link)))
-//         .one(ctx.db())
-//         .await?
-//     {
-//         subscription
-//     } else {
-//         subscriptions::Model::add_subscription(
-//             ctx,
-//
-// subscriptions::SubscriptionCreateDto::Mikan(SubscriptionCreateFromRssDto {
-//                 rss_link: rss_link.to_string(),
-//                 display_name: String::from("Mikan Project - 我的番组"),
-//                 enabled: Some(true),
-//             }),
-//             1,
-//         )
-//         .await?
-//     };
-
-//     subscription.pull_subscription(ctx).await?;
-
-//     Ok(())
-// }
-
-// #[tokio::main]
-// async fn main() -> RecorderResult<()> {
-//     pull_mikan_bangumi_rss(&ctx).await?;
-
-//     Ok(())
-// }
+use apalis_sql::postgres::PostgresStorage;
+use recorder::{
+    app::AppContextTrait,
+    errors::RecorderResult,
+    test_utils::{
+        app::TestingAppContext,
+        database::{TestingDatabaseServiceConfig, build_testing_database_service},
+    },
+};
 
 #[tokio::main]
 async fn main() -> RecorderResult<()> {
+    let app_ctx = {
+        let db_service = build_testing_database_service(TestingDatabaseServiceConfig {
+            auto_migrate: false,
+        })
+        .await?;
+        Arc::new(TestingAppContext::builder().db(db_service).build())
+    };
+
+    let db = app_ctx.db();
+
+    PostgresStorage::setup(db.get_postgres_connection_pool()).await?;
+
+    dbg!(db.get_postgres_connection_pool().connect_options());
+
+    tokio::time::sleep(Duration::from_hours(1)).await;
+
     Ok(())
 }

@@ -29,7 +29,8 @@
   "prettier.enable": false,
   "typescript.tsdk": "node_modules/typescript/lib",
   "rust-analyzer.cargo.features": [
-    "testcontainers"
+    "testcontainers",
+    "playground"
   ],
   "sqltools.connections": [
     {
@@ -38,6 +39,16 @@
       "port": 5432,
       "driver": "PostgreSQL",
       "name": "konobangu-dev",
+      "database": "konobangu",
+      "username": "konobangu"
+    },
+    {
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 32770,
+      "askForPassword": true,
+      "driver": "PostgreSQL",
+      "name": "docker-pgsql",
       "database": "konobangu",
       "username": "konobangu"
     }

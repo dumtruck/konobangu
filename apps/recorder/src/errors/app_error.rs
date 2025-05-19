@@ -76,7 +76,7 @@ pub enum RecorderError {
     },
     #[snafu(transparent)]
     HttpClientError { source: HttpClientError },
-    #[cfg(all(feature = "testcontainers", test))]
+    #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]
     #[snafu(transparent)]
     TestcontainersError {
         source: testcontainers::TestcontainersError,
