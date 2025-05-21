@@ -2,6 +2,7 @@
 members = [
     "packages/testing-torrents",
     "packages/util",
+    "packages/util-derive",
     "packages/fetch",
     "packages/downloader",
     "apps/recorder",
@@ -9,6 +10,12 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
+testing-torrents = { path = "./packages/testing-torrents" }
+util = { path = "./packages/util" }
+util-derive = { path = "./packages/util-derive" }
+fetch = { path = "./packages/fetch" }
+downloader = { path = "./packages/downloader" }
+
 moka = "0.12"
 futures = "0.3"
 quirks_path = "0.1"
@@ -40,11 +47,8 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 axum-extra = "0.10"
-
-testing-torrents = { path = "./packages/testing-torrents" }
-util = { path = "./packages/util" }
-fetch = { path = "./packages/fetch" }
-downloader = { path = "./packages/downloader" }
+mockito = { version = "1.6.1" }
+convert_case = "0.8"
 
 [patch.crates-io]
 jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }

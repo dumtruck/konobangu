@@ -3,14 +3,17 @@ use once_cell::sync::OnceCell;
 use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use crate::graphql::infra::{
-    filter::{
-        JSONB_FILTER_INFO, SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info,
-        subscriber_id_condition_function,
+use crate::graphql::{
+    infra::{
+        filter::{
+            JSONB_FILTER_NAME, SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info,
+            register_jsonb_input_filter_to_dynamic_schema, subscriber_id_condition_function,
+        },
+        guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
+        transformer::{filter_condition_transformer, mutation_input_object_transformer},
+        util::{get_entity_column_key, get_entity_key},
     },
-    guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
-    transformer::{filter_condition_transformer, mutation_input_object_transformer},
-    util::{get_entity_column_key, get_entity_key},
+    views::register_subscriptions_to_schema,
 };
 
 pub static CONTEXT: OnceCell<BuilderContext> = OnceCell::new();
@@ -35,9 +38,7 @@ where
     let entity_column_key = get_entity_column_key::<T>(context, column);
     context.filter_types.overwrites.insert(
         entity_column_key.clone(),
-        Some(FilterType::Custom(
-            JSONB_FILTER_INFO.get().unwrap().type_name.clone(),
-        )),
+        Some(FilterType::Custom(JSONB_FILTER_NAME.to_string())),
     );
 }
 
@@ -94,12 +95,12 @@ pub fn schema(
     let context = CONTEXT.get_or_init(|| {
         let mut context = BuilderContext::default();
 
-        context.pagination_input.type_name = "SeaographyPaginationInput".to_string();
-        context.pagination_info_object.type_name = "SeaographyPaginationInfo".to_string();
-        context.cursor_input.type_name = "SeaographyCursorInput".to_string();
-        context.offset_input.type_name = "SeaographyOffsetInput".to_string();
-        context.page_input.type_name = "SeaographyPageInput".to_string();
-        context.page_info_object.type_name = "SeaographyPageInfo".to_string();
+        context.pagination_input.type_name = "PaginationInput".to_string();
+        context.pagination_info_object.type_name = "PaginationInfo".to_string();
+        context.cursor_input.type_name = "CursorInput".to_string();
+        context.offset_input.type_name = "OffsetInput".to_string();
+        context.page_input.type_name = "PageInput".to_string();
+        context.page_info_object.type_name = "PageInfo".to_string();
 
         restrict_subscriber_for_entity::<bangumi::Entity>(
             &mut context,
@@ -160,6 +161,7 @@ pub fn schema(
         builder.schema = builder.schema.register(
             filter_types_map_helper.generate_filter_input(SUBSCRIBER_ID_FILTER_INFO.get().unwrap()),
         );
+        builder.schema = register_jsonb_input_filter_to_dynamic_schema(builder.schema);
     }
 
     {
@@ -191,6 +193,10 @@ pub fn schema(
         builder.register_enumeration::<subscriptions::SubscriptionCategory>();
         builder.register_enumeration::<downloaders::DownloaderCategory>();
         builder.register_enumeration::<downloads::DownloadMime>();
+    }
+
+    {
+        builder = register_subscriptions_to_schema(builder);
     }
 
     let schema = builder.schema_builder();

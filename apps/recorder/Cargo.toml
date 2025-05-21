@@ -25,6 +25,11 @@ testcontainers = [
 ]
 
 [dependencies]
+downloader = { workspace = true }
+util = { workspace = true }
+util-derive = { workspace = true }
+fetch = { workspace = true }
+
 serde = { workspace = true }
 tokio = { workspace = true }
 serde_json = { workspace = true }
@@ -49,7 +54,7 @@ serde_with = { workspace = true }
 moka = { workspace = true }
 chrono = { workspace = true }
 tracing-subscriber = { workspace = true }
-
+mockito = { workspace = true, optional = true }
 
 sea-orm = { version = "1.1", features = [
     "sqlx-sqlite",
@@ -113,15 +118,12 @@ cocoon = { version = "0.4.3", features = ["getrandom", "thiserror"] }
 rand = "0.9.1"
 rust_decimal = "1.37.1"
 reqwest_cookie_store = "0.8.0"
-mockito = { version = "1.6.1", optional = true }
-
-downloader = { workspace = true }
-util = { workspace = true }
-fetch = { workspace = true }
 nanoid = "0.4.0"
+
 
 [dev-dependencies]
 serial_test = "3"
 insta = { version = "1", features = ["redactions", "yaml", "filters"] }
 rstest = "0.25"
 ctor = "0.4.0"
+mockito = { workspace = true }

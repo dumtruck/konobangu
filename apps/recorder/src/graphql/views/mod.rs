@@ -1,2 +1,3 @@
 mod subscription;
-mod task;
+
+pub use subscription::register_subscriptions_to_schema;

@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use apalis::prelude::State;
 use futures::Stream;
 use serde::{Serialize, de::DeserializeOwned};
 

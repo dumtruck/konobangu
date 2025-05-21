@@ -12,10 +12,10 @@ impl MigrationTrait for Migration {
         let db = manager.get_connection();
 
         db.execute_unprepared(&format!(
-            r#"CREATE VIEW IF NOT EXISTS subscriber_task AS
+            r#"CREATE OR REPLACE VIEW subscriber_task AS
 SELECT
     job,
-    task_type,
+    job_type,
     status,
     (job->'subscriber_id')::integer AS subscriber_id,
     (job->'task_type')::text AS task_type,
@@ -29,7 +29,7 @@ SELECT
     done_at,
     priority
 FROM apalis.jobs
-WHERE job_type = {SUBSCRIBER_TASK_APALIS_NAME}
+WHERE job_type = '{SUBSCRIBER_TASK_APALIS_NAME}'
 AND jsonb_path_exists(job, '$.subscriber_id ? (@.type() == "number")')
 AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#,
         ))
@@ -38,7 +38,7 @@ AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#,
         db.execute_unprepared(&format!(
             r#"CREATE INDEX IF NOT EXISTS idx_apalis_jobs_subscriber_id
              ON apalis.jobs ((job -> 'subscriber_id'))
-             WHERE job_type = {SUBSCRIBER_TASK_APALIS_NAME}
+             WHERE job_type = '{SUBSCRIBER_TASK_APALIS_NAME}'
 AND jsonb_path_exists(job, '$.subscriber_id ? (@.type() == "number")')
 AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#
         ))

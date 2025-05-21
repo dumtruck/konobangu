@@ -55,7 +55,9 @@ pub async fn build_testing_database_service(
 }
 
 #[cfg(not(feature = "testcontainers"))]
-pub async fn build_testing_database_service() -> RecorderResult<DatabaseService> {
+pub async fn build_testing_database_service(
+    config: TestingDatabaseServiceConfig,
+) -> RecorderResult<DatabaseService> {
     let db_service = DatabaseService::from_config(DatabaseConfig {
         uri: String::from("postgres://konobangu:konobangu@127.0.0.1:5432/konobangu"),
         enable_logging: true,
@@ -64,7 +66,7 @@ pub async fn build_testing_database_service() -> RecorderResult<DatabaseService>
         connect_timeout: 5000,
         idle_timeout: 10000,
         acquire_timeout: None,
-        auto_migrate: true,
+        auto_migrate: config.auto_migrate,
     })
     .await?;
 
