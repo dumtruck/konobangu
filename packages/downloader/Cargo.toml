@@ -35,8 +35,11 @@ qbit-rs = { git = "https://github.com/lonelyhentxi/qbit.git", rev = "72d53138ebe
     "builder",
 ] }
 merge-struct = "0.1"
-librqbit-core = "4"
-librqbit = { version = "8", features = ["async-bt", "watch"] }
+librqbit-core = { git = "https://github.com/ikatson/rqbit.git", rev = "0936730" }
+librqbit = { git = "https://github.com/ikatson/rqbit.git", rev = "0936730", features = [
+    "async-bt",
+    "watch",
+] }
 
 util = { workspace = true }
 testing-torrents = { workspace = true, optional = true }

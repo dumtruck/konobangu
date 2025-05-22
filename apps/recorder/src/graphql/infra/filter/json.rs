@@ -920,7 +920,7 @@ where
 pub fn register_jsonb_input_filter_to_dynamic_schema(
     schema_builder: SchemaBuilder,
 ) -> SchemaBuilder {
-    let json_filter_input_type = Scalar::new("JsonFilterInput");
+    let json_filter_input_type = Scalar::new(JSONB_FILTER_NAME);
     schema_builder.register(json_filter_input_type)
 }
 
@@ -1261,7 +1261,7 @@ mod tests {
                     {
                         "d": [
                             {
-                                "$any": true
+                                "$match": "$any"
                             },
                             {
                                 "$eq": [1, 2, 3]

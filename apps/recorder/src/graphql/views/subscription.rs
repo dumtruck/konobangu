@@ -52,7 +52,7 @@ impl SyncOneSubscriptionInfo {
         Object::new(Self::object_type_name())
             .description("The output of the subscriptionSyncOne series of mutations")
             .field(Field::new(
-                "taskId",
+                SyncOneSubscriptionInfoFieldEnum::TaskId,
                 TypeRef::named_nn(TypeRef::STRING),
                 move |ctx| {
                     FieldFuture::new(async move {

@@ -12,8 +12,9 @@ use axum::{
     http::{HeaderValue, request::Parts},
 };
 use fetch::{HttpClient, client::HttpClientError};
+use http::header::AUTHORIZATION;
 use itertools::Itertools;
-use jwt_authorizer::{NumericDate, OneOrArray, authorizer::Authorizer};
+use jwtk::jwk::RemoteJwksVerifier;
 use moka::future::Cache;
 use openidconnect::{
     AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
@@ -77,21 +78,6 @@ impl<'c> openidconnect::AsyncHttpClient<'c> for OidcHttpClient {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OidcAuthClaims {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub iss: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sub: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub aud: Option<OneOrArray<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exp: Option<NumericDate>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub nbf: Option<NumericDate>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub iat: Option<NumericDate>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub jti: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
     #[serde(flatten)]
     pub custom: HashMap<String, Value>,
@@ -100,40 +86,6 @@ pub struct OidcAuthClaims {
 impl OidcAuthClaims {
     pub fn scopes(&self) -> std::str::Split<'_, char> {
         self.scope.as_deref().unwrap_or_default().split(',')
-    }
-
-    pub fn get_claim(&self, key: &str) -> Option<String> {
-        match key {
-            "iss" => self.iss.clone(),
-            "sub" => self.sub.clone(),
-            "aud" => self.aud.as_ref().map(|s| s.iter().join(",")),
-            "exp" => self.exp.clone().map(|s| s.0.to_string()),
-            "nbf" => self.nbf.clone().map(|s| s.0.to_string()),
-            "iat" => self.iat.clone().map(|s| s.0.to_string()),
-            "jti" => self.jti.clone(),
-            "scope" => self.scope.clone(),
-            key => self.custom.get(key).map(|s| s.to_string()),
-        }
-    }
-
-    pub fn has_claim(&self, key: &str) -> bool {
-        match key {
-            "iss" => self.iss.is_some(),
-            "sub" => self.sub.is_some(),
-            "aud" => self.aud.is_some(),
-            "exp" => self.exp.is_some(),
-            "nbf" => self.nbf.is_some(),
-            "iat" => self.iat.is_some(),
-            "jti" => self.jti.is_some(),
-            "scope" => self.scope.is_some(),
-            key => self.custom.contains_key(key),
-        }
-    }
-
-    pub fn contains_audience(&self, aud: &str) -> bool {
-        self.aud
-            .as_ref()
-            .is_some_and(|arr| arr.iter().any(|s| s == aud))
     }
 }
 
@@ -164,7 +116,7 @@ pub struct OidcAuthCallbackPayload {
 
 pub struct OidcAuthService {
     pub config: OidcAuthConfig,
-    pub api_authorizer: Authorizer<OidcAuthClaims>,
+    pub jwk_verifier: RemoteJwksVerifier,
     pub oidc_provider_client: Arc<HttpClient>,
     pub oidc_request_cache: Cache<String, OidcAuthRequest>,
 }
@@ -317,47 +269,68 @@ impl AuthServiceTrait for OidcAuthService {
         request: &mut Parts,
     ) -> Result<AuthUserInfo, AuthError> {
         let config = &self.config;
-        let token = self
-            .api_authorizer
-            .extract_token(&request.headers)
-            .ok_or(jwt_authorizer::AuthError::MissingToken())?;
+        let token = request
+            .headers
+            .get(AUTHORIZATION)
+            .and_then(|authorization| {
+                authorization
+                    .to_str()
+                    .ok()
+                    .and_then(|s| s.strip_prefix("Bearer "))
+            })
+            .ok_or(AuthError::OidcMissingBearerToken)?;
 
-        let token_data = self.api_authorizer.check_auth(&token).await?;
-        let claims = token_data.claims;
+        let token_data = self.jwk_verifier.verify::<OidcAuthClaims>(token).await?;
+        let claims = token_data.claims();
         let sub = if let Some(sub) = claims.sub.as_deref() {
             sub
         } else {
             return Err(AuthError::OidcSubMissingError);
         };
-        if !claims.contains_audience(&config.audience) {
+        if !claims.aud.iter().any(|aud| aud == &config.audience) {
             return Err(AuthError::OidcAudMissingError {
                 aud: config.audience.clone(),
             });
         }
+        let extra_claims = &claims.extra;
         if let Some(expected_scopes) = config.extra_scopes.as_ref() {
-            let found_scopes = claims.scopes().collect::<HashSet<_>>();
+            let found_scopes = extra_claims.scopes().collect::<HashSet<_>>();
             if !expected_scopes
                 .iter()
                 .all(|es| found_scopes.contains(es as &str))
             {
                 return Err(AuthError::OidcExtraScopesMatchError {
                     expected: expected_scopes.iter().join(","),
-                    found: claims.scope.unwrap_or_default(),
+                    found: extra_claims
+                        .scope
+                        .as_deref()
+                        .unwrap_or_default()
+                        .to_string(),
                 });
             }
         }
-        if let Some(key) = config.extra_claim_key.as_ref() {
-            if !claims.has_claim(key) {
-                return Err(AuthError::OidcExtraClaimMissingError { claim: key.clone() });
-            }
-            if let Some(value) = config.extra_claim_value.as_ref()
-                && claims.get_claim(key).is_none_or(|v| &v != value)
-            {
-                return Err(AuthError::OidcExtraClaimMatchError {
-                    expected: value.clone(),
-                    found: claims.get_claim(key).unwrap_or_default().to_string(),
-                    key: key.clone(),
-                });
+        if let Some(expected_extra_claims) = config.extra_claims.as_ref() {
+            for (expected_key, expected_value) in expected_extra_claims.iter() {
+                match (extra_claims.custom.get(expected_key), expected_value) {
+                    (found_value, Some(expected_value)) => {
+                        if let Some(Value::String(found_value)) = found_value
+                            && expected_value == found_value
+                        {
+                        } else {
+                            return Err(AuthError::OidcExtraClaimMatchError {
+                                expected: expected_value.clone(),
+                                found: found_value.map(|v| v.to_string()).unwrap_or_default(),
+                                key: expected_key.clone(),
+                            });
+                        }
+                    }
+                    (None, None) => {
+                        return Err(AuthError::OidcExtraClaimMissingError {
+                            claim: expected_key.clone(),
+                        });
+                    }
+                    _ => {}
+                }
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {

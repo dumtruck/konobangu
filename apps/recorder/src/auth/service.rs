@@ -1,25 +1,22 @@
 use std::{sync::Arc, time::Duration};
 
 use async_trait::async_trait;
-use axum::{
-    extract::FromRequestParts,
-    http::request::Parts,
-    response::{IntoResponse as _, Response},
-};
+use axum::http::request::Parts;
 use fetch::{
     HttpClient, HttpClientConfig,
     client::{HttpClientCacheBackendConfig, HttpClientCachePresetConfig},
 };
 use http::header::HeaderValue;
-use jwt_authorizer::{JwtAuthorizer, Validation};
+use jwtk::jwk::RemoteJwksVerifier;
 use moka::future::Cache;
+use openidconnect::{IssuerUrl, core::CoreProviderMetadata};
 use snafu::prelude::*;
 
 use super::{
     AuthConfig,
     basic::BasicAuthService,
-    errors::{AuthError, OidcProviderHttpClientSnafu},
-    oidc::{OidcAuthClaims, OidcAuthService},
+    errors::{AuthError, OidcProviderHttpClientSnafu, OidcProviderUrlSnafu},
+    oidc::{OidcAuthService, OidcHttpClient},
 };
 use crate::{app::AppContextTrait, models::auth::AuthType};
 
@@ -27,22 +24,6 @@ use crate::{app::AppContextTrait, models::auth::AuthType};
 pub struct AuthUserInfo {
     pub subscriber_auth: crate::models::auth::Model,
     pub auth_type: AuthType,
-}
-
-impl FromRequestParts<Arc<dyn AppContextTrait>> for AuthUserInfo {
-    type Rejection = Response;
-
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &Arc<dyn AppContextTrait>,
-    ) -> Result<Self, Self::Rejection> {
-        let auth_service = state.auth();
-
-        auth_service
-            .extract_user_info(state.as_ref(), parts)
-            .await
-            .map_err(|err| err.into_response())
-    }
 }
 
 #[async_trait]
@@ -66,27 +47,33 @@ impl AuthService {
         let result = match config {
             AuthConfig::Basic(config) => AuthService::Basic(Box::new(BasicAuthService { config })),
             AuthConfig::Oidc(config) => {
-                let validation = Validation::new()
-                    .iss(&[&config.issuer])
-                    .aud(&[&config.audience]);
+                let oidc_provider_client = Arc::new(
+                    HttpClient::from_config(HttpClientConfig {
+                        exponential_backoff_max_retries: Some(3),
+                        cache_backend: Some(HttpClientCacheBackendConfig::Moka { cache_size: 1 }),
+                        cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
+                        ..Default::default()
+                    })
+                    .context(OidcProviderHttpClientSnafu)?,
+                );
 
-                let oidc_provider_client = HttpClient::from_config(HttpClientConfig {
-                    exponential_backoff_max_retries: Some(3),
-                    cache_backend: Some(HttpClientCacheBackendConfig::Moka { cache_size: 1 }),
-                    cache_preset: Some(HttpClientCachePresetConfig::RFC7234),
-                    ..Default::default()
-                })
-                .context(OidcProviderHttpClientSnafu)?;
+                let provider_metadata = {
+                    let client = OidcHttpClient(oidc_provider_client.clone());
+                    let issuer_url =
+                        IssuerUrl::new(config.issuer.clone()).context(OidcProviderUrlSnafu)?;
+                    CoreProviderMetadata::discover_async(issuer_url, &client).await
+                }?;
 
-                let api_authorizer = JwtAuthorizer::<OidcAuthClaims>::from_oidc(&config.issuer)
-                    .validation(validation)
-                    .build()
-                    .await?;
+                let jwk_verifier = RemoteJwksVerifier::new(
+                    provider_metadata.jwks_uri().to_string().clone(),
+                    None,
+                    Duration::from_secs(300),
+                );
 
                 AuthService::Oidc(Box::new(OidcAuthService {
                     config,
-                    api_authorizer,
-                    oidc_provider_client: Arc::new(oidc_provider_client),
+                    jwk_verifier,
+                    oidc_provider_client,
                     oidc_request_cache: Cache::builder()
                         .time_to_live(Duration::from_mins(5))
                         .name("oidc_request_cache")
@@ -100,6 +87,7 @@ impl AuthService {
 
 #[async_trait]
 impl AuthServiceTrait for AuthService {
+    #[tracing::instrument(skip(self, ctx, request))]
     async fn extract_user_info(
         &self,
         ctx: &dyn AppContextTrait,

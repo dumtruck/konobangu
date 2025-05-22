@@ -47,7 +47,7 @@ pub enum RecorderError {
     #[snafu(transparent)]
     RSSError { source: rss::Error },
     #[snafu(transparent)]
-    DotEnvError { source: dotenv::Error },
+    DotEnvError { source: dotenvy::Error },
     #[snafu(transparent)]
     TeraError { source: tera::Error },
     #[snafu(transparent)]

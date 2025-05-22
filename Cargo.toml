@@ -16,6 +16,13 @@ util-derive = { path = "./packages/util-derive" }
 fetch = { path = "./packages/fetch" }
 downloader = { path = "./packages/downloader" }
 
+reqwest = { version = "0.12", features = [
+    "charset",
+    "http2",
+    "json",
+    "macos-system-configuration",
+    "cookies",
+] }
 moka = "0.12"
 futures = "0.3"
 quirks_path = "0.1"
@@ -24,7 +31,12 @@ testcontainers = { version = "0.24" }
 testcontainers-modules = { version = "0.12" }
 testcontainers-ext = { version = "0.1.0", features = ["tracing"] }
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1", features = ["macros", "fs", "rt-multi-thread"] }
+tokio = { version = "1.45.1", features = [
+    "macros",
+    "fs",
+    "rt-multi-thread",
+    "signal",
+] }
 serde_json = "1"
 async-trait = "0.1"
 tracing = "0.1"
@@ -37,19 +49,10 @@ serde_with = "3"
 regex = "1.11"
 lazy_static = "1.5"
 axum = { version = "0.8.3", features = ["macros"] }
-reqwest = { version = "0.12", default-features = false, features = [
-    "charset",
-    "http2",
-    "json",
-    "macos-system-configuration",
-    "rustls-tls",
-    "cookies",
-] }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 axum-extra = "0.10"
 mockito = { version = "1.6.1" }
 convert_case = "0.8"
 
 [patch.crates-io]
-jwt-authorizer = { git = "https://github.com/blablacio/jwt-authorizer.git", rev = "e956774" }
 seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "10ba248" }

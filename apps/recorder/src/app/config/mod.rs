@@ -110,12 +110,12 @@ impl AppConfig {
                     for f in try_filenames.iter() {
                         let p = try_dotenv_file_or_dir_path.join(f);
                         if p.exists() && p.is_file() {
-                            dotenv::from_path(p)?;
+                            dotenvy::from_path(p)?;
                             break;
                         }
                     }
                 } else if try_dotenv_file_or_dir_path.is_file() {
-                    dotenv::from_path(try_dotenv_file_or_dir_path)?;
+                    dotenvy::from_path(try_dotenv_file_or_dir_path)?;
                     break;
                 }
             }

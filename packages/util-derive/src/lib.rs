@@ -128,6 +128,12 @@ impl DynamicGraphqlInfo {
                 }
             }
 
+            impl From<#enum_name> for String {
+                fn from(value: #enum_name) -> Self {
+                    value.as_str().to_string()
+                }
+            }
+
             impl std::str::FromStr for #enum_name {
                 type Err = String;
 

@@ -27,10 +27,6 @@ pub enum AuthError {
     FindAuthRecordError,
     #[snafu(display("Invalid credentials"))]
     BasicInvalidCredentials,
-    #[snafu(transparent)]
-    OidcInitError {
-        source: jwt_authorizer::error::InitError,
-    },
     #[snafu(display("Invalid oidc provider meta client error: {source}"))]
     OidcProviderHttpClientError { source: HttpClientError },
     #[snafu(transparent)]
@@ -66,8 +62,10 @@ pub enum AuthError {
     OidcSignatureVerificationError { source: SignatureVerificationError },
     #[snafu(transparent)]
     OidcSigningError { source: SigningError },
+    #[snafu(display("Missing Bearer token"))]
+    OidcMissingBearerToken,
     #[snafu(transparent)]
-    OidcJwtAuthError { source: jwt_authorizer::AuthError },
+    OidcJwtkError { source: jwtk::Error },
     #[snafu(display("Extra scopes {expected} do not match found scopes {found}"))]
     OidcExtraScopesMatchError { expected: String, found: String },
     #[snafu(display("Extra claim {key} does not match expected value {expected}, found {found}"))]
