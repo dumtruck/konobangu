@@ -13,7 +13,6 @@
     "moduleDetection": "force",
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
     "emitDeclarationOnly": true,
     "skipLibCheck": true,
     "target": "ES2020",

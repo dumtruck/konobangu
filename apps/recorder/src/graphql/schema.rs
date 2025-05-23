@@ -10,7 +10,9 @@ use crate::graphql::{
             register_jsonb_input_filter_to_dynamic_schema, subscriber_id_condition_function,
         },
         guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
-        transformer::{filter_condition_transformer, mutation_input_object_transformer},
+        transformer::{
+            build_filter_condition_transformer, build_mutation_input_object_transformer,
+        },
         util::{get_entity_column_key, get_entity_key},
     },
     views::register_subscriptions_to_schema,
@@ -69,14 +71,14 @@ where
     );
     context.transformers.filter_conditions_transformers.insert(
         entity_key.clone(),
-        filter_condition_transformer::<T>(context, column),
+        build_filter_condition_transformer::<T>(context, column),
     );
     context
         .transformers
         .mutation_input_object_transformers
         .insert(
             entity_key,
-            mutation_input_object_transformer::<T>(context, column),
+            build_mutation_input_object_transformer::<T>(context, column),
         );
     context
         .entity_input
@@ -85,7 +87,7 @@ where
     context.entity_input.update_skips.push(entity_column_key);
 }
 
-pub fn schema(
+pub fn build_schema(
     database: DatabaseConnection,
     depth: Option<usize>,
     complexity: Option<usize>,
@@ -138,6 +140,10 @@ pub fn schema(
             &mut context,
             &subscriber_tasks::Column::SubscriberId,
         );
+        restrict_subscriber_for_entity::<credential_3rd::Entity>(
+            &mut context,
+            &credential_3rd::Column::SubscriberId,
+        );
         restrict_jsonb_filter_input_for_entity::<subscriber_tasks::Entity>(
             &mut context,
             &subscriber_tasks::Column::Job,
@@ -185,6 +191,7 @@ pub fn schema(
             subscription_episode,
             subscriptions,
             subscriber_tasks,
+            credential_3rd
         ]
     );
 
@@ -193,6 +200,7 @@ pub fn schema(
         builder.register_enumeration::<subscriptions::SubscriptionCategory>();
         builder.register_enumeration::<downloaders::DownloaderCategory>();
         builder.register_enumeration::<downloads::DownloadMime>();
+        builder.register_enumeration::<credential_3rd::Credential3rdType>();
     }
 
     {

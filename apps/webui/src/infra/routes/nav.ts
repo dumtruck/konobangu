@@ -1,6 +1,7 @@
 import {
   BookOpen,
   Folders,
+  KeyRound,
   Settings2,
   SquareTerminal,
   Telescope,
@@ -45,6 +46,27 @@ export const AppNavMainData = [
             title: 'Create',
             link: {
               to: '/subscriptions/create',
+            },
+          },
+        ],
+      },
+      {
+        title: 'Credential',
+        link: {
+          to: '/credential3rd',
+        },
+        icon: KeyRound,
+        children: [
+          {
+            title: 'Manage',
+            link: {
+              to: '/credential3rd/manage',
+            },
+          },
+          {
+            title: 'Create',
+            link: {
+              to: '/credential3rd/create',
             },
           },
         ],

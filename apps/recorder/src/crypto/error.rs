@@ -1,3 +1,6 @@
+use async_graphql::Error as AsyncGraphQLError;
+use seaography::SeaographyError;
+
 #[derive(Debug, snafu::Snafu)]
 pub enum CryptoError {
     #[snafu(transparent)]
@@ -8,4 +11,10 @@ pub enum CryptoError {
     FromUtf8Error { source: std::string::FromUtf8Error },
     #[snafu(transparent)]
     SerdeJsonError { source: serde_json::Error },
+}
+
+impl From<CryptoError> for SeaographyError {
+    fn from(error: CryptoError) -> Self {
+        SeaographyError::AsyncGraphQLError(AsyncGraphQLError::new(error.to_string()))
+    }
 }

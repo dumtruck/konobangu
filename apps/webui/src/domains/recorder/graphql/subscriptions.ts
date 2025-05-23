@@ -1,20 +1,9 @@
 import { gql } from '@apollo/client';
 
-import type {
-  GetSubscriptionDetailQuery,
-  GetSubscriptionsQuery,
-} from '@/infra/graphql/gql/graphql';
-
 export const GET_SUBSCRIPTIONS = gql`
-  query GetSubscriptions(
-  $page: PageInput!,
-  $filters: SubscriptionsFilterInput!,
-  $orderBy: SubscriptionsOrderInput!
-) {
+  query GetSubscriptions($filters: SubscriptionsFilterInput!, $orderBy: SubscriptionsOrderInput!, $pagination: PaginationInput!) {
     subscriptions(
-      pagination: {
-        page: $page
-      }
+      pagination: $pagination
       filters: $filters
       orderBy: $orderBy
     ) {
@@ -34,9 +23,6 @@ export const GET_SUBSCRIPTIONS = gql`
     }
   }
 `;
-
-export type SubscriptionDto =
-  GetSubscriptionsQuery['subscriptions']['nodes'][number];
 
 export const UPDATE_SUBSCRIPTIONS = gql`
     mutation UpdateSubscriptions(
@@ -99,9 +85,3 @@ query GetSubscriptionDetail ($id: Int!) {
   }
 }
 `;
-
-export type SubscriptionDetailDto =
-  GetSubscriptionDetailQuery['subscriptions']['nodes'][number];
-
-export type SubscriptionDetailBangumiDto =
-  SubscriptionDetailDto['bangumi']['nodes'][number];

@@ -1,13 +1,15 @@
 use std::{collections::BTreeMap, sync::Arc};
 
-use async_graphql::dynamic::ResolverContext;
-use sea_orm::{ColumnTrait, Condition, EntityTrait, Value};
-use seaography::{BuilderContext, FnFilterConditionsTransformer, FnMutationInputObjectTransformer};
+use async_graphql::dynamic::{ResolverContext, ValueAccessor};
+use sea_orm::{ColumnTrait, Condition, EntityTrait, Value as SeaValue};
+use seaography::{
+    BuilderContext, FnFilterConditionsTransformer, FnMutationInputObjectTransformer, SeaResult,
+};
 
 use super::util::{get_column_key, get_entity_key};
-use crate::auth::AuthUserInfo;
+use crate::{app::AppContextTrait, auth::AuthUserInfo, models::credential_3rd};
 
-pub fn filter_condition_transformer<T>(
+pub fn build_filter_condition_transformer<T>(
     _context: &BuilderContext,
     column: &T::Column,
 ) -> FnFilterConditionsTransformer
@@ -29,7 +31,7 @@ where
     )
 }
 
-pub fn mutation_input_object_transformer<T>(
+pub fn build_mutation_input_object_transformer<T>(
     context: &BuilderContext,
     column: &T::Column,
 ) -> FnMutationInputObjectTransformer
@@ -55,8 +57,8 @@ where
     ));
     Box::new(
         move |context: &ResolverContext,
-              mut input: BTreeMap<String, Value>|
-              -> BTreeMap<String, Value> {
+              mut input: BTreeMap<String, SeaValue>|
+              -> BTreeMap<String, SeaValue> {
             let field_name = context.field().name();
             if field_name == entity_create_one_mutation_field_name.as_str()
                 || field_name == entity_create_batch_mutation_field_name.as_str()
@@ -68,7 +70,7 @@ where
                         if value.is_none() {
                             input.insert(
                                 column_name.as_str().to_string(),
-                                Value::Int(Some(subscriber_id)),
+                                SeaValue::Int(Some(subscriber_id)),
                             );
                         }
                         input
@@ -80,4 +82,92 @@ where
             }
         },
     )
+}
+
+fn add_crypto_column_input_conversion<T>(
+    context: &mut BuilderContext,
+    ctx: Arc<dyn AppContextTrait>,
+    column: &T::Column,
+) where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let entity_key = get_entity_key::<T>(context);
+    let column_name = get_column_key::<T>(context, column);
+    let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
+    let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
+
+    context.types.input_conversions.insert(
+        format!("{entity_name}.{column_name}"),
+        Box::new(move |value: &ValueAccessor| -> SeaResult<sea_orm::Value> {
+            let source = value.string()?;
+            let encrypted = ctx.crypto().encrypt_string(source.into())?;
+            Ok(encrypted.into())
+        }),
+    );
+}
+
+fn add_crypto_column_output_conversion<T>(
+    context: &mut BuilderContext,
+    ctx: Arc<dyn AppContextTrait>,
+    column: &T::Column,
+) where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let entity_key = get_entity_key::<T>(context);
+    let column_name = get_column_key::<T>(context, column);
+    let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
+    let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
+
+    context.types.output_conversions.insert(
+        format!("{entity_name}.{column_name}"),
+        Box::new(
+            move |value: &sea_orm::Value| -> SeaResult<async_graphql::Value> {
+                if let SeaValue::String(s) = value {
+                    if let Some(s) = s {
+                        let decrypted = ctx.crypto().decrypt_string(s)?;
+                        Ok(async_graphql::Value::String(decrypted))
+                    } else {
+                        Ok(async_graphql::Value::Null)
+                    }
+                } else {
+                    Err(async_graphql::Error::new("crypto column must be string column").into())
+                }
+            },
+        ),
+    );
+}
+
+pub fn crypto_transformer(context: &mut BuilderContext, ctx: Arc<dyn AppContextTrait>) {
+    add_crypto_column_input_conversion::<credential_3rd::Entity>(
+        context,
+        ctx.clone(),
+        &credential_3rd::Column::Cookies,
+    );
+    add_crypto_column_input_conversion::<credential_3rd::Entity>(
+        context,
+        ctx.clone(),
+        &credential_3rd::Column::Username,
+    );
+    add_crypto_column_output_conversion::<credential_3rd::Entity>(
+        context,
+        ctx.clone(),
+        &credential_3rd::Column::Password,
+    );
+    add_crypto_column_output_conversion::<credential_3rd::Entity>(
+        context,
+        ctx.clone(),
+        &credential_3rd::Column::Cookies,
+    );
+    add_crypto_column_output_conversion::<credential_3rd::Entity>(
+        context,
+        ctx.clone(),
+        &credential_3rd::Column::Username,
+    );
+    add_crypto_column_output_conversion::<credential_3rd::Entity>(
+        context,
+        ctx,
+        &credential_3rd::Column::Password,
+    );
 }

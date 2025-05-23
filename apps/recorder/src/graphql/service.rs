@@ -1,7 +1,7 @@
 use async_graphql::dynamic::Schema;
 use sea_orm::DatabaseConnection;
 
-use super::{config::GraphQLConfig, schema_root};
+use super::{build_schema, config::GraphQLConfig};
 use crate::errors::RecorderResult;
 
 #[derive(Debug)]
@@ -14,7 +14,7 @@ impl GraphQLService {
         config: GraphQLConfig,
         db: DatabaseConnection,
     ) -> RecorderResult<Self> {
-        let schema = schema_root::schema(
+        let schema = build_schema(
             db,
             config.depth_limit.and_then(|l| l.into()),
             config.complexity_limit.and_then(|l| l.into()),

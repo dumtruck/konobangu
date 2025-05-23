@@ -66,6 +66,14 @@ impl Related<super::subscriptions::Entity> for Entity {
     }
 }
 
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::subscribers::Entity")]
+    Subscriber,
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Subscription,
+}
+
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {}
 

@@ -39,6 +39,8 @@ pub enum Relation {
     Episode,
     #[sea_orm(has_many = "super::auth::Entity")]
     Auth,
+    #[sea_orm(has_many = "super::credential_3rd::Entity")]
+    Credential3rd,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -71,6 +73,12 @@ impl Related<super::auth::Entity> for Entity {
     }
 }
 
+impl Related<super::credential_3rd::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Credential3rd.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscriptions::Entity")]
@@ -81,6 +89,8 @@ pub enum RelatedEntity {
     Bangumi,
     #[sea_orm(entity = "super::episodes::Entity")]
     Episode,
+    #[sea_orm(entity = "super::credential_3rd::Entity")]
+    Credential3rd,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -103,7 +113,7 @@ impl Model {
         let subscriber = Entity::find_by_id(id)
             .one(db)
             .await?
-            .ok_or_else(|| RecorderError::from_db_record_not_found("subscriptions::find_by_id"))?;
+            .ok_or_else(|| RecorderError::from_db_record_not_found("subscribers::find_by_id"))?;
         Ok(subscriber)
     }
 

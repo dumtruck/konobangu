@@ -10,27 +10,30 @@
 
 // Import Routes
 
-import { Route as R404Import } from './routes/404.tsx';
-import { Route as rootRoute } from './routes/__root.tsx';
-import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore.tsx';
-import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed.tsx';
-import { Route as AppBangumiManageImport } from './routes/_app/bangumi/manage.tsx';
-import { Route as AppBangumiRouteImport } from './routes/_app/bangumi/route.tsx';
-import { Route as AppPlaygroundGraphqlApiImport } from './routes/_app/playground/graphql-api.tsx';
-import { Route as AppPlaygroundRouteImport } from './routes/_app/playground/route.tsx';
-import { Route as AppRouteImport } from './routes/_app/route.tsx';
-import { Route as AppSettingsDownloaderImport } from './routes/_app/settings/downloader.tsx';
-import { Route as AppSettingsRouteImport } from './routes/_app/settings/route.tsx';
-import { Route as AppSubscriptionsCreateImport } from './routes/_app/subscriptions/create.tsx';
-import { Route as AppSubscriptionsDetailSubscriptionIdImport } from './routes/_app/subscriptions/detail.$subscriptionId.tsx';
-import { Route as AppSubscriptionsEditSubscriptionIdImport } from './routes/_app/subscriptions/edit.$subscriptionId.tsx';
-import { Route as AppSubscriptionsManageImport } from './routes/_app/subscriptions/manage.tsx';
-import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions/route.tsx';
-import { Route as AboutImport } from './routes/about.tsx';
-import { Route as AuthOidcCallbackImport } from './routes/auth/oidc/callback.tsx';
-import { Route as AuthSignInImport } from './routes/auth/sign-in.tsx';
-import { Route as AuthSignUpImport } from './routes/auth/sign-up.tsx';
-import { Route as IndexImport } from './routes/index.tsx';
+import { Route as rootRoute } from './routes/__root'
+import { Route as AboutImport } from './routes/about'
+import { Route as R404Import } from './routes/404'
+import { Route as AppRouteImport } from './routes/_app/route'
+import { Route as IndexImport } from './routes/index'
+import { Route as AuthSignUpImport } from './routes/auth/sign-up'
+import { Route as AuthSignInImport } from './routes/auth/sign-in'
+import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions/route'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings/route'
+import { Route as AppPlaygroundRouteImport } from './routes/_app/playground/route'
+import { Route as AppCredential3rdRouteImport } from './routes/_app/credential3rd/route'
+import { Route as AppBangumiRouteImport } from './routes/_app/bangumi/route'
+import { Route as AuthOidcCallbackImport } from './routes/auth/oidc/callback'
+import { Route as AppSubscriptionsManageImport } from './routes/_app/subscriptions/manage'
+import { Route as AppSubscriptionsCreateImport } from './routes/_app/subscriptions/create'
+import { Route as AppSettingsDownloaderImport } from './routes/_app/settings/downloader'
+import { Route as AppPlaygroundGraphqlApiImport } from './routes/_app/playground/graphql-api'
+import { Route as AppCredential3rdManageImport } from './routes/_app/credential3rd/manage'
+import { Route as AppCredential3rdCreateImport } from './routes/_app/credential3rd/create'
+import { Route as AppBangumiManageImport } from './routes/_app/bangumi/manage'
+import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
+import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
+import { Route as AppSubscriptionsEditSubscriptionIdImport } from './routes/_app/subscriptions/edit.$subscriptionId'
+import { Route as AppSubscriptionsDetailSubscriptionIdImport } from './routes/_app/subscriptions/detail.$subscriptionId'
 
 // Create/Update Routes
 
@@ -38,313 +41,367 @@ const AboutRoute = AboutImport.update({
   id: '/about',
   path: '/about',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const R404Route = R404Import.update({
   id: '/404',
   path: '/404',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AppRouteRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthSignUpRoute = AuthSignUpImport.update({
   id: '/auth/sign-up',
   path: '/auth/sign-up',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AuthSignInRoute = AuthSignInImport.update({
   id: '/auth/sign-in',
   path: '/auth/sign-in',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AppSubscriptionsRouteRoute = AppSubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
 
 const AppSettingsRouteRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
 
 const AppPlaygroundRouteRoute = AppPlaygroundRouteImport.update({
   id: '/playground',
   path: '/playground',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
+
+const AppCredential3rdRouteRoute = AppCredential3rdRouteImport.update({
+  id: '/credential3rd',
+  path: '/credential3rd',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 const AppBangumiRouteRoute = AppBangumiRouteImport.update({
   id: '/bangumi',
   path: '/bangumi',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
 
 const AuthOidcCallbackRoute = AuthOidcCallbackImport.update({
   id: '/auth/oidc/callback',
   path: '/auth/oidc/callback',
   getParentRoute: () => rootRoute,
-} as any);
+} as any)
 
 const AppSubscriptionsManageRoute = AppSubscriptionsManageImport.update({
   id: '/manage',
   path: '/manage',
   getParentRoute: () => AppSubscriptionsRouteRoute,
-} as any);
+} as any)
 
 const AppSubscriptionsCreateRoute = AppSubscriptionsCreateImport.update({
   id: '/create',
   path: '/create',
   getParentRoute: () => AppSubscriptionsRouteRoute,
-} as any);
+} as any)
 
 const AppSettingsDownloaderRoute = AppSettingsDownloaderImport.update({
   id: '/downloader',
   path: '/downloader',
   getParentRoute: () => AppSettingsRouteRoute,
-} as any);
+} as any)
 
 const AppPlaygroundGraphqlApiRoute = AppPlaygroundGraphqlApiImport.update({
   id: '/graphql-api',
   path: '/graphql-api',
   getParentRoute: () => AppPlaygroundRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/playground/graphql-api.lazy.tsx').then((d) => d.Route)
-);
+  import('./routes/_app/playground/graphql-api.lazy').then((d) => d.Route),
+)
+
+const AppCredential3rdManageRoute = AppCredential3rdManageImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => AppCredential3rdRouteRoute,
+} as any)
+
+const AppCredential3rdCreateRoute = AppCredential3rdCreateImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AppCredential3rdRouteRoute,
+} as any)
 
 const AppBangumiManageRoute = AppBangumiManageImport.update({
   id: '/manage',
   path: '/manage',
   getParentRoute: () => AppBangumiRouteRoute,
-} as any);
+} as any)
 
 const AppExploreFeedRoute = AppExploreFeedImport.update({
   id: '/_explore/feed',
   path: '/feed',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
 
 const AppExploreExploreRoute = AppExploreExploreImport.update({
   id: '/_explore/explore',
   path: '/explore',
   getParentRoute: () => AppRouteRoute,
-} as any);
+} as any)
 
 const AppSubscriptionsEditSubscriptionIdRoute =
   AppSubscriptionsEditSubscriptionIdImport.update({
     id: '/edit/$subscriptionId',
     path: '/edit/$subscriptionId',
     getParentRoute: () => AppSubscriptionsRouteRoute,
-  } as any);
+  } as any)
 
 const AppSubscriptionsDetailSubscriptionIdRoute =
   AppSubscriptionsDetailSubscriptionIdImport.update({
     id: '/detail/$subscriptionId',
     path: '/detail/$subscriptionId',
     getParentRoute: () => AppSubscriptionsRouteRoute,
-  } as any);
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
     '/_app': {
-      id: '/_app';
-      path: '';
-      fullPath: '';
-      preLoaderRoute: typeof AppRouteImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRoute
+    }
     '/404': {
-      id: '/404';
-      path: '/404';
-      fullPath: '/404';
-      preLoaderRoute: typeof R404Import;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/404'
+      path: '/404'
+      fullPath: '/404'
+      preLoaderRoute: typeof R404Import
+      parentRoute: typeof rootRoute
+    }
     '/about': {
-      id: '/about';
-      path: '/about';
-      fullPath: '/about';
-      preLoaderRoute: typeof AboutImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutImport
+      parentRoute: typeof rootRoute
+    }
     '/_app/bangumi': {
-      id: '/_app/bangumi';
-      path: '/bangumi';
-      fullPath: '/bangumi';
-      preLoaderRoute: typeof AppBangumiRouteImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/bangumi'
+      path: '/bangumi'
+      fullPath: '/bangumi'
+      preLoaderRoute: typeof AppBangumiRouteImport
+      parentRoute: typeof AppRouteImport
+    }
+    '/_app/credential3rd': {
+      id: '/_app/credential3rd'
+      path: '/credential3rd'
+      fullPath: '/credential3rd'
+      preLoaderRoute: typeof AppCredential3rdRouteImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/playground': {
-      id: '/_app/playground';
-      path: '/playground';
-      fullPath: '/playground';
-      preLoaderRoute: typeof AppPlaygroundRouteImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof AppPlaygroundRouteImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/settings': {
-      id: '/_app/settings';
-      path: '/settings';
-      fullPath: '/settings';
-      preLoaderRoute: typeof AppSettingsRouteImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/subscriptions': {
-      id: '/_app/subscriptions';
-      path: '/subscriptions';
-      fullPath: '/subscriptions';
-      preLoaderRoute: typeof AppSubscriptionsRouteImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof AppSubscriptionsRouteImport
+      parentRoute: typeof AppRouteImport
+    }
     '/auth/sign-in': {
-      id: '/auth/sign-in';
-      path: '/auth/sign-in';
-      fullPath: '/auth/sign-in';
-      preLoaderRoute: typeof AuthSignInImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/auth/sign-in'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInImport
+      parentRoute: typeof rootRoute
+    }
     '/auth/sign-up': {
-      id: '/auth/sign-up';
-      path: '/auth/sign-up';
-      fullPath: '/auth/sign-up';
-      preLoaderRoute: typeof AuthSignUpImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/auth/sign-up'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpImport
+      parentRoute: typeof rootRoute
+    }
     '/_app/_explore/explore': {
-      id: '/_app/_explore/explore';
-      path: '/explore';
-      fullPath: '/explore';
-      preLoaderRoute: typeof AppExploreExploreImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/_explore/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof AppExploreExploreImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/_explore/feed': {
-      id: '/_app/_explore/feed';
-      path: '/feed';
-      fullPath: '/feed';
-      preLoaderRoute: typeof AppExploreFeedImport;
-      parentRoute: typeof AppRouteImport;
-    };
+      id: '/_app/_explore/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppExploreFeedImport
+      parentRoute: typeof AppRouteImport
+    }
     '/_app/bangumi/manage': {
-      id: '/_app/bangumi/manage';
-      path: '/manage';
-      fullPath: '/bangumi/manage';
-      preLoaderRoute: typeof AppBangumiManageImport;
-      parentRoute: typeof AppBangumiRouteImport;
-    };
+      id: '/_app/bangumi/manage'
+      path: '/manage'
+      fullPath: '/bangumi/manage'
+      preLoaderRoute: typeof AppBangumiManageImport
+      parentRoute: typeof AppBangumiRouteImport
+    }
+    '/_app/credential3rd/create': {
+      id: '/_app/credential3rd/create'
+      path: '/create'
+      fullPath: '/credential3rd/create'
+      preLoaderRoute: typeof AppCredential3rdCreateImport
+      parentRoute: typeof AppCredential3rdRouteImport
+    }
+    '/_app/credential3rd/manage': {
+      id: '/_app/credential3rd/manage'
+      path: '/manage'
+      fullPath: '/credential3rd/manage'
+      preLoaderRoute: typeof AppCredential3rdManageImport
+      parentRoute: typeof AppCredential3rdRouteImport
+    }
     '/_app/playground/graphql-api': {
-      id: '/_app/playground/graphql-api';
-      path: '/graphql-api';
-      fullPath: '/playground/graphql-api';
-      preLoaderRoute: typeof AppPlaygroundGraphqlApiImport;
-      parentRoute: typeof AppPlaygroundRouteImport;
-    };
+      id: '/_app/playground/graphql-api'
+      path: '/graphql-api'
+      fullPath: '/playground/graphql-api'
+      preLoaderRoute: typeof AppPlaygroundGraphqlApiImport
+      parentRoute: typeof AppPlaygroundRouteImport
+    }
     '/_app/settings/downloader': {
-      id: '/_app/settings/downloader';
-      path: '/downloader';
-      fullPath: '/settings/downloader';
-      preLoaderRoute: typeof AppSettingsDownloaderImport;
-      parentRoute: typeof AppSettingsRouteImport;
-    };
+      id: '/_app/settings/downloader'
+      path: '/downloader'
+      fullPath: '/settings/downloader'
+      preLoaderRoute: typeof AppSettingsDownloaderImport
+      parentRoute: typeof AppSettingsRouteImport
+    }
     '/_app/subscriptions/create': {
-      id: '/_app/subscriptions/create';
-      path: '/create';
-      fullPath: '/subscriptions/create';
-      preLoaderRoute: typeof AppSubscriptionsCreateImport;
-      parentRoute: typeof AppSubscriptionsRouteImport;
-    };
+      id: '/_app/subscriptions/create'
+      path: '/create'
+      fullPath: '/subscriptions/create'
+      preLoaderRoute: typeof AppSubscriptionsCreateImport
+      parentRoute: typeof AppSubscriptionsRouteImport
+    }
     '/_app/subscriptions/manage': {
-      id: '/_app/subscriptions/manage';
-      path: '/manage';
-      fullPath: '/subscriptions/manage';
-      preLoaderRoute: typeof AppSubscriptionsManageImport;
-      parentRoute: typeof AppSubscriptionsRouteImport;
-    };
+      id: '/_app/subscriptions/manage'
+      path: '/manage'
+      fullPath: '/subscriptions/manage'
+      preLoaderRoute: typeof AppSubscriptionsManageImport
+      parentRoute: typeof AppSubscriptionsRouteImport
+    }
     '/auth/oidc/callback': {
-      id: '/auth/oidc/callback';
-      path: '/auth/oidc/callback';
-      fullPath: '/auth/oidc/callback';
-      preLoaderRoute: typeof AuthOidcCallbackImport;
-      parentRoute: typeof rootRoute;
-    };
+      id: '/auth/oidc/callback'
+      path: '/auth/oidc/callback'
+      fullPath: '/auth/oidc/callback'
+      preLoaderRoute: typeof AuthOidcCallbackImport
+      parentRoute: typeof rootRoute
+    }
     '/_app/subscriptions/detail/$subscriptionId': {
-      id: '/_app/subscriptions/detail/$subscriptionId';
-      path: '/detail/$subscriptionId';
-      fullPath: '/subscriptions/detail/$subscriptionId';
-      preLoaderRoute: typeof AppSubscriptionsDetailSubscriptionIdImport;
-      parentRoute: typeof AppSubscriptionsRouteImport;
-    };
+      id: '/_app/subscriptions/detail/$subscriptionId'
+      path: '/detail/$subscriptionId'
+      fullPath: '/subscriptions/detail/$subscriptionId'
+      preLoaderRoute: typeof AppSubscriptionsDetailSubscriptionIdImport
+      parentRoute: typeof AppSubscriptionsRouteImport
+    }
     '/_app/subscriptions/edit/$subscriptionId': {
-      id: '/_app/subscriptions/edit/$subscriptionId';
-      path: '/edit/$subscriptionId';
-      fullPath: '/subscriptions/edit/$subscriptionId';
-      preLoaderRoute: typeof AppSubscriptionsEditSubscriptionIdImport;
-      parentRoute: typeof AppSubscriptionsRouteImport;
-    };
+      id: '/_app/subscriptions/edit/$subscriptionId'
+      path: '/edit/$subscriptionId'
+      fullPath: '/subscriptions/edit/$subscriptionId'
+      preLoaderRoute: typeof AppSubscriptionsEditSubscriptionIdImport
+      parentRoute: typeof AppSubscriptionsRouteImport
+    }
   }
 }
 
 // Create and export the route tree
 
 interface AppBangumiRouteRouteChildren {
-  AppBangumiManageRoute: typeof AppBangumiManageRoute;
+  AppBangumiManageRoute: typeof AppBangumiManageRoute
 }
 
 const AppBangumiRouteRouteChildren: AppBangumiRouteRouteChildren = {
   AppBangumiManageRoute: AppBangumiManageRoute,
-};
+}
 
 const AppBangumiRouteRouteWithChildren = AppBangumiRouteRoute._addFileChildren(
-  AppBangumiRouteRouteChildren
-);
+  AppBangumiRouteRouteChildren,
+)
+
+interface AppCredential3rdRouteRouteChildren {
+  AppCredential3rdCreateRoute: typeof AppCredential3rdCreateRoute
+  AppCredential3rdManageRoute: typeof AppCredential3rdManageRoute
+}
+
+const AppCredential3rdRouteRouteChildren: AppCredential3rdRouteRouteChildren = {
+  AppCredential3rdCreateRoute: AppCredential3rdCreateRoute,
+  AppCredential3rdManageRoute: AppCredential3rdManageRoute,
+}
+
+const AppCredential3rdRouteRouteWithChildren =
+  AppCredential3rdRouteRoute._addFileChildren(
+    AppCredential3rdRouteRouteChildren,
+  )
 
 interface AppPlaygroundRouteRouteChildren {
-  AppPlaygroundGraphqlApiRoute: typeof AppPlaygroundGraphqlApiRoute;
+  AppPlaygroundGraphqlApiRoute: typeof AppPlaygroundGraphqlApiRoute
 }
 
 const AppPlaygroundRouteRouteChildren: AppPlaygroundRouteRouteChildren = {
   AppPlaygroundGraphqlApiRoute: AppPlaygroundGraphqlApiRoute,
-};
+}
 
 const AppPlaygroundRouteRouteWithChildren =
-  AppPlaygroundRouteRoute._addFileChildren(AppPlaygroundRouteRouteChildren);
+  AppPlaygroundRouteRoute._addFileChildren(AppPlaygroundRouteRouteChildren)
 
 interface AppSettingsRouteRouteChildren {
-  AppSettingsDownloaderRoute: typeof AppSettingsDownloaderRoute;
+  AppSettingsDownloaderRoute: typeof AppSettingsDownloaderRoute
 }
 
 const AppSettingsRouteRouteChildren: AppSettingsRouteRouteChildren = {
   AppSettingsDownloaderRoute: AppSettingsDownloaderRoute,
-};
+}
 
 const AppSettingsRouteRouteWithChildren =
-  AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren);
+  AppSettingsRouteRoute._addFileChildren(AppSettingsRouteRouteChildren)
 
 interface AppSubscriptionsRouteRouteChildren {
-  AppSubscriptionsCreateRoute: typeof AppSubscriptionsCreateRoute;
-  AppSubscriptionsManageRoute: typeof AppSubscriptionsManageRoute;
-  AppSubscriptionsDetailSubscriptionIdRoute: typeof AppSubscriptionsDetailSubscriptionIdRoute;
-  AppSubscriptionsEditSubscriptionIdRoute: typeof AppSubscriptionsEditSubscriptionIdRoute;
+  AppSubscriptionsCreateRoute: typeof AppSubscriptionsCreateRoute
+  AppSubscriptionsManageRoute: typeof AppSubscriptionsManageRoute
+  AppSubscriptionsDetailSubscriptionIdRoute: typeof AppSubscriptionsDetailSubscriptionIdRoute
+  AppSubscriptionsEditSubscriptionIdRoute: typeof AppSubscriptionsEditSubscriptionIdRoute
 }
 
 const AppSubscriptionsRouteRouteChildren: AppSubscriptionsRouteRouteChildren = {
@@ -354,113 +411,125 @@ const AppSubscriptionsRouteRouteChildren: AppSubscriptionsRouteRouteChildren = {
     AppSubscriptionsDetailSubscriptionIdRoute,
   AppSubscriptionsEditSubscriptionIdRoute:
     AppSubscriptionsEditSubscriptionIdRoute,
-};
+}
 
 const AppSubscriptionsRouteRouteWithChildren =
   AppSubscriptionsRouteRoute._addFileChildren(
-    AppSubscriptionsRouteRouteChildren
-  );
+    AppSubscriptionsRouteRouteChildren,
+  )
 
 interface AppRouteRouteChildren {
-  AppBangumiRouteRoute: typeof AppBangumiRouteRouteWithChildren;
-  AppPlaygroundRouteRoute: typeof AppPlaygroundRouteRouteWithChildren;
-  AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren;
-  AppSubscriptionsRouteRoute: typeof AppSubscriptionsRouteRouteWithChildren;
-  AppExploreExploreRoute: typeof AppExploreExploreRoute;
-  AppExploreFeedRoute: typeof AppExploreFeedRoute;
+  AppBangumiRouteRoute: typeof AppBangumiRouteRouteWithChildren
+  AppCredential3rdRouteRoute: typeof AppCredential3rdRouteRouteWithChildren
+  AppPlaygroundRouteRoute: typeof AppPlaygroundRouteRouteWithChildren
+  AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
+  AppSubscriptionsRouteRoute: typeof AppSubscriptionsRouteRouteWithChildren
+  AppExploreExploreRoute: typeof AppExploreExploreRoute
+  AppExploreFeedRoute: typeof AppExploreFeedRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBangumiRouteRoute: AppBangumiRouteRouteWithChildren,
+  AppCredential3rdRouteRoute: AppCredential3rdRouteRouteWithChildren,
   AppPlaygroundRouteRoute: AppPlaygroundRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppSubscriptionsRouteRoute: AppSubscriptionsRouteRouteWithChildren,
   AppExploreExploreRoute: AppExploreExploreRoute,
   AppExploreFeedRoute: AppExploreFeedRoute,
-};
+}
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
-  AppRouteRouteChildren
-);
+  AppRouteRouteChildren,
+)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '': typeof AppRouteRouteWithChildren;
-  '/404': typeof R404Route;
-  '/about': typeof AboutRoute;
-  '/bangumi': typeof AppBangumiRouteRouteWithChildren;
-  '/playground': typeof AppPlaygroundRouteRouteWithChildren;
-  '/settings': typeof AppSettingsRouteRouteWithChildren;
-  '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren;
-  '/auth/sign-in': typeof AuthSignInRoute;
-  '/auth/sign-up': typeof AuthSignUpRoute;
-  '/explore': typeof AppExploreExploreRoute;
-  '/feed': typeof AppExploreFeedRoute;
-  '/bangumi/manage': typeof AppBangumiManageRoute;
-  '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute;
-  '/settings/downloader': typeof AppSettingsDownloaderRoute;
-  '/subscriptions/create': typeof AppSubscriptionsCreateRoute;
-  '/subscriptions/manage': typeof AppSubscriptionsManageRoute;
-  '/auth/oidc/callback': typeof AuthOidcCallbackRoute;
-  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute;
-  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute;
+  '/': typeof IndexRoute
+  '': typeof AppRouteRouteWithChildren
+  '/404': typeof R404Route
+  '/about': typeof AboutRoute
+  '/bangumi': typeof AppBangumiRouteRouteWithChildren
+  '/credential3rd': typeof AppCredential3rdRouteRouteWithChildren
+  '/playground': typeof AppPlaygroundRouteRouteWithChildren
+  '/settings': typeof AppSettingsRouteRouteWithChildren
+  '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/explore': typeof AppExploreExploreRoute
+  '/feed': typeof AppExploreFeedRoute
+  '/bangumi/manage': typeof AppBangumiManageRoute
+  '/credential3rd/create': typeof AppCredential3rdCreateRoute
+  '/credential3rd/manage': typeof AppCredential3rdManageRoute
+  '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/settings/downloader': typeof AppSettingsDownloaderRoute
+  '/subscriptions/create': typeof AppSubscriptionsCreateRoute
+  '/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/auth/oidc/callback': typeof AuthOidcCallbackRoute
+  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
+  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '': typeof AppRouteRouteWithChildren;
-  '/404': typeof R404Route;
-  '/about': typeof AboutRoute;
-  '/bangumi': typeof AppBangumiRouteRouteWithChildren;
-  '/playground': typeof AppPlaygroundRouteRouteWithChildren;
-  '/settings': typeof AppSettingsRouteRouteWithChildren;
-  '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren;
-  '/auth/sign-in': typeof AuthSignInRoute;
-  '/auth/sign-up': typeof AuthSignUpRoute;
-  '/explore': typeof AppExploreExploreRoute;
-  '/feed': typeof AppExploreFeedRoute;
-  '/bangumi/manage': typeof AppBangumiManageRoute;
-  '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute;
-  '/settings/downloader': typeof AppSettingsDownloaderRoute;
-  '/subscriptions/create': typeof AppSubscriptionsCreateRoute;
-  '/subscriptions/manage': typeof AppSubscriptionsManageRoute;
-  '/auth/oidc/callback': typeof AuthOidcCallbackRoute;
-  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute;
-  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute;
+  '/': typeof IndexRoute
+  '': typeof AppRouteRouteWithChildren
+  '/404': typeof R404Route
+  '/about': typeof AboutRoute
+  '/bangumi': typeof AppBangumiRouteRouteWithChildren
+  '/credential3rd': typeof AppCredential3rdRouteRouteWithChildren
+  '/playground': typeof AppPlaygroundRouteRouteWithChildren
+  '/settings': typeof AppSettingsRouteRouteWithChildren
+  '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/explore': typeof AppExploreExploreRoute
+  '/feed': typeof AppExploreFeedRoute
+  '/bangumi/manage': typeof AppBangumiManageRoute
+  '/credential3rd/create': typeof AppCredential3rdCreateRoute
+  '/credential3rd/manage': typeof AppCredential3rdManageRoute
+  '/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/settings/downloader': typeof AppSettingsDownloaderRoute
+  '/subscriptions/create': typeof AppSubscriptionsCreateRoute
+  '/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/auth/oidc/callback': typeof AuthOidcCallbackRoute
+  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
+  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  '/': typeof IndexRoute;
-  '/_app': typeof AppRouteRouteWithChildren;
-  '/404': typeof R404Route;
-  '/about': typeof AboutRoute;
-  '/_app/bangumi': typeof AppBangumiRouteRouteWithChildren;
-  '/_app/playground': typeof AppPlaygroundRouteRouteWithChildren;
-  '/_app/settings': typeof AppSettingsRouteRouteWithChildren;
-  '/_app/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren;
-  '/auth/sign-in': typeof AuthSignInRoute;
-  '/auth/sign-up': typeof AuthSignUpRoute;
-  '/_app/_explore/explore': typeof AppExploreExploreRoute;
-  '/_app/_explore/feed': typeof AppExploreFeedRoute;
-  '/_app/bangumi/manage': typeof AppBangumiManageRoute;
-  '/_app/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute;
-  '/_app/settings/downloader': typeof AppSettingsDownloaderRoute;
-  '/_app/subscriptions/create': typeof AppSubscriptionsCreateRoute;
-  '/_app/subscriptions/manage': typeof AppSubscriptionsManageRoute;
-  '/auth/oidc/callback': typeof AuthOidcCallbackRoute;
-  '/_app/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute;
-  '/_app/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute;
+  __root__: typeof rootRoute
+  '/': typeof IndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
+  '/404': typeof R404Route
+  '/about': typeof AboutRoute
+  '/_app/bangumi': typeof AppBangumiRouteRouteWithChildren
+  '/_app/credential3rd': typeof AppCredential3rdRouteRouteWithChildren
+  '/_app/playground': typeof AppPlaygroundRouteRouteWithChildren
+  '/_app/settings': typeof AppSettingsRouteRouteWithChildren
+  '/_app/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-up': typeof AuthSignUpRoute
+  '/_app/_explore/explore': typeof AppExploreExploreRoute
+  '/_app/_explore/feed': typeof AppExploreFeedRoute
+  '/_app/bangumi/manage': typeof AppBangumiManageRoute
+  '/_app/credential3rd/create': typeof AppCredential3rdCreateRoute
+  '/_app/credential3rd/manage': typeof AppCredential3rdManageRoute
+  '/_app/playground/graphql-api': typeof AppPlaygroundGraphqlApiRoute
+  '/_app/settings/downloader': typeof AppSettingsDownloaderRoute
+  '/_app/subscriptions/create': typeof AppSubscriptionsCreateRoute
+  '/_app/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/auth/oidc/callback': typeof AuthOidcCallbackRoute
+  '/_app/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
+  '/_app/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | ''
     | '/404'
     | '/about'
     | '/bangumi'
+    | '/credential3rd'
     | '/playground'
     | '/settings'
     | '/subscriptions'
@@ -469,20 +538,23 @@ export interface FileRouteTypes {
     | '/explore'
     | '/feed'
     | '/bangumi/manage'
+    | '/credential3rd/create'
+    | '/credential3rd/manage'
     | '/playground/graphql-api'
     | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/subscriptions/detail/$subscriptionId'
-    | '/subscriptions/edit/$subscriptionId';
-  fileRoutesByTo: FileRoutesByTo;
+    | '/subscriptions/edit/$subscriptionId'
+  fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | ''
     | '/404'
     | '/about'
     | '/bangumi'
+    | '/credential3rd'
     | '/playground'
     | '/settings'
     | '/subscriptions'
@@ -491,13 +563,15 @@ export interface FileRouteTypes {
     | '/explore'
     | '/feed'
     | '/bangumi/manage'
+    | '/credential3rd/create'
+    | '/credential3rd/manage'
     | '/playground/graphql-api'
     | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/subscriptions/detail/$subscriptionId'
-    | '/subscriptions/edit/$subscriptionId';
+    | '/subscriptions/edit/$subscriptionId'
   id:
     | '__root__'
     | '/'
@@ -505,6 +579,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/about'
     | '/_app/bangumi'
+    | '/_app/credential3rd'
     | '/_app/playground'
     | '/_app/settings'
     | '/_app/subscriptions'
@@ -513,24 +588,26 @@ export interface FileRouteTypes {
     | '/_app/_explore/explore'
     | '/_app/_explore/feed'
     | '/_app/bangumi/manage'
+    | '/_app/credential3rd/create'
+    | '/_app/credential3rd/manage'
     | '/_app/playground/graphql-api'
     | '/_app/settings/downloader'
     | '/_app/subscriptions/create'
     | '/_app/subscriptions/manage'
     | '/auth/oidc/callback'
     | '/_app/subscriptions/detail/$subscriptionId'
-    | '/_app/subscriptions/edit/$subscriptionId';
-  fileRoutesById: FileRoutesById;
+    | '/_app/subscriptions/edit/$subscriptionId'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AppRouteRoute: typeof AppRouteRouteWithChildren;
-  R404Route: typeof R404Route;
-  AboutRoute: typeof AboutRoute;
-  AuthSignInRoute: typeof AuthSignInRoute;
-  AuthSignUpRoute: typeof AuthSignUpRoute;
-  AuthOidcCallbackRoute: typeof AuthOidcCallbackRoute;
+  IndexRoute: typeof IndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  R404Route: typeof R404Route
+  AboutRoute: typeof AboutRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthOidcCallbackRoute: typeof AuthOidcCallbackRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -541,11 +618,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthOidcCallbackRoute: AuthOidcCallbackRoute,
-};
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
 /* ROUTE_MANIFEST_START
 {
@@ -569,6 +646,7 @@ export const routeTree = rootRoute
       "filePath": "_app/route.tsx",
       "children": [
         "/_app/bangumi",
+        "/_app/credential3rd",
         "/_app/playground",
         "/_app/settings",
         "/_app/subscriptions",
@@ -587,6 +665,14 @@ export const routeTree = rootRoute
       "parent": "/_app",
       "children": [
         "/_app/bangumi/manage"
+      ]
+    },
+    "/_app/credential3rd": {
+      "filePath": "_app/credential3rd/route.tsx",
+      "parent": "/_app",
+      "children": [
+        "/_app/credential3rd/create",
+        "/_app/credential3rd/manage"
       ]
     },
     "/_app/playground": {
@@ -630,6 +716,14 @@ export const routeTree = rootRoute
     "/_app/bangumi/manage": {
       "filePath": "_app/bangumi/manage.tsx",
       "parent": "/_app/bangumi"
+    },
+    "/_app/credential3rd/create": {
+      "filePath": "_app/credential3rd/create.tsx",
+      "parent": "/_app/credential3rd"
+    },
+    "/_app/credential3rd/manage": {
+      "filePath": "_app/credential3rd/manage.tsx",
+      "parent": "/_app/credential3rd"
     },
     "/_app/playground/graphql-api": {
       "filePath": "_app/playground/graphql-api.tsx",

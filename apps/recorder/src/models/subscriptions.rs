@@ -141,6 +141,8 @@ pub enum RelatedEntity {
     SubscriptionEpisode,
     #[sea_orm(entity = "super::subscription_bangumi::Entity")]
     SubscriptionBangumi,
+    #[sea_orm(entity = "super::credential_3rd::Entity")]
+    Credential3rd,
 }
 
 #[async_trait]

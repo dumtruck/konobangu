@@ -1,7 +1,7 @@
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
-import { QueryErrorView } from '@/components/ui/query-error-view.tsx';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
+import { QueryErrorView } from '@/components/ui/query-error-view';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import {
   Table,
@@ -16,8 +16,8 @@ import type {
   SubscriptionsUpdateInput,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton.ts';
-import { useEvent } from '@/presentation/hooks/use-event.ts';
+import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
+import { useEvent } from '@/presentation/hooks/use-event';
 import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
 import { useNavigate } from '@tanstack/react-router';
@@ -34,13 +34,13 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { DataTableRowActions } from '../../../../components/ui/data-table-row-actions.tsx';
+import { DataTableRowActions } from '../../../../components/ui/data-table-row-actions';
 import {
   DELETE_SUBSCRIPTIONS,
   GET_SUBSCRIPTIONS,
   type SubscriptionDto,
   UPDATE_SUBSCRIPTIONS,
-} from './-defs.ts';
+} from '../../../../domains/recorder/graphql/subscriptions.js';
 
 export const Route = createFileRoute('/_app/subscriptions/manage')({
   component: SubscriptionManageRouteComponent,
