@@ -1,3 +1,4 @@
+import type { GetSubscriptionsQuery } from '@/infra/graphql/gql/graphql';
 import { gql } from '@apollo/client';
 
 export const GET_SUBSCRIPTIONS = gql`
@@ -23,6 +24,9 @@ export const GET_SUBSCRIPTIONS = gql`
     }
   }
 `;
+
+export type SubscriptionDto =
+  GetSubscriptionsQuery['subscriptions']['nodes'][number];
 
 export const UPDATE_SUBSCRIPTIONS = gql`
     mutation UpdateSubscriptions(
