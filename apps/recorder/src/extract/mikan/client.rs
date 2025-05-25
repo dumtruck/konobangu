@@ -2,6 +2,7 @@ use std::{fmt::Debug, ops::Deref, sync::Arc};
 
 use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
+use scraper::{Html, Selector};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter, TryIntoModel,
 };
@@ -68,50 +69,44 @@ impl MikanClient {
                     message: "mikan login failed, credential required".to_string(),
                     source: None.into(),
                 })?;
+
         let login_page_url = {
             let mut u = self.base_url.join(MIKAN_LOGIN_PAGE_PATH)?;
             u.set_query(Some(MIKAN_LOGIN_PAGE_SEARCH));
             u
         };
 
-        // access login page to get antiforgery cookie
-        self.http_client
-            .get(login_page_url.clone())
-            .send()
-            .await
-            .map_err(|error| RecorderError::Credential3rdError {
-                message: "failed to get mikan login page".to_string(),
-                source: OptDynErr::some_boxed(error),
-            })?;
+        let antiforgery_token = {
+            // access login page to get antiforgery cookie
+            let login_page_html = self
+                .http_client
+                .get(login_page_url.clone())
+                .send()
+                .await
+                .map_err(|error| RecorderError::Credential3rdError {
+                    message: "failed to get mikan login page".to_string(),
+                    source: OptDynErr::some_boxed(error),
+                })?
+                .text()
+                .await?;
 
-        let antiforgery_cookie = {
-            let cookie_store_lock = self.http_client.cookie_store.clone().ok_or_else(|| {
-                RecorderError::Credential3rdError {
-                    message: "failed to get cookie store".to_string(),
+            let login_page_html = Html::parse_document(&login_page_html);
+
+            let antiforgery_selector =
+                Selector::parse("input[name='__RequestVerificationToken']").unwrap();
+
+            login_page_html
+                .select(&antiforgery_selector)
+                .next()
+                .and_then(|element| element.value().attr("value").map(|value| value.to_string()))
+                .ok_or_else(|| RecorderError::Credential3rdError {
+                    message: "mikan login failed, failed to get antiforgery token".to_string(),
                     source: None.into(),
-                }
-            })?;
-            let cookie_store =
-                cookie_store_lock
-                    .read()
-                    .map_err(|_| RecorderError::Credential3rdError {
-                        message: "failed to read cookie store".to_string(),
-                        source: None.into(),
-                    })?;
-
-            cookie_store
-                .matches(&login_page_url)
-                .iter()
-                .find(|cookie| cookie.name().starts_with(".AspNetCore.Antiforgery."))
-                .map(|cookie| cookie.value().to_string())
-        }
-        .ok_or_else(|| RecorderError::Credential3rdError {
-            message: "mikan login failed, failed to get antiforgery cookie".to_string(),
-            source: None.into(),
-        })?;
+                })
+        }?;
 
         let login_post_form = hashmap! {
-            "__RequestVerificationToken".to_string() => antiforgery_cookie,
+            "__RequestVerificationToken".to_string() => antiforgery_token,
             "UserName".to_string() => userpass_credential.username.clone(),
             "Password".to_string() => userpass_credential.password.clone(),
             "RememberMe".to_string() => "true".to_string(),
@@ -186,11 +181,32 @@ impl MikanClient {
 
     pub async fn fork_with_credential(
         &self,
+        userpass_credential: UserPassCredential,
+    ) -> RecorderResult<Self> {
+        let mut fork = self
+            .http_client
+            .fork()
+            .attach_cookies(userpass_credential.cookies.as_deref())?;
+
+        if let Some(user_agent) = userpass_credential.user_agent.as_ref() {
+            fork = fork.attach_user_agent(user_agent);
+        }
+
+        let userpass_credential_opt = Some(userpass_credential);
+
+        Ok(Self {
+            http_client: HttpClient::from_fork(fork)?,
+            base_url: self.base_url.clone(),
+            origin_url: self.origin_url.clone(),
+            userpass_credential: userpass_credential_opt,
+        })
+    }
+
+    pub async fn fork_with_credential_id(
+        &self,
         ctx: Arc<dyn AppContextTrait>,
         credential_id: i32,
     ) -> RecorderResult<Self> {
-        let mut fork = self.http_client.fork();
-
         let credential = credential_3rd::Model::find_by_id(ctx.clone(), credential_id).await?;
         if let Some(credential) = credential {
             if credential.credential_type != Credential3rdType::Mikan {
@@ -203,20 +219,7 @@ impl MikanClient {
             let userpass_credential: UserPassCredential =
                 credential.try_into_userpass_credential(ctx)?;
 
-            fork = fork.attach_cookies(userpass_credential.cookies.as_deref())?;
-
-            if let Some(user_agent) = userpass_credential.user_agent.as_ref() {
-                fork = fork.attach_user_agent(user_agent);
-            }
-
-            let userpass_credential_opt = Some(userpass_credential);
-
-            Ok(Self {
-                http_client: HttpClient::from_fork(fork)?,
-                base_url: self.base_url.clone(),
-                origin_url: self.origin_url.clone(),
-                userpass_credential: userpass_credential_opt,
-            })
+            self.fork_with_credential(userpass_credential).await
         } else {
             Err(RecorderError::from_db_record_not_found(
                 DbErr::RecordNotFound(format!("credential={credential_id} not found")),
@@ -319,7 +322,7 @@ mod tests {
         );
 
         let mikan_client = mikan_client
-            .fork_with_credential(app_ctx.clone(), credential_model.id)
+            .fork_with_credential_id(app_ctx.clone(), credential_model.id)
             .await?;
 
         mikan_client.login().await?;

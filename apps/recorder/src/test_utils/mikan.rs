@@ -1,14 +1,22 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    path::{self, Path},
+};
 
 use chrono::{Duration, Utc};
 use fetch::{FetchError, HttpClientConfig, IntoUrl, get_random_ua};
+use percent_encoding::{AsciiSet, CONTROLS, percent_decode, utf8_percent_encode};
+use serde::{Deserialize, Serialize};
 use url::Url;
 
 use crate::{
+    crypto::UserPassCredential,
     errors::RecorderResult,
     extract::mikan::{
-        MIKAN_ACCOUNT_MANAGE_PAGE_PATH, MIKAN_LOGIN_PAGE_PATH, MikanClient, MikanConfig,
-        MikanCredentialForm,
+        MIKAN_ACCOUNT_MANAGE_PAGE_PATH, MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH,
+        MIKAN_BANGUMI_HOMEPAGE_PATH, MIKAN_BANGUMI_POSTER_PATH, MIKAN_BANGUMI_RSS_PATH,
+        MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_EPISODE_TORRENT_PATH, MIKAN_LOGIN_PAGE_PATH,
+        MIKAN_SEASON_FLOW_PAGE_PATH, MikanClient, MikanConfig, MikanCredentialForm,
     },
 };
 
@@ -16,6 +24,20 @@ const TESTING_MIKAN_USERNAME: &str = "test_username";
 const TESTING_MIKAN_PASSWORD: &str = "test_password";
 const TESTING_MIKAN_ANTIFORGERY: &str = "test_antiforgery";
 const TESTING_MIKAN_IDENTITY: &str = "test_identity";
+
+const FILE_UNSAFE: &AsciiSet = &CONTROLS
+    .add(b'<')
+    .add(b'>')
+    .add(b':')
+    .add(b'"')
+    .add(b'|')
+    .add(b'?')
+    .add(b'*')
+    .add(b'\\')
+    .add(b'/')
+    .add(b'&')
+    .add(b'=')
+    .add(b'#');
 
 pub async fn build_testing_mikan_client(
     base_mikan_url: impl IntoUrl,
@@ -38,12 +60,134 @@ pub fn build_testing_mikan_credential_form() -> MikanCredentialForm {
     }
 }
 
+pub fn build_testing_mikan_credential() -> UserPassCredential {
+    UserPassCredential {
+        username: String::from(TESTING_MIKAN_USERNAME),
+        password: String::from(TESTING_MIKAN_PASSWORD),
+        user_agent: None,
+        cookies: None,
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MikanDoppelMeta {
+    pub status: u16,
+}
+
+pub struct MikanDoppelPath {
+    path: path::PathBuf,
+}
+
+impl MikanDoppelPath {
+    pub fn new(source: impl Into<Self>) -> Self {
+        source.into()
+    }
+
+    pub fn exists_any(&self) -> bool {
+        self.exists() || self.exists_meta()
+    }
+
+    pub fn exists(&self) -> bool {
+        self.path().exists()
+    }
+
+    pub fn exists_meta(&self) -> bool {
+        self.meta_path().exists()
+    }
+
+    pub fn write(&self, content: impl AsRef<[u8]>) -> std::io::Result<()> {
+        if let Some(parent) = self.as_ref().parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(self.as_ref(), content)?;
+        Ok(())
+    }
+
+    pub fn write_meta(&self, meta: MikanDoppelMeta) -> std::io::Result<()> {
+        self.write(serde_json::to_string(&meta)?)
+    }
+
+    pub fn read(&self) -> std::io::Result<Vec<u8>> {
+        let content = std::fs::read(self.as_ref())?;
+        Ok(content)
+    }
+
+    pub fn read_meta(&self) -> std::io::Result<MikanDoppelMeta> {
+        let content = std::fs::read(self.meta_path())?;
+        Ok(serde_json::from_slice(&content)?)
+    }
+
+    pub fn encode_path_component(component: &str) -> String {
+        utf8_percent_encode(component, FILE_UNSAFE).to_string()
+    }
+
+    pub fn decode_path_component(component: &str) -> Result<String, std::str::Utf8Error> {
+        Ok(percent_decode(component.as_bytes())
+            .decode_utf8()?
+            .to_string())
+    }
+
+    pub fn meta_path(&self) -> path::PathBuf {
+        let extension = if let Some(ext) = self.path().extension() {
+            format!("{}.meta.json", ext.to_string_lossy())
+        } else {
+            String::from("meta.json")
+        };
+        self.path.to_path_buf().with_extension(extension)
+    }
+
+    pub fn path(&self) -> &path::Path {
+        &self.path
+    }
+}
+
+impl AsRef<path::Path> for MikanDoppelPath {
+    fn as_ref(&self) -> &path::Path {
+        self.path()
+    }
+}
+
+impl From<Url> for MikanDoppelPath {
+    fn from(value: Url) -> Self {
+        let base_path =
+            Path::new("tests/resources/mikan/doppel").join(value.path().trim_matches('/'));
+        let dirname = base_path.parent();
+        let stem = base_path.file_stem();
+        debug_assert!(dirname.is_some() && stem.is_some());
+        let extension = if let Some(ext) = base_path.extension() {
+            ext.to_string_lossy().to_string()
+        } else {
+            String::from("html")
+        };
+        let mut filename = stem.unwrap().to_string_lossy().to_string();
+        if let Some(query) = value.query() {
+            filename.push_str(&format!("-{}", Self::encode_path_component(query)));
+        }
+        if let Some(fragment) = value.fragment() {
+            filename.push_str(&format!("-{}", Self::encode_path_component(fragment)));
+        }
+        filename.push_str(&format!(".{extension}"));
+
+        Self {
+            path: dirname.unwrap().join(filename),
+        }
+    }
+}
+
 pub struct MikanMockServerLoginMock {
     pub login_get_mock: mockito::Mock,
     pub login_post_success_mock: mockito::Mock,
     pub login_post_failed_mock: mockito::Mock,
     pub account_get_success_mock: mockito::Mock,
     pub account_get_failed_mock: mockito::Mock,
+}
+
+pub struct MikanMockServerResourcesMock {
+    pub shared_resource_mock: mockito::Mock,
+    pub shared_resource_not_found_mock: mockito::Mock,
+    pub user_resource_mock: mockito::Mock,
+    pub expand_bangumi_noauth_mock: mockito::Mock,
+    pub season_flow_noauth_mock: mockito::Mock,
 }
 
 pub struct MikanMockServer {
@@ -80,7 +224,7 @@ impl MikanMockServer {
             .server
             .mock("GET", MIKAN_LOGIN_PAGE_PATH)
             .match_query(mockito::Matcher::Any)
-            .with_status(201)
+            .with_status(200)
             .with_header("Content-Type", "text/html; charset=utf-8")
             .with_header(
                 "Set-Cookie",
@@ -89,6 +233,7 @@ impl MikanMockServer {
                      SameSite=Strict; Path=/"
                 ),
             )
+            .with_body_from_file("tests/resources/mikan/LoginPage.html")
             .create();
 
         let test_identity_expires = (Utc::now() + Duration::days(30)).to_rfc2822();
@@ -168,6 +313,140 @@ impl MikanMockServer {
             login_post_failed_mock,
             account_get_success_mock,
             account_get_failed_mock,
+        }
+    }
+
+    pub fn mock_resources_with_doppel(&mut self) -> MikanMockServerResourcesMock {
+        let shared_resource_mock = self
+            .server
+            .mock("GET", mockito::Matcher::Any)
+            .match_request({
+                let mikan_base_url = self.base_url().clone();
+                move |request| {
+                    let path = request.path();
+                    if path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                        || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
+                        || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                        || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
+                        || path.starts_with(MIKAN_EPISODE_TORRENT_PATH)
+                    {
+                        if let Ok(url) = mikan_base_url.join(request.path_and_query()) {
+                            let doppel_path = MikanDoppelPath::from(url);
+                            doppel_path.exists()
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            })
+            .with_status(200)
+            .with_body_from_request({
+                let mikan_base_url = self.base_url().clone();
+                move |req| {
+                    let path_and_query = req.path_and_query();
+                    let url = mikan_base_url.join(path_and_query).unwrap();
+                    let doppel_path = MikanDoppelPath::from(url);
+                    doppel_path.read().unwrap()
+                }
+            })
+            .create();
+
+        let shared_resource_not_found_mock = self
+            .server
+            .mock("GET", mockito::Matcher::Any)
+            .match_request({
+                let mikan_base_url = self.base_url().clone();
+                move |request| {
+                    let path = request.path();
+                    if path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                        || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
+                        || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                        || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
+                        || path.starts_with(MIKAN_EPISODE_TORRENT_PATH)
+                    {
+                        if let Ok(url) = mikan_base_url.join(request.path_and_query()) {
+                            let doppel_path = MikanDoppelPath::from(url);
+                            doppel_path.exists_meta()
+                                && doppel_path.read_meta().unwrap().status == 404
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            })
+            .with_status(404)
+            .create();
+
+        let user_resource_mock = self
+            .server
+            .mock("GET", mockito::Matcher::Any)
+            .match_request({
+                let mikan_base_url = self.base_url().clone();
+                move |req| {
+                    if !Self::get_has_auth_matcher()(req) {
+                        return false;
+                    }
+                    let path = req.path();
+                    if path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
+                        || path.starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
+                    {
+                        if let Ok(url) = mikan_base_url.join(req.path_and_query()) {
+                            let doppel_path = MikanDoppelPath::from(url);
+                            doppel_path.exists()
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            })
+            .with_status(200)
+            .with_body_from_request({
+                let mikan_base_url = self.base_url().clone();
+                move |req| {
+                    let path_and_query = req.path_and_query();
+                    let url = mikan_base_url.join(path_and_query).unwrap();
+                    let doppel_path = MikanDoppelPath::from(url);
+                    doppel_path.read().unwrap()
+                }
+            })
+            .create();
+
+        let expand_bangumi_noauth_mock = self
+            .server
+            .mock("GET", mockito::Matcher::Any)
+            .match_request(move |req| {
+                !Self::get_has_auth_matcher()(req)
+                    && req
+                        .path()
+                        .starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
+            })
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/ExpandBangumi-noauth.html")
+            .create();
+
+        let season_flow_noauth_mock = self
+            .server
+            .mock("GET", mockito::Matcher::Any)
+            .match_request(move |req| {
+                !Self::get_has_auth_matcher()(req)
+                    && req.path().starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
+            })
+            .with_status(200)
+            .with_body_from_file("tests/resources/mikan/BangumiCoverFlow-noauth.html")
+            .create();
+
+        MikanMockServerResourcesMock {
+            shared_resource_mock,
+            shared_resource_not_found_mock,
+            user_resource_mock,
+            expand_bangumi_noauth_mock,
+            season_flow_noauth_mock,
         }
     }
 }

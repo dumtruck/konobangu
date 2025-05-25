@@ -105,7 +105,7 @@ pub enum RecorderError {
     ModelEntityNotFound { entity: Cow<'static, str> },
     #[snafu(transparent)]
     FetchError { source: FetchError },
-    #[snafu(display("Credential3rdError: {source}"))]
+    #[snafu(display("Credential3rdError: {message}, source = {source}"))]
     Credential3rdError {
         message: String,
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
@@ -113,6 +113,8 @@ pub enum RecorderError {
     },
     #[snafu(transparent)]
     CryptoError { source: CryptoError },
+    #[snafu(transparent)]
+    StringFromUtf8Error { source: std::string::FromUtf8Error },
     #[snafu(display("{message}"))]
     Whatever {
         message: String,

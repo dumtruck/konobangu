@@ -20,8 +20,11 @@ use crate::{
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
         mikan::{
-            MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_POSTER_BUCKET_KEY,
-            MIKAN_SEASON_FLOW_PAGE_PATH, MikanClient,
+            MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_BANGUMI_HOMEPAGE_PATH,
+            MIKAN_BANGUMI_ID_QUERY_KEY, MIKAN_BANGUMI_POSTER_PATH, MIKAN_BANGUMI_RSS_PATH,
+            MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY, MIKAN_POSTER_BUCKET_KEY,
+            MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH,
+            MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY, MikanClient,
         },
     },
     storage::{StorageContentCategory, StorageServiceTrait},
@@ -101,12 +104,12 @@ pub struct MikanSubscriberSubscriptionRssUrlMeta {
 
 impl MikanSubscriberSubscriptionRssUrlMeta {
     pub fn from_rss_url(url: &Url) -> Option<Self> {
-        if url.path() == "/RSS/MyBangumi" {
-            url.query_pairs().find(|(k, _)| k == "token").map(|(_, v)| {
-                MikanSubscriberSubscriptionRssUrlMeta {
+        if url.path() == MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH {
+            url.query_pairs()
+                .find(|(k, _)| k == MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY)
+                .map(|(_, v)| MikanSubscriberSubscriptionRssUrlMeta {
                     mikan_subscription_token: v.to_string(),
-                }
-            })
+                })
         } else {
             None
         }
@@ -122,9 +125,11 @@ pub fn build_mikan_subscriber_subscription_rss_url(
     mikan_subscription_token: &str,
 ) -> Url {
     let mut url = mikan_base_url;
-    url.set_path("/RSS/MyBangumi");
-    url.query_pairs_mut()
-        .append_pair("token", mikan_subscription_token);
+    url.set_path(MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH);
+    url.query_pairs_mut().append_pair(
+        MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
+        mikan_subscription_token,
+    );
     url
 }
 
@@ -224,8 +229,10 @@ pub struct MikanBangumiIndexHash {
 
 impl MikanBangumiIndexHash {
     pub fn from_homepage_url(url: &Url) -> Option<Self> {
-        if url.path().starts_with("/Home/Bangumi/") {
-            let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
+        if url.path().starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH) {
+            let mikan_bangumi_id = url
+                .path()
+                .replace(&format!("{MIKAN_BANGUMI_HOMEPAGE_PATH}/"), "");
 
             Some(Self { mikan_bangumi_id })
         } else {
@@ -244,12 +251,12 @@ pub fn build_mikan_bangumi_subscription_rss_url(
     mikan_fansub_id: Option<&str>,
 ) -> Url {
     let mut url = mikan_base_url;
-    url.set_path("/RSS/Bangumi");
+    url.set_path(MIKAN_BANGUMI_RSS_PATH);
     url.query_pairs_mut()
-        .append_pair("bangumiId", mikan_bangumi_id);
+        .append_pair(MIKAN_BANGUMI_ID_QUERY_KEY, mikan_bangumi_id);
     if let Some(mikan_fansub_id) = mikan_fansub_id {
         url.query_pairs_mut()
-            .append_pair("subgroupid", mikan_fansub_id);
+            .append_pair(MIKAN_FANSUB_ID_QUERY_KEY, mikan_fansub_id);
     };
     url
 }
@@ -262,8 +269,10 @@ pub struct MikanBangumiHash {
 
 impl MikanBangumiHash {
     pub fn from_homepage_url(url: &Url) -> Option<Self> {
-        if url.path().starts_with("/Home/Bangumi/") {
-            let mikan_bangumi_id = url.path().replace("/Home/Bangumi/", "");
+        if url.path().starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH) {
+            let mikan_bangumi_id = url
+                .path()
+                .replace(&format!("{MIKAN_BANGUMI_HOMEPAGE_PATH}/"), "");
 
             let url_fragment = url.fragment()?;
 
@@ -277,13 +286,13 @@ impl MikanBangumiHash {
     }
 
     pub fn from_rss_url(url: &Url) -> Option<Self> {
-        if url.path() == "/RSS/Bangumi" {
+        if url.path() == MIKAN_BANGUMI_RSS_PATH {
             if let (Some(mikan_fansub_id), Some(mikan_bangumi_id)) = (
                 url.query_pairs()
-                    .find(|(k, _)| k == "subgroupid")
+                    .find(|(k, _)| k == MIKAN_FANSUB_ID_QUERY_KEY)
                     .map(|(_, v)| v.to_string()),
                 url.query_pairs()
-                    .find(|(k, _)| k == "bangumiId")
+                    .find(|(k, _)| k == MIKAN_BANGUMI_ID_QUERY_KEY)
                     .map(|(_, v)| v.to_string()),
             ) {
                 Some(Self {
@@ -317,7 +326,7 @@ impl MikanBangumiHash {
 
 pub fn build_mikan_episode_homepage_url(mikan_base_url: Url, mikan_episode_id: &str) -> Url {
     let mut url = mikan_base_url;
-    url.set_path(&format!("/Home/Episode/{mikan_episode_id}"));
+    url.set_path(&format!("{MIKAN_EPISODE_HOMEPAGE_PATH}/{mikan_episode_id}"));
     url
 }
 
@@ -328,8 +337,10 @@ pub struct MikanEpisodeHash {
 
 impl MikanEpisodeHash {
     pub fn from_homepage_url(url: &Url) -> Option<Self> {
-        if url.path().starts_with("/Home/Episode/") {
-            let mikan_episode_id = url.path().replace("/Home/Episode/", "");
+        if url.path().starts_with(MIKAN_EPISODE_HOMEPAGE_PATH) {
+            let mikan_episode_id = url
+                .path()
+                .replace(&format!("{MIKAN_EPISODE_HOMEPAGE_PATH}/"), "");
             Some(Self { mikan_episode_id })
         } else {
             None
@@ -416,7 +427,7 @@ pub fn build_mikan_bangumi_homepage_url(
     mikan_fansub_id: Option<&str>,
 ) -> Url {
     let mut url = mikan_base_url;
-    url.set_path(&format!("/Home/Bangumi/{mikan_bangumi_id}"));
+    url.set_path(&format!("{MIKAN_BANGUMI_HOMEPAGE_PATH}/{mikan_bangumi_id}"));
     url.set_fragment(mikan_fansub_id);
     url
 }
@@ -715,7 +726,9 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             StorageContentCategory::Image,
             subscriber_id,
             Some(MIKAN_POSTER_BUCKET_KEY),
-            &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
+            &origin_poster_src_url
+                .path()
+                .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
         )
         .await?
     {
@@ -734,7 +747,9 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             StorageContentCategory::Image,
             subscriber_id,
             Some(MIKAN_POSTER_BUCKET_KEY),
-            &origin_poster_src_url.path().replace("/images/Bangumi/", ""),
+            &origin_poster_src_url
+                .path()
+                .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
             poster_data,
         )
         .await?;
@@ -884,7 +899,7 @@ pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
 ) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
     try_stream! {
         let mikan_base_url = ctx.mikan().base_url().clone();
-        let mikan_client = ctx.mikan().fork_with_credential(ctx.clone(), credential_id).await?;
+        let mikan_client = ctx.mikan().fork_with_credential_id(ctx.clone(), credential_id).await?;
 
         let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
 
@@ -971,7 +986,8 @@ mod test {
             crypto::build_testing_crypto_service,
             database::build_testing_database_service,
             mikan::{
-                MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form,
+                MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential,
+                build_testing_mikan_credential_form,
             },
             storage::build_testing_storage_service,
             tracing::try_init_testing_tracing,
@@ -986,22 +1002,19 @@ mod test {
     #[rstest]
     #[tokio::test]
     async fn test_scrape_mikan_poster_data_from_image_url(before_each: ()) -> RecorderResult<()> {
-        let mut mikan_server = mockito::Server::new_async().await;
-        let mikan_base_url = Url::parse(&mikan_server.url())?;
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let resources_mock = mikan_server.mock_resources_with_doppel();
+
+        let mikan_base_url = mikan_server.base_url().clone();
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
 
         let bangumi_poster_url = mikan_base_url.join("/images/Bangumi/202309/5ce9fed1.jpg")?;
 
-        let bangumi_poster_mock = mikan_server
-            .mock("GET", bangumi_poster_url.path())
-            .with_body_from_file("tests/resources/mikan/Bangumi-202309-5ce9fed1.jpg")
-            .create_async()
-            .await;
-
         let bgm_poster_data =
             scrape_mikan_poster_data_from_image_url(&mikan_client, bangumi_poster_url).await?;
 
-        bangumi_poster_mock.expect(1);
+        resources_mock.shared_resource_mock.expect(1);
         let image = Image::read(bgm_poster_data.to_vec(), Default::default());
         assert!(
             image.is_ok_and(|img| img
@@ -1017,19 +1030,18 @@ mod test {
     #[rstest]
     #[tokio::test]
     async fn test_scrape_mikan_poster_meta_from_image_url(before_each: ()) -> RecorderResult<()> {
-        let mut mikan_server = mockito::Server::new_async().await;
-        let mikan_base_url = Url::parse(&mikan_server.url())?;
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let mikan_base_url = mikan_server.base_url().clone();
+
+        let resources_mock = mikan_server.mock_resources_with_doppel();
+
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
+
         let storage_service = build_testing_storage_service().await?;
         let storage_operator = storage_service.get_operator()?;
 
         let bangumi_poster_url = mikan_base_url.join("/images/Bangumi/202309/5ce9fed1.jpg")?;
-
-        let bangumi_poster_mock = mikan_server
-            .mock("GET", bangumi_poster_url.path())
-            .with_body_from_file("tests/resources/mikan/Bangumi-202309-5ce9fed1.jpg")
-            .create_async()
-            .await;
 
         let bgm_poster = scrape_mikan_poster_meta_from_image_url(
             &mikan_client,
@@ -1039,7 +1051,7 @@ mod test {
         )
         .await?;
 
-        bangumi_poster_mock.expect(1);
+        resources_mock.shared_resource_mock.expect(1);
 
         let storage_fullname = storage_service.get_fullname(
             StorageContentCategory::Image,
@@ -1051,7 +1063,8 @@ mod test {
 
         assert!(storage_operator.exists(storage_fullename_str).await?);
 
-        let expected_data = fs::read("tests/resources/mikan/Bangumi-202309-5ce9fed1.jpg")?;
+        let expected_data =
+            fs::read("tests/resources/mikan/doppel/images/Bangumi/202309/5ce9fed1.jpg")?;
         let found_data = storage_operator.read(storage_fullename_str).await?.to_vec();
         assert_eq!(expected_data, found_data);
 
@@ -1100,7 +1113,7 @@ mod test {
         before_each: (),
     ) -> RecorderResult<()> {
         let fragment_str =
-            fs::read_to_string("tests/resources/mikan/BangumiCoverFlow-2025-spring-noauth.html")?;
+            fs::read_to_string("tests/resources/mikan/BangumiCoverFlow-noauth.html")?;
 
         let bangumi_index_meta_list =
             extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(
@@ -1114,12 +1127,27 @@ mod test {
     }
 
     #[rstest]
-    #[test]
-    fn test_extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
+    #[tokio::test]
+    async fn test_extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
         before_each: (),
     ) -> RecorderResult<()> {
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let login_mock = mikan_server.mock_get_login_page();
+        let resources_mock = mikan_server.mock_resources_with_doppel();
+
+        let mikan_base_url = mikan_server.base_url().clone();
+
+        let mikan_client = build_testing_mikan_client(mikan_base_url.clone())
+            .await?
+            .fork_with_credential(build_testing_mikan_credential())
+            .await?;
+
+        mikan_client.login().await?;
+
         let origin_poster_src =
             Url::parse("https://mikanani.me/images/Bangumi/202504/076c1094.jpg")?;
+
         let bangumi_index_meta = MikanBangumiIndexMeta {
             homepage: Url::parse("https://mikanani.me/Home/Bangumi/3599")?,
             origin_poster_src: Some(origin_poster_src.clone()),
@@ -1127,10 +1155,17 @@ mod test {
             mikan_bangumi_id: "3599".to_string(),
         };
 
-        let fragment_str = fs::read_to_string("tests/resources/mikan/ExpandBangumi-3599.html")?;
+        let fragment_str = fetch_html(
+            &mikan_client,
+            build_mikan_bangumi_expand_subscribed_url(
+                mikan_base_url.clone(),
+                &bangumi_index_meta.mikan_bangumi_id,
+            ),
+        )
+        .await?;
 
         let bangumi = extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
-            &Html::parse_document(&fragment_str),
+            &Html::parse_fragment(&fragment_str),
             bangumi_index_meta.clone(),
             Url::parse("https://mikanani.me/")?,
         )
@@ -1175,7 +1210,7 @@ mod test {
             fs::read_to_string("tests/resources/mikan/ExpandBangumi-3599-noauth.html")?;
 
         let bangumi = extract_mikan_bangumi_meta_from_expand_subscribed_fragment(
-            &Html::parse_document(&fragment_str),
+            &Html::parse_fragment(&fragment_str),
             bangumi_index_meta.clone(),
             Url::parse("https://mikanani.me/")?,
         );

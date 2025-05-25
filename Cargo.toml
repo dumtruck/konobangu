@@ -53,6 +53,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 axum-extra = "0.10"
 mockito = { version = "1.6.1" }
 convert_case = "0.8"
+color-eyre = "0.6.4"
+inquire = "0.7.5"
 
 [patch.crates-io]
 seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "10ba248" }
