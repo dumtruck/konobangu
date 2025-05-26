@@ -324,11 +324,13 @@ impl MikanMockServer {
                 let mikan_base_url = self.base_url().clone();
                 move |request| {
                     let path = request.path();
-                    if path.starts_with(MIKAN_BANGUMI_RSS_PATH)
-                        || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
-                        || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
-                        || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
-                        || path.starts_with(MIKAN_EPISODE_TORRENT_PATH)
+                    if !path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                        && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
+                        && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                            || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
+                            || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                            || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
+                            || path.starts_with(MIKAN_EPISODE_TORRENT_PATH))
                     {
                         if let Ok(url) = mikan_base_url.join(request.path_and_query()) {
                             let doppel_path = MikanDoppelPath::from(url);
@@ -360,11 +362,13 @@ impl MikanMockServer {
                 let mikan_base_url = self.base_url().clone();
                 move |request| {
                     let path = request.path();
-                    if path.starts_with(MIKAN_BANGUMI_RSS_PATH)
-                        || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
-                        || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
-                        || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
-                        || path.starts_with(MIKAN_EPISODE_TORRENT_PATH)
+                    if !path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                        && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
+                        && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
+                            || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
+                            || path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                            || path.starts_with(MIKAN_BANGUMI_POSTER_PATH)
+                            || path.starts_with(MIKAN_EPISODE_TORRENT_PATH))
                     {
                         if let Ok(url) = mikan_base_url.join(request.path_and_query()) {
                             let doppel_path = MikanDoppelPath::from(url);
