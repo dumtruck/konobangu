@@ -1,0 +1,1838 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="keywords" content="新番,动漫,动漫下載,新番下载,animation,bangumi,动画,蜜柑计划,Mikan Project" />
+    <meta name="description" content="蜜柑计划：新一代的动漫下载站" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 若用户有Google Chrome Frame,那么ie浏览时让IE使用chrome内核 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <!-- 若是双核浏览器,默认webkit渲染(chrome) -->
+    <meta name="renderer" content="webkit">
+    <title>Mikan Project - &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;</title>
+
+    <!-- here put import css lib -->
+
+
+        <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css?v=7s5uDGW3AHqw6xtJmNNtr-OBRJUlgkNJEo78P4b0yRw" />
+        <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=3dkvEK0WLHRJ7_Csr0BZjAWxERc5WH7bdeUya2aXxdU" />
+        <link rel="stylesheet" href="/css/thirdparty.min.css?v=c2SZy6n-55iljz60XCAALXejEZvjc43kgwamU5DAYUU" />
+        <link rel="stylesheet" href="/css/animate.min.css?v=w_eXqGX0NdMPQ0LZNhdQ8B-DQMYAxelvLoIP39dzmus" />
+        <link rel="stylesheet" href="/css/mikan.min.css?v=aupBMgBgKRB5chTb5fl8lvHpN3OqX67_gKg3lXZewRw" />
+
+        <script src="/lib/jquery/dist/jquery.min.js?v=BbhdlvQf_xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44"></script>
+        <script src="/lib/bootstrap/dist/js/bootstrap.min.js?v=KXn5puMvxCw-dAYznun-drMdG1IFl3agK0p_pqT9KAo"></script>
+        <script src="/js/thirdparty.min.js?v=NsK_w5fw7Nm4ZPm4eZDgsivasZNgT6ArhIjmj-bRnR0"></script>
+        <script src="/js/darkreader.min.js?v=Lr_8XODLEDSPtT6LqaeLKzREs4jocJUzV8HvQPItIic"></script>
+        <script src="/js/ScrollMagic.min.js?v=1xuIM3UJWEZX_wWN9zrA8W7CWukfsMaEqb759CeHo3U"></script>
+        <script src="/js/jquery.ScrollMagic.min.js?v=SyygQh9gWWfvyS13QwI0SKGAQyHDachlaigiK4X59iw"></script>
+
+
+    <link rel="icon" href="/images/favicon.ico?v=2" />
+    <link rel="apple-touch-icon" href="\Images\apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="\Images\apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="\Images\apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="\Images\apple-touch-icon-144x144.png">
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-8911610-8', 'auto');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body class="main">
+    <div id="sk-header" class="hidden-xs hidden-sm">
+        <div id="sk-top-nav" class="container">
+            <a id="logo" href="/" style="width:205px;"><img id="mikan-pic" src="/images/mikan-pic.png" /><img src="/images/mikan-text.svg" style="height:30px;" /></a>
+            <div id="nav-list">
+                <ul class="list-inline nav-ul">
+                    <li class="">
+                        <div class="sk-col"><a href="/"><i class="fa fa-home fa-lg"></i>主页</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/MyBangumi"><i class="fa fa-rss fa-lg"></i>订阅</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/Classic"><i class="fa fa-slack fa-lg"></i>列表</a></div>
+                    </li>
+                        <li class="">
+                            <div class="sk-col"><a href="/Home/Publish"><i class="fa fa-pencil-square-o fa-lg"></i>发布</a></div>
+                        </li>
+                </ul>
+            </div>
+            <div class="search-form">
+                <form method="get" action="/Home/Search">
+                    <div class="form-group has-feedback">
+                        <label for="search" class="sr-only">搜索</label>
+                        <input type="text" class="form-control input-sm" name="searchstr" id="header-search" placeholder="搜索">
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </div>
+                </form>
+            </div>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-91-pLe-b_RjveZo5TNvOCeqb8dCm9Lm-8SLq7kgIkUxkf3_00Bjg2xh9cizDBMPP84DzP6NhxC_0vsgR9YxonAXuaoYvtn6EWcZcZdtdNEE9LYvpcs2u9Ul0vh_GNe411ePvWlZ6MukfcFSDBeWoKaDp0ik1BGz4gp5swynhaRMzQ" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-91-pLe-b_RjveZo5TNvOCeqb8dCm9Lm-8SLq7kgIkUxkf3_00Bjg2xh9cizDBMPP84DzP6NhxC_0vsgR9YxonAXuaoYvtn6EWcZcZdtdNEE9LYvpcs2u9Ul0vh_GNe411ePvWlZ6MukfcFSDBeWoKaDp0ik1BGz4gp5swynhaRMzQ" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>
+        </div>
+        <div class="ribbon">
+            <span class="ribbon-color1"></span>
+            <span class="ribbon-color2"></span>
+            <span class="ribbon-color3"></span>
+            <span class="ribbon-color4"></span>
+            <span class="ribbon-color5"></span>
+            <span class="ribbon-color6"></span>
+            <span class="ribbon-color7"></span>
+        </div>
+    </div>
+    <div class="m-home-nav hidden-lg hidden-md" id="sk-mobile-header">
+        <div class="m-home-tool-left clickable" data-toggle="modal" data-target="#modal-nav">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </div>
+        <div class="m-home-tool-left"></div>
+        <div style="text-align: center; height:100%;flex:1;">
+            <a href="/" style="text-decoration:none">
+                <img src="/images/mikan-pic.png" style="height: 3rem;margin-top: 0.5rem;">
+                <img src="/images/mikan-text.png" style="height: 1.5rem;margin-top: 0.5rem;">
+            </a>
+        </div>
+        <div class="m-home-tool-right clickable" data-toggle="modal" data-target="#modal-login">
+            <i class="fa fa-user" aria-hidden="true" style="margin-right: 1rem;"></i>
+        </div>
+        <div class="m-home-tool-right clickable" onclick="ShowNavSearch()">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class="m-nav-search" style="width: 100%;">
+        <div style="flex: 1;">
+            <form method="get" action="/Home/Search">
+                <div class="input-group">
+                    <span class="input-group-addon" id="sizing-addon1" style="border: none;background-color: white;">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="搜索" name="searchstr" aria-describedby="sizing-addon1" style="border: none;font-size:16px;">
+                </div>
+            </form>
+        </div>
+        <div style="width: 4rem;" onclick="HideNavSearch()">
+            <span style="font-size: 1.25rem;">取消</span>
+        </div>
+    </div>
+    <div id="sk-container" class="container hidden-sm hidden-xs">
+    <div class="pull-left leftbar-container">
+        <img src="/images/subscribed-badge.svg" class="subscribed-badge" style="" />
+
+        <div class="bangumi-poster" style="background-image: url('/images/Bangumi/202504/18f01f9e.jpg?width=400&height=560&format=webp');"></div>
+	<p class="bangumi-title">&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9; <a href="/RSS/Bangumi?bangumiId=3614" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a></p>
+        <p class="bangumi-info">放送日期：&#x661F;&#x671F;&#x4E8C;</p>
+            <p class="bangumi-info">总集数：12</p>
+            <p class="bangumi-info">放送开始：4/8/2025</p>
+            <p class="bangumi-info">官方网站：<br /><a class="w-other-c" target="_blank" href="https://shiunjifamily.com/">https://shiunjifamily.com/</a></p>
+            <p class="bangumi-info">Bangumi番组计划链接：<br /><a class="w-other-c" target="_blank" href="https://bgm.tv/subject/480545">https://bgm.tv/subject/480545</a></p>
+        <div id="leftbar-nav-anchor"></div>
+        <div class="leftbar-nav">
+            <div class="header">字幕组列表</div>
+            <ul class="list-unstyled">
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-370" data-anchor="#370">LoliHouse</a>
+                        </span>
+                        <span class="date">
+                            5/28/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-213" data-anchor="#213">&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;&amp;&#x7231;&#x604B;&#x5B57;&#x5E55;&#x7EC4;</a>
+                        </span>
+                        <span class="date">
+                            6/1/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-615" data-anchor="#615">Kirara Fantasia</a>
+                        </span>
+                        <span class="date">
+                            5/28/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-583" data-anchor="#583">ANi</a>
+                        </span>
+                        <span class="date">
+                            5/27/2025
+                        </span>
+                    </li>
+            </ul>
+
+                <button class="btn logmod-submit js-subscribe_bangumi_page active" data-bangumiid="3614" data-subtitlegroupid="">取消番组订阅</button>
+        </div>
+    </div>
+
+    <div class="central-container">
+            <div class="header2">
+                <span class="header2-text">概况介绍</span>
+            </div>
+            <p class="header2-desc"> 東京都世田谷区の高級住宅街に
+豪邸を構える「紫雲寺家」。
+ここに住む7人の兄弟姉妹きょうだいは、
+才色兼備として知られ、なかでも年子の5姉妹は全員が美少女だと評判だった。
+
+誰もが羨む美人姉妹との一つ屋根の下。
+しかし、長男・新は個性的な5姉妹に振り回され、姉妹以外の女子には及び腰になっていた。
+家族を大切に思いながらも、5姉妹のいない
+別の人生を妄想する新だが……。
+「実は君達は本当の兄弟姉妹きょうだいではない」
+ある日、父親から衝撃の事実を告げられ、
+運命は一変する！
+いつまでも変わらないと信じた家族の繋がりも、変化の兆しを見せはじめ――。
+
+この愛が行き着く先は、
+家族、兄弟姉妹きょうだい、それとも？
+運命が繋ぐワケあり家族の
+“禁断×純愛”ラブコメディが開幕！ </p>
+        <div class="header2">
+            <span class="header2-text">字幕组列表</span>
+        </div>
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj7_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj7_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+            <div class="subgroup-scroll-top-370"></div>
+            <div class="subgroup-text" id="370">
+                    <a href="/Home/PublishGroup/223" target="_blank" style="color: #3bc0c3;">LoliHouse</a>
+                    <a href="/RSS/Bangumi?bangumiId=3614&subgroupid=370" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed">&#x7B80;&#x4E2D;</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page active" data-toggle="popover-x" data-target="#subscription-popover-3614-370" data-placement="bottom" data-bangumiid="3614" data-subtitlegroupid="370">修改订阅</a>
+                <div id="subscription-popover-3614-370" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="370" data-bangumiid="3614">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-cancel" onclick="PopoverUnsubscribeBangumiPage(this)">退订</button>
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a0abd76c58e60dfedfb8a099d9dcbc974d5f3423">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:a0abd76c58e60dfedfb8a099d9dcbc974d5f3423&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>370.39 MB</td>
+                <td>2025/05/28 10:26</td>
+                <td><a href="/Download/20250528/a0abd76c58e60dfedfb8a099d9dcbc974d5f3423.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a0abd76c58e60dfedfb8a099d9dcbc974d5f3423"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/e2d50245c36fc00d22de52714ec51438d32b07f5">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:e2d50245c36fc00d22de52714ec51438d32b07f5&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>389.36 MB</td>
+                <td>2025/05/21 12:38</td>
+                <td><a href="/Download/20250521/e2d50245c36fc00d22de52714ec51438d32b07f5.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:e2d50245c36fc00d22de52714ec51438d32b07f5"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/62490758c95b50cabb82ce5da1b40decf107f742">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:62490758c95b50cabb82ce5da1b40decf107f742&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>365.47 MB</td>
+                <td>2025/05/14 00:04</td>
+                <td><a href="/Download/20250514/62490758c95b50cabb82ce5da1b40decf107f742.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:62490758c95b50cabb82ce5da1b40decf107f742"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/02cfd559e04cd1975f33caf3a1af49bf25c9cc96">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:02cfd559e04cd1975f33caf3a1af49bf25c9cc96&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>408.19 MB</td>
+                <td>2025/05/07 22:26</td>
+                <td><a href="/Download/20250507/02cfd559e04cd1975f33caf3a1af49bf25c9cc96.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:02cfd559e04cd1975f33caf3a1af49bf25c9cc96"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/bece6804804b3e5dde097d2598d7f68c0a41da83">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:bece6804804b3e5dde097d2598d7f68c0a41da83&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>358.29 MB</td>
+                <td>2025/04/30 00:06</td>
+                <td><a href="/Download/20250430/bece6804804b3e5dde097d2598d7f68c0a41da83.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:bece6804804b3e5dde097d2598d7f68c0a41da83"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/7fa6db7b6fa73bc85e0fa1dbd7156640dcf55a56">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:7fa6db7b6fa73bc85e0fa1dbd7156640dcf55a56&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>407.78 MB</td>
+                <td>2025/04/23 20:34</td>
+                <td><a href="/Download/20250423/7fa6db7b6fa73bc85e0fa1dbd7156640dcf55a56.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:7fa6db7b6fa73bc85e0fa1dbd7156640dcf55a56"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c26d21b4be7c70efd0424542b1a6c328dc233372">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:c26d21b4be7c70efd0424542b1a6c328dc233372&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>373.13 MB</td>
+                <td>2025/04/16 19:24</td>
+                <td><a href="/Download/20250416/c26d21b4be7c70efd0424542b1a6c328dc233372.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c26d21b4be7c70efd0424542b1a6c328dc233372"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/b68ec680949f3e2be2eefa830195575a76875747">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:b68ec680949f3e2be2eefa830195575a76875747&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>335.02 MB</td>
+                <td>2025/04/09 22:33</td>
+                <td><a href="/Download/20250409/b68ec680949f3e2be2eefa830195575a76875747.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:b68ec680949f3e2be2eefa830195575a76875747"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-370"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-213"></div>
+            <div class="subgroup-text" id="213">
+                    <div class="dropdown" style="float:left;padding-bottom:10px;cursor:pointer;">
+                        <div class="dropdown-toggle material-dropdown__btn" data-toggle="dropdown" style="padding-left:0;">
+                            <span style="color: #3bc0c3;" class="">&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;&amp;&#x7231;&#x604B;&#x5B57;&#x5E55;&#x7EC4;</span>
+                            <span><i class="fa fa-angle-down" aria-hidden="true"></i></span>
+                        </div>
+
+                        <ul class="dropdown-menu material-dropdown-menu" style="top: 20px;margin-left:0;">
+                                <li><a href="/Home/PublishGroup/44" class="material-dropdown-menu__link" target="_blank">&#x7231;&#x604B;&#x5B57;&#x5E55;&#x793E;</a></li>
+                                <li><a href="/Home/PublishGroup/73" class="material-dropdown-menu__link" target="_blank">&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;</a></li>
+                        </ul>
+                    </div>
+                    <span>&nbsp;</span><a href="/RSS/Bangumi?bangumiId=3614&subgroupid=213" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3614-213" data-placement="bottom" data-bangumiid="3614" data-subtitlegroupid="213">订阅</a>
+                <div id="subscription-popover-3614-213" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="213" data-bangumiid="3614">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/f9b8da71a91689de86810766bd9ee89d431cc8f9">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][08][1080p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:f9b8da71a91689de86810766bd9ee89d431cc8f9&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>329.19 MB</td>
+                <td>2025/06/01 23:00</td>
+                <td><a href="/Download/20250601/f9b8da71a91689de86810766bd9ee89d431cc8f9.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:f9b8da71a91689de86810766bd9ee89d431cc8f9"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/5a360bb8b7783ccfe314ff704c44f426ab8211fe">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][08][1080p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:5a360bb8b7783ccfe314ff704c44f426ab8211fe&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>329.13 MB</td>
+                <td>2025/06/01 22:59</td>
+                <td><a href="/Download/20250601/5a360bb8b7783ccfe314ff704c44f426ab8211fe.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:5a360bb8b7783ccfe314ff704c44f426ab8211fe"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1e3d4b7042b9d01c9e30176d1230804799524b15">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][08][720p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1e3d4b7042b9d01c9e30176d1230804799524b15&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>179.68 MB</td>
+                <td>2025/06/01 22:59</td>
+                <td><a href="/Download/20250601/1e3d4b7042b9d01c9e30176d1230804799524b15.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1e3d4b7042b9d01c9e30176d1230804799524b15"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/67d98acc13d5e5093e63952a4e2de62c12046ea6">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][08][720p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:67d98acc13d5e5093e63952a4e2de62c12046ea6&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>179.57 MB</td>
+                <td>2025/06/01 22:59</td>
+                <td><a href="/Download/20250601/67d98acc13d5e5093e63952a4e2de62c12046ea6.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:67d98acc13d5e5093e63952a4e2de62c12046ea6"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/fdc53e39e900b5f4ca4408f0f7f623886a2e2a80">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][07][1080p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:fdc53e39e900b5f4ca4408f0f7f623886a2e2a80&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>353.1 MB</td>
+                <td>2025/06/01 22:58</td>
+                <td><a href="/Download/20250601/fdc53e39e900b5f4ca4408f0f7f623886a2e2a80.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:fdc53e39e900b5f4ca4408f0f7f623886a2e2a80"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2d59174733b4e96f05f977e9354fa382853a9e94">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][07][1080p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:2d59174733b4e96f05f977e9354fa382853a9e94&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>352.95 MB</td>
+                <td>2025/06/01 22:57</td>
+                <td><a href="/Download/20250601/2d59174733b4e96f05f977e9354fa382853a9e94.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2d59174733b4e96f05f977e9354fa382853a9e94"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/21cdd5f975a3413b48daf2f7cf227d8dead1058b">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][07][720p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:21cdd5f975a3413b48daf2f7cf227d8dead1058b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>190.9 MB</td>
+                <td>2025/06/01 22:57</td>
+                <td><a href="/Download/20250601/21cdd5f975a3413b48daf2f7cf227d8dead1058b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:21cdd5f975a3413b48daf2f7cf227d8dead1058b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/e3f5062b11543e289ef3034b565fb2e1b0de95b7">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][07][720p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:e3f5062b11543e289ef3034b565fb2e1b0de95b7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>190.79 MB</td>
+                <td>2025/06/01 22:57</td>
+                <td><a href="/Download/20250601/e3f5062b11543e289ef3034b565fb2e1b0de95b7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:e3f5062b11543e289ef3034b565fb2e1b0de95b7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ea4dcb1918c6ccb683d6cf6c7a936a7ae8126225">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][06][1080p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:ea4dcb1918c6ccb683d6cf6c7a936a7ae8126225&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>334.2 MB</td>
+                <td>2025/05/17 04:48</td>
+                <td><a href="/Download/20250517/ea4dcb1918c6ccb683d6cf6c7a936a7ae8126225.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ea4dcb1918c6ccb683d6cf6c7a936a7ae8126225"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1320a30c13489ce9669dd437260cf46690287662">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][06][1080p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1320a30c13489ce9669dd437260cf46690287662&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>334.09 MB</td>
+                <td>2025/05/17 04:48</td>
+                <td><a href="/Download/20250517/1320a30c13489ce9669dd437260cf46690287662.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1320a30c13489ce9669dd437260cf46690287662"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ca7ec8c892ad0e71fca6b79a75309412e7f5bfcb">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][06][720p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:ca7ec8c892ad0e71fca6b79a75309412e7f5bfcb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>177.73 MB</td>
+                <td>2025/05/17 04:48</td>
+                <td><a href="/Download/20250517/ca7ec8c892ad0e71fca6b79a75309412e7f5bfcb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ca7ec8c892ad0e71fca6b79a75309412e7f5bfcb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/bd7dfd13f9682048ecc42b83699e962aeb0c57e1">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][06][720p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:bd7dfd13f9682048ecc42b83699e962aeb0c57e1&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>177.6 MB</td>
+                <td>2025/05/17 04:48</td>
+                <td><a href="/Download/20250517/bd7dfd13f9682048ecc42b83699e962aeb0c57e1.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:bd7dfd13f9682048ecc42b83699e962aeb0c57e1"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/0231996d4da08166099acaae5df177114a2a60d3">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][05][1080p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:0231996d4da08166099acaae5df177114a2a60d3&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>355.84 MB</td>
+                <td>2025/05/13 18:39</td>
+                <td><a href="/Download/20250513/0231996d4da08166099acaae5df177114a2a60d3.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:0231996d4da08166099acaae5df177114a2a60d3"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2c7a0012937780f5e7f2556b1fcbfa71817dd844">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][05][1080p][MP4][&#x7E41;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:2c7a0012937780f5e7f2556b1fcbfa71817dd844&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>355.57 MB</td>
+                <td>2025/05/13 18:38</td>
+                <td><a href="/Download/20250513/2c7a0012937780f5e7f2556b1fcbfa71817dd844.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2c7a0012937780f5e7f2556b1fcbfa71817dd844"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/07b5e5cfa005590c37a5f2a3d32cef0f79b04241">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][05][720p][MP4][&#x7B80;&#x4E2D;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:07b5e5cfa005590c37a5f2a3d32cef0f79b04241&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>195.29 MB</td>
+                <td>2025/05/13 18:38</td>
+                <td><a href="/Download/20250513/07b5e5cfa005590c37a5f2a3d32cef0f79b04241.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:07b5e5cfa005590c37a5f2a3d32cef0f79b04241"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+                <a class="episode-expand js-expand-episode" data-bangumiid="3614" data-subtitlegroupid="213" data-take="65"><img src="/images/ic_keyboard_arrow_down_black_24px.svg" />显示更多</a>
+            <div class="subgroup-scroll-end-213"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-615"></div>
+            <div class="subgroup-text" id="615">
+                    <a href="/Home/PublishGroup/392" target="_blank" style="color: #3bc0c3;">Kirara Fantasia</a>
+                    <a href="/RSS/Bangumi?bangumiId=3614&subgroupid=615" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3614-615" data-placement="bottom" data-bangumiid="3614" data-subtitlegroupid="615">订阅</a>
+                <div id="subscription-popover-3614-615" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="615" data-bangumiid="3614">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8e2e277a455057fb1e573dd88edba8b6569b344c">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:8e2e277a455057fb1e573dd88edba8b6569b344c&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>712.5 MB</td>
+                <td>2025/05/28 00:03</td>
+                <td><a href="/Download/20250528/8e2e277a455057fb1e573dd88edba8b6569b344c.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8e2e277a455057fb1e573dd88edba8b6569b344c"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/729c0127a3cc16db69b67475c963d2c02ce687f3">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:729c0127a3cc16db69b67475c963d2c02ce687f3&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.3 GB</td>
+                <td>2025/05/27 22:25</td>
+                <td><a href="/Download/20250527/729c0127a3cc16db69b67475c963d2c02ce687f3.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:729c0127a3cc16db69b67475c963d2c02ce687f3"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/4e9de91928d1c31302b85748e0fec34bae5ef316">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 08 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:4e9de91928d1c31302b85748e0fec34bae5ef316&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>244.1 MB</td>
+                <td>2025/05/27 21:31</td>
+                <td><a href="/Download/20250527/4e9de91928d1c31302b85748e0fec34bae5ef316.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:4e9de91928d1c31302b85748e0fec34bae5ef316"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2544eeb092c13af7f40ebd6d879edb78693c0beb">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:2544eeb092c13af7f40ebd6d879edb78693c0beb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>294.5 MB</td>
+                <td>2025/05/27 21:31</td>
+                <td><a href="/Download/20250527/2544eeb092c13af7f40ebd6d879edb78693c0beb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2544eeb092c13af7f40ebd6d879edb78693c0beb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/9d0a79db2bcaeeaba04e9adb7a6c69e7defdeedd">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:9d0a79db2bcaeeaba04e9adb7a6c69e7defdeedd&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>722.3 MB</td>
+                <td>2025/05/21 00:01</td>
+                <td><a href="/Download/20250521/9d0a79db2bcaeeaba04e9adb7a6c69e7defdeedd.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:9d0a79db2bcaeeaba04e9adb7a6c69e7defdeedd"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/7cbde578b393cb3f300aeeaa0020c77aa0ba9553">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:7cbde578b393cb3f300aeeaa0020c77aa0ba9553&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.4 GB</td>
+                <td>2025/05/20 22:07</td>
+                <td><a href="/Download/20250520/7cbde578b393cb3f300aeeaa0020c77aa0ba9553.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:7cbde578b393cb3f300aeeaa0020c77aa0ba9553"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1700495b13b38b1f3d5702845cf75a4dcad48200">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 07 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:1700495b13b38b1f3d5702845cf75a4dcad48200&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>255.3 MB</td>
+                <td>2025/05/20 21:31</td>
+                <td><a href="/Download/20250520/1700495b13b38b1f3d5702845cf75a4dcad48200.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1700495b13b38b1f3d5702845cf75a4dcad48200"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/82ae7181dd8c594e69069281552c307add7e9249">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:82ae7181dd8c594e69069281552c307add7e9249&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>320.5 MB</td>
+                <td>2025/05/20 21:30</td>
+                <td><a href="/Download/20250520/82ae7181dd8c594e69069281552c307add7e9249.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:82ae7181dd8c594e69069281552c307add7e9249"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/006b042751a01f51d82b07534ffe652629c3cba5">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:006b042751a01f51d82b07534ffe652629c3cba5&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>712.4 MB</td>
+                <td>2025/05/14 00:01</td>
+                <td><a href="/Download/20250514/006b042751a01f51d82b07534ffe652629c3cba5.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:006b042751a01f51d82b07534ffe652629c3cba5"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/6188f1e9cc3b3c4355792c3a219dd0ff6981f721">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:6188f1e9cc3b3c4355792c3a219dd0ff6981f721&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.3 GB</td>
+                <td>2025/05/13 23:12</td>
+                <td><a href="/Download/20250513/6188f1e9cc3b3c4355792c3a219dd0ff6981f721.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:6188f1e9cc3b3c4355792c3a219dd0ff6981f721"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/4e8102f404cbf482bedfed3b114f5a4dd0995c7d">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 06 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:4e8102f404cbf482bedfed3b114f5a4dd0995c7d&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>249.7 MB</td>
+                <td>2025/05/13 21:31</td>
+                <td><a href="/Download/20250513/4e8102f404cbf482bedfed3b114f5a4dd0995c7d.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:4e8102f404cbf482bedfed3b114f5a4dd0995c7d"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/105461051a0497e7c562ba353d4c8084c2e4dac7">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:105461051a0497e7c562ba353d4c8084c2e4dac7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>299.9 MB</td>
+                <td>2025/05/13 21:30</td>
+                <td><a href="/Download/20250513/105461051a0497e7c562ba353d4c8084c2e4dac7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:105461051a0497e7c562ba353d4c8084c2e4dac7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/042ffcba6360ea95d8da41bf1b6ad2858dbd1d69">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:042ffcba6360ea95d8da41bf1b6ad2858dbd1d69&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.3 GB</td>
+                <td>2025/05/07 09:06</td>
+                <td><a href="/Download/20250507/042ffcba6360ea95d8da41bf1b6ad2858dbd1d69.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:042ffcba6360ea95d8da41bf1b6ad2858dbd1d69"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/cc869573779b65afdbd6210cfe0d9da83fe17776">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:cc869573779b65afdbd6210cfe0d9da83fe17776&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>712.7 MB</td>
+                <td>2025/05/07 00:00</td>
+                <td><a href="/Download/20250507/cc869573779b65afdbd6210cfe0d9da83fe17776.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:cc869573779b65afdbd6210cfe0d9da83fe17776"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/770bc1adc036f30da6f2e097daa881f4e596ab37">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 05 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:770bc1adc036f30da6f2e097daa881f4e596ab37&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>255.2 MB</td>
+                <td>2025/05/06 21:30</td>
+                <td><a href="/Download/20250506/770bc1adc036f30da6f2e097daa881f4e596ab37.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:770bc1adc036f30da6f2e097daa881f4e596ab37"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+                <a class="episode-expand js-expand-episode" data-bangumiid="3614" data-subtitlegroupid="615" data-take="65"><img src="/images/ic_keyboard_arrow_down_black_24px.svg" />显示更多</a>
+            <div class="subgroup-scroll-end-615"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-583"></div>
+            <div class="subgroup-text" id="583">
+                    <a href="/Home/PublishGroup/359" target="_blank" style="color: #3bc0c3;">ANi</a>
+                    <a href="/RSS/Bangumi?bangumiId=3614&subgroupid=583" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3614-583" data-placement="bottom" data-bangumiid="3614" data-subtitlegroupid="583">订阅</a>
+                <div id="subscription-popover-3614-583" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="583" data-bangumiid="3614">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/069857c1fa3dc18ae0583919634aa98790913c22">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:069857c1fa3dc18ae0583919634aa98790913c22&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>294.7 MB</td>
+                <td>2025/05/27 21:31</td>
+                <td><a href="/Download/20250527/069857c1fa3dc18ae0583919634aa98790913c22.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:069857c1fa3dc18ae0583919634aa98790913c22"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/23bc40409c59d3755205418fe6b2ae8fe3f69ee6">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:23bc40409c59d3755205418fe6b2ae8fe3f69ee6&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>320.7 MB</td>
+                <td>2025/05/20 21:31</td>
+                <td><a href="/Download/20250520/23bc40409c59d3755205418fe6b2ae8fe3f69ee6.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:23bc40409c59d3755205418fe6b2ae8fe3f69ee6"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8ee09db0395a3e10fe6d462ed6b635659b460905">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:8ee09db0395a3e10fe6d462ed6b635659b460905&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>300.1 MB</td>
+                <td>2025/05/13 21:31</td>
+                <td><a href="/Download/20250513/8ee09db0395a3e10fe6d462ed6b635659b460905.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8ee09db0395a3e10fe6d462ed6b635659b460905"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c779edce1554937915d2c5b7e81a8943df114c97">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:c779edce1554937915d2c5b7e81a8943df114c97&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>320.4 MB</td>
+                <td>2025/05/06 21:31</td>
+                <td><a href="/Download/20250506/c779edce1554937915d2c5b7e81a8943df114c97.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c779edce1554937915d2c5b7e81a8943df114c97"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/974c1fdfc29124fb2bb995857949f31813c93173">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:974c1fdfc29124fb2bb995857949f31813c93173&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>297.7 MB</td>
+                <td>2025/04/29 21:31</td>
+                <td><a href="/Download/20250429/974c1fdfc29124fb2bb995857949f31813c93173.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:974c1fdfc29124fb2bb995857949f31813c93173"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8b819f208deb1f98599cf522678126a1de532485">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:8b819f208deb1f98599cf522678126a1de532485&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>321.0 MB</td>
+                <td>2025/04/22 21:31</td>
+                <td><a href="/Download/20250422/8b819f208deb1f98599cf522678126a1de532485.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8b819f208deb1f98599cf522678126a1de532485"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/4e430741549940db832475f2ca804fbd20030a0c">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:4e430741549940db832475f2ca804fbd20030a0c&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>305.6 MB</td>
+                <td>2025/04/15 21:31</td>
+                <td><a href="/Download/20250415/4e430741549940db832475f2ca804fbd20030a0c.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:4e430741549940db832475f2ca804fbd20030a0c"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/06aaa91d95f9b10bf5774cfd393c39d16e4fa94b">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:06aaa91d95f9b10bf5774cfd393c39d16e4fa94b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>287.0 MB</td>
+                <td>2025/04/08 21:31</td>
+                <td><a href="/Download/20250408/06aaa91d95f9b10bf5774cfd393c39d16e4fa94b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:06aaa91d95f9b10bf5774cfd393c39d16e4fa94b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-583"></div>
+            <div style="height:1px;"></div>
+    </div>
+
+    <a href="#0" class="cd-top cd-top-btn">Top</a>
+</div>
+
+<div id="sk-mobile-container" class="m-detail hidden-lg hidden-md">
+    <div id="bangumi-m-main">
+        <div class="m-detail-title">
+            <div style="position: relative;overflow: hidden;">
+                <div class="m-detail-blur-bg blur" style="background-image:url(/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp)"></div>
+            </div>
+            <div class="content">
+                <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" />
+                <section>
+                    <p class="title" style="color:white;">&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;</p>
+                    <span>放送日期： &#x661F;&#x671F;&#x4E8C;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span>总集数：12</span>
+                        <span>放送开始：4/8/2025</span>
+                </section>
+            </div>
+        </div>
+            <div class="m-detail-intro">
+
+                <p class="title" style="color:#3bc0c3;">概况介绍</p>
+                <div class="info">
+                    東京都世田谷区の高級住宅街に
+豪邸を構える「紫雲寺家」。
+ここに住む7人の兄弟姉妹きょうだいは、
+才色兼備として知られ、なかでも年子の5姉妹は全員が美少女だと評判だった。
+
+誰もが羨む美人姉妹との一つ屋根の下。
+しかし、長男・新は個性的な5姉妹に振り回され、姉妹以外の女子には及び腰になっていた。
+家族を大切に思いながらも、5姉妹のいない
+別の人生を妄想する新だが……。
+「実は君達は本当の兄弟姉妹きょうだいではない」
+ある日、父親から衝撃の事実を告げられ、
+運命は一変する！
+いつまでも変わらないと信じた家族の繋がりも、変化の兆しを見せはじめ――。
+
+この愛が行き着く先は、
+家族、兄弟姉妹きょうだい、それとも？
+運命が繋ぐワケあり家族の
+“禁断×純愛”ラブコメディが開幕！
+                </div>
+
+            </div>
+
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj6_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj6_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+
+        <div class="m-detail-list">
+            <div class="header">
+                <div style="flex: 1;padding-left: 1.5rem;">
+                    <span class="title">字幕组列表</span>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="SortItems('subgroup-list'); InitMobileSubscribeBangumiPage();">
+                    排序&nbsp;&nbsp;<i class="fa fa-sort icon" aria-hidden="true"></i>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="ShowSubscribedOnly('subgroup-list')">
+                    筛选&nbsp;&nbsp;<i class="fa fa-filter icon" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="m-detail-list-content js-sort-items-list" id="subgroup-list">
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="0" id="m370">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <span class="title" style="font-size: 1.35rem;">LoliHouse</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/28/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="370"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="1" id="m213">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-213')">
+                            <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-213')">
+                            <span class="title" style="font-size: 1.35rem;">&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;&amp;&#x7231;&#x604B;&#x5B57;&#x5E55;&#x7EC4;</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 6/1/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="213"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="2" id="m615">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <span class="title" style="font-size: 1.35rem;">Kirara Fantasia</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/28/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="615"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="3" id="m583">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <span class="title" style="font-size: 1.35rem;">ANi</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/27/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="583"></i></span>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bangumi-m-370" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="370"></i>
+                <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">LoliHouse</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/28</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="370"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-370');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-370">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">5/28/2025 2:26 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250528/a0abd76c58e60dfedfb8a099d9dcbc974d5f3423.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">5/21/2025 4:38 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250521/e2d50245c36fc00d22de52714ec51438d32b07f5.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">5/13/2025 4:04 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250514/62490758c95b50cabb82ce5da1b40decf107f742.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">5/7/2025 2:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250507/02cfd559e04cd1975f33caf3a1af49bf25c9cc96.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">4/29/2025 4:06 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250430/bece6804804b3e5dde097d2598d7f68c0a41da83.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">4/23/2025 12:34 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250423/7fa6db7b6fa73bc85e0fa1dbd7156640dcf55a56.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">4/16/2025 11:24 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250416/c26d21b4be7c70efd0424542b1a6c328dc233372.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC;)</div>
+                <div class="date">4/9/2025 2:33 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250409/b68ec680949f3e2be2eefa830195575a76875747.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <div id="bangumi-m-213" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="213"></i>
+                <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;&amp;&#x7231;&#x604B;&#x5B57;&#x5E55;&#x7EC4;</span><br>
+                <div>
+                    <span class="remark">更新: 2025/06/01</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="213"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-213');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-213">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][08][1080p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">6/1/2025 3:00 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/f9b8da71a91689de86810766bd9ee89d431cc8f9.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][08][1080p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:59 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/5a360bb8b7783ccfe314ff704c44f426ab8211fe.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][08][720p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:59 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/1e3d4b7042b9d01c9e30176d1230804799524b15.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][08][720p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:59 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/67d98acc13d5e5093e63952a4e2de62c12046ea6.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][07][1080p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:58 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/fdc53e39e900b5f4ca4408f0f7f623886a2e2a80.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][07][1080p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:57 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/2d59174733b4e96f05f977e9354fa382853a9e94.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][07][720p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:57 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/21cdd5f975a3413b48daf2f7cf227d8dead1058b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][07][720p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">6/1/2025 2:57 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250601/e3f5062b11543e289ef3034b565fb2e1b0de95b7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][06][1080p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">5/16/2025 8:48 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/ea4dcb1918c6ccb683d6cf6c7a936a7ae8126225.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][06][1080p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">5/16/2025 8:48 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/1320a30c13489ce9669dd437260cf46690287662.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][06][720p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">5/16/2025 8:48 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/ca7ec8c892ad0e71fca6b79a75309412e7f5bfcb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][06][720p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">5/16/2025 8:48 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/bd7dfd13f9682048ecc42b83699e962aeb0c57e1.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][05][1080p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">5/13/2025 10:39 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/0231996d4da08166099acaae5df177114a2a60d3.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="13">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9;][Shiunji-ke no Kodomotachi][05][1080p][MP4][&#x7E41;&#x4E2D;]</div>
+                <div class="date">5/13/2025 10:38 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/2c7a0012937780f5e7f2556b1fcbfa71817dd844.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="14">
+        <div class="left">
+            <div class="text">[&#x6F2B;&#x732B;&#x5B57;&#x5E55;&#x7EC4;][4&#x6708;&#x65B0;&#x756A;][&#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;][Shiunji-ke no Kodomotachi][05][720p][MP4][&#x7B80;&#x4E2D;]</div>
+                <div class="date">5/13/2025 10:38 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/07b5e5cfa005590c37a5f2a3d32cef0f79b04241.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+            <button class="form-control js-m-expand-episode" style="height: 5rem;color: #3bc0c3;border: none;" data-bangumiid="3614" data-subtitlegroupid="213" data-take="65">
+                查看更多
+            </button>
+    </div>
+    <div id="bangumi-m-615" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="615"></i>
+                <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">Kirara Fantasia</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/28</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="615"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-615');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-615">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/27/2025 4:03 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250528/8e2e277a455057fb1e573dd88edba8b6569b344c.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/27/2025 2:25 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250527/729c0127a3cc16db69b67475c963d2c02ce687f3.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 08 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/27/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250527/4e9de91928d1c31302b85748e0fec34bae5ef316.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 08 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/27/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250527/2544eeb092c13af7f40ebd6d879edb78693c0beb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/20/2025 4:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250521/9d0a79db2bcaeeaba04e9adb7a6c69e7defdeedd.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/20/2025 2:07 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250520/7cbde578b393cb3f300aeeaa0020c77aa0ba9553.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 07 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/20/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250520/1700495b13b38b1f3d5702845cf75a4dcad48200.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 07 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/20/2025 1:30 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250520/82ae7181dd8c594e69069281552c307add7e9249.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/13/2025 4:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250514/006b042751a01f51d82b07534ffe652629c3cba5.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/13/2025 3:12 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/6188f1e9cc3b3c4355792c3a219dd0ff6981f721.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 06 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/13/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/4e8102f404cbf482bedfed3b114f5a4dd0995c7d.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 06 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/13/2025 1:30 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/105461051a0497e7c562ba353d4c8084c2e4dac7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/7/2025 1:06 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250507/042ffcba6360ea95d8da41bf1b6ad2858dbd1d69.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="13">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; / Shiunji-ke no Kodomotachi - 05 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/6/2025 4:00 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250507/cc869573779b65afdbd6210cfe0d9da83fe17776.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="14">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5B69;&#x5B50;&#x4EEC; / Shiunji-ke no Kodomotachi - 05 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/6/2025 1:30 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250506/770bc1adc036f30da6f2e097daa881f4e596ab37.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+            <button class="form-control js-m-expand-episode" style="height: 5rem;color: #3bc0c3;border: none;" data-bangumiid="3614" data-subtitlegroupid="615" data-take="65">
+                查看更多
+            </button>
+    </div>
+    <div id="bangumi-m-583" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="583"></i>
+                <img src="/images/Bangumi/202504/18f01f9e.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">ANi</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/27</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3614" data-subtitlegroupid="583"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59D0;&#x59B9;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-583');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-583">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/27/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250527/069857c1fa3dc18ae0583919634aa98790913c22.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/20/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250520/23bc40409c59d3755205418fe6b2ae8fe3f69ee6.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/13/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250513/8ee09db0395a3e10fe6d462ed6b635659b460905.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/6/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250506/c779edce1554937915d2c5b7e81a8943df114c97.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/29/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250429/974c1fdfc29124fb2bb995857949f31813c93173.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/22/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250422/8b819f208deb1f98599cf522678126a1de532485.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/15/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250415/4e430741549940db832475f2ca804fbd20030a0c.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[ANi] The Shiunji Family Children /  &#x7D2B;&#x4E91;&#x5BFA;&#x5BB6;&#x7684;&#x5144;&#x5F1F;&#x59CA;&#x59B9; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/8/2025 1:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250408/06aaa91d95f9b10bf5774cfd393c39d16e4fa94b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        InitLeftBarMagicScroll();
+    });
+
+    function InitLeftBarMagicScroll() {
+        if (window.smController != null) {
+            window.smController.destroy(true);
+        }
+        // init controller
+        window.smController = new ScrollMagic.Controller();
+
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-213'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-213').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-213'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-213').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+                }
+</script>
+
+    <div class="modal modal-fullscreen fade" id="modal-nav" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#3bc0c3;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;">
+                    <div class="m-tool">
+                        <span class="m-close clickable"><i class="fa fa-times" aria-hidden="true" data-toggle="modal" data-target="#modal-nav"></i></span>
+                        <div class="m-tool-toolbar">
+                            <img src="/images/mikan-pic.png" style="width: 3rem;">
+                            <img src="/images/mikan-text.png" style="width: 7rem;">
+                        </div>
+                        <div class="m-tool-list">
+                            <ul>
+                                <li><a href="/" class="link">主页</a></li>
+                                <li class="m-tool-search-change"><a href="/Home/MyBangumi" class="link">订阅</a></li>
+                                <li onclick="tool.clickSearch()" class="m-tool-search-change">
+                                    <i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;搜索站内
+                                </li>
+                                <li class="m-tool-search-input">
+                                    <form method="get" action="/Home/Search">
+                                        <div style="display: flex;height: 100%;">
+                                            <input type="text" class="form-control" name="searchstr" style="font-size:16px;" />
+                                            <span style="width: 5rem;" onclick="tool.resetSearch()">取消</span>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal modal-fullscreen fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#edf1f2;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;height:85vh;">
+                    <div class="m-login">
+                        <span class="m-left clickable"><i class="fa fa-angle-left" aria-hidden="true" data-toggle="modal" data-target="#modal-login"></i></span>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-91-pLe-b_RjveZo5TNvOCeqb8dCm9Lm-8SLq7kgIkUxkf3_00Bjg2xh9cizDBMPP84DzP6NhxC_0vsgR9YxonAXuaoYvtn6EWcZcZdtdNEE9LYvpcs2u9Ul0vh_GNe411ePvWlZ6MukfcFSDBeWoKaDp0ik1BGz4gp5swynhaRMzQ" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-91-pLe-b_RjveZo5TNvOCeqb8dCm9Lm-8SLq7kgIkUxkf3_00Bjg2xh9cizDBMPP84DzP6NhxC_0vsgR9YxonAXuaoYvtn6EWcZcZdtdNEE9LYvpcs2u9Ul0vh_GNe411ePvWlZ6MukfcFSDBeWoKaDp0ik1BGz4gp5swynhaRMzQ" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer hidden-xs hidden-sm">
+        <div id="sk-footer" class="container text-center">
+            <div>Powered by Mikan Project <a href="/Home/Contact" target="_blank">联系我们</a></div>
+            <div>Cooperate by PlaymateCat@Lisa</div>
+        </div>
+    </footer>
+
+    <script>
+        var tool = {};
+        (function () {
+
+            var inputPEl = $('.m-tool-search-input');
+            var inputEl = inputPEl.find('input');
+            var changeEl = $('.m-tool-search-change');
+            inputPEl.hide();
+            tool.clickSearch = clickSearch;
+            tool.resetSearch = resetSearch;
+
+            function clickSearch() {
+                changeEl.hide();
+                inputPEl.show();
+                inputEl.focus();
+            }
+
+            function resetSearch() {
+                changeEl.show();
+                inputPEl.hide();
+                inputEl.val('');
+            }
+        })();
+    </script>
+
+    <script>
+        var pageUtil;
+
+        (function () {
+            pageUtil = {
+                isMobile: isMobile
+            };
+
+            function isMobile() {
+                var check = false;
+                (function (a) {
+                    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+                })(navigator.userAgent || navigator.vendor || window.opera);
+                return check;
+            }
+        })();
+
+        //detect if page is mobile
+        if (pageUtil.isMobile()) {
+            document.getElementsByTagName('html')[0].style['font-size'] = window.innerWidth / 32 + 'px';
+        }
+    </script>
+</body>
+
+<!-- here put your own javascript -->
+
+
+    <script src="/js/mikan.min.js?v=7USd_hfRE7KH46vQBdF29boa3ENWKMVFRTyD9a8XEDg"></script>
+
+
+
+</html>

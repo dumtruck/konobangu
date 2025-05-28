@@ -1,0 +1,1613 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="keywords" content="新番,动漫,动漫下載,新番下载,animation,bangumi,动画,蜜柑计划,Mikan Project" />
+    <meta name="description" content="蜜柑计划：新一代的动漫下载站" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 若用户有Google Chrome Frame,那么ie浏览时让IE使用chrome内核 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <!-- 若是双核浏览器,默认webkit渲染(chrome) -->
+    <meta name="renderer" content="webkit">
+    <title>Mikan Project - &#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005;</title>
+
+    <!-- here put import css lib -->
+
+
+        <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css?v=7s5uDGW3AHqw6xtJmNNtr-OBRJUlgkNJEo78P4b0yRw" />
+        <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=3dkvEK0WLHRJ7_Csr0BZjAWxERc5WH7bdeUya2aXxdU" />
+        <link rel="stylesheet" href="/css/thirdparty.min.css?v=c2SZy6n-55iljz60XCAALXejEZvjc43kgwamU5DAYUU" />
+        <link rel="stylesheet" href="/css/animate.min.css?v=w_eXqGX0NdMPQ0LZNhdQ8B-DQMYAxelvLoIP39dzmus" />
+        <link rel="stylesheet" href="/css/mikan.min.css?v=aupBMgBgKRB5chTb5fl8lvHpN3OqX67_gKg3lXZewRw" />
+
+        <script src="/lib/jquery/dist/jquery.min.js?v=BbhdlvQf_xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44"></script>
+        <script src="/lib/bootstrap/dist/js/bootstrap.min.js?v=KXn5puMvxCw-dAYznun-drMdG1IFl3agK0p_pqT9KAo"></script>
+        <script src="/js/thirdparty.min.js?v=NsK_w5fw7Nm4ZPm4eZDgsivasZNgT6ArhIjmj-bRnR0"></script>
+        <script src="/js/darkreader.min.js?v=Lr_8XODLEDSPtT6LqaeLKzREs4jocJUzV8HvQPItIic"></script>
+        <script src="/js/ScrollMagic.min.js?v=1xuIM3UJWEZX_wWN9zrA8W7CWukfsMaEqb759CeHo3U"></script>
+        <script src="/js/jquery.ScrollMagic.min.js?v=SyygQh9gWWfvyS13QwI0SKGAQyHDachlaigiK4X59iw"></script>
+
+
+    <link rel="icon" href="/images/favicon.ico?v=2" />
+    <link rel="apple-touch-icon" href="\Images\apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="\Images\apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="\Images\apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="\Images\apple-touch-icon-144x144.png">
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-8911610-8', 'auto');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body class="main">
+    <div id="sk-header" class="hidden-xs hidden-sm">
+        <div id="sk-top-nav" class="container">
+            <a id="logo" href="/" style="width:205px;"><img id="mikan-pic" src="/images/mikan-pic.png" /><img src="/images/mikan-text.svg" style="height:30px;" /></a>
+            <div id="nav-list">
+                <ul class="list-inline nav-ul">
+                    <li class="">
+                        <div class="sk-col"><a href="/"><i class="fa fa-home fa-lg"></i>主页</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/MyBangumi"><i class="fa fa-rss fa-lg"></i>订阅</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/Classic"><i class="fa fa-slack fa-lg"></i>列表</a></div>
+                    </li>
+                        <li class="">
+                            <div class="sk-col"><a href="/Home/Publish"><i class="fa fa-pencil-square-o fa-lg"></i>发布</a></div>
+                        </li>
+                </ul>
+            </div>
+            <div class="search-form">
+                <form method="get" action="/Home/Search">
+                    <div class="form-group has-feedback">
+                        <label for="search" class="sr-only">搜索</label>
+                        <input type="text" class="form-control input-sm" name="searchstr" id="header-search" placeholder="搜索">
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </div>
+                </form>
+            </div>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-90CVJU1_vkLBcMlLJeDzvRwUOtb89GHiRsIbBKOMsrVxcU1MyLI8XZzn5iIUt5jGvMg9PEQzd0AETfvrkAvCYFxbkKEbtzWGiNSAlunGdnU25rjI3hpO_zNrdjAiiKlZYw5ctla4AXklijGL-ldRC58wxeXHE7rv-fuDY__MVlw-g" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-90CVJU1_vkLBcMlLJeDzvRwUOtb89GHiRsIbBKOMsrVxcU1MyLI8XZzn5iIUt5jGvMg9PEQzd0AETfvrkAvCYFxbkKEbtzWGiNSAlunGdnU25rjI3hpO_zNrdjAiiKlZYw5ctla4AXklijGL-ldRC58wxeXHE7rv-fuDY__MVlw-g" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>
+        </div>
+        <div class="ribbon">
+            <span class="ribbon-color1"></span>
+            <span class="ribbon-color2"></span>
+            <span class="ribbon-color3"></span>
+            <span class="ribbon-color4"></span>
+            <span class="ribbon-color5"></span>
+            <span class="ribbon-color6"></span>
+            <span class="ribbon-color7"></span>
+        </div>
+    </div>
+    <div class="m-home-nav hidden-lg hidden-md" id="sk-mobile-header">
+        <div class="m-home-tool-left clickable" data-toggle="modal" data-target="#modal-nav">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </div>
+        <div class="m-home-tool-left"></div>
+        <div style="text-align: center; height:100%;flex:1;">
+            <a href="/" style="text-decoration:none">
+                <img src="/images/mikan-pic.png" style="height: 3rem;margin-top: 0.5rem;">
+                <img src="/images/mikan-text.png" style="height: 1.5rem;margin-top: 0.5rem;">
+            </a>
+        </div>
+        <div class="m-home-tool-right clickable" data-toggle="modal" data-target="#modal-login">
+            <i class="fa fa-user" aria-hidden="true" style="margin-right: 1rem;"></i>
+        </div>
+        <div class="m-home-tool-right clickable" onclick="ShowNavSearch()">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class="m-nav-search" style="width: 100%;">
+        <div style="flex: 1;">
+            <form method="get" action="/Home/Search">
+                <div class="input-group">
+                    <span class="input-group-addon" id="sizing-addon1" style="border: none;background-color: white;">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="搜索" name="searchstr" aria-describedby="sizing-addon1" style="border: none;font-size:16px;">
+                </div>
+            </form>
+        </div>
+        <div style="width: 4rem;" onclick="HideNavSearch()">
+            <span style="font-size: 1.25rem;">取消</span>
+        </div>
+    </div>
+    <div id="sk-container" class="container hidden-sm hidden-xs">
+    <div class="pull-left leftbar-container">
+        <img src="/images/subscribed-badge.svg" class="subscribed-badge" style="" />
+
+        <div class="bangumi-poster" style="background-image: url('/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=560&format=webp');"></div>
+	<p class="bangumi-title">&#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005; <a href="/RSS/Bangumi?bangumiId=3526" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a></p>
+        <p class="bangumi-info">放送日期：&#x661F;&#x671F;&#x516D;</p>
+            <p class="bangumi-info">放送开始：1/4/2025</p>
+            <p class="bangumi-info">官方网站：<br /><a class="w-other-c" target="_blank" href="https://neet-kunoichi.com/">https://neet-kunoichi.com/</a></p>
+            <p class="bangumi-info">Bangumi番组计划链接：<br /><a class="w-other-c" target="_blank" href="https://bgm.tv/subject/479922">https://bgm.tv/subject/479922</a></p>
+        <div id="leftbar-nav-anchor"></div>
+        <div class="leftbar-nav">
+            <div class="header">字幕组列表</div>
+            <ul class="list-unstyled">
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-370" data-anchor="#370">LoliHouse</a>
+                        </span>
+                        <span class="date">
+                            4/7/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-615" data-anchor="#615">Kirara Fantasia</a>
+                        </span>
+                        <span class="date">
+                            5/28/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-583" data-anchor="#583">ANi</a>
+                        </span>
+                        <span class="date">
+                            3/30/2025
+                        </span>
+                    </li>
+            </ul>
+
+                <button class="btn logmod-submit js-subscribe_bangumi_page active" data-bangumiid="3526" data-subtitlegroupid="">取消番组订阅</button>
+        </div>
+    </div>
+
+    <div class="central-container">
+            <div class="header2">
+                <span class="header2-text">概况介绍</span>
+            </div>
+            <p class="header2-desc"> 平凡なサラリーマン・安海政あつみつかさを妖魔から守護するべく、居候を条件に主従契約を結んだ天才くノ一・出浦白津莉いでうらしづり。
+颯爽と妖魔を倒す姿とは裏腹に、しづりはゲーム三昧のオタクニートであった。
+政に甘やかされ、ぐうたら同棲生活を送るしづりのもとにクセつよくノ一たちも集結し…。
+オタクでニートな天才くノ一との同棲ラブコメ！ </p>
+        <div class="header2">
+            <span class="header2-text">字幕组列表</span>
+        </div>
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj8_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj8_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+            <div class="subgroup-scroll-top-370"></div>
+            <div class="subgroup-text" id="370">
+                    <a href="/Home/PublishGroup/223" target="_blank" style="color: #3bc0c3;">LoliHouse</a>
+                    <a href="/RSS/Bangumi?bangumiId=3526&subgroupid=370" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed">&#x7B80;&#x4E2D;</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page active" data-toggle="popover-x" data-target="#subscription-popover-3526-370" data-placement="bottom" data-bangumiid="3526" data-subtitlegroupid="370">修改订阅</a>
+                <div id="subscription-popover-3526-370" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="370" data-bangumiid="3526">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-cancel" onclick="PopoverUnsubscribeBangumiPage(this)">退订</button>
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a13488a0cb153b3393b735343cb284b4899d7165">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi [01-12&#x2B;EX &#x5408;&#x96C6;][WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][Fin]</a> <a data-clipboard-text="magnet:?xt=urn:btih:a13488a0cb153b3393b735343cb284b4899d7165&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>6.1GB</td>
+                <td>2025/04/07 11:53</td>
+                <td><a href="/Download/20250407/a13488a0cb153b3393b735343cb284b4899d7165.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a13488a0cb153b3393b735343cb284b4899d7165"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a356682479943f9715fbd6c102aad2f3c9e17ef7">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - EX [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:a356682479943f9715fbd6c102aad2f3c9e17ef7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>451.88 MB</td>
+                <td>2025/03/30 16:25</td>
+                <td><a href="/Download/20250330/a356682479943f9715fbd6c102aad2f3c9e17ef7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a356682479943f9715fbd6c102aad2f3c9e17ef7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1d3f1cc2818c8d5c886ce2cc4e1ca95a58132364">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi [01-12 &#x5408;&#x96C6;][WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][Fin]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1d3f1cc2818c8d5c886ce2cc4e1ca95a58132364&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>5.7GB</td>
+                <td>2025/03/28 11:20</td>
+                <td><a href="/Download/20250328/1d3f1cc2818c8d5c886ce2cc4e1ca95a58132364.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1d3f1cc2818c8d5c886ce2cc4e1ca95a58132364"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1ea0b51d2573388e9a23ae324c30ad1dddfd84a6">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 12 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][END]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1ea0b51d2573388e9a23ae324c30ad1dddfd84a6&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>503.26 MB</td>
+                <td>2025/03/23 22:23</td>
+                <td><a href="/Download/20250323/1ea0b51d2573388e9a23ae324c30ad1dddfd84a6.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1ea0b51d2573388e9a23ae324c30ad1dddfd84a6"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2775b7bd7560e3d29419e029edd80bf85d21e890">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 11 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:2775b7bd7560e3d29419e029edd80bf85d21e890&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>495.2 MB</td>
+                <td>2025/03/16 16:50</td>
+                <td><a href="/Download/20250316/2775b7bd7560e3d29419e029edd80bf85d21e890.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2775b7bd7560e3d29419e029edd80bf85d21e890"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/85d9da563dd806588b6ea78ca1d6d3d564a848cb">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 10 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:85d9da563dd806588b6ea78ca1d6d3d564a848cb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>479.78 MB</td>
+                <td>2025/03/09 15:17</td>
+                <td><a href="/Download/20250309/85d9da563dd806588b6ea78ca1d6d3d564a848cb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:85d9da563dd806588b6ea78ca1d6d3d564a848cb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/39fd98011bf554d80b27f15b2851fad8ade3986d">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 09 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:39fd98011bf554d80b27f15b2851fad8ade3986d&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>469.03 MB</td>
+                <td>2025/03/02 16:39</td>
+                <td><a href="/Download/20250302/39fd98011bf554d80b27f15b2851fad8ade3986d.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:39fd98011bf554d80b27f15b2851fad8ade3986d"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a71f36aeb2e2f4ea1a0b10ed51305d961812c983">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:a71f36aeb2e2f4ea1a0b10ed51305d961812c983&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>530.1 MB</td>
+                <td>2025/02/23 14:48</td>
+                <td><a href="/Download/20250223/a71f36aeb2e2f4ea1a0b10ed51305d961812c983.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a71f36aeb2e2f4ea1a0b10ed51305d961812c983"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/d85be151ca7731cff58510d45165bee365ae7b38">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:d85be151ca7731cff58510d45165bee365ae7b38&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>442.9MB</td>
+                <td>2025/02/16 15:49</td>
+                <td><a href="/Download/20250216/d85be151ca7731cff58510d45165bee365ae7b38.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:d85be151ca7731cff58510d45165bee365ae7b38"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/3d3144233b911e6483a61b425e958183fe945afb">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:3d3144233b911e6483a61b425e958183fe945afb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>438.09 MB</td>
+                <td>2025/02/09 18:13</td>
+                <td><a href="/Download/20250209/3d3144233b911e6483a61b425e958183fe945afb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:3d3144233b911e6483a61b425e958183fe945afb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1425a49173b77d4f2569202f6044500689cdc461">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1425a49173b77d4f2569202f6044500689cdc461&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>425.66 MB</td>
+                <td>2025/02/02 04:06</td>
+                <td><a href="/Download/20250202/1425a49173b77d4f2569202f6044500689cdc461.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1425a49173b77d4f2569202f6044500689cdc461"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/914e61938b4c04621409ad1b2a3818c00bb38dfb">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:914e61938b4c04621409ad1b2a3818c00bb38dfb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>514.8 MB</td>
+                <td>2025/01/26 03:15</td>
+                <td><a href="/Download/20250126/914e61938b4c04621409ad1b2a3818c00bb38dfb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:914e61938b4c04621409ad1b2a3818c00bb38dfb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ccb314f1391243c6ce06362857a1c56fc2c508a1">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:ccb314f1391243c6ce06362857a1c56fc2c508a1&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>522.13 MB</td>
+                <td>2025/01/19 19:57</td>
+                <td><a href="/Download/20250119/ccb314f1391243c6ce06362857a1c56fc2c508a1.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ccb314f1391243c6ce06362857a1c56fc2c508a1"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/7d58e3b8bdbcf956e9e908d085209da94874650e">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:7d58e3b8bdbcf956e9e908d085209da94874650e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>566.21 MB</td>
+                <td>2025/01/13 21:18</td>
+                <td><a href="/Download/20250113/7d58e3b8bdbcf956e9e908d085209da94874650e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:7d58e3b8bdbcf956e9e908d085209da94874650e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/eeb0cae6238d6441cba93cb99e9d9652bfc65e18">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:eeb0cae6238d6441cba93cb99e9d9652bfc65e18&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>425.54 MB</td>
+                <td>2025/01/07 10:16</td>
+                <td><a href="/Download/20250107/eeb0cae6238d6441cba93cb99e9d9652bfc65e18.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:eeb0cae6238d6441cba93cb99e9d9652bfc65e18"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+                <a class="episode-expand js-expand-episode" data-bangumiid="3526" data-subtitlegroupid="370" data-take="65"><img src="/images/ic_keyboard_arrow_down_black_24px.svg" />显示更多</a>
+            <div class="subgroup-scroll-end-370"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-615"></div>
+            <div class="subgroup-text" id="615">
+                    <a href="/Home/PublishGroup/392" target="_blank" style="color: #3bc0c3;">Kirara Fantasia</a>
+                    <a href="/RSS/Bangumi?bangumiId=3526&subgroupid=615" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3526-615" data-placement="bottom" data-bangumiid="3526" data-subtitlegroupid="615">订阅</a>
+                <div id="subscription-popover-3526-615" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="615" data-bangumiid="3526">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/e9f54145f83c21481a1bb4d0e24374ff1d282b24">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 20 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:e9f54145f83c21481a1bb4d0e24374ff1d282b24&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.6 MB</td>
+                <td>2025/05/28 01:18</td>
+                <td><a href="/Download/20250528/e9f54145f83c21481a1bb4d0e24374ff1d282b24.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:e9f54145f83c21481a1bb4d0e24374ff1d282b24"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/b8a1d04b78a1893ad5bcee4c3a546654b02d7928">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 19 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:b8a1d04b78a1893ad5bcee4c3a546654b02d7928&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.5 MB</td>
+                <td>2025/05/21 01:32</td>
+                <td><a href="/Download/20250521/b8a1d04b78a1893ad5bcee4c3a546654b02d7928.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:b8a1d04b78a1893ad5bcee4c3a546654b02d7928"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/4ceea1c40348f5eb0851490ff57d89f995143778">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 18 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:4ceea1c40348f5eb0851490ff57d89f995143778&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>361.6 MB</td>
+                <td>2025/05/14 01:21</td>
+                <td><a href="/Download/20250514/4ceea1c40348f5eb0851490ff57d89f995143778.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:4ceea1c40348f5eb0851490ff57d89f995143778"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/66e3b51abd3462103281d8f2576d83c45402cffb">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 17 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:66e3b51abd3462103281d8f2576d83c45402cffb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.9 MB</td>
+                <td>2025/05/07 01:15</td>
+                <td><a href="/Download/20250507/66e3b51abd3462103281d8f2576d83c45402cffb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:66e3b51abd3462103281d8f2576d83c45402cffb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/cc177cad7900be64db1a3c15abe7f29bcbb742b0">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 16 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:cc177cad7900be64db1a3c15abe7f29bcbb742b0&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.3 MB</td>
+                <td>2025/04/30 01:15</td>
+                <td><a href="/Download/20250430/cc177cad7900be64db1a3c15abe7f29bcbb742b0.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:cc177cad7900be64db1a3c15abe7f29bcbb742b0"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/25b9e5e1b08724f3c1b8ec2b5da1a150230a85c7">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 15 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:25b9e5e1b08724f3c1b8ec2b5da1a150230a85c7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.0 MB</td>
+                <td>2025/04/23 01:15</td>
+                <td><a href="/Download/20250423/25b9e5e1b08724f3c1b8ec2b5da1a150230a85c7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:25b9e5e1b08724f3c1b8ec2b5da1a150230a85c7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1906bad3b963da55f566613ad579547d4156b4aa">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 14 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:1906bad3b963da55f566613ad579547d4156b4aa&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.4 MB</td>
+                <td>2025/04/16 01:15</td>
+                <td><a href="/Download/20250416/1906bad3b963da55f566613ad579547d4156b4aa.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1906bad3b963da55f566613ad579547d4156b4aa"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/9f8a8f4f12942216d9c488edba7e29dba00054ca">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:9f8a8f4f12942216d9c488edba7e29dba00054ca&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.3 MB</td>
+                <td>2025/04/09 01:15</td>
+                <td><a href="/Download/20250409/9f8a8f4f12942216d9c488edba7e29dba00054ca.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:9f8a8f4f12942216d9c488edba7e29dba00054ca"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a5a7ff7ae817ee242651147b859dcb798a63224f">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 115-118_s1_p125 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:a5a7ff7ae817ee242651147b859dcb798a63224f&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>361.1 MB</td>
+                <td>2025/04/01 23:45</td>
+                <td><a href="/Download/20250401/a5a7ff7ae817ee242651147b859dcb798a63224f.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a5a7ff7ae817ee242651147b859dcb798a63224f"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/eabb4ed793699beeb9a4a029203f534fe9e79c3b">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:eabb4ed793699beeb9a4a029203f534fe9e79c3b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>352.9 MB</td>
+                <td>2025/03/30 00:32</td>
+                <td><a href="/Download/20250330/eabb4ed793699beeb9a4a029203f534fe9e79c3b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:eabb4ed793699beeb9a4a029203f534fe9e79c3b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1da48372efcc3f0001ebe667f32886651c418a69">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x4E0D;&#x77E5;&#x4E3A;&#x4F55;&#x6211;&#x548C;neet&#x4E14;&#x5B85;&#x7684;&#x5973;&#x5FCD;&#x8005;&#x5F00;&#x59CB;&#x4E86;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:1da48372efcc3f0001ebe667f32886651c418a69&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>283.3 MB</td>
+                <td>2025/03/30 00:31</td>
+                <td><a href="/Download/20250330/1da48372efcc3f0001ebe667f32886651c418a69.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1da48372efcc3f0001ebe667f32886651c418a69"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/81cdb2d1985cdac7320ffe96b8cbfb2776e8ca8d">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:81cdb2d1985cdac7320ffe96b8cbfb2776e8ca8d&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.8 MB</td>
+                <td>2025/03/25 23:46</td>
+                <td><a href="/Download/20250325/81cdb2d1985cdac7320ffe96b8cbfb2776e8ca8d.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:81cdb2d1985cdac7320ffe96b8cbfb2776e8ca8d"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/b3dd3f6a3bf3df0f87e148d516e1e078ea488163">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:b3dd3f6a3bf3df0f87e148d516e1e078ea488163&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>396.8 MB</td>
+                <td>2025/03/23 00:32</td>
+                <td><a href="/Download/20250323/b3dd3f6a3bf3df0f87e148d516e1e078ea488163.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:b3dd3f6a3bf3df0f87e148d516e1e078ea488163"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/dbdd50e2e11ac52e426a971997d1926ad76cba77">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x4E0D;&#x77E5;&#x4E3A;&#x4F55;&#x6211;&#x548C;neet&#x4E14;&#x5B85;&#x7684;&#x5973;&#x5FCD;&#x8005;&#x5F00;&#x59CB;&#x4E86;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:dbdd50e2e11ac52e426a971997d1926ad76cba77&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>349.4 MB</td>
+                <td>2025/03/23 00:31</td>
+                <td><a href="/Download/20250323/dbdd50e2e11ac52e426a971997d1926ad76cba77.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:dbdd50e2e11ac52e426a971997d1926ad76cba77"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/fc94b616169283ea7cffd95ba3a580ac8a38c5ee">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 11 (ABEMA 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:fc94b616169283ea7cffd95ba3a580ac8a38c5ee&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>360.7 MB</td>
+                <td>2025/03/18 23:45</td>
+                <td><a href="/Download/20250318/fc94b616169283ea7cffd95ba3a580ac8a38c5ee.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:fc94b616169283ea7cffd95ba3a580ac8a38c5ee"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+                <a class="episode-expand js-expand-episode" data-bangumiid="3526" data-subtitlegroupid="615" data-take="65"><img src="/images/ic_keyboard_arrow_down_black_24px.svg" />显示更多</a>
+            <div class="subgroup-scroll-end-615"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-583"></div>
+            <div class="subgroup-text" id="583">
+                    <a href="/Home/PublishGroup/359" target="_blank" style="color: #3bc0c3;">ANi</a>
+                    <a href="/RSS/Bangumi?bangumiId=3526&subgroupid=583" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3526-583" data-placement="bottom" data-bangumiid="3526" data-subtitlegroupid="583">订阅</a>
+                <div id="subscription-popover-3526-583" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="583" data-bangumiid="3526">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2cf06c0344701de40535d8aa1a9796b6637f263c">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 13 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:2cf06c0344701de40535d8aa1a9796b6637f263c&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>353.1 MB</td>
+                <td>2025/03/30 00:31</td>
+                <td><a href="/Download/20250330/2cf06c0344701de40535d8aa1a9796b6637f263c.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2cf06c0344701de40535d8aa1a9796b6637f263c"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/073ceb2f53a233ee345f1fd02320fe11e2203020">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 12 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:073ceb2f53a233ee345f1fd02320fe11e2203020&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>397.0 MB</td>
+                <td>2025/03/23 00:33</td>
+                <td><a href="/Download/20250323/073ceb2f53a233ee345f1fd02320fe11e2203020.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:073ceb2f53a233ee345f1fd02320fe11e2203020"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8784e78a51c7f369198665714a0a2afdbedcb3fd">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 11 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:8784e78a51c7f369198665714a0a2afdbedcb3fd&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>365.3 MB</td>
+                <td>2025/03/16 00:31</td>
+                <td><a href="/Download/20250316/8784e78a51c7f369198665714a0a2afdbedcb3fd.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8784e78a51c7f369198665714a0a2afdbedcb3fd"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/09988c07277692e92ccd8c4969e4accaab4c2683">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 10 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:09988c07277692e92ccd8c4969e4accaab4c2683&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>381.7 MB</td>
+                <td>2025/03/09 00:31</td>
+                <td><a href="/Download/20250309/09988c07277692e92ccd8c4969e4accaab4c2683.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:09988c07277692e92ccd8c4969e4accaab4c2683"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/9be9d72ae47f6cbf9c2580b5d6a4b609cb7e6e5a">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:9be9d72ae47f6cbf9c2580b5d6a4b609cb7e6e5a&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>369.8 MB</td>
+                <td>2025/03/02 00:31</td>
+                <td><a href="/Download/20250302/9be9d72ae47f6cbf9c2580b5d6a4b609cb7e6e5a.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:9be9d72ae47f6cbf9c2580b5d6a4b609cb7e6e5a"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/4267fbe700aed2166469522549ca8212ad54869f">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:4267fbe700aed2166469522549ca8212ad54869f&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>430.2 MB</td>
+                <td>2025/02/23 00:31</td>
+                <td><a href="/Download/20250223/4267fbe700aed2166469522549ca8212ad54869f.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:4267fbe700aed2166469522549ca8212ad54869f"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/58860eba528cda6f1f35aa99c09271c425b9985f">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:58860eba528cda6f1f35aa99c09271c425b9985f&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>357.5 MB</td>
+                <td>2025/02/16 00:31</td>
+                <td><a href="/Download/20250216/58860eba528cda6f1f35aa99c09271c425b9985f.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:58860eba528cda6f1f35aa99c09271c425b9985f"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/73ed1455b01d15312baa1940a21e7e4e9cf59a4a">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:73ed1455b01d15312baa1940a21e7e4e9cf59a4a&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>348.9 MB</td>
+                <td>2025/02/09 00:31</td>
+                <td><a href="/Download/20250209/73ed1455b01d15312baa1940a21e7e4e9cf59a4a.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:73ed1455b01d15312baa1940a21e7e4e9cf59a4a"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/38955b5400ab8b1590ee7df7f2fb1c866bd51aa2">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:38955b5400ab8b1590ee7df7f2fb1c866bd51aa2&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>344.7 MB</td>
+                <td>2025/02/02 00:31</td>
+                <td><a href="/Download/20250202/38955b5400ab8b1590ee7df7f2fb1c866bd51aa2.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:38955b5400ab8b1590ee7df7f2fb1c866bd51aa2"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/6adcfb7c95d851ff0b20fe1041b7e8534150f90b">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:6adcfb7c95d851ff0b20fe1041b7e8534150f90b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>384.6 MB</td>
+                <td>2025/01/26 00:31</td>
+                <td><a href="/Download/20250126/6adcfb7c95d851ff0b20fe1041b7e8534150f90b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:6adcfb7c95d851ff0b20fe1041b7e8534150f90b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/d577bf11710f2ab066d0a564b27be0dcafecfa4e">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:d577bf11710f2ab066d0a564b27be0dcafecfa4e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>393.9 MB</td>
+                <td>2025/01/19 00:31</td>
+                <td><a href="/Download/20250119/d577bf11710f2ab066d0a564b27be0dcafecfa4e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:d577bf11710f2ab066d0a564b27be0dcafecfa4e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/51ee87cb292379f1ff9095b35d645a44bbfe6146">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:51ee87cb292379f1ff9095b35d645a44bbfe6146&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>456.5 MB</td>
+                <td>2025/01/12 00:31</td>
+                <td><a href="/Download/20250112/51ee87cb292379f1ff9095b35d645a44bbfe6146.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:51ee87cb292379f1ff9095b35d645a44bbfe6146"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/cf29091111f3935a6067262432ebfbf21054865a">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:cf29091111f3935a6067262432ebfbf21054865a&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>349.8 MB</td>
+                <td>2025/01/05 00:31</td>
+                <td><a href="/Download/20250105/cf29091111f3935a6067262432ebfbf21054865a.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:cf29091111f3935a6067262432ebfbf21054865a"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-583"></div>
+            <div style="height:1px;"></div>
+    </div>
+
+    <a href="#0" class="cd-top cd-top-btn">Top</a>
+</div>
+
+<div id="sk-mobile-container" class="m-detail hidden-lg hidden-md">
+    <div id="bangumi-m-main">
+        <div class="m-detail-title">
+            <div style="position: relative;overflow: hidden;">
+                <div class="m-detail-blur-bg blur" style="background-image:url(/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp)"></div>
+            </div>
+            <div class="content">
+                <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" />
+                <section>
+                    <p class="title" style="color:white;">&#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005;</p>
+                    <span>放送日期： &#x661F;&#x671F;&#x516D;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span>放送开始：1/4/2025</span>
+                </section>
+            </div>
+        </div>
+            <div class="m-detail-intro">
+
+                <p class="title" style="color:#3bc0c3;">概况介绍</p>
+                <div class="info">
+                    平凡なサラリーマン・安海政あつみつかさを妖魔から守護するべく、居候を条件に主従契約を結んだ天才くノ一・出浦白津莉いでうらしづり。
+颯爽と妖魔を倒す姿とは裏腹に、しづりはゲーム三昧のオタクニートであった。
+政に甘やかされ、ぐうたら同棲生活を送るしづりのもとにクセつよくノ一たちも集結し…。
+オタクでニートな天才くノ一との同棲ラブコメ！
+                </div>
+
+            </div>
+
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj9_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj9_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+
+        <div class="m-detail-list">
+            <div class="header">
+                <div style="flex: 1;padding-left: 1.5rem;">
+                    <span class="title">字幕组列表</span>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="SortItems('subgroup-list'); InitMobileSubscribeBangumiPage();">
+                    排序&nbsp;&nbsp;<i class="fa fa-sort icon" aria-hidden="true"></i>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="ShowSubscribedOnly('subgroup-list')">
+                    筛选&nbsp;&nbsp;<i class="fa fa-filter icon" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="m-detail-list-content js-sort-items-list" id="subgroup-list">
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="0" id="m370">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <span class="title" style="font-size: 1.35rem;">LoliHouse</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 4/7/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="370"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="1" id="m615">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <span class="title" style="font-size: 1.35rem;">Kirara Fantasia</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/28/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="615"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="2" id="m583">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <span class="title" style="font-size: 1.35rem;">ANi</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 3/30/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="583"></i></span>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bangumi-m-370" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="370"></i>
+                <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">LoliHouse</span><br>
+                <div>
+                    <span class="remark">更新: 2025/04/07</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="370"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-370');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-370">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi [01-12&#x2B;EX &#x5408;&#x96C6;][WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][Fin]</div>
+                <div class="date">4/7/2025 3:53 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250407/a13488a0cb153b3393b735343cb284b4899d7165.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - EX [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">3/30/2025 8:25 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250330/a356682479943f9715fbd6c102aad2f3c9e17ef7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi [01-12 &#x5408;&#x96C6;][WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][Fin]</div>
+                <div class="date">3/28/2025 3:20 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250328/1d3f1cc2818c8d5c886ce2cc4e1ca95a58132364.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 12 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;][END]</div>
+                <div class="date">3/23/2025 2:23 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250323/1ea0b51d2573388e9a23ae324c30ad1dddfd84a6.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 11 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">3/16/2025 8:50 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250316/2775b7bd7560e3d29419e029edd80bf85d21e890.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 10 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">3/9/2025 7:17 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250309/85d9da563dd806588b6ea78ca1d6d3d564a848cb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 09 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">3/2/2025 8:39 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250302/39fd98011bf554d80b27f15b2851fad8ade3986d.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">2/23/2025 6:48 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250223/a71f36aeb2e2f4ea1a0b10ed51305d961812c983.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">2/16/2025 7:49 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250216/d85be151ca7731cff58510d45165bee365ae7b38.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">2/9/2025 10:13 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250209/3d3144233b911e6483a61b425e958183fe945afb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">2/1/2025 8:06 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250202/1425a49173b77d4f2569202f6044500689cdc461.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">1/25/2025 7:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250126/914e61938b4c04621409ad1b2a3818c00bb38dfb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">1/19/2025 11:57 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250119/ccb314f1391243c6ce06362857a1c56fc2c508a1.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="13">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">1/13/2025 1:18 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250113/7d58e3b8bdbcf956e9e908d085209da94874650e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="14">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">1/7/2025 2:16 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250107/eeb0cae6238d6441cba93cb99e9d9652bfc65e18.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+            <button class="form-control js-m-expand-episode" style="height: 5rem;color: #3bc0c3;border: none;" data-bangumiid="3526" data-subtitlegroupid="370" data-take="65">
+                查看更多
+            </button>
+    </div>
+    <div id="bangumi-m-615" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="615"></i>
+                <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">Kirara Fantasia</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/28</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="615"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-615');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-615">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 20 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/27/2025 5:18 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250528/e9f54145f83c21481a1bb4d0e24374ff1d282b24.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 19 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/20/2025 5:32 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250521/b8a1d04b78a1893ad5bcee4c3a546654b02d7928.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 18 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/13/2025 5:21 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250514/4ceea1c40348f5eb0851490ff57d89f995143778.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 17 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/6/2025 5:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250507/66e3b51abd3462103281d8f2576d83c45402cffb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 16 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">4/29/2025 5:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250430/cc177cad7900be64db1a3c15abe7f29bcbb742b0.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 15 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">4/22/2025 5:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250423/25b9e5e1b08724f3c1b8ec2b5da1a150230a85c7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 14 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">4/15/2025 5:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250416/1906bad3b963da55f566613ad579547d4156b4aa.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">4/8/2025 5:15 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250409/9f8a8f4f12942216d9c488edba7e29dba00054ca.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 115-118_s1_p125 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">4/1/2025 3:45 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250401/a5a7ff7ae817ee242651147b859dcb798a63224f.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">3/29/2025 4:32 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250330/eabb4ed793699beeb9a4a029203f534fe9e79c3b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x4E0D;&#x77E5;&#x4E3A;&#x4F55;&#x6211;&#x548C;neet&#x4E14;&#x5B85;&#x7684;&#x5973;&#x5FCD;&#x8005;&#x5F00;&#x59CB;&#x4E86;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 13 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">3/29/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250330/1da48372efcc3f0001ebe667f32886651c418a69.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">3/25/2025 3:46 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250325/81cdb2d1985cdac7320ffe96b8cbfb2776e8ca8d.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">3/22/2025 4:32 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250323/b3dd3f6a3bf3df0f87e148d516e1e078ea488163.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="13">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x4E0D;&#x77E5;&#x4E3A;&#x4F55;&#x6211;&#x548C;neet&#x4E14;&#x5B85;&#x7684;&#x5973;&#x5FCD;&#x8005;&#x5F00;&#x59CB;&#x4E86;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 12 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">3/22/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250323/dbdd50e2e11ac52e426a971997d1926ad76cba77.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="14">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; / NEET Kunoichi to Nazeka Dousei Hajimemashita - 11 (ABEMA 1920x1080 AVC AAC MP4)</div>
+                <div class="date">3/18/2025 3:45 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250318/fc94b616169283ea7cffd95ba3a580ac8a38c5ee.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+            <button class="form-control js-m-expand-episode" style="height: 5rem;color: #3bc0c3;border: none;" data-bangumiid="3526" data-subtitlegroupid="615" data-take="65">
+                查看更多
+            </button>
+    </div>
+    <div id="bangumi-m-583" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="583"></i>
+                <img src="/images/Bangumi/202501/d5a4b73b.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">ANi</span><br>
+                <div>
+                    <span class="remark">更新: 2025/03/30</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3526" data-subtitlegroupid="583"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x6211;&#x5BB6;&#x6709;&#x4E2A;&#x963F;&#x5B85;&#x5973;&#x5FCD;&#x8005;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-583');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-583">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 13 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">3/29/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250330/2cf06c0344701de40535d8aa1a9796b6637f263c.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 12 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">3/22/2025 4:33 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250323/073ceb2f53a233ee345f1fd02320fe11e2203020.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 11 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">3/15/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250316/8784e78a51c7f369198665714a0a2afdbedcb3fd.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 10 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">3/8/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250309/09988c07277692e92ccd8c4969e4accaab4c2683.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">3/1/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250302/9be9d72ae47f6cbf9c2580b5d6a4b609cb7e6e5a.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">2/22/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250223/4267fbe700aed2166469522549ca8212ad54869f.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">2/15/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250216/58860eba528cda6f1f35aa99c09271c425b9985f.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">2/8/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250209/73ed1455b01d15312baa1940a21e7e4e9cf59a4a.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">2/1/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250202/38955b5400ab8b1590ee7df7f2fb1c866bd51aa2.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">1/25/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250126/6adcfb7c95d851ff0b20fe1041b7e8534150f90b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">1/18/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250119/d577bf11710f2ab066d0a564b27be0dcafecfa4e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">1/11/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250112/51ee87cb292379f1ff9095b35d645a44bbfe6146.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[ANi]  &#x6211;&#x4E0E;&#x5C3C;&#x7279;&#x5973;&#x5FCD;&#x8005;&#x7684;&#x83AB;&#x540D;&#x540C;&#x5C45;&#x751F;&#x6D3B; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">1/4/2025 4:31 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250105/cf29091111f3935a6067262432ebfbf21054865a.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        InitLeftBarMagicScroll();
+    });
+
+    function InitLeftBarMagicScroll() {
+        if (window.smController != null) {
+            window.smController.destroy(true);
+        }
+        // init controller
+        window.smController = new ScrollMagic.Controller();
+
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+                }
+</script>
+
+    <div class="modal modal-fullscreen fade" id="modal-nav" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#3bc0c3;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;">
+                    <div class="m-tool">
+                        <span class="m-close clickable"><i class="fa fa-times" aria-hidden="true" data-toggle="modal" data-target="#modal-nav"></i></span>
+                        <div class="m-tool-toolbar">
+                            <img src="/images/mikan-pic.png" style="width: 3rem;">
+                            <img src="/images/mikan-text.png" style="width: 7rem;">
+                        </div>
+                        <div class="m-tool-list">
+                            <ul>
+                                <li><a href="/" class="link">主页</a></li>
+                                <li class="m-tool-search-change"><a href="/Home/MyBangumi" class="link">订阅</a></li>
+                                <li onclick="tool.clickSearch()" class="m-tool-search-change">
+                                    <i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;搜索站内
+                                </li>
+                                <li class="m-tool-search-input">
+                                    <form method="get" action="/Home/Search">
+                                        <div style="display: flex;height: 100%;">
+                                            <input type="text" class="form-control" name="searchstr" style="font-size:16px;" />
+                                            <span style="width: 5rem;" onclick="tool.resetSearch()">取消</span>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal modal-fullscreen fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#edf1f2;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;height:85vh;">
+                    <div class="m-login">
+                        <span class="m-left clickable"><i class="fa fa-angle-left" aria-hidden="true" data-toggle="modal" data-target="#modal-login"></i></span>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-90CVJU1_vkLBcMlLJeDzvRwUOtb89GHiRsIbBKOMsrVxcU1MyLI8XZzn5iIUt5jGvMg9PEQzd0AETfvrkAvCYFxbkKEbtzWGiNSAlunGdnU25rjI3hpO_zNrdjAiiKlZYw5ctla4AXklijGL-ldRC58wxeXHE7rv-fuDY__MVlw-g" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-90CVJU1_vkLBcMlLJeDzvRwUOtb89GHiRsIbBKOMsrVxcU1MyLI8XZzn5iIUt5jGvMg9PEQzd0AETfvrkAvCYFxbkKEbtzWGiNSAlunGdnU25rjI3hpO_zNrdjAiiKlZYw5ctla4AXklijGL-ldRC58wxeXHE7rv-fuDY__MVlw-g" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer hidden-xs hidden-sm">
+        <div id="sk-footer" class="container text-center">
+            <div>Powered by Mikan Project <a href="/Home/Contact" target="_blank">联系我们</a></div>
+            <div>Cooperate by PlaymateCat@Lisa</div>
+        </div>
+    </footer>
+
+    <script>
+        var tool = {};
+        (function () {
+
+            var inputPEl = $('.m-tool-search-input');
+            var inputEl = inputPEl.find('input');
+            var changeEl = $('.m-tool-search-change');
+            inputPEl.hide();
+            tool.clickSearch = clickSearch;
+            tool.resetSearch = resetSearch;
+
+            function clickSearch() {
+                changeEl.hide();
+                inputPEl.show();
+                inputEl.focus();
+            }
+
+            function resetSearch() {
+                changeEl.show();
+                inputPEl.hide();
+                inputEl.val('');
+            }
+        })();
+    </script>
+
+    <script>
+        var pageUtil;
+
+        (function () {
+            pageUtil = {
+                isMobile: isMobile
+            };
+
+            function isMobile() {
+                var check = false;
+                (function (a) {
+                    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+                })(navigator.userAgent || navigator.vendor || window.opera);
+                return check;
+            }
+        })();
+
+        //detect if page is mobile
+        if (pageUtil.isMobile()) {
+            document.getElementsByTagName('html')[0].style['font-size'] = window.innerWidth / 32 + 'px';
+        }
+    </script>
+</body>
+
+<!-- here put your own javascript -->
+
+
+    <script src="/js/mikan.min.js?v=7USd_hfRE7KH46vQBdF29boa3ENWKMVFRTyD9a8XEDg"></script>
+
+
+
+</html>

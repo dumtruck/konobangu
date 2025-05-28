@@ -163,9 +163,6 @@ impl From<Url> for MikanDoppelPath {
         if let Some(query) = value.query() {
             filename.push_str(&format!("-{}", Self::encode_path_component(query)));
         }
-        if let Some(fragment) = value.fragment() {
-            filename.push_str(&format!("-{}", Self::encode_path_component(fragment)));
-        }
         filename.push_str(&format!(".{extension}"));
 
         Self {
@@ -324,7 +321,7 @@ impl MikanMockServer {
                 let mikan_base_url = self.base_url().clone();
                 move |request| {
                     let path = request.path();
-                    if !path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                    if !path.starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
                         && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
                         && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
                             || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)
@@ -362,7 +359,7 @@ impl MikanMockServer {
                 let mikan_base_url = self.base_url().clone();
                 move |request| {
                     let path = request.path();
-                    if !path.starts_with(MIKAN_EPISODE_HOMEPAGE_PATH)
+                    if !path.starts_with(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH)
                         && !path.starts_with(MIKAN_SEASON_FLOW_PAGE_PATH)
                         && (path.starts_with(MIKAN_BANGUMI_RSS_PATH)
                             || path.starts_with(MIKAN_BANGUMI_HOMEPAGE_PATH)

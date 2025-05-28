@@ -222,6 +222,22 @@ pub struct MikanBangumiPosterMeta {
     pub poster_src: Option<String>,
 }
 
+pub fn build_mikan_bangumi_subscription_rss_url(
+    mikan_base_url: Url,
+    mikan_bangumi_id: &str,
+    mikan_fansub_id: Option<&str>,
+) -> Url {
+    let mut url = mikan_base_url;
+    url.set_path(MIKAN_BANGUMI_RSS_PATH);
+    url.query_pairs_mut()
+        .append_pair(MIKAN_BANGUMI_ID_QUERY_KEY, mikan_bangumi_id);
+    if let Some(mikan_fansub_id) = mikan_fansub_id {
+        url.query_pairs_mut()
+            .append_pair(MIKAN_FANSUB_ID_QUERY_KEY, mikan_fansub_id);
+    };
+    url
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct MikanBangumiIndexHash {
     pub mikan_bangumi_id: String,
@@ -243,22 +259,21 @@ impl MikanBangumiIndexHash {
     pub fn build_homepage_url(self, mikan_base_url: Url) -> Url {
         build_mikan_bangumi_homepage_url(mikan_base_url, &self.mikan_bangumi_id, None)
     }
-}
 
-pub fn build_mikan_bangumi_subscription_rss_url(
-    mikan_base_url: Url,
-    mikan_bangumi_id: &str,
-    mikan_fansub_id: Option<&str>,
-) -> Url {
-    let mut url = mikan_base_url;
-    url.set_path(MIKAN_BANGUMI_RSS_PATH);
-    url.query_pairs_mut()
-        .append_pair(MIKAN_BANGUMI_ID_QUERY_KEY, mikan_bangumi_id);
-    if let Some(mikan_fansub_id) = mikan_fansub_id {
-        url.query_pairs_mut()
-            .append_pair(MIKAN_FANSUB_ID_QUERY_KEY, mikan_fansub_id);
-    };
-    url
+    pub fn from_rss_url(url: &Url) -> Option<Self> {
+        if url.path() == MIKAN_BANGUMI_RSS_PATH {
+            url.query_pairs()
+                .find(|(k, _)| k == MIKAN_BANGUMI_ID_QUERY_KEY)
+                .map(|(_, v)| v.to_string())
+                .map(|mikan_bangumi_id| Self { mikan_bangumi_id })
+        } else {
+            None
+        }
+    }
+
+    pub fn build_rss_url(self, mikan_base_url: Url) -> Url {
+        build_mikan_bangumi_subscription_rss_url(mikan_base_url, &self.mikan_bangumi_id, None)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -590,12 +605,8 @@ pub fn extract_mikan_bangumi_index_meta_from_bangumi_homepage_html(
         .next()
         .and_then(|el| el.value().attr("href"))
         .and_then(|s| mikan_bangumi_homepage_url.join(s).ok())
-        .and_then(|rss_link_url| MikanBangumiHash::from_rss_url(&rss_link_url))
-        .map(
-            |MikanBangumiHash {
-                 mikan_bangumi_id, ..
-             }| mikan_bangumi_id,
-        )
+        .and_then(|rss_link_url| MikanBangumiIndexHash::from_rss_url(&rss_link_url))
+        .map(|MikanBangumiIndexHash { mikan_bangumi_id }| mikan_bangumi_id)
         .ok_or_else(|| {
             RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_bangumi_id"))
         })?;
@@ -1300,21 +1311,18 @@ mod test {
     async fn test_scrape_mikan_episode_meta_from_episode_homepage_url(
         before_each: (),
     ) -> RecorderResult<()> {
-        let mut mikan_server = mockito::Server::new_async().await;
-        let mikan_base_url = Url::parse(&mikan_server.url())?;
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let mikan_base_url = mikan_server.base_url().clone();
+
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
 
-        let episode_homepage_url = mikan_base_url
-            .clone()
-            .join("/Home/Episode/475184dce83ea2b82902592a5ac3343f6d54b36a")?;
+        let resources_mock = mikan_server.mock_resources_with_doppel();
 
-        let episode_homepage_mock = mikan_server
-            .mock("GET", episode_homepage_url.path())
-            .with_body_from_file(
-                "tests/resources/mikan/Episode-475184dce83ea2b82902592a5ac3343f6d54b36a.htm",
-            )
-            .create_async()
-            .await;
+        let episode_homepage_url = MikanEpisodeHash {
+            mikan_episode_id: "475184dce83ea2b82902592a5ac3343f6d54b36a".to_string(),
+        }
+        .build_homepage_url(mikan_base_url.clone());
 
         let episode_meta = scrape_mikan_episode_meta_from_episode_homepage_url(
             &mikan_client,
@@ -1343,17 +1351,19 @@ mod test {
     async fn test_scrape_mikan_bangumi_meta_from_bangumi_homepage_url(
         before_each: (),
     ) -> RecorderResult<()> {
-        let mut mikan_server = mockito::Server::new_async().await;
-        let mikan_base_url = Url::parse(&mikan_server.url())?;
+        let mut mikan_server = MikanMockServer::new().await?;
+
+        let mikan_base_url = mikan_server.base_url().clone();
+
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
 
-        let bangumi_homepage_url = mikan_base_url.join("/Home/Bangumi/3416#370")?;
+        let resources_mock = mikan_server.mock_resources_with_doppel();
 
-        let bangumi_homepage_mock = mikan_server
-            .mock("GET", bangumi_homepage_url.path())
-            .with_body_from_file("tests/resources/mikan/Bangumi-3416-370.htm")
-            .create_async()
-            .await;
+        let bangumi_homepage_url = MikanBangumiHash {
+            mikan_bangumi_id: "3416".to_string(),
+            mikan_fansub_id: "370".to_string(),
+        }
+        .build_homepage_url(mikan_base_url.clone());
 
         let bangumi_meta = scrape_mikan_bangumi_meta_from_bangumi_homepage_url(
             &mikan_client,

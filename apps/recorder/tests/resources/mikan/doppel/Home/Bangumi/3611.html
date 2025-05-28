@@ -1,0 +1,2205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="keywords" content="新番,动漫,动漫下載,新番下载,animation,bangumi,动画,蜜柑计划,Mikan Project" />
+    <meta name="description" content="蜜柑计划：新一代的动漫下载站" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 若用户有Google Chrome Frame,那么ie浏览时让IE使用chrome内核 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <!-- 若是双核浏览器,默认webkit渲染(chrome) -->
+    <meta name="renderer" content="webkit">
+    <title>Mikan Project - &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;</title>
+
+    <!-- here put import css lib -->
+
+
+        <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css?v=7s5uDGW3AHqw6xtJmNNtr-OBRJUlgkNJEo78P4b0yRw" />
+        <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=3dkvEK0WLHRJ7_Csr0BZjAWxERc5WH7bdeUya2aXxdU" />
+        <link rel="stylesheet" href="/css/thirdparty.min.css?v=c2SZy6n-55iljz60XCAALXejEZvjc43kgwamU5DAYUU" />
+        <link rel="stylesheet" href="/css/animate.min.css?v=w_eXqGX0NdMPQ0LZNhdQ8B-DQMYAxelvLoIP39dzmus" />
+        <link rel="stylesheet" href="/css/mikan.min.css?v=aupBMgBgKRB5chTb5fl8lvHpN3OqX67_gKg3lXZewRw" />
+
+        <script src="/lib/jquery/dist/jquery.min.js?v=BbhdlvQf_xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44"></script>
+        <script src="/lib/bootstrap/dist/js/bootstrap.min.js?v=KXn5puMvxCw-dAYznun-drMdG1IFl3agK0p_pqT9KAo"></script>
+        <script src="/js/thirdparty.min.js?v=NsK_w5fw7Nm4ZPm4eZDgsivasZNgT6ArhIjmj-bRnR0"></script>
+        <script src="/js/darkreader.min.js?v=Lr_8XODLEDSPtT6LqaeLKzREs4jocJUzV8HvQPItIic"></script>
+        <script src="/js/ScrollMagic.min.js?v=1xuIM3UJWEZX_wWN9zrA8W7CWukfsMaEqb759CeHo3U"></script>
+        <script src="/js/jquery.ScrollMagic.min.js?v=SyygQh9gWWfvyS13QwI0SKGAQyHDachlaigiK4X59iw"></script>
+
+
+    <link rel="icon" href="/images/favicon.ico?v=2" />
+    <link rel="apple-touch-icon" href="\Images\apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="\Images\apple-touch-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="\Images\apple-touch-icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="\Images\apple-touch-icon-144x144.png">
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+        ga('create', 'UA-8911610-8', 'auto');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body class="main">
+    <div id="sk-header" class="hidden-xs hidden-sm">
+        <div id="sk-top-nav" class="container">
+            <a id="logo" href="/" style="width:205px;"><img id="mikan-pic" src="/images/mikan-pic.png" /><img src="/images/mikan-text.svg" style="height:30px;" /></a>
+            <div id="nav-list">
+                <ul class="list-inline nav-ul">
+                    <li class="">
+                        <div class="sk-col"><a href="/"><i class="fa fa-home fa-lg"></i>主页</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/MyBangumi"><i class="fa fa-rss fa-lg"></i>订阅</a></div>
+                    </li>
+                    <li class="">
+                        <div class="sk-col"><a href="/Home/Classic"><i class="fa fa-slack fa-lg"></i>列表</a></div>
+                    </li>
+                        <li class="">
+                            <div class="sk-col"><a href="/Home/Publish"><i class="fa fa-pencil-square-o fa-lg"></i>发布</a></div>
+                        </li>
+                </ul>
+            </div>
+            <div class="search-form">
+                <form method="get" action="/Home/Search">
+                    <div class="form-group has-feedback">
+                        <label for="search" class="sr-only">搜索</label>
+                        <input type="text" class="form-control input-sm" name="searchstr" id="header-search" placeholder="搜索">
+                        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+                    </div>
+                </form>
+            </div>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-93osXntoFFHi7XaB88WGbOYNKzlZckeWsvg3sJqR8fenuK_tN7L5C-KSP3yJKJHwBOORWOLA_HkDEU6_3NjO6WiAple7g5mlc7h1W2RMyONHvvn1drioXZS0la3uBU858TO1yw7Eu_duZP_JENmekF6aUClldWhxef_75PxmtzsBg" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-93osXntoFFHi7XaB88WGbOYNKzlZckeWsvg3sJqR8fenuK_tN7L5C-KSP3yJKJHwBOORWOLA_HkDEU6_3NjO6WiAple7g5mlc7h1W2RMyONHvvn1drioXZS0la3uBU858TO1yw7Eu_duZP_JENmekF6aUClldWhxef_75PxmtzsBg" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>
+        </div>
+        <div class="ribbon">
+            <span class="ribbon-color1"></span>
+            <span class="ribbon-color2"></span>
+            <span class="ribbon-color3"></span>
+            <span class="ribbon-color4"></span>
+            <span class="ribbon-color5"></span>
+            <span class="ribbon-color6"></span>
+            <span class="ribbon-color7"></span>
+        </div>
+    </div>
+    <div class="m-home-nav hidden-lg hidden-md" id="sk-mobile-header">
+        <div class="m-home-tool-left clickable" data-toggle="modal" data-target="#modal-nav">
+            <i class="fa fa-bars" aria-hidden="true"></i>
+        </div>
+        <div class="m-home-tool-left"></div>
+        <div style="text-align: center; height:100%;flex:1;">
+            <a href="/" style="text-decoration:none">
+                <img src="/images/mikan-pic.png" style="height: 3rem;margin-top: 0.5rem;">
+                <img src="/images/mikan-text.png" style="height: 1.5rem;margin-top: 0.5rem;">
+            </a>
+        </div>
+        <div class="m-home-tool-right clickable" data-toggle="modal" data-target="#modal-login">
+            <i class="fa fa-user" aria-hidden="true" style="margin-right: 1rem;"></i>
+        </div>
+        <div class="m-home-tool-right clickable" onclick="ShowNavSearch()">
+            <i class="fa fa-search" aria-hidden="true"></i>
+        </div>
+    </div>
+    <div class="m-nav-search" style="width: 100%;">
+        <div style="flex: 1;">
+            <form method="get" action="/Home/Search">
+                <div class="input-group">
+                    <span class="input-group-addon" id="sizing-addon1" style="border: none;background-color: white;">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </span>
+                    <input type="text" class="form-control" placeholder="搜索" name="searchstr" aria-describedby="sizing-addon1" style="border: none;font-size:16px;">
+                </div>
+            </form>
+        </div>
+        <div style="width: 4rem;" onclick="HideNavSearch()">
+            <span style="font-size: 1.25rem;">取消</span>
+        </div>
+    </div>
+    <div id="sk-container" class="container hidden-sm hidden-xs">
+    <div class="pull-left leftbar-container">
+        <img src="/images/subscribed-badge.svg" class="subscribed-badge" style="" />
+
+        <div class="bangumi-poster" style="background-image: url('/images/Bangumi/202504/b41afc59.jpg?width=400&height=560&format=webp');"></div>
+	<p class="bangumi-title">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; <a href="/RSS/Bangumi?bangumiId=3611" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a></p>
+        <p class="bangumi-info">放送日期：&#x661F;&#x671F;&#x4E94;</p>
+            <p class="bangumi-info">放送开始：4/4/2025</p>
+            <p class="bangumi-info">官方网站：<br /><a class="w-other-c" target="_blank" href="https://fireforce-anime.jp/">https://fireforce-anime.jp/</a></p>
+            <p class="bangumi-info">Bangumi番组计划链接：<br /><a class="w-other-c" target="_blank" href="https://bgm.tv/subject/382126">https://bgm.tv/subject/382126</a></p>
+        <div id="leftbar-nav-anchor"></div>
+        <div class="leftbar-nav">
+            <div class="header">字幕组列表</div>
+            <ul class="list-unstyled">
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-370" data-anchor="#370">LoliHouse</a>
+                        </span>
+                        <span class="date">
+                            5/31/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-615" data-anchor="#615">Kirara Fantasia</a>
+                        </span>
+                        <span class="date">
+                            5/31/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-534" data-anchor="#534">&#x5929;&#x6708;&#x52A8;&#x6F2B;&amp;&#x53D1;&#x5E03;&#x7EC4;</a>
+                        </span>
+                        <span class="date">
+                            5/31/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-583" data-anchor="#583">ANi</a>
+                        </span>
+                        <span class="date">
+                            5/31/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-202" data-anchor="#202">&#x751F;&#x8089;/&#x4E0D;&#x660E;&#x5B57;&#x5E55;</a>
+                        </span>
+                        <span class="date">
+                            5/31/2025
+                        </span>
+                    </li>
+                    <li class="leftbar-item">
+                        <span>
+                            <a class="subgroup-name subgroup-1221" data-anchor="#1221">&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;</a>
+                        </span>
+                        <span class="date">
+                            4/8/2025
+                        </span>
+                    </li>
+            </ul>
+
+                <button class="btn logmod-submit js-subscribe_bangumi_page active" data-bangumiid="3611" data-subtitlegroupid="">取消番组订阅</button>
+        </div>
+    </div>
+
+    <div class="central-container">
+            <div class="header2">
+                <span class="header2-text">概况介绍</span>
+            </div>
+            <p class="header2-desc"> 炎が導く灼熱のダークファンタジー
+最終章始動──
+「柱」を巡る激戦や〝地下(ネザー)〟調査作戦を経て、世界の大いなる秘密へと近づいたシンラたち。
+
+彼らの奮闘に応え、他の特殊消防隊も協力する姿勢を示し、全ての特殊消防隊は大災害を阻止すべく1つになった。
+今、世界を守る〝シンラ（ヒーロー）〟と
+消防官たちの最終決戦が開幕！ </p>
+        <div class="header2">
+            <span class="header2-text">字幕组列表</span>
+        </div>
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj9_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj9_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+            <div class="subgroup-scroll-top-370"></div>
+            <div class="subgroup-text" id="370">
+                    <a href="/Home/PublishGroup/223" target="_blank" style="color: #3bc0c3;">LoliHouse</a>
+                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=370" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed">&#x7B80;&#x4E2D;</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page active" data-toggle="popover-x" data-target="#subscription-popover-3611-370" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="370">修改订阅</a>
+                <div id="subscription-popover-3611-370" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="370" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-cancel" onclick="PopoverUnsubscribeBangumiPage(this)">退订</button>
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/70751c03f5c95232ede9122a6f7c17b01b2ecb8e">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 09 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:70751c03f5c95232ede9122a6f7c17b01b2ecb8e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>383.09 MB</td>
+                <td>2025/05/31 16:16</td>
+                <td><a href="/Download/20250531/70751c03f5c95232ede9122a6f7c17b01b2ecb8e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:70751c03f5c95232ede9122a6f7c17b01b2ecb8e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/289f4d37f049939c4d7fafe3aa717b8fde3338cd">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:289f4d37f049939c4d7fafe3aa717b8fde3338cd&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>387.68 MB</td>
+                <td>2025/05/25 02:18</td>
+                <td><a href="/Download/20250525/289f4d37f049939c4d7fafe3aa717b8fde3338cd.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:289f4d37f049939c4d7fafe3aa717b8fde3338cd"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2d33a55f33b65577307d8cdc5ff3b65049c664e0">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:2d33a55f33b65577307d8cdc5ff3b65049c664e0&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>493.17 MB</td>
+                <td>2025/05/17 16:26</td>
+                <td><a href="/Download/20250517/2d33a55f33b65577307d8cdc5ff3b65049c664e0.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2d33a55f33b65577307d8cdc5ff3b65049c664e0"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/18b97dbba0adc9b493b79b9e525c366e9d98e1f7">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:18b97dbba0adc9b493b79b9e525c366e9d98e1f7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>735.69 MB</td>
+                <td>2025/05/11 01:53</td>
+                <td><a href="/Download/20250511/18b97dbba0adc9b493b79b9e525c366e9d98e1f7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:18b97dbba0adc9b493b79b9e525c366e9d98e1f7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ec3dc27d509bc7945e010b6e886b80e4b489efac">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:ec3dc27d509bc7945e010b6e886b80e4b489efac&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>542.18 MB</td>
+                <td>2025/05/03 20:06</td>
+                <td><a href="/Download/20250503/ec3dc27d509bc7945e010b6e886b80e4b489efac.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ec3dc27d509bc7945e010b6e886b80e4b489efac"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ff23a765ead1481ca0aa704b967704d3885a83bf">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:ff23a765ead1481ca0aa704b967704d3885a83bf&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>625.12 MB</td>
+                <td>2025/04/26 16:56</td>
+                <td><a href="/Download/20250426/ff23a765ead1481ca0aa704b967704d3885a83bf.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ff23a765ead1481ca0aa704b967704d3885a83bf"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/d28f1b9887bdd3b84de640b5c33757b476897b7b">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:d28f1b9887bdd3b84de640b5c33757b476897b7b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>568.57 MB</td>
+                <td>2025/04/19 17:55</td>
+                <td><a href="/Download/20250419/d28f1b9887bdd3b84de640b5c33757b476897b7b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:d28f1b9887bdd3b84de640b5c33757b476897b7b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/d275be0e25707ec3f106d5d1fa5c888728289e27">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:d275be0e25707ec3f106d5d1fa5c888728289e27&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>394.42 MB</td>
+                <td>2025/04/12 18:03</td>
+                <td><a href="/Download/20250412/d275be0e25707ec3f106d5d1fa5c888728289e27.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:d275be0e25707ec3f106d5d1fa5c888728289e27"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/0ef05277e720df646e4a9cd25beb53a256560837">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</a> <a data-clipboard-text="magnet:?xt=urn:btih:0ef05277e720df646e4a9cd25beb53a256560837&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>498.55 MB</td>
+                <td>2025/04/06 15:23</td>
+                <td><a href="/Download/20250406/0ef05277e720df646e4a9cd25beb53a256560837.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:0ef05277e720df646e4a9cd25beb53a256560837"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-370"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-615"></div>
+            <div class="subgroup-text" id="615">
+                    <a href="/Home/PublishGroup/392" target="_blank" style="color: #3bc0c3;">Kirara Fantasia</a>
+                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=615" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3611-615" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="615">订阅</a>
+                <div id="subscription-popover-3611-615" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="615" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ae08dd5c9be2363d0007318ec3d0227295a96781">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 09 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:ae08dd5c9be2363d0007318ec3d0227295a96781&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>332.8 MB</td>
+                <td>2025/05/31 02:06</td>
+                <td><a href="/Download/20250531/ae08dd5c9be2363d0007318ec3d0227295a96781.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ae08dd5c9be2363d0007318ec3d0227295a96781"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8c8dab0476e5381efb83f5b1dfabec58814fd8f7">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 09 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:8c8dab0476e5381efb83f5b1dfabec58814fd8f7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.4 GB</td>
+                <td>2025/05/31 02:01</td>
+                <td><a href="/Download/20250531/8c8dab0476e5381efb83f5b1dfabec58814fd8f7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8c8dab0476e5381efb83f5b1dfabec58814fd8f7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/549c2b6a8fad1ccc176ce42443a1e09d4a9b9fda">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 09 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:549c2b6a8fad1ccc176ce42443a1e09d4a9b9fda&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>395.0 MB</td>
+                <td>2025/05/31 01:24</td>
+                <td><a href="/Download/20250531/549c2b6a8fad1ccc176ce42443a1e09d4a9b9fda.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:549c2b6a8fad1ccc176ce42443a1e09d4a9b9fda"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/9c04c28ccfc742b27eb3f31253bca273347f132b">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 08 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:9c04c28ccfc742b27eb3f31253bca273347f132b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.4 GB</td>
+                <td>2025/05/24 02:01</td>
+                <td><a href="/Download/20250524/9c04c28ccfc742b27eb3f31253bca273347f132b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:9c04c28ccfc742b27eb3f31253bca273347f132b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/b3acca7994f742aa3b56ef432363123715581a23">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 08 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:b3acca7994f742aa3b56ef432363123715581a23&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>301.7 MB</td>
+                <td>2025/05/24 02:01</td>
+                <td><a href="/Download/20250524/b3acca7994f742aa3b56ef432363123715581a23.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:b3acca7994f742aa3b56ef432363123715581a23"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8034527c8327263e33185fa7f710280d75f74456">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 08 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:8034527c8327263e33185fa7f710280d75f74456&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>396.2 MB</td>
+                <td>2025/05/24 01:24</td>
+                <td><a href="/Download/20250524/8034527c8327263e33185fa7f710280d75f74456.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8034527c8327263e33185fa7f710280d75f74456"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c290359afa4f7a1568c4cd0c968bac6bcc5b7465">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 07 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:c290359afa4f7a1568c4cd0c968bac6bcc5b7465&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.4 GB</td>
+                <td>2025/05/17 02:03</td>
+                <td><a href="/Download/20250517/c290359afa4f7a1568c4cd0c968bac6bcc5b7465.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c290359afa4f7a1568c4cd0c968bac6bcc5b7465"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/47bede027e48e8d4047b787bc7cd68dde2e55b5f">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 07 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:47bede027e48e8d4047b787bc7cd68dde2e55b5f&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>361.8 MB</td>
+                <td>2025/05/17 02:01</td>
+                <td><a href="/Download/20250517/47bede027e48e8d4047b787bc7cd68dde2e55b5f.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:47bede027e48e8d4047b787bc7cd68dde2e55b5f"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/fe80ed81a589890176e59e786a7fb3c512f7f880">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 07 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:fe80ed81a589890176e59e786a7fb3c512f7f880&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>481.1 MB</td>
+                <td>2025/05/17 01:24</td>
+                <td><a href="/Download/20250517/fe80ed81a589890176e59e786a7fb3c512f7f880.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:fe80ed81a589890176e59e786a7fb3c512f7f880"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/a190340647b75a673c27d8b3b6e71486d00044bd">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 06 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:a190340647b75a673c27d8b3b6e71486d00044bd&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.4 GB</td>
+                <td>2025/05/10 10:47</td>
+                <td><a href="/Download/20250510/a190340647b75a673c27d8b3b6e71486d00044bd.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:a190340647b75a673c27d8b3b6e71486d00044bd"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/0bac66a55c1ba5c5e62f8626284eaeba05961f35">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 06 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:0bac66a55c1ba5c5e62f8626284eaeba05961f35&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>470.7 MB</td>
+                <td>2025/05/10 02:02</td>
+                <td><a href="/Download/20250510/0bac66a55c1ba5c5e62f8626284eaeba05961f35.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:0bac66a55c1ba5c5e62f8626284eaeba05961f35"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/909ef8120891f03ddb01605ae752ba19329ec5e3">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 06 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:909ef8120891f03ddb01605ae752ba19329ec5e3&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>686.5 MB</td>
+                <td>2025/05/10 01:23</td>
+                <td><a href="/Download/20250510/909ef8120891f03ddb01605ae752ba19329ec5e3.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:909ef8120891f03ddb01605ae752ba19329ec5e3"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ec6f891cc9e6a332cc5bb00f22a32cabd9ebfb24">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 05 (CR 1920x1080 AVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:ec6f891cc9e6a332cc5bb00f22a32cabd9ebfb24&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.2 GB</td>
+                <td>2025/05/03 02:02</td>
+                <td><a href="/Download/20250503/ec6f891cc9e6a332cc5bb00f22a32cabd9ebfb24.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ec6f891cc9e6a332cc5bb00f22a32cabd9ebfb24"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/2276ff84cef9c84b1c7d50deebb7ffab1e209547">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 05 (B-Global 1920x1080 HEVC AAC MKV)</a> <a data-clipboard-text="magnet:?xt=urn:btih:2276ff84cef9c84b1c7d50deebb7ffab1e209547&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>381.9 MB</td>
+                <td>2025/05/03 02:01</td>
+                <td><a href="/Download/20250503/2276ff84cef9c84b1c7d50deebb7ffab1e209547.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:2276ff84cef9c84b1c7d50deebb7ffab1e209547"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1d695911ed022e50f0bc87dd9d276717672f2480">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 05 (Baha 1920x1080 AVC AAC MP4)</a> <a data-clipboard-text="magnet:?xt=urn:btih:1d695911ed022e50f0bc87dd9d276717672f2480&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>520.6 MB</td>
+                <td>2025/05/03 01:24</td>
+                <td><a href="/Download/20250503/1d695911ed022e50f0bc87dd9d276717672f2480.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1d695911ed022e50f0bc87dd9d276717672f2480"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+                <a class="episode-expand js-expand-episode" data-bangumiid="3611" data-subtitlegroupid="615" data-take="65"><img src="/images/ic_keyboard_arrow_down_black_24px.svg" />显示更多</a>
+            <div class="subgroup-scroll-end-615"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-534"></div>
+            <div class="subgroup-text" id="534">
+                    <a href="/Home/PublishGroup/314" target="_blank" style="color: #3bc0c3;">&#x5929;&#x6708;&#x52A8;&#x6F2B;&amp;&#x53D1;&#x5E03;&#x7EC4;</a>
+                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=534" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3611-534" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="534">订阅</a>
+                <div id="subscription-popover-3611-534" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="534" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/714d5eb928a037bd9febac3a82211a364169ac67">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 09 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:714d5eb928a037bd9febac3a82211a364169ac67&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>373.3MB</td>
+                <td>2025/05/31 01:51</td>
+                <td><a href="/Download/20250531/714d5eb928a037bd9febac3a82211a364169ac67.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:714d5eb928a037bd9febac3a82211a364169ac67"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ec2113e6d702dea0717c7ccec1babb79ba9f0593">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 08 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:ec2113e6d702dea0717c7ccec1babb79ba9f0593&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>354.9MB</td>
+                <td>2025/05/24 02:14</td>
+                <td><a href="/Download/20250524/ec2113e6d702dea0717c7ccec1babb79ba9f0593.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ec2113e6d702dea0717c7ccec1babb79ba9f0593"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8a91b6967336522b44098baa8a4e220ec345ca7e">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 07 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:8a91b6967336522b44098baa8a4e220ec345ca7e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>432MB</td>
+                <td>2025/05/17 03:23</td>
+                <td><a href="/Download/20250517/8a91b6967336522b44098baa8a4e220ec345ca7e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8a91b6967336522b44098baa8a4e220ec345ca7e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1dc5692da9f99ebe504c793c313b33da3100c4b9">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 06 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1dc5692da9f99ebe504c793c313b33da3100c4b9&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>488.8MB</td>
+                <td>2025/05/10 02:11</td>
+                <td><a href="/Download/20250510/1dc5692da9f99ebe504c793c313b33da3100c4b9.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1dc5692da9f99ebe504c793c313b33da3100c4b9"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/696e1c30c90080fa68ebfc31ef07717b67fda704">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 05 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:696e1c30c90080fa68ebfc31ef07717b67fda704&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>435.3MB</td>
+                <td>2025/05/03 01:51</td>
+                <td><a href="/Download/20250503/696e1c30c90080fa68ebfc31ef07717b67fda704.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:696e1c30c90080fa68ebfc31ef07717b67fda704"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/0862fc493e26b0a0e08aa94eaf1a2d167ad51a48">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 04 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:0862fc493e26b0a0e08aa94eaf1a2d167ad51a48&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>455.8MB</td>
+                <td>2025/04/26 13:12</td>
+                <td><a href="/Download/20250426/0862fc493e26b0a0e08aa94eaf1a2d167ad51a48.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:0862fc493e26b0a0e08aa94eaf1a2d167ad51a48"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/979dd3627cfa5087a159a06d0f1ecc697de369ab">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 03 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:979dd3627cfa5087a159a06d0f1ecc697de369ab&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>424.8MB</td>
+                <td>2025/04/19 01:37</td>
+                <td><a href="/Download/20250419/979dd3627cfa5087a159a06d0f1ecc697de369ab.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:979dd3627cfa5087a159a06d0f1ecc697de369ab"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/7211121fdda903068a183217c29b30bf11279094">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 02 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:7211121fdda903068a183217c29b30bf11279094&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>368.6MB</td>
+                <td>2025/04/12 13:11</td>
+                <td><a href="/Download/20250412/7211121fdda903068a183217c29b30bf11279094.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:7211121fdda903068a183217c29b30bf11279094"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/9e6f2286feac5002f42cf3f63e052163d44b081b">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 01 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</a> <a data-clipboard-text="magnet:?xt=urn:btih:9e6f2286feac5002f42cf3f63e052163d44b081b&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>398.6MB</td>
+                <td>2025/04/05 23:13</td>
+                <td><a href="/Download/20250405/9e6f2286feac5002f42cf3f63e052163d44b081b.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:9e6f2286feac5002f42cf3f63e052163d44b081b"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-534"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-583"></div>
+            <div class="subgroup-text" id="583">
+                    <a href="/Home/PublishGroup/359" target="_blank" style="color: #3bc0c3;">ANi</a>
+                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=583" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3611-583" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="583">订阅</a>
+                <div id="subscription-popover-3611-583" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="583" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/53a112ae9c710426dc31333a0c8fd61dd5166fdc">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:53a112ae9c710426dc31333a0c8fd61dd5166fdc&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>395.4 MB</td>
+                <td>2025/05/31 01:26</td>
+                <td><a href="/Download/20250531/53a112ae9c710426dc31333a0c8fd61dd5166fdc.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:53a112ae9c710426dc31333a0c8fd61dd5166fdc"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1d5b89a1e3697e6a0ccc9dfee28c94a84dd3fcda">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1d5b89a1e3697e6a0ccc9dfee28c94a84dd3fcda&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>396.6 MB</td>
+                <td>2025/05/24 01:26</td>
+                <td><a href="/Download/20250524/1d5b89a1e3697e6a0ccc9dfee28c94a84dd3fcda.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1d5b89a1e3697e6a0ccc9dfee28c94a84dd3fcda"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/70b11d061ae14b38fcc3954508d49c1651db4b6e">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:70b11d061ae14b38fcc3954508d49c1651db4b6e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>481.5 MB</td>
+                <td>2025/05/17 01:26</td>
+                <td><a href="/Download/20250517/70b11d061ae14b38fcc3954508d49c1651db4b6e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:70b11d061ae14b38fcc3954508d49c1651db4b6e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/1ad0d293a5bb33f1ab266bb2f64351daf56124fb">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:1ad0d293a5bb33f1ab266bb2f64351daf56124fb&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>686.9 MB</td>
+                <td>2025/05/10 01:26</td>
+                <td><a href="/Download/20250510/1ad0d293a5bb33f1ab266bb2f64351daf56124fb.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:1ad0d293a5bb33f1ab266bb2f64351daf56124fb"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/07325df215502d2fd17bb5465869a9b81b92cf54">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:07325df215502d2fd17bb5465869a9b81b92cf54&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>521.1 MB</td>
+                <td>2025/05/03 01:26</td>
+                <td><a href="/Download/20250503/07325df215502d2fd17bb5465869a9b81b92cf54.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:07325df215502d2fd17bb5465869a9b81b92cf54"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c26ed14a21dd0b9651d0b802c2977b590a236e2f">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:c26ed14a21dd0b9651d0b802c2977b590a236e2f&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>566.2 MB</td>
+                <td>2025/04/26 01:26</td>
+                <td><a href="/Download/20250426/c26ed14a21dd0b9651d0b802c2977b590a236e2f.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c26ed14a21dd0b9651d0b802c2977b590a236e2f"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/25e3116d7ff0856e9d5d0c0ae039248371b086f7">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:25e3116d7ff0856e9d5d0c0ae039248371b086f7&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>526.1 MB</td>
+                <td>2025/04/19 01:26</td>
+                <td><a href="/Download/20250419/25e3116d7ff0856e9d5d0c0ae039248371b086f7.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:25e3116d7ff0856e9d5d0c0ae039248371b086f7"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c12790f08d1359d71aeb112304caa5eb4d91c81e">[ANi]  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:c12790f08d1359d71aeb112304caa5eb4d91c81e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>404.4 MB</td>
+                <td>2025/04/12 01:25</td>
+                <td><a href="/Download/20250412/c12790f08d1359d71aeb112304caa5eb4d91c81e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c12790f08d1359d71aeb112304caa5eb4d91c81e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/96141e1dbc1af4c54cc82032be89ce3b641513e9">[ANi]  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</a> <a data-clipboard-text="magnet:?xt=urn:btih:96141e1dbc1af4c54cc82032be89ce3b641513e9&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>480.3 MB</td>
+                <td>2025/04/05 01:25</td>
+                <td><a href="/Download/20250405/96141e1dbc1af4c54cc82032be89ce3b641513e9.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:96141e1dbc1af4c54cc82032be89ce3b641513e9"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-583"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-202"></div>
+            <div class="subgroup-text" id="202">
+&#x751F;&#x8089;/&#x4E0D;&#x660E;&#x5B57;&#x5E55;                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=202" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3611-202" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="202">订阅</a>
+                <div id="subscription-popover-3611-202" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="202" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/f77267d3d810dcbccd4b9b6a17cbdf7b358918dd">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 09 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:f77267d3d810dcbccd4b9b6a17cbdf7b358918dd&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>348.61 MB</td>
+                <td>2025/05/31 01:25</td>
+                <td><a href="/Download/20250531/f77267d3d810dcbccd4b9b6a17cbdf7b358918dd.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:f77267d3d810dcbccd4b9b6a17cbdf7b358918dd"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/ab9833d6acf678b7af1202ae149fa6fed85de47c">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 08 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:ab9833d6acf678b7af1202ae149fa6fed85de47c&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>336.57 MB</td>
+                <td>2025/05/24 01:38</td>
+                <td><a href="/Download/20250524/ab9833d6acf678b7af1202ae149fa6fed85de47c.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:ab9833d6acf678b7af1202ae149fa6fed85de47c"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/cb71705be32ee2d20fbc6ddd08a5dc4e48fc61f4">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E06 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:cb71705be32ee2d20fbc6ddd08a5dc4e48fc61f4&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.92 GB</td>
+                <td>2025/05/17 16:37</td>
+                <td><a href="/Download/20250517/cb71705be32ee2d20fbc6ddd08a5dc4e48fc61f4.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:cb71705be32ee2d20fbc6ddd08a5dc4e48fc61f4"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/8289e23a9b39fdf003e591f13a586b89c314b18a">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 07 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:8289e23a9b39fdf003e591f13a586b89c314b18a&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>403.25 MB</td>
+                <td>2025/05/17 01:43</td>
+                <td><a href="/Download/20250517/8289e23a9b39fdf003e591f13a586b89c314b18a.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:8289e23a9b39fdf003e591f13a586b89c314b18a"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/746f82c2d6194b2f31a5ac50c157a62e0bf0ebd3">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; 01-06 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:746f82c2d6194b2f31a5ac50c157a62e0bf0ebd3&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.94 GB</td>
+                <td>2025/05/16 02:13</td>
+                <td><a href="/Download/20250516/746f82c2d6194b2f31a5ac50c157a62e0bf0ebd3.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:746f82c2d6194b2f31a5ac50c157a62e0bf0ebd3"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/d824bb7653f1b69d74d6be1f1c7b64a0831f5c89">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E05 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:d824bb7653f1b69d74d6be1f1c7b64a0831f5c89&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.54 GB</td>
+                <td>2025/05/05 01:03</td>
+                <td><a href="/Download/20250505/d824bb7653f1b69d74d6be1f1c7b64a0831f5c89.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:d824bb7653f1b69d74d6be1f1c7b64a0831f5c89"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/25cd793c5900714bf1377f4d708542e55b636360">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E04 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:25cd793c5900714bf1377f4d708542e55b636360&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.71 GB</td>
+                <td>2025/04/30 20:14</td>
+                <td><a href="/Download/20250430/25cd793c5900714bf1377f4d708542e55b636360.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:25cd793c5900714bf1377f4d708542e55b636360"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/c90c2ad101b6e66f9978bb534d68e1d5fbf310b9">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E03 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:c90c2ad101b6e66f9978bb534d68e1d5fbf310b9&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.52 GB</td>
+                <td>2025/04/22 11:39</td>
+                <td><a href="/Download/20250422/c90c2ad101b6e66f9978bb534d68e1d5fbf310b9.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:c90c2ad101b6e66f9978bb534d68e1d5fbf310b9"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/6b357c4e0d07a3f83642a401d13e168ca9449de9">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E02 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:6b357c4e0d07a3f83642a401d13e168ca9449de9&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.07 GB</td>
+                <td>2025/04/16 20:32</td>
+                <td><a href="/Download/20250416/6b357c4e0d07a3f83642a401d13e168ca9449de9.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:6b357c4e0d07a3f83642a401d13e168ca9449de9"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/5950c843d6a4aae06410983df964503a57685b9d">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E01 [R-ESRGAN 2160P WebRip HEVC-10bit]</a> <a data-clipboard-text="magnet:?xt=urn:btih:5950c843d6a4aae06410983df964503a57685b9d&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>1.33 GB</td>
+                <td>2025/04/15 20:13</td>
+                <td><a href="/Download/20250415/5950c843d6a4aae06410983df964503a57685b9d.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:5950c843d6a4aae06410983df964503a57685b9d"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-202"></div>
+            <div style="height:1px;"></div>
+            <div class="subgroup-scroll-top-1221"></div>
+            <div class="subgroup-text" id="1221">
+                    <a href="/Home/PublishGroup/997" target="_blank" style="color: #3bc0c3;">&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;</a>
+                    <a href="/RSS/Bangumi?bangumiId=3611&subgroupid=1221" class="mikan-rss" data-placement="bottom" data-toggle="tooltip" data-original-title="RSS" target="_blank"><i class="fa fa-rss-square"></i></a>
+                    <span class="subscribed" style="display:none;">已订阅</span>
+                    <a class="pull-right subgroup-subscribe js-subscribe_bangumi_page" data-toggle="popover-x" data-target="#subscription-popover-3611-1221" data-placement="bottom" data-bangumiid="3611" data-subtitlegroupid="1221">订阅</a>
+                <div id="subscription-popover-3611-1221" class="popover popover-bangumi js-subscribe_bangumi_popover" style="width: 250px;" data-subtitlegroupid="1221" data-bangumiid="3611">
+                    <div class="arrow"></div>
+                    <div class="popover-header popover-title">
+                        <button type="button" class="close" data-dismiss="popover-x" aria-hidden="true"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        订阅设置
+                    </div>
+                    <div class="popover-body popover-content" style="height: 200px;">
+                        <p class="text-justify" style="padding-top: 10px; padding-bottom: 8px;">订阅语言</p>
+                        <div style="padding-bottom: 10px;">
+                            <button type="button" class="btn btn-sm btn-language " data-language="2">繁中</button>
+                            <button type="button" class="btn btn-sm btn-language " data-language="1">简中</button>
+                            <button type="button" class="btn btn-sm btn-language active" data-language="0">全部</button>
+                        </div>
+                        <p class="text-justify" style="color: #888">注：仅会显示订阅/RSS时适用，下方一览仍为全部条目</p>
+                    </div>
+                    <div class="popover-footer row">
+                        <div class="checkbox col-sm-5" style="padding-left: 10px;">
+                            <label>
+                                <input type="checkbox" class="js-disable-advancedsubscription"> 不再提示
+                            </label>
+                        </div>
+                        <div class="col-sm-7" style="padding-right: 12px">
+                                <button type="button" class="btn btn-sm btn-submit" onclick="PopoverSubscribeBangumiPage(this)">订阅</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<table class="table table-striped tbl-border fadeIn">
+    <thead>
+        <tr>
+            <th width="65%">番组名</th>
+            <th width="8%">大小</th>
+            <th width="17%">更新时间</th>
+            <th width="5%">下载</th>
+            <th width="5%">播放</th>
+        </tr>
+    </thead>
+    <tbody>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/34df11416b6cac97318a9f626063c730e23d5a96">[&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; - 01 [CR WebRip &#x66B4;&#x529B;1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:34df11416b6cac97318a9f626063c730e23d5a96&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>417MB</td>
+                <td>2025/04/08 08:15</td>
+                <td><a href="/Download/20250408/34df11416b6cac97318a9f626063c730e23d5a96.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:34df11416b6cac97318a9f626063c730e23d5a96"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+            <tr>
+                <td><a class="magnet-link-wrap" target="_blank" href="/Home/Episode/31ae1a404a52a581fe24169f2c68d4d75d7c8c6e">[&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; - 01 [CR WebRip &#x66B4;&#x529B;2160p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</a> <a data-clipboard-text="magnet:?xt=urn:btih:31ae1a404a52a581fe24169f2c68d4d75d7c8c6e&amp;tr=http%3a%2f%2ft.nyaatracker.com%2fannounce&amp;tr=http%3a%2f%2ftracker.kamigami.org%3a2710%2fannounce&amp;tr=http%3a%2f%2fshare.camoe.cn%3a8080%2fannounce&amp;tr=http%3a%2f%2fopentracker.acgnx.se%2fannounce&amp;tr=http%3a%2f%2fanidex.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2ft.acg.rip%3a6699%2fannounce&amp;tr=https%3a%2f%2ftr.bangumi.moe%3a9696%2fannounce&amp;tr=udp%3a%2f%2ftr.bangumi.moe%3a6969%2fannounce&amp;tr=http%3a%2f%2fopen.acgtracker.com%3a1096%2fannounce&amp;tr=udp%3a%2f%2ftracker.opentrackr.org%3a1337%2fannounce" class="js-magnet magnet-link">[复制磁连]</a></td>
+                <td>893.5MB</td>
+                <td>2025/04/06 01:59</td>
+                <td><a href="/Download/20250406/31ae1a404a52a581fe24169f2c68d4d75d7c8c6e.torrent"><img src="/images/download_icon_blue.svg" style="margin-left: 2px;width: 20px;height:15px;"></a></td>
+                <td><a href="https://mypikpak.com/drive/url-checker?url=magnet:?xt.1=urn:btih:31ae1a404a52a581fe24169f2c68d4d75d7c8c6e"><i class="fa fa-play-circle" style="color: #47c1c5; margin-left: 4px; font-size: 18px;"></i></a></td>
+            </tr>
+    </tbody>
+</table>
+            <div class="subgroup-scroll-end-1221"></div>
+            <div style="height:1px;"></div>
+    </div>
+
+    <a href="#0" class="cd-top cd-top-btn">Top</a>
+</div>
+
+<div id="sk-mobile-container" class="m-detail hidden-lg hidden-md">
+    <div id="bangumi-m-main">
+        <div class="m-detail-title">
+            <div style="position: relative;overflow: hidden;">
+                <div class="m-detail-blur-bg blur" style="background-image:url(/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp)"></div>
+            </div>
+            <div class="content">
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" />
+                <section>
+                    <p class="title" style="color:white;">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;</p>
+                    <span>放送日期： &#x661F;&#x671F;&#x4E94;</span>&nbsp;&nbsp;&nbsp;&nbsp;
+                        <span>放送开始：4/4/2025</span>
+                </section>
+            </div>
+        </div>
+            <div class="m-detail-intro">
+
+                <p class="title" style="color:#3bc0c3;">概况介绍</p>
+                <div class="info">
+                    炎が導く灼熱のダークファンタジー
+最終章始動──
+「柱」を巡る激戦や〝地下(ネザー)〟調査作戦を経て、世界の大いなる秘密へと近づいたシンラたち。
+
+彼らの奮闘に応え、他の特殊消防隊も協力する姿勢を示し、全ての特殊消防隊は大災害を阻止すべく1つになった。
+今、世界を守る〝シンラ（ヒーロー）〟と
+消防官たちの最終決戦が開幕！
+                </div>
+
+            </div>
+
+        <div style="margin-top: 10px; margin-bottom: 10px;">
+
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-xs hidden-sm">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_lg', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj7_lg.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+
+<div style="width:100%; margin-right: auto; margin-left: auto;" class="hidden-lg hidden-md">
+    <a href="https://equity.tmall.com/tm?agentId=030f9003a26d4361&amp;bc_fl_src=tmall_market_llb_1_2698459&amp;llbPlatform=_pube&amp;llbOsd=1&amp;di=__IDFA__&amp;dim=__IMEI__&amp;oaid=__OAID__&amp;caid=__CAID__&amp;sy=llb" onclick="ga('send', 'event', 'sswj_sm', 'clicked', 'ad');">
+        <img src="/images/SSWJ/sswj7_sm.jpg" style='height: 100%; width: 100%; object-fit: contain' />
+    </a>
+</div>
+        </div>
+
+        <div class="m-detail-list">
+            <div class="header">
+                <div style="flex: 1;padding-left: 1.5rem;">
+                    <span class="title">字幕组列表</span>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="SortItems('subgroup-list'); InitMobileSubscribeBangumiPage();">
+                    排序&nbsp;&nbsp;<i class="fa fa-sort icon" aria-hidden="true"></i>
+                </div>
+                <div style="width: 5rem;" class="clickable" onclick="ShowSubscribedOnly('subgroup-list')">
+                    筛选&nbsp;&nbsp;<i class="fa fa-filter icon" aria-hidden="true"></i>
+                </div>
+            </div>
+            <div class="m-detail-list-content js-sort-items-list" id="subgroup-list">
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="0" id="m370">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-370')">
+                            <span class="title" style="font-size: 1.35rem;">LoliHouse</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/31/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="370"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="1" id="m615">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-615')">
+                            <span class="title" style="font-size: 1.35rem;">Kirara Fantasia</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/31/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="615"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="2" id="m534">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-534')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-534')">
+                            <span class="title" style="font-size: 1.35rem;">&#x5929;&#x6708;&#x52A8;&#x6F2B;&amp;&#x53D1;&#x5E03;&#x7EC4;</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/31/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="534"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="3" id="m583">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-583')">
+                            <span class="title" style="font-size: 1.35rem;">ANi</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/31/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="583"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="4" id="m202">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-202')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-202')">
+                            <span class="title" style="font-size: 1.35rem;">&#x751F;&#x8089;/&#x4E0D;&#x660E;&#x5B57;&#x5E55;</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 5/31/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="202"></i></span>
+                        </div>
+                    </div>
+                    <div class="item js-sort-item js-m-subgroup-item" data-index="5" id="m1221">
+                        <div class="left clickable" onclick="BangumiSubgroupShowEpisode('bangumi-m-1221')">
+                            <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar">
+                        </div>
+                        <div class="right clickable" style="width:3.5rem;text-overflow:ellipsis;overflow: hidden;white-space:nowrap;" onclick="BangumiSubgroupShowEpisode('bangumi-m-1221')">
+                            <span class="title" style="font-size: 1.35rem;">&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;</span><br>
+                            <div style="margin-top:  0.75rem;">
+                                <span class="remark">更新: 4/8/2025</span>
+                            </div>
+                        </div>
+                        <div class="m-like">
+                                <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="1221"></i></span>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bangumi-m-370" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="370"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">LoliHouse</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/31</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart clickable js-m-subscribe_bangumi_page active" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="370"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-370');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-370">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 09 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">5/31/2025 8:16 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/70751c03f5c95232ede9122a6f7c17b01b2ecb8e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 08 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">5/24/2025 6:18 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250525/289f4d37f049939c4d7fafe3aa717b8fde3338cd.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 07 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">5/17/2025 8:26 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/2d33a55f33b65577307d8cdc5ff3b65049c664e0.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 06 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">5/10/2025 5:53 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250511/18b97dbba0adc9b493b79b9e525c366e9d98e1f7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 05 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">5/3/2025 12:06 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/ec3dc27d509bc7945e010b6e886b80e4b489efac.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 04 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">4/26/2025 8:56 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250426/ff23a765ead1481ca0aa704b967704d3885a83bf.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 03 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">4/19/2025 9:55 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250419/d28f1b9887bdd3b84de640b5c33757b476897b7b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 02 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">4/12/2025 10:03 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250412/d275be0e25707ec3f106d5d1fa5c888728289e27.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[LoliHouse] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 01 [WebRip 1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;](&#x68C0;&#x7D22;&#x7528;&#xFF1A;&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63;)</div>
+                <div class="date">4/6/2025 7:23 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250406/0ef05277e720df646e4a9cd25beb53a256560837.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <div id="bangumi-m-615" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="615"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">Kirara Fantasia</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/31</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="615"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-615');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-615">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 09 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/30/2025 6:06 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/ae08dd5c9be2363d0007318ec3d0227295a96781.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 09 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/30/2025 6:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/8c8dab0476e5381efb83f5b1dfabec58814fd8f7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 09 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/30/2025 5:24 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/549c2b6a8fad1ccc176ce42443a1e09d4a9b9fda.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 08 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/23/2025 6:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/9c04c28ccfc742b27eb3f31253bca273347f132b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 08 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/23/2025 6:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/b3acca7994f742aa3b56ef432363123715581a23.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 08 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/23/2025 5:24 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/8034527c8327263e33185fa7f710280d75f74456.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 07 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/16/2025 6:03 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/c290359afa4f7a1568c4cd0c968bac6bcc5b7465.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 07 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/16/2025 6:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/47bede027e48e8d4047b787bc7cd68dde2e55b5f.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 07 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/16/2025 5:24 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/fe80ed81a589890176e59e786a7fb3c512f7f880.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 06 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/10/2025 2:47 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250510/a190340647b75a673c27d8b3b6e71486d00044bd.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="10">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 06 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/9/2025 6:02 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250510/0bac66a55c1ba5c5e62f8626284eaeba05961f35.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="11">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 06 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/9/2025 5:23 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250510/909ef8120891f03ddb01605ae752ba19329ec5e3.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="12">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 05 (CR 1920x1080 AVC AAC MKV)</div>
+                <div class="date">5/2/2025 6:02 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/ec6f891cc9e6a332cc5bb00f22a32cabd9ebfb24.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="13">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x7B2C;&#x4E09;&#x5B63; / Enen no Shouboutai: San no Shou - 05 (B-Global 1920x1080 HEVC AAC MKV)</div>
+                <div class="date">5/2/2025 6:01 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/2276ff84cef9c84b1c7d50deebb7ffab1e209547.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="14">
+        <div class="left">
+            <div class="text">[&#x9ED2;&#x30CD;&#x30BA;&#x30DF;&#x305F;&#x3061;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Enen no Shouboutai: San no Shou - 05 (Baha 1920x1080 AVC AAC MP4)</div>
+                <div class="date">5/2/2025 5:24 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/1d695911ed022e50f0bc87dd9d276717672f2480.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+            <button class="form-control js-m-expand-episode" style="height: 5rem;color: #3bc0c3;border: none;" data-bangumiid="3611" data-subtitlegroupid="615" data-take="65">
+                查看更多
+            </button>
+    </div>
+    <div id="bangumi-m-534" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="534"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">&#x5929;&#x6708;&#x52A8;&#x6F2B;&amp;&#x53D1;&#x5E03;&#x7EC4;</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/31</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="534"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-534');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-534">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 09 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">5/30/2025 5:51 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/714d5eb928a037bd9febac3a82211a364169ac67.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 08 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">5/23/2025 6:14 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/ec2113e6d702dea0717c7ccec1babb79ba9f0593.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 07 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">5/16/2025 7:23 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/8a91b6967336522b44098baa8a4e220ec345ca7e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 06 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">5/9/2025 6:11 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250510/1dc5692da9f99ebe504c793c313b33da3100c4b9.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 05 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">5/2/2025 5:51 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/696e1c30c90080fa68ebfc31ef07717b67fda704.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 04 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">4/26/2025 5:12 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250426/0862fc493e26b0a0e08aa94eaf1a2d167ad51a48.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 03 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">4/18/2025 5:37 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250419/979dd3627cfa5087a159a06d0f1ecc697de369ab.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 02 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">4/12/2025 5:11 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250412/7211121fdda903068a183217c29b30bf11279094.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[Skymoon-Raws] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; / Fire Force 3rd Season - 01 [ViuTV][WEB-DL][CHT][1080p][AVC AAC]</div>
+                <div class="date">4/5/2025 3:13 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250405/9e6f2286feac5002f42cf3f63e052163d44b081b.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <div id="bangumi-m-583" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="583"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">ANi</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/31</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="583"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-583');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-583">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 09 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/30/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/53a112ae9c710426dc31333a0c8fd61dd5166fdc.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/23/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/1d5b89a1e3697e6a0ccc9dfee28c94a84dd3fcda.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 07 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/16/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/70b11d061ae14b38fcc3954508d49c1651db4b6e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 06 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/9/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250510/1ad0d293a5bb33f1ab266bb2f64351daf56124fb.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 05 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">5/2/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250503/07325df215502d2fd17bb5465869a9b81b92cf54.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 04 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/25/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250426/c26ed14a21dd0b9651d0b802c2977b590a236e2f.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[ANi] Enen no Shouboutai /  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 03 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/18/2025 5:26 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250419/25e3116d7ff0856e9d5d0c0ae039248371b086f7.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[ANi]  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 02 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/11/2025 5:25 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250412/c12790f08d1359d71aeb112304caa5eb4d91c81e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[ANi]  &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C2;&#x4E4B;&#x7AE0; - 01 [1080P][Baha][WEB-DL][AAC AVC][CHT][MP4]</div>
+                <div class="date">4/4/2025 5:25 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250405/96141e1dbc1af4c54cc82032be89ce3b641513e9.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <div id="bangumi-m-202" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="202"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">&#x751F;&#x8089;/&#x4E0D;&#x660E;&#x5B57;&#x5E55;</span><br>
+                <div>
+                    <span class="remark">更新: 2025/05/31</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="202"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-202');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-202">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 09 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</div>
+                <div class="date">5/30/2025 5:25 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250531/f77267d3d810dcbccd4b9b6a17cbdf7b358918dd.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 08 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</div>
+                <div class="date">5/23/2025 5:38 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250524/ab9833d6acf678b7af1202ae149fa6fed85de47c.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="2">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E06 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">5/17/2025 8:37 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/cb71705be32ee2d20fbc6ddd08a5dc4e48fc61f4.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="3">
+        <div class="left">
+            <div class="text">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Enen no Shouboutai S3 / Fire Force Season 3 - 07 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</div>
+                <div class="date">5/16/2025 5:43 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250517/8289e23a9b39fdf003e591f13a586b89c314b18a.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="4">
+        <div class="left">
+            <div class="text">&#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; 01-06 [1080P][Bilibili][WEB-DL][AAC AVC][&#x7B80;&#x65E5;&#x53CC;&#x8BED;]</div>
+                <div class="date">5/15/2025 6:13 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250516/746f82c2d6194b2f31a5ac50c157a62e0bf0ebd3.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="5">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E05 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">5/4/2025 5:03 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250505/d824bb7653f1b69d74d6be1f1c7b64a0831f5c89.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="6">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E04 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">4/30/2025 12:14 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250430/25cd793c5900714bf1377f4d708542e55b636360.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="7">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E03 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">4/22/2025 3:39 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250422/c90c2ad101b6e66f9978bb534d68e1d5fbf310b9.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="8">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E02 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">4/16/2025 12:32 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250416/6b357c4e0d07a3f83642a401d13e168ca9449de9.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="9">
+        <div class="left">
+            <div class="text">[MeiYangYang] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; / Fire Force - S03E01 [R-ESRGAN 2160P WebRip HEVC-10bit]</div>
+                <div class="date">4/15/2025 12:13 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250415/5950c843d6a4aae06410983df964503a57685b9d.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+    <div id="bangumi-m-1221" class="m-bangumi-list-content" style="display:none">
+        <div class="m-bangumi-header1 item">
+            <div class="left">
+                <i class="fa fa-angle-left fa-2x clickable" aria-hidden="true" style="color:#888" onclick="BangumiSubgroupHideEpisode(this)" data-subtitlegroupid="1221"></i>
+                <img src="/images/Bangumi/202504/b41afc59.jpg?width=400&height=400&format=webp" alt="" class="m-detail-avatar" style="left:4.5rem;">
+            </div>
+            <div class="right" style="flex:1;">
+                <span class="title">&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;</span><br>
+                <div>
+                    <span class="remark">更新: 2025/04/08</span>
+                </div>
+            </div>
+            <div class="m-like" style="border-bottom:none;">
+                    <span><i class="fa fa-heart-o clickable js-m-subscribe_bangumi_page" aria-hidden="true" data-bangumiid="3611" data-subtitlegroupid="1221"></i></span>
+            </div>
+        </div>
+        <div class="m-bangumi-header2">
+            <div class="left">
+                &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0;
+            </div>
+            <div class="right clickable" onclick="SortItems('bangumi-episode-subgroup-1221');">
+                <div>排序</div>
+                <div class="icon">
+                    <i class="fa fa-sort" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+        <div class="m-bangumi-content" id="bangumi-episode-subgroup-1221">
+
+    <div class="m-bangumi-item js-sort-item" data-index="0">
+        <div class="left">
+            <div class="text">[&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; - 01 [CR WebRip &#x66B4;&#x529B;1080p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">4/8/2025 12:15 AM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250408/34df11416b6cac97318a9f626063c730e23d5a96.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+    <div class="m-bangumi-item js-sort-item" data-index="1">
+        <div class="left">
+            <div class="text">[&#x4E0D;&#x5F53;&#x8214;&#x72D7;&#x5236;&#x4F5C;&#x7EC4;] &#x708E;&#x708E;&#x6D88;&#x9632;&#x961F; &#x53C1;&#x4E4B;&#x7AE0; - 01 [CR WebRip &#x66B4;&#x529B;2160p HEVC-10bit AAC][&#x7B80;&#x7E41;&#x5185;&#x5C01;&#x5B57;&#x5E55;]</div>
+                <div class="date">4/5/2025 5:59 PM 发布</div>
+        </div>
+        <div class="right">
+            <a href="/Download/20250406/31ae1a404a52a581fe24169f2c68d4d75d7c8c6e.torrent">
+                <img class="icon" src="/images/download_icon_black.svg">
+            </a>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        InitLeftBarMagicScroll();
+    });
+
+    function InitLeftBarMagicScroll() {
+        if (window.smController != null) {
+            window.smController.destroy(true);
+        }
+        // init controller
+        window.smController = new ScrollMagic.Controller();
+
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-370'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-370').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-615'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-615').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-534'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-534').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-534'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-534').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-583'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-583').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-202'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-202').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-202'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-202').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-top-1221'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("leave", function (event) {
+                    if (event.scrollDirection == 'FORWARD') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-1221').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+
+            // create a scene
+            new ScrollMagic.Scene({
+                triggerElement: $('.subgroup-scroll-end-1221'),
+                triggerHook: 0,
+                duration: 1
+            })
+                .on("enter", function (event) {
+                    if (event.scrollDirection == 'REVERSE') {
+                        $('.subgroup-name').removeClass('active');
+                        $('.subgroup-1221').addClass("active");
+                    }
+                })
+                .addTo(window.smController);
+                }
+</script>
+
+    <div class="modal modal-fullscreen fade" id="modal-nav" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#3bc0c3;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;">
+                    <div class="m-tool">
+                        <span class="m-close clickable"><i class="fa fa-times" aria-hidden="true" data-toggle="modal" data-target="#modal-nav"></i></span>
+                        <div class="m-tool-toolbar">
+                            <img src="/images/mikan-pic.png" style="width: 3rem;">
+                            <img src="/images/mikan-text.png" style="width: 7rem;">
+                        </div>
+                        <div class="m-tool-list">
+                            <ul>
+                                <li><a href="/" class="link">主页</a></li>
+                                <li class="m-tool-search-change"><a href="/Home/MyBangumi" class="link">订阅</a></li>
+                                <li onclick="tool.clickSearch()" class="m-tool-search-change">
+                                    <i class="fa fa-search" aria-hidden="true"></i>&nbsp;&nbsp;搜索站内
+                                </li>
+                                <li class="m-tool-search-input">
+                                    <form method="get" action="/Home/Search">
+                                        <div style="display: flex;height: 100%;">
+                                            <input type="text" class="form-control" name="searchstr" style="font-size:16px;" />
+                                            <span style="width: 5rem;" onclick="tool.resetSearch()">取消</span>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal modal-fullscreen fade" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:#edf1f2;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style="margin: auto;width:100%;height:85vh;">
+                    <div class="m-login">
+                        <span class="m-left clickable"><i class="fa fa-angle-left" aria-hidden="true" data-toggle="modal" data-target="#modal-login"></i></span>
+
+
+
+<section id="login">
+        <div id="user-welcome" class="hidden-sm hidden-xs">
+            <div id="user-name">
+
+                <div class="text-right">testuser</div>
+                <div class="w-other-c text-right"><a href="/Account/Manage" style="color: #47c1c5;">账号设置</a></div>
+            </div>
+            <div id="head-cir">
+                <a href="/Account/Manage"><img id="head-pic" src="/images/Avatar/none.gif" /></a>
+            </div>
+<form action="/Account/Logout" id="logoutForm" method="post">                <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-93osXntoFFHi7XaB88WGbOYNKzlZckeWsvg3sJqR8fenuK_tN7L5C-KSP3yJKJHwBOORWOLA_HkDEU6_3NjO6WiAple7g5mlc7h1W2RMyONHvvn1drioXZS0la3uBU858TO1yw7Eu_duZP_JENmekF6aUClldWhxef_75PxmtzsBg" /></form>        </div>
+        <div class="hidden-lg hidden-md">
+            <div class="m-tool-title">
+                Mikan Project
+            </div>
+            <div style="text-align: center;margin-top: 2rem;" class="m-head-cir">
+                <img class="m-head-pic" src="/images/Avatar/none.gif" />
+            </div>
+            <div id="user-name">
+                <div class="m-head-welcometext">testuser 欢迎回来！</div>
+            </div>
+            <div class="m-head-welcometext">
+<form action="/Account/Logout" id="mobileLogoutForm" method="post">                    <a href="javascript:document.getElementById('logoutForm').submit()" id="user-logout"><img src="/images/logout_normal.png" />&nbsp;&nbsp;退出登录</a>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8MyNMqFNaC9JmJW13PvY-93osXntoFFHi7XaB88WGbOYNKzlZckeWsvg3sJqR8fenuK_tN7L5C-KSP3yJKJHwBOORWOLA_HkDEU6_3NjO6WiAple7g5mlc7h1W2RMyONHvvn1drioXZS0la3uBU858TO1yw7Eu_duZP_JENmekF6aUClldWhxef_75PxmtzsBg" /></form>            </div>
+        </div>
+            <style>
+                .num-node {
+                    display: none;
+                }
+            </style>
+        <script>
+            AdvancedSubscriptionEnabled = true;
+        </script>
+</section>                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer hidden-xs hidden-sm">
+        <div id="sk-footer" class="container text-center">
+            <div>Powered by Mikan Project <a href="/Home/Contact" target="_blank">联系我们</a></div>
+            <div>Cooperate by PlaymateCat@Lisa</div>
+        </div>
+    </footer>
+
+    <script>
+        var tool = {};
+        (function () {
+
+            var inputPEl = $('.m-tool-search-input');
+            var inputEl = inputPEl.find('input');
+            var changeEl = $('.m-tool-search-change');
+            inputPEl.hide();
+            tool.clickSearch = clickSearch;
+            tool.resetSearch = resetSearch;
+
+            function clickSearch() {
+                changeEl.hide();
+                inputPEl.show();
+                inputEl.focus();
+            }
+
+            function resetSearch() {
+                changeEl.show();
+                inputPEl.hide();
+                inputEl.val('');
+            }
+        })();
+    </script>
+
+    <script>
+        var pageUtil;
+
+        (function () {
+            pageUtil = {
+                isMobile: isMobile
+            };
+
+            function isMobile() {
+                var check = false;
+                (function (a) {
+                    if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true;
+                })(navigator.userAgent || navigator.vendor || window.opera);
+                return check;
+            }
+        })();
+
+        //detect if page is mobile
+        if (pageUtil.isMobile()) {
+            document.getElementsByTagName('html')[0].style['font-size'] = window.innerWidth / 32 + 'px';
+        }
+    </script>
+</body>
+
+<!-- here put your own javascript -->
+
+
+    <script src="/js/mikan.min.js?v=7USd_hfRE7KH46vQBdF29boa3ENWKMVFRTyD9a8XEDg"></script>
+
+
+
+</html>
