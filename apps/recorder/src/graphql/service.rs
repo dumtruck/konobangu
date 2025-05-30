@@ -1,8 +1,9 @@
+use std::sync::Arc;
+
 use async_graphql::dynamic::Schema;
-use sea_orm::DatabaseConnection;
 
 use super::{build_schema, config::GraphQLConfig};
-use crate::errors::RecorderResult;
+use crate::{app::AppContextTrait, errors::RecorderResult};
 
 #[derive(Debug)]
 pub struct GraphQLService {
@@ -10,12 +11,12 @@ pub struct GraphQLService {
 }
 
 impl GraphQLService {
-    pub async fn from_config_and_database(
+    pub async fn from_config_and_ctx(
         config: GraphQLConfig,
-        db: DatabaseConnection,
+        ctx: Arc<dyn AppContextTrait>,
     ) -> RecorderResult<Self> {
         let schema = build_schema(
-            db,
+            ctx,
             config.depth_limit.and_then(|l| l.into()),
             config.complexity_limit.and_then(|l| l.into()),
         )?;

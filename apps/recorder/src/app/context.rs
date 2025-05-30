@@ -40,13 +40,13 @@ pub struct AppContext {
     cache: CacheService,
     mikan: MikanClient,
     auth: AuthService,
-    graphql: GraphQLService,
     storage: StorageService,
     crypto: CryptoService,
     working_dir: String,
     environment: Environment,
     message: MessageService,
     task: OnceCell<TaskService>,
+    graphql: OnceCell<GraphQLService>,
 }
 
 impl AppContext {
@@ -65,7 +65,6 @@ impl AppContext {
         let auth = AuthService::from_conf(config.auth).await?;
         let mikan = MikanClient::from_config(config.mikan).await?;
         let crypto = CryptoService::from_config(config.crypto).await?;
-        let graphql = GraphQLService::from_config_and_database(config.graphql, db.clone()).await?;
 
         let ctx = Arc::new(AppContext {
             config: config_cloned,
@@ -77,15 +76,21 @@ impl AppContext {
             storage,
             mikan,
             working_dir: working_dir.to_string(),
-            graphql,
             crypto,
             message,
             task: OnceCell::new(),
+            graphql: OnceCell::new(),
         });
 
         ctx.task
             .get_or_try_init(async || {
                 TaskService::from_config_and_ctx(config.task, ctx.clone()).await
+            })
+            .await?;
+
+        ctx.graphql
+            .get_or_try_init(async || {
+                GraphQLService::from_config_and_ctx(config.graphql, ctx.clone()).await
             })
             .await?;
 
@@ -119,7 +124,7 @@ impl AppContextTrait for AppContext {
         &self.auth
     }
     fn graphql(&self) -> &GraphQLService {
-        &self.graphql
+        self.graphql.get().expect("graphql should be set")
     }
     fn storage(&self) -> &dyn StorageServiceTrait {
         &self.storage

@@ -139,7 +139,7 @@ fn add_crypto_column_output_conversion<T>(
     );
 }
 
-pub fn crypto_transformer(context: &mut BuilderContext, ctx: Arc<dyn AppContextTrait>) {
+pub fn add_crypto_transformers(context: &mut BuilderContext, ctx: Arc<dyn AppContextTrait>) {
     add_crypto_column_input_conversion::<credential_3rd::Entity>(
         context,
         ctx.clone(),
@@ -150,7 +150,7 @@ pub fn crypto_transformer(context: &mut BuilderContext, ctx: Arc<dyn AppContextT
         ctx.clone(),
         &credential_3rd::Column::Username,
     );
-    add_crypto_column_output_conversion::<credential_3rd::Entity>(
+    add_crypto_column_input_conversion::<credential_3rd::Entity>(
         context,
         ctx.clone(),
         &credential_3rd::Column::Password,

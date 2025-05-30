@@ -1,3 +1,5 @@
+# cargo-features = ["codegen-backend"]
+
 [workspace]
 members = [
     "packages/testing-torrents",
@@ -8,6 +10,11 @@ members = [
     "apps/recorder",
 ]
 resolver = "2"
+
+[profile.dev]
+debug = 0
+# [simd not supported by cranelift](https://github.com/rust-lang/rustc_codegen_cranelift/issues/171)
+# codegen-backend = "cranelift"
 
 [workspace.dependencies]
 testing-torrents = { path = "./packages/testing-torrents" }
@@ -28,7 +35,7 @@ futures = "0.3"
 quirks_path = "0.1"
 snafu = { version = "0.8", features = ["futures"] }
 testcontainers = { version = "0.24" }
-testcontainers-modules = { version = "0.12" }
+testcontainers-modules = { version = "0.12.1" }
 testcontainers-ext = { version = "0.1.0", features = ["tracing"] }
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1.45.1", features = [

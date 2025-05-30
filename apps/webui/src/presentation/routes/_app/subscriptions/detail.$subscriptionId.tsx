@@ -1,7 +1,7 @@
 import type { GetSubscriptionDetailQuery } from '@/infra/graphql/gql/graphql';
 import { useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
-import { GET_SUBSCRIPTION_DETAIL } from '../../../../domains/recorder/graphql/subscriptions.js';
+import { GET_SUBSCRIPTION_DETAIL } from '../../../../domains/recorder/schema/subscriptions.js';
 
 export const Route = createFileRoute(
   '/_app/subscriptions/detail/$subscriptionId'

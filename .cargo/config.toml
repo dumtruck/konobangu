@@ -3,4 +3,3 @@ recorder-playground = "run -p recorder  --example playground -- --environment de
 
 [build]
 rustflags = ["-Zthreads=8", "-Zshare-generics=y"]
-#rustflags = ["-Zthreads=8"]

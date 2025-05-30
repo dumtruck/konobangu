@@ -25,6 +25,8 @@ pub enum RecorderError {
         source: Box<fancy_regex::Error>,
     },
     #[snafu(transparent)]
+    NetAddrParseError { source: std::net::AddrParseError },
+    #[snafu(transparent)]
     RegexError { source: regex::Error },
     #[snafu(transparent)]
     InvalidMethodError { source: http::method::InvalidMethod },

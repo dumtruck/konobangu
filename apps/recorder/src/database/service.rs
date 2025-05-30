@@ -10,10 +10,6 @@ use sea_orm_migration::MigratorTrait;
 use super::DatabaseConfig;
 use crate::{errors::RecorderResult, migrations::Migrator};
 
-pub trait DatabaseServiceConnectionTrait {
-    fn get_database_connection(&self) -> &DatabaseConnection;
-}
-
 pub struct DatabaseService {
     connection: DatabaseConnection,
     #[cfg(all(any(test, feature = "playground"), feature = "testcontainers"))]

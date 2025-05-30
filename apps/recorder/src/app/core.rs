@@ -1,7 +1,8 @@
 use std::{net::SocketAddr, sync::Arc};
 
 use axum::Router;
-use tokio::signal;
+use tokio::{net::TcpSocket, signal};
+use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
@@ -22,14 +23,31 @@ impl App {
         AppBuilder::default()
     }
 
+    #[instrument(err, skip(self))]
     pub async fn serve(&self) -> RecorderResult<()> {
         let context = &self.context;
         let config = context.config();
-        let listener = tokio::net::TcpListener::bind(&format!(
-            "{}:{}",
-            config.server.binding, config.server.port
-        ))
-        .await?;
+
+        let listener = {
+            let addr: SocketAddr =
+                format!("{}:{}", config.server.binding, config.server.port).parse()?;
+
+            let socket = if addr.is_ipv4() {
+                TcpSocket::new_v4()
+            } else {
+                TcpSocket::new_v6()
+            }?;
+
+            socket.set_reuseaddr(true)?;
+
+            #[cfg(all(unix, not(target_os = "solaris")))]
+            if let Err(e) = socket.set_reuseport(true) {
+                tracing::warn!("Failed to set SO_REUSEPORT: {}", e);
+            }
+
+            socket.bind(addr)?;
+            socket.listen(1024)
+        }?;
 
         let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 

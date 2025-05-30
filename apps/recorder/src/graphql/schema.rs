@@ -1,21 +1,27 @@
+use std::sync::Arc;
+
 use async_graphql::dynamic::*;
 use once_cell::sync::OnceCell;
-use sea_orm::{DatabaseConnection, EntityTrait, Iterable};
+use sea_orm::{EntityTrait, Iterable};
 use seaography::{Builder, BuilderContext, FilterType, FilterTypesMapHelper};
 
-use crate::graphql::{
-    infra::{
-        filter::{
-            JSONB_FILTER_NAME, SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info,
-            register_jsonb_input_filter_to_dynamic_schema, subscriber_id_condition_function,
+use crate::{
+    app::AppContextTrait,
+    graphql::{
+        infra::{
+            filter::{
+                JSONB_FILTER_NAME, SUBSCRIBER_ID_FILTER_INFO, init_custom_filter_info,
+                register_jsonb_input_filter_to_dynamic_schema, subscriber_id_condition_function,
+            },
+            guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
+            transformer::{
+                add_crypto_transformers, build_filter_condition_transformer,
+                build_mutation_input_object_transformer,
+            },
+            util::{get_entity_column_key, get_entity_key},
         },
-        guard::{guard_entity_with_subscriber_id, guard_field_with_subscriber_id},
-        transformer::{
-            build_filter_condition_transformer, build_mutation_input_object_transformer,
-        },
-        util::{get_entity_column_key, get_entity_key},
+        views::register_subscriptions_to_schema,
     },
-    views::register_subscriptions_to_schema,
 };
 
 pub static CONTEXT: OnceCell<BuilderContext> = OnceCell::new();
@@ -88,11 +94,13 @@ where
 }
 
 pub fn build_schema(
-    database: DatabaseConnection,
+    app_ctx: Arc<dyn AppContextTrait>,
     depth: Option<usize>,
     complexity: Option<usize>,
 ) -> Result<Schema, SchemaError> {
     use crate::models::*;
+    let database = app_ctx.db().as_ref().clone();
+
     init_custom_filter_info();
     let context = CONTEXT.get_or_init(|| {
         let mut context = BuilderContext::default();
@@ -148,6 +156,7 @@ pub fn build_schema(
             &mut context,
             &subscriber_tasks::Column::Job,
         );
+        add_crypto_transformers(&mut context, app_ctx);
         for column in subscribers::Column::iter() {
             if !matches!(column, subscribers::Column::Id) {
                 restrict_filter_input_for_entity::<subscribers::Entity>(
@@ -159,6 +168,7 @@ pub fn build_schema(
         }
         context
     });
+
     let mut builder = Builder::new(context, database.clone());
 
     {

@@ -1,0 +1,6 @@
+---
+source: apps/recorder/src/web/middleware/request_id.rs
+assertion_line: 126
+expression: id
+---
+"foo-barbaz"

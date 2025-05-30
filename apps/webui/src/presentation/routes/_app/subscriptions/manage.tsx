@@ -1,4 +1,6 @@
+import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
+import { DataTableRowActions } from '@/components/ui/data-table-row-actions';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,7 +18,7 @@ import {
   GET_SUBSCRIPTIONS,
   type SubscriptionDto,
   UPDATE_SUBSCRIPTIONS,
-} from '@/domains/recorder/graphql/subscriptions';
+} from '@/domains/recorder/schema/subscriptions';
 import type {
   GetSubscriptionsQuery,
   SubscriptionsUpdateInput,
@@ -38,9 +40,9 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { DataTableRowActions } from '../../../../components/ui/data-table-row-actions';
 
 export const Route = createFileRoute('/_app/subscriptions/manage')({
   component: SubscriptionManageRouteComponent,
@@ -63,26 +65,58 @@ function SubscriptionManageRouteComponent() {
     GET_SUBSCRIPTIONS,
     {
       variables: {
-        page: {
-          page: pagination.pageIndex,
-          limit: pagination.pageSize,
+        pagination: {
+          page: {
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+          },
         },
         filters: {},
-        orderBy: {},
+        orderBy: {
+          updatedAt: 'DESC',
+        },
       },
       refetchWritePolicy: 'overwrite',
       nextFetchPolicy: 'network-only',
     }
   );
-  const [updateSubscription] = useMutation(UPDATE_SUBSCRIPTIONS);
-  const [deleteSubscription] = useMutation(DELETE_SUBSCRIPTIONS);
+  const [updateSubscription] = useMutation(UPDATE_SUBSCRIPTIONS, {
+    onCompleted: async () => {
+      const refetchResult = await refetch();
+      if (refetchResult.errors) {
+        toast.error(refetchResult.errors[0].message);
+        return;
+      }
+      toast.success('Subscription updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update subscription', {
+        description: error.message,
+      });
+    },
+  });
+  const [deleteSubscription] = useMutation(DELETE_SUBSCRIPTIONS, {
+    onCompleted: async () => {
+      const refetchResult = await refetch();
+      if (refetchResult.errors) {
+        toast.error(refetchResult.errors[0].message);
+        return;
+      }
+      toast.success('Subscription deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete subscription', {
+        description: error.message,
+      });
+    },
+  });
   const { showSkeleton } = useDebouncedSkeleton({ loading });
 
   const subscriptions = data?.subscriptions;
 
   const handleUpdateRecord = useEvent(
     (row: Row<SubscriptionDto>) => async (data: SubscriptionsUpdateInput) => {
-      const result = await updateSubscription({
+      await updateSubscription({
         variables: {
           data,
           filters: {
@@ -92,34 +126,14 @@ function SubscriptionManageRouteComponent() {
           },
         },
       });
-      if (result.errors) {
-        toast.error(result.errors[0].message);
-        return;
-      }
-      const refetchResult = await refetch();
-      if (refetchResult.errors) {
-        toast.error(refetchResult.errors[0].message);
-        return;
-      }
-      toast.success('Subscription updated');
     }
   );
 
   const handleDeleteRecord = useEvent(
     (row: Row<SubscriptionDto>) => async () => {
-      const result = await deleteSubscription({
+      await deleteSubscription({
         variables: { filters: { id: { eq: row.original.id } } },
       });
-      if (result.errors) {
-        toast.error(result.errors[0].message);
-        return;
-      }
-      const refetchResult = await refetch();
-      if (refetchResult.errors) {
-        toast.error(refetchResult.errors[0].message);
-        return;
-      }
-      toast.success('Subscription deleted');
     }
   );
 
@@ -219,7 +233,17 @@ function SubscriptionManageRouteComponent() {
 
   return (
     <div className="container mx-auto space-y-4 rounded-md">
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between pt-4">
+        <div>
+          <h1 className="font-bold text-2xl">Subscription Management</h1>
+          <p className="text-muted-foreground">Manage your subscription</p>
+        </div>
+        <Button onClick={() => navigate({ to: '/subscriptions/create' })}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Subscription
+        </Button>
+      </div>
+      <div className="flex items-center py-2">
         <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border">
