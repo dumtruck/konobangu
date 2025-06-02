@@ -26,6 +26,7 @@ import type {
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { useEvent } from '@/presentation/hooks/use-event';
+import { cn } from '@/presentation/utils';
 import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
 import { useNavigate } from '@tanstack/react-router';
@@ -40,6 +41,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -54,7 +56,10 @@ export const Route = createFileRoute('/_app/subscriptions/manage')({
 function SubscriptionManageRouteComponent() {
   const navigate = useNavigate();
 
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    createdAt: false,
+    updatedAt: false,
+  });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -182,6 +187,30 @@ function SubscriptionManageRouteComponent() {
         },
       },
       {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          const createdAt = row.original.createdAt;
+          return (
+            <div className="text-sm">
+              {format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+            </div>
+          );
+        },
+      },
+      {
+        header: 'Updated At',
+        accessorKey: 'updatedAt',
+        cell: ({ row }) => {
+          const updatedAt = row.original.updatedAt;
+          return (
+            <div className="text-sm">
+              {format(new Date(updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+            </div>
+          );
+        },
+      },
+      {
         id: 'actions',
         cell: ({ row }) => (
           <DataTableRowActions
@@ -192,14 +221,14 @@ function SubscriptionManageRouteComponent() {
             showDelete
             onDetail={() => {
               navigate({
-                to: '/subscriptions/detail/$subscriptionId',
-                params: { subscriptionId: `${row.original.id}` },
+                to: '/subscriptions/detail/$id',
+                params: { id: `${row.original.id}` },
               });
             }}
             onEdit={() => {
               navigate({
-                to: '/subscriptions/edit/$subscriptionId',
-                params: { subscriptionId: `${row.original.id}` },
+                to: '/subscriptions/edit/$id',
+                params: { id: `${row.original.id}` },
               });
             }}
             onDelete={handleDeleteRecord(row)}
@@ -220,10 +249,16 @@ function SubscriptionManageRouteComponent() {
     onColumnVisibilityChange: setColumnVisibility,
     pageCount: subscriptions?.paginationInfo?.pages,
     rowCount: subscriptions?.paginationInfo?.total,
+    enableColumnPinning: true,
     state: {
       pagination,
       sorting,
       columnVisibility,
+    },
+    initialState: {
+      columnPinning: {
+        right: ['actions'],
+      },
     },
   });
 
@@ -284,14 +319,24 @@ function SubscriptionManageRouteComponent() {
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isPinned = cell.column.getIsPinned();
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn({
+                            'sticky z-1 bg-background shadow-xs': isPinned,
+                            'right-0': isPinned === 'right',
+                            'left-0': isPinned === 'left',
+                          })}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (

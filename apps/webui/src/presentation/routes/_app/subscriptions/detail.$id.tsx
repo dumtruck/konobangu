@@ -3,19 +3,17 @@ import { useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
 import { GET_SUBSCRIPTION_DETAIL } from '../../../../domains/recorder/schema/subscriptions.js';
 
-export const Route = createFileRoute(
-  '/_app/subscriptions/detail/$subscriptionId'
-)({
+export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
   component: DetailRouteComponent,
 });
 
 function DetailRouteComponent() {
-  const { subscriptionId } = Route.useParams();
+  const { id } = Route.useParams();
   const { data, loading, error } = useQuery<GetSubscriptionDetailQuery>(
     GET_SUBSCRIPTION_DETAIL,
     {
       variables: {
-        id: Number.parseInt(subscriptionId),
+        id: Number.parseInt(id),
       },
     }
   );

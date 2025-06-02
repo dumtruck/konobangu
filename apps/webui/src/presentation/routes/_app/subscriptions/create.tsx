@@ -1,23 +1,14 @@
-import { useAuth } from '@/app/auth/hooks';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormFieldErrors } from '@/components/ui/form-field-errors';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -26,13 +17,28 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { useAppForm } from '@/components/ui/tanstack-form';
+import { MikanSeasonEnum } from '@/domains/recorder/schema/mikan';
+import {
+  INSERT_SUBSCRIPTION,
+  type SubscriptionInsertForm,
+  SubscriptionInsertFormSchema,
+} from '@/domains/recorder/schema/subscriptions';
+import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
+import { useInject } from '@/infra/di/inject';
+import {
+  Credential3rdTypeEnum,
+  type InsertSubscriptionMutation,
+  type InsertSubscriptionMutationVariables,
+  SubscriptionCategoryEnum,
+} from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { gql, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { Credential3rdSelectContent } from './-credential3rd-select';
 
 export const Route = createFileRoute('/_app/subscriptions/create')({
   component: SubscriptionCreateRouteComponent,
@@ -41,194 +47,312 @@ export const Route = createFileRoute('/_app/subscriptions/create')({
   } satisfies RouteStateDataOption,
 });
 
-type SubscriptionFormValues = {
-  displayName: string;
-  sourceUrl: string;
-  category: string;
-  enabled: boolean;
-};
-
-const CREATE_SUBSCRIPTION_MUTATION = gql`
-    mutation CreateSubscription($input: SubscriptionsInsertInput!) {
-        subscriptionsCreateOne(data: $input) {
-            id
-            displayName
-            sourceUrl
-            enabled
-            category
-        }
-    }
-`;
-
 function SubscriptionCreateRouteComponent() {
-  const { authData } = useAuth();
-  console.log(JSON.stringify(authData, null, 2));
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const form = useForm<SubscriptionFormValues>({
-    defaultValues: {
-      displayName: '',
-      sourceUrl: '',
-      category: 'mikan',
-      enabled: true,
+  const subscriptionService = useInject(SubscriptionService);
+
+  const [insertSubscription, { loading }] = useMutation<
+    InsertSubscriptionMutation['subscriptionsCreateOne'],
+    InsertSubscriptionMutationVariables
+  >(INSERT_SUBSCRIPTION, {
+    onCompleted(data) {
+      toast.success('Subscription created');
+      navigate({
+        to: '/subscriptions/detail/$id',
+        params: { id: `${data.id}` },
+      });
+    },
+    onError(error) {
+      toast.error('Failed to create subscription', {
+        description: error.message,
+      });
     },
   });
 
-  const [createSubscription] = useMutation(CREATE_SUBSCRIPTION_MUTATION);
-
-  const onSubmit = async (data: SubscriptionFormValues) => {
-    try {
-      setIsSubmitting(true);
-      const response = await createSubscription({
+  const form = useAppForm({
+    defaultValues: {
+      displayName: '',
+      category: undefined,
+      enabled: true,
+      sourceUrl: '',
+      credentialId: '',
+      year: undefined,
+      seasonStr: '',
+    } as unknown as SubscriptionInsertForm,
+    validators: {
+      onBlur: SubscriptionInsertFormSchema,
+      onSubmit: SubscriptionInsertFormSchema,
+    },
+    onSubmit: async (form) => {
+      const input = subscriptionService.transformInsertFormToInput(form.value);
+      await insertSubscription({
         variables: {
-          input: {
-            category: data.category,
-            displayName: data.displayName,
-            sourceUrl: data.sourceUrl,
-            enabled: data.enabled,
-          },
+          data: input,
         },
       });
-
-      if (response.errors) {
-        throw new Error(
-          response.errors[0]?.message || 'Failed to create subscription'
-        );
-      }
-
-      toast.success('Subscription created successfully');
-      navigate({ to: '/subscriptions/manage' });
-    } catch (error) {
-      console.error('Failed to create subscription:', error);
-      toast.error(
-        `Subscription creation failed: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+  });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Bangumi Subscription</CardTitle>
-        <CardDescription>Add a new bangumi subscription source</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Source Type</FormLabel>
+    <div className="container mx-auto max-w-2xl py-6">
+      <div className="mb-6 flex items-center gap-4">
+        <div>
+          <h1 className="font-bold text-2xl">Create Bangumi Subscription</h1>
+          <p className="mt-1 text-muted-foreground">
+            Add a new bangumi subscription source
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Subscription information</CardTitle>
+          <CardDescription className="mt-2">
+            Please fill in the information of the bangumi subscription source.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-6"
+          >
+            <form.Field name="displayName">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor={field.name}>Display Name *</Label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Please enter display name"
+                    autoComplete="off"
+                  />
+                  {field.state.meta.errors && (
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="category">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor={field.name}>Category *</Label>
                   <Select
-                    disabled
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    defaultValue="mikan"
+                    value={field.state.value}
+                    onValueChange={(value) =>
+                      field.handleChange(
+                        value as SubscriptionInsertForm['category']
+                      )
+                    }
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select source type" />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subscription category" />
+                    </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mikan">mikan</SelectItem>
+                      <SelectItem value={SubscriptionCategoryEnum.MikanBangumi}>
+                        Mikan Bangumi Subscription
+                      </SelectItem>
+                      <SelectItem value={SubscriptionCategoryEnum.MikanSeason}>
+                        Mikan Season Subscription
+                      </SelectItem>
+                      <SelectItem
+                        value={SubscriptionCategoryEnum.MikanSubscriber}
+                      >
+                        Mikan Subscriber Subscription
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    Currently only mikan source is supported
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Display Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter subscription display name"
-                      {...field}
+                  {field.state.meta.errors && (
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
                     />
-                  </FormControl>
-                  <FormDescription>
-                    Set an easily recognizable name for this subscription
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                  )}
+                </div>
               )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sourceUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Source URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter subscription source URL"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Copy the RSS subscription link from the source website, e.g.
-                    https://mikanani.me/RSS/Bangumi?bangumiId=3141&subgroupid=370
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="enabled"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            </form.Field>
+            <form.Subscribe selector={(state) => state.values.category}>
+              {(category) => {
+                if (category === SubscriptionCategoryEnum.MikanSeason) {
+                  return (
+                    <>
+                      <form.Field name="credentialId">
+                        {(field) => (
+                          <div className="space-y-2">
+                            <Label htmlFor={field.name}>Credential ID *</Label>
+                            <Select
+                              value={field.state.value.toString()}
+                              onValueChange={(value) =>
+                                field.handleChange(Number.parseInt(value))
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select credential" />
+                              </SelectTrigger>
+                              <Credential3rdSelectContent
+                                credentialType={Credential3rdTypeEnum.Mikan}
+                              />
+                            </Select>
+                            {field.state.meta.errors && (
+                              <FormFieldErrors
+                                errors={field.state.meta.errors}
+                                isDirty={field.state.meta.isDirty}
+                                submissionAttempts={
+                                  form.state.submissionAttempts
+                                }
+                              />
+                            )}
+                          </div>
+                        )}
+                      </form.Field>
+                      <form.Field name="year">
+                        {(field) => (
+                          <div className="space-y-2">
+                            <Label htmlFor={field.name}>Year *</Label>
+                            <Input
+                              id={field.name}
+                              name={field.name}
+                              value={field.state.value}
+                              type="number"
+                              min={1970}
+                              onBlur={field.handleBlur}
+                              onChange={(e) =>
+                                field.handleChange(
+                                  Number.parseInt(e.target.value)
+                                )
+                              }
+                              placeholder="Please enter full year (e.g. 2025)"
+                              autoComplete="off"
+                            />
+                            {field.state.meta.errors && (
+                              <FormFieldErrors
+                                errors={field.state.meta.errors}
+                                isDirty={field.state.meta.isDirty}
+                                submissionAttempts={
+                                  form.state.submissionAttempts
+                                }
+                              />
+                            )}
+                          </div>
+                        )}
+                      </form.Field>
+                      <form.Field name="seasonStr">
+                        {(field) => (
+                          <div className="space-y-2">
+                            <Label htmlFor={field.name}>Season *</Label>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select season" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={MikanSeasonEnum.Spring}>
+                                  Spring
+                                </SelectItem>
+                                <SelectItem value={MikanSeasonEnum.Summer}>
+                                  Summer
+                                </SelectItem>
+                                <SelectItem value={MikanSeasonEnum.Autumn}>
+                                  Autumn
+                                </SelectItem>
+                                <SelectItem value={MikanSeasonEnum.Winter}>
+                                  Winter
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            {field.state.meta.errors && (
+                              <FormFieldErrors
+                                errors={field.state.meta.errors}
+                                isDirty={field.state.meta.isDirty}
+                                submissionAttempts={
+                                  form.state.submissionAttempts
+                                }
+                              />
+                            )}
+                          </div>
+                        )}
+                      </form.Field>
+                    </>
+                  );
+                }
+                return (
+                  <form.Field name="sourceUrl">
+                    {(field) => (
+                      <div className="space-y-2">
+                        <Label htmlFor={field.name}>Source URL *</Label>
+                        <Input
+                          id={field.name}
+                          name={field.name}
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Please enter source URL"
+                          autoComplete="off"
+                        />
+                        {field.state.meta.errors && (
+                          <FormFieldErrors
+                            errors={field.state.meta.errors}
+                            isDirty={field.state.meta.isDirty}
+                            submissionAttempts={form.state.submissionAttempts}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </form.Field>
+                );
+              }}
+            </form.Subscribe>
+            <form.Field name="enabled">
+              {(field) => (
+                <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Enable Subscription
-                    </FormLabel>
-                    <FormDescription>
-                      Enable this subscription immediately after creation
-                    </FormDescription>
+                    <Label htmlFor={field.name}>Enabled</Label>
+                    <div className="text-muted-foreground text-sm">
+                      Enable this subscription
+                    </div>
                   </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
+                  <Switch
+                    id={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(checked)}
+                  />
+                </div>
               )}
-            />
+            </form.Field>
+
+            <div className="flex gap-3 pt-4">
+              <form.Subscribe selector={(state) => [state.isSubmitting]}>
+                {([isSubmitting]) => (
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading || isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Create subscription
+                      </>
+                    )}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
           </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => navigate({ to: '/subscriptions/manage' })}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          onClick={form.handleSubmit(onSubmit)}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Creating...' : 'Create Subscription'}
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

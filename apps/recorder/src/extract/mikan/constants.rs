@@ -15,3 +15,5 @@ pub const MIKAN_BANGUMI_RSS_PATH: &str = "/RSS/Bangumi";
 pub const MIKAN_BANGUMI_ID_QUERY_KEY: &str = "bangumiId";
 pub const MIKAN_FANSUB_ID_QUERY_KEY: &str = "subgroupid";
 pub const MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY: &str = "token";
+pub const MIKAN_SEASON_STR_QUERY_KEY: &str = "seasonStr";
+pub const MIKAN_YEAR_QUERY_KEY: &str = "year";

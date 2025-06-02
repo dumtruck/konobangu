@@ -3,3 +3,9 @@ export class UnreachableError extends Error {
     super(`UnreachableError: ${detail}`);
   }
 }
+
+export class UnimplementedError extends Error {
+  constructor(detail: string) {
+    super(`UnimplementedError: ${detail}`);
+  }
+}

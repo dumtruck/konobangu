@@ -91,7 +91,7 @@ function Credential3rdDetailRouteComponent() {
           <div>
             <h1 className="font-bold text-2xl">Credential detail</h1>
             <p className="mt-1 text-muted-foreground">
-              View and manage credential #{credential.id}
+              View credential #{credential.id}
             </p>
           </div>
         </div>

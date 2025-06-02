@@ -32,8 +32,8 @@ import { Route as AppCredential3rdCreateImport } from './routes/_app/credential3
 import { Route as AppBangumiManageImport } from './routes/_app/bangumi/manage'
 import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
 import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
-import { Route as AppSubscriptionsEditSubscriptionIdImport } from './routes/_app/subscriptions/edit.$subscriptionId'
-import { Route as AppSubscriptionsDetailSubscriptionIdImport } from './routes/_app/subscriptions/detail.$subscriptionId'
+import { Route as AppSubscriptionsEditIdImport } from './routes/_app/subscriptions/edit.$id'
+import { Route as AppSubscriptionsDetailIdImport } from './routes/_app/subscriptions/detail.$id'
 import { Route as AppCredential3rdEditIdImport } from './routes/_app/credential3rd/edit.$id'
 import { Route as AppCredential3rdDetailIdImport } from './routes/_app/credential3rd/detail.$id'
 
@@ -166,19 +166,17 @@ const AppExploreExploreRoute = AppExploreExploreImport.update({
   getParentRoute: () => AppRouteRoute,
 } as any)
 
-const AppSubscriptionsEditSubscriptionIdRoute =
-  AppSubscriptionsEditSubscriptionIdImport.update({
-    id: '/edit/$subscriptionId',
-    path: '/edit/$subscriptionId',
-    getParentRoute: () => AppSubscriptionsRouteRoute,
-  } as any)
+const AppSubscriptionsEditIdRoute = AppSubscriptionsEditIdImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => AppSubscriptionsRouteRoute,
+} as any)
 
-const AppSubscriptionsDetailSubscriptionIdRoute =
-  AppSubscriptionsDetailSubscriptionIdImport.update({
-    id: '/detail/$subscriptionId',
-    path: '/detail/$subscriptionId',
-    getParentRoute: () => AppSubscriptionsRouteRoute,
-  } as any)
+const AppSubscriptionsDetailIdRoute = AppSubscriptionsDetailIdImport.update({
+  id: '/detail/$id',
+  path: '/detail/$id',
+  getParentRoute: () => AppSubscriptionsRouteRoute,
+} as any)
 
 const AppCredential3rdEditIdRoute = AppCredential3rdEditIdImport.update({
   id: '/edit/$id',
@@ -357,18 +355,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCredential3rdEditIdImport
       parentRoute: typeof AppCredential3rdRouteImport
     }
-    '/_app/subscriptions/detail/$subscriptionId': {
-      id: '/_app/subscriptions/detail/$subscriptionId'
-      path: '/detail/$subscriptionId'
-      fullPath: '/subscriptions/detail/$subscriptionId'
-      preLoaderRoute: typeof AppSubscriptionsDetailSubscriptionIdImport
+    '/_app/subscriptions/detail/$id': {
+      id: '/_app/subscriptions/detail/$id'
+      path: '/detail/$id'
+      fullPath: '/subscriptions/detail/$id'
+      preLoaderRoute: typeof AppSubscriptionsDetailIdImport
       parentRoute: typeof AppSubscriptionsRouteImport
     }
-    '/_app/subscriptions/edit/$subscriptionId': {
-      id: '/_app/subscriptions/edit/$subscriptionId'
-      path: '/edit/$subscriptionId'
-      fullPath: '/subscriptions/edit/$subscriptionId'
-      preLoaderRoute: typeof AppSubscriptionsEditSubscriptionIdImport
+    '/_app/subscriptions/edit/$id': {
+      id: '/_app/subscriptions/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/subscriptions/edit/$id'
+      preLoaderRoute: typeof AppSubscriptionsEditIdImport
       parentRoute: typeof AppSubscriptionsRouteImport
     }
   }
@@ -432,17 +430,15 @@ const AppSettingsRouteRouteWithChildren =
 interface AppSubscriptionsRouteRouteChildren {
   AppSubscriptionsCreateRoute: typeof AppSubscriptionsCreateRoute
   AppSubscriptionsManageRoute: typeof AppSubscriptionsManageRoute
-  AppSubscriptionsDetailSubscriptionIdRoute: typeof AppSubscriptionsDetailSubscriptionIdRoute
-  AppSubscriptionsEditSubscriptionIdRoute: typeof AppSubscriptionsEditSubscriptionIdRoute
+  AppSubscriptionsDetailIdRoute: typeof AppSubscriptionsDetailIdRoute
+  AppSubscriptionsEditIdRoute: typeof AppSubscriptionsEditIdRoute
 }
 
 const AppSubscriptionsRouteRouteChildren: AppSubscriptionsRouteRouteChildren = {
   AppSubscriptionsCreateRoute: AppSubscriptionsCreateRoute,
   AppSubscriptionsManageRoute: AppSubscriptionsManageRoute,
-  AppSubscriptionsDetailSubscriptionIdRoute:
-    AppSubscriptionsDetailSubscriptionIdRoute,
-  AppSubscriptionsEditSubscriptionIdRoute:
-    AppSubscriptionsEditSubscriptionIdRoute,
+  AppSubscriptionsDetailIdRoute: AppSubscriptionsDetailIdRoute,
+  AppSubscriptionsEditIdRoute: AppSubscriptionsEditIdRoute,
 }
 
 const AppSubscriptionsRouteRouteWithChildren =
@@ -498,8 +494,8 @@ export interface FileRoutesByFullPath {
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
-  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
-  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
+  '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
+  '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -526,8 +522,8 @@ export interface FileRoutesByTo {
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
-  '/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
-  '/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
+  '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
+  '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
 }
 
 export interface FileRoutesById {
@@ -555,8 +551,8 @@ export interface FileRoutesById {
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/_app/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/_app/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
-  '/_app/subscriptions/detail/$subscriptionId': typeof AppSubscriptionsDetailSubscriptionIdRoute
-  '/_app/subscriptions/edit/$subscriptionId': typeof AppSubscriptionsEditSubscriptionIdRoute
+  '/_app/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
+  '/_app/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
 }
 
 export interface FileRouteTypes {
@@ -585,8 +581,8 @@ export interface FileRouteTypes {
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
     | '/credential3rd/edit/$id'
-    | '/subscriptions/detail/$subscriptionId'
-    | '/subscriptions/edit/$subscriptionId'
+    | '/subscriptions/detail/$id'
+    | '/subscriptions/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -612,8 +608,8 @@ export interface FileRouteTypes {
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
     | '/credential3rd/edit/$id'
-    | '/subscriptions/detail/$subscriptionId'
-    | '/subscriptions/edit/$subscriptionId'
+    | '/subscriptions/detail/$id'
+    | '/subscriptions/edit/$id'
   id:
     | '__root__'
     | '/'
@@ -639,8 +635,8 @@ export interface FileRouteTypes {
     | '/auth/oidc/callback'
     | '/_app/credential3rd/detail/$id'
     | '/_app/credential3rd/edit/$id'
-    | '/_app/subscriptions/detail/$subscriptionId'
-    | '/_app/subscriptions/edit/$subscriptionId'
+    | '/_app/subscriptions/detail/$id'
+    | '/_app/subscriptions/edit/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -741,8 +737,8 @@ export const routeTree = rootRoute
       "children": [
         "/_app/subscriptions/create",
         "/_app/subscriptions/manage",
-        "/_app/subscriptions/detail/$subscriptionId",
-        "/_app/subscriptions/edit/$subscriptionId"
+        "/_app/subscriptions/detail/$id",
+        "/_app/subscriptions/edit/$id"
       ]
     },
     "/auth/sign-in": {
@@ -798,12 +794,12 @@ export const routeTree = rootRoute
       "filePath": "_app/credential3rd/edit.$id.tsx",
       "parent": "/_app/credential3rd"
     },
-    "/_app/subscriptions/detail/$subscriptionId": {
-      "filePath": "_app/subscriptions/detail.$subscriptionId.tsx",
+    "/_app/subscriptions/detail/$id": {
+      "filePath": "_app/subscriptions/detail.$id.tsx",
       "parent": "/_app/subscriptions"
     },
-    "/_app/subscriptions/edit/$subscriptionId": {
-      "filePath": "_app/subscriptions/edit.$subscriptionId.tsx",
+    "/_app/subscriptions/edit/$id": {
+      "filePath": "_app/subscriptions/edit.$id.tsx",
       "parent": "/_app/subscriptions"
     }
   }

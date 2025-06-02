@@ -23,8 +23,9 @@ use crate::{
             MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_BANGUMI_HOMEPAGE_PATH,
             MIKAN_BANGUMI_ID_QUERY_KEY, MIKAN_BANGUMI_POSTER_PATH, MIKAN_BANGUMI_RSS_PATH,
             MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY, MIKAN_POSTER_BUCKET_KEY,
-            MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH,
-            MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY, MikanClient,
+            MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SEASON_STR_QUERY_KEY,
+            MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
+            MIKAN_YEAR_QUERY_KEY, MikanClient,
         },
     },
     storage::{StorageContentCategory, StorageServiceTrait},
@@ -421,10 +422,10 @@ impl MikanSeasonFlowUrlMeta {
         if url.path().starts_with(MIKAN_SEASON_FLOW_PAGE_PATH) {
             if let (Some(year), Some(season_str)) = (
                 url.query_pairs()
-                    .find(|(key, _)| key == "year")
+                    .find(|(key, _)| key == MIKAN_YEAR_QUERY_KEY)
                     .and_then(|(_, value)| value.parse::<i32>().ok()),
                 url.query_pairs()
-                    .find(|(key, _)| key == "seasonStr")
+                    .find(|(key, _)| key == MIKAN_SEASON_STR_QUERY_KEY)
                     .and_then(|(_, value)| MikanSeasonStr::from_str(&value).ok()),
             ) {
                 Some(Self { year, season_str })
@@ -455,8 +456,8 @@ pub fn build_mikan_season_flow_url(
     let mut url = mikan_base_url;
     url.set_path(MIKAN_SEASON_FLOW_PAGE_PATH);
     url.query_pairs_mut()
-        .append_pair("year", &year.to_string())
-        .append_pair("seasonStr", &season_str.to_string());
+        .append_pair(MIKAN_YEAR_QUERY_KEY, &year.to_string())
+        .append_pair(MIKAN_SEASON_STR_QUERY_KEY, &season_str.to_string());
     url
 }
 
@@ -467,7 +468,7 @@ pub fn build_mikan_bangumi_expand_subscribed_url(
     let mut url = mikan_base_url;
     url.set_path(MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH);
     url.query_pairs_mut()
-        .append_pair("bangumiId", mikan_bangumi_id)
+        .append_pair(MIKAN_BANGUMI_ID_QUERY_KEY, mikan_bangumi_id)
         .append_pair("showSubscribed", "true");
     url
 }

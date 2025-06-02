@@ -1,9 +1,7 @@
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute(
-  '/_app/subscriptions/edit/$subscriptionId'
-)({
+export const Route = createFileRoute('/_app/subscriptions/edit/$id')({
   component: RouteComponent,
   staticData: {
     breadcrumb: { label: 'Edit' },
@@ -11,5 +9,6 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-  return <div>Hello "/subscriptions/edit/$subscription-id"!</div>;
+  const { id } = Route.useParams();
+  return <div>Hello "/subscriptions/edit/$id"!</div>;
 }

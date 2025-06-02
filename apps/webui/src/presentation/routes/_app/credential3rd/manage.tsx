@@ -22,6 +22,7 @@ import type { GetCredential3rdQuery } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { useEvent } from '@/presentation/hooks/use-event';
+import { cn } from '@/presentation/utils';
 import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
@@ -332,14 +333,24 @@ function CredentialManageRouteComponent() {
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const isPinned = cell.column.getIsPinned();
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn({
+                            'sticky z-1 bg-background shadow-xs': isPinned,
+                            'right-0': isPinned === 'right',
+                            'left-0': isPinned === 'left',
+                          })}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (

@@ -1,5 +1,16 @@
-import type { GetSubscriptionsQuery } from '@/infra/graphql/gql/graphql';
+import { arkValidatorToTypeNarrower } from '@/infra/errors/arktype';
+import {
+  type GetSubscriptionsQuery,
+  SubscriptionCategoryEnum,
+} from '@/infra/graphql/gql/graphql';
 import { gql } from '@apollo/client';
+import { type } from 'arktype';
+import {
+  MikanSubscriptionSeasonSourceUrlSchema,
+  extractMikanSubscriptionBangumiSourceUrl,
+  extractMikanSubscriptionSeasonSourceUrl,
+  extractMikanSubscriptionSubscriberSourceUrl,
+} from './mikan';
 
 export const GET_SUBSCRIPTIONS = gql`
   query GetSubscriptions($filters: SubscriptionsFilterInput!, $orderBy: SubscriptionsOrderInput!, $pagination: PaginationInput!) {
@@ -16,6 +27,7 @@ export const GET_SUBSCRIPTIONS = gql`
         category
         sourceUrl
         enabled
+        credentialId
       }
       paginationInfo {
         total
@@ -23,6 +35,21 @@ export const GET_SUBSCRIPTIONS = gql`
       }
     }
   }
+`;
+
+export const INSERT_SUBSCRIPTION = gql`
+    mutation InsertSubscription($data: SubscriptionsInsertInput!) {
+        subscriptionsCreateOne(data: $data) {
+            id
+            createdAt
+            updatedAt
+            displayName
+            category
+            sourceUrl
+            enabled
+            credentialId
+        }
+    }
 `;
 
 export type SubscriptionDto =
@@ -67,6 +94,9 @@ query GetSubscriptionDetail ($id: Int!) {
       category
       sourceUrl
       enabled
+      credential3rd {
+         id
+      }
       bangumi {
         nodes {
           createdAt
@@ -89,3 +119,39 @@ query GetSubscriptionDetail ($id: Int!) {
   }
 }
 `;
+
+export const SubscriptionTypedMikanSeasonSchema =
+  MikanSubscriptionSeasonSourceUrlSchema.and(
+    type({
+      credentialId: 'number>0',
+    })
+  );
+
+export const SubscriptionTypedMikanBangumiSchema = type({
+  category: `'${SubscriptionCategoryEnum.MikanBangumi}'`,
+  sourceUrl: type.string
+    .atLeastLength(1)
+    .narrow(
+      arkValidatorToTypeNarrower(extractMikanSubscriptionBangumiSourceUrl)
+    ),
+});
+
+export const SubscriptionTypedMikanSubscriberSchema = type({
+  category: `'${SubscriptionCategoryEnum.MikanSubscriber}'`,
+  sourceUrl: type.string
+    .atLeastLength(1)
+    .narrow(
+      arkValidatorToTypeNarrower(extractMikanSubscriptionSubscriberSourceUrl)
+    ),
+});
+
+export const SubscriptionTypedSchema = SubscriptionTypedMikanSeasonSchema.or(
+  SubscriptionTypedMikanBangumiSchema
+).or(SubscriptionTypedMikanSubscriberSchema);
+
+export const SubscriptionInsertFormSchema = type({
+  enabled: 'boolean',
+  displayName: 'string>0',
+}).and(SubscriptionTypedSchema);
+
+export type SubscriptionInsertForm = typeof SubscriptionInsertFormSchema.infer;

@@ -117,9 +117,9 @@ function FormView({
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="font-bold text-2xl">Credential detail</h1>
+            <h1 className="font-bold text-2xl">Credential edit</h1>
             <p className="mt-1 text-muted-foreground">
-              View and manage credential #{credential.id}
+              Edit credential #{credential.id}
             </p>
           </div>
         </div>

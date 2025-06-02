@@ -66,9 +66,9 @@ export function NavMain({
     );
   };
 
-  const renderCollapsedSubMenu = (item: NavMainItem) => {
+  const renderCollapsedSubMenu = (item: NavMainItem, itemIndex: number) => {
     return (
-      <DropdownMenu>
+      <DropdownMenu key={itemIndex}>
         <DropdownMenuTrigger asChild>
           <SidebarMenuButton
             tooltip={item.title}
@@ -159,7 +159,7 @@ export function NavMain({
               );
             }
             return state === 'collapsed'
-              ? renderCollapsedSubMenu(item)
+              ? renderCollapsedSubMenu(item, itemIndex)
               : renderExpandedSubMenu(item, itemIndex);
           })}
         </SidebarMenu>

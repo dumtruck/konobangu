@@ -80,13 +80,11 @@ function CredentialCreateRouteComponent() {
         ...form.value,
         userAgent: form.value.userAgent || platformService.userAgent,
       };
-      if (form.value.credentialType === Credential3rdTypeEnum.Mikan) {
-        await insertCredential3rd({
-          variables: {
-            data: value,
-          },
-        });
-      }
+      await insertCredential3rd({
+        variables: {
+          data: value,
+        },
+      });
     },
   });
 
@@ -118,16 +116,7 @@ function CredentialCreateRouteComponent() {
             }}
             className="space-y-6"
           >
-            <form.Field
-              name="credentialType"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value) {
-                    return 'Please select the credential type';
-                  }
-                },
-              }}
-            >
+            <form.Field name="credentialType">
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>Credential type *</Label>
@@ -147,7 +136,11 @@ function CredentialCreateRouteComponent() {
                     </SelectContent>
                   </Select>
                   {field.state.meta.errors && (
-                    <FormFieldErrors errors={field.state.meta.errors} />
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
                   )}
                 </div>
               )}
@@ -166,7 +159,11 @@ function CredentialCreateRouteComponent() {
                     autoComplete="off"
                   />
                   {field.state.meta.errors && (
-                    <FormFieldErrors errors={field.state.meta.errors} />
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
                   )}
                 </div>
               )}
@@ -188,7 +185,11 @@ function CredentialCreateRouteComponent() {
                     autoComplete="off"
                   />
                   {field.state.meta.errors && (
-                    <FormFieldErrors errors={field.state.meta.errors} />
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
                   )}
                 </div>
               )}
@@ -215,7 +216,11 @@ function CredentialCreateRouteComponent() {
                     Current default user agent: {platformService.userAgent}
                   </p>
                   {field.state.meta.errors && (
-                    <FormFieldErrors errors={field.state.meta.errors} />
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
                   )}
                 </div>
               )}
