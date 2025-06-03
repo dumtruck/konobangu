@@ -4,6 +4,8 @@ packages:
   - '!packages/testing-torrents'
 onlyBuiltDependencies:
   - '@biomejs/biome'
+  - '@parcel/watcher'
+  - '@tailwindcss/oxide'
   - bufferutil
   - core-js
   - esbuild

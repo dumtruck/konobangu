@@ -8,6 +8,7 @@ members = [
     "packages/fetch",
     "packages/downloader",
     "apps/recorder",
+    "apps/dev-tui",
 ]
 resolver = "2"
 
@@ -60,7 +61,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 axum-extra = "0.10"
 mockito = { version = "1.6.1" }
 convert_case = "0.8"
-color-eyre = "0.6.4"
+color-eyre = "0.6.5"
 inquire = "0.7.5"
 
 [patch.crates-io]

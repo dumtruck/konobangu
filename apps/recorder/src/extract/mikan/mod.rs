@@ -30,6 +30,7 @@ pub use web::{
     extract_mikan_bangumi_index_meta_list_from_season_flow_fragment,
     extract_mikan_bangumi_meta_from_expand_subscribed_fragment,
     extract_mikan_episode_meta_from_episode_homepage_html,
+    scrape_mikan_bangumi_index_meta_from_bangumi_homepage_url,
     scrape_mikan_bangumi_meta_from_bangumi_homepage_url,
     scrape_mikan_bangumi_meta_list_from_season_flow_url,
     scrape_mikan_bangumi_meta_stream_from_season_flow_url,
