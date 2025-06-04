@@ -8,7 +8,6 @@ members = [
     "packages/fetch",
     "packages/downloader",
     "apps/recorder",
-    "apps/dev-tui",
 ]
 resolver = "2"
 

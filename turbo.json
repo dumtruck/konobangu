@@ -1,0 +1,36 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "//#dev-webui": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true,
+      "interruptible": true
+    },
+    "//#dev-proxy": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true,
+      "interruptible": true
+    },
+    "//#dev-recorder": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true,
+      "interruptible": true
+    },
+    "//#dev-deps": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true,
+      "interruptible": true
+    },
+    "//#dev-codegen-wait": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true,
+      "interruptible": true
+    }
+  }
+}

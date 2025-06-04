@@ -3,15 +3,18 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "workspaces": ["packages/*", "apps/*"],
   "repository": {
     "type": "git",
     "url": "https://github.com/dumtruck/konobangu.git"
   },
   "scripts": {
+    "dev-webui": "just dev-webui",
+    "dev-proxy": "just dev-proxy",
+    "dev-recorder": "just dev-recorder",
+    "dev-deps": "just dev-deps",
+    "dev-codegen-wait": "just dev-codegen-wait",
+    "dev-all": "turbo run //#dev-recorder //#dev-proxy //#dev-webui //#dev-deps //#dev-codegen-wait",
     "lint": "ultracite lint",
     "format": "ultracite format",
     "bump-deps": "npx --yes npm-check-updates --deep -u -x react-day-picker && pnpm install",
@@ -27,6 +30,7 @@
     "@biomejs/biome": "1.9.4",
     "@types/node": "^22.15.29",
     "tsx": "^4.19.4",
+    "turbo": "^2.5.4",
     "typescript": "^5.8.3",
     "ultracite": "^4.2.8"
   }

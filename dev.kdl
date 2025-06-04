@@ -21,13 +21,13 @@ layout {
         children
     }
     tab name="WebUI" {
-        pane command="pnpm" {
-            args "run" "--filter=webui" "dev"
+        pane command="just" {
+            args "dev-webui"
         }
     }
     tab name="Proxy" {
-        pane command="pnpm" {
-            args "run" "--filter=proxy" "dev"
+        pane command="just" {
+            args "dev-proxy"
         }
     }
     tab name="Recorder" {
@@ -36,8 +36,8 @@ layout {
         }
     }
     tab name="Deps" {
-        pane command="docker" {
-            args "compose" "-f" "devdeps.compose.yaml" "up"
+        pane command="just" {
+            args "dev-deps"
         }
     }
     tab name="Codegen" {

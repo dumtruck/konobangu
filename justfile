@@ -31,8 +31,13 @@ dev-deps-clean:
 dev-codegen:
     pnpm run --filter=webui codegen
 
+[unix]
 dev-all:
     zellij --layout dev.kdl
+
+[windows]
+dev-all:
+    pnpm run dev-all
 
 dev-codegen-wait:
     @until nc -z localhost 5001; do echo "Waiting for Recorder..."; sleep 1; done
