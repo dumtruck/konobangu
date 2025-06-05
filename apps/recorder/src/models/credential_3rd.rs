@@ -18,6 +18,7 @@ use crate::{
     db_type = "Enum",
     enum_name = "credential_3rd_type"
 )]
+#[serde(rename_all = "snake_case")]
 pub enum Credential3rdType {
     #[sea_orm(string_value = "mikan")]
     Mikan,

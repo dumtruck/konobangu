@@ -7,8 +7,10 @@ import {
   type GetCredential3rdQueryVariables,
   OrderByEnum,
 } from '@/infra/graphql/gql/graphql';
+import { CreateCompleteAction } from '@/infra/routes/nav';
 import { useQuery } from '@apollo/client';
-import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { AlertCircle, Loader2, Plus, RefreshCw } from 'lucide-react';
 import type { ComponentProps } from 'react';
 
 export interface Credential3rdSelectContentProps
@@ -20,6 +22,8 @@ export function Credential3rdSelectContent({
   credentialType,
   ...props
 }: Credential3rdSelectContentProps) {
+  const navigate = useNavigate();
+
   const { data, loading, error, refetch } = useQuery<
     GetCredential3rdQuery,
     GetCredential3rdQueryVariables
@@ -76,10 +80,24 @@ export function Credential3rdSelectContent({
       {!loading &&
         !error &&
         (credentials.length === 0 ? (
-          <div className="py-6 text-center">
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
             <span className="text-muted-foreground text-sm">
               No credentials found
             </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                navigate({
+                  to: '/credential3rd/create',
+                  search: {
+                    completeAction: CreateCompleteAction.Back,
+                  },
+                })
+              }
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
           </div>
         ) : (
           credentials.map((credential) => (

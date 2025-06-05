@@ -3,6 +3,7 @@ import {
   type SubscriptionsInsertInput,
 } from '@/infra/graphql/gql/graphql';
 import { Injectable, inject } from '@outposts/injection-js';
+import { omit } from 'lodash-es';
 import { buildMikanSubscriptionSeasonSourceUrl } from '../schema/mikan';
 import type { SubscriptionInsertForm } from '../schema/subscriptions';
 import { MikanService } from './mikan.service';
@@ -14,18 +15,15 @@ export class SubscriptionService {
   transformInsertFormToInput(
     form: SubscriptionInsertForm
   ): SubscriptionsInsertInput {
-    let sourceUrl: string;
     if (form.category === SubscriptionCategoryEnum.MikanSeason) {
-      sourceUrl = buildMikanSubscriptionSeasonSourceUrl(
-        this.mikan.mikanBaseUrl,
-        form
-      ).toString();
-    } else {
-      sourceUrl = form.sourceUrl;
+      return {
+        ...omit(form, ['seasonStr', 'year']),
+        sourceUrl: buildMikanSubscriptionSeasonSourceUrl(
+          this.mikan.mikanBaseUrl,
+          form
+        ).toString(),
+      };
     }
-    return {
-      ...form,
-      sourceUrl,
-    };
+    return form;
   }
 }

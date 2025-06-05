@@ -16,7 +16,12 @@ import { GET_CREDENTIAL_3RD_DETAIL } from '@/domains/recorder/schema/credential3
 import type { GetCredential3rdDetailQuery } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { format } from 'date-fns/format';
 import { ArrowLeft, Edit, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
@@ -31,7 +36,20 @@ export const Route = createFileRoute('/_app/credential3rd/detail/$id')({
 function Credential3rdDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleBack = () => {
+    if (canGoBack) {
+      router.history.back();
+    } else {
+      navigate({
+        to: '/credential3rd/manage',
+      });
+    }
+  };
 
   const { loading, error, data } = useQuery<GetCredential3rdDetailQuery>(
     GET_CREDENTIAL_3RD_DETAIL,
@@ -42,12 +60,6 @@ function Credential3rdDetailRouteComponent() {
       fetchPolicy: 'cache-and-network',
     }
   );
-
-  const handleBack = () => {
-    navigate({
-      to: '/credential3rd/manage',
-    });
-  };
 
   const handleEnterEditMode = () => {
     navigate({

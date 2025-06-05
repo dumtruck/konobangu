@@ -67,7 +67,7 @@ function FormView({
   };
 
   const [updateCredential, { loading: updating }] = useMutation<
-    UpdateCredential3rdMutation['credential3rdUpdate'],
+    UpdateCredential3rdMutation,
     UpdateCredential3rdMutationVariables
   >(UPDATE_CREDENTIAL_3RD, {
     onCompleted,

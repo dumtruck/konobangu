@@ -13,3 +13,23 @@ export function arkValidatorToTypeNarrower<
     return true;
   };
 }
+
+export function validateOr<T, D>(
+  validated: T | ArkErrors,
+  defaultValue: D
+): T | D {
+  if (validated instanceof ArkErrors) {
+    return defaultValue;
+  }
+  return validated;
+}
+
+export function validateOrElse<T, D>(
+  validated: T | ArkErrors,
+  elseFn: (errors: ArkErrors) => D
+): T | D {
+  if (validated instanceof ArkErrors) {
+    return elseFn(validated);
+  }
+  return validated;
+}

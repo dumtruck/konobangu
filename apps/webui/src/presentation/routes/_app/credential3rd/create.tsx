@@ -29,33 +29,65 @@ import {
   type InsertCredential3rdMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import { PlatformService } from '@/infra/platform/platform.service';
+import {
+  CreateCompleteAction,
+  CreateCompleteActionSchema,
+} from '@/infra/routes/nav';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useMutation } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
+import { type } from 'arktype';
 import { Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
+
+const RouteSearchSchema = type({
+  completeAction: CreateCompleteActionSchema.optional(),
+});
 
 export const Route = createFileRoute('/_app/credential3rd/create')({
   component: CredentialCreateRouteComponent,
   staticData: {
     breadcrumb: { label: 'Create' },
   } satisfies RouteStateDataOption,
+  validateSearch: RouteSearchSchema,
 });
 
 function CredentialCreateRouteComponent() {
   const navigate = useNavigate();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const search = Route.useSearch();
   const platformService = useInject(PlatformService);
 
+  const handleBack = () => {
+    if (canGoBack) {
+      router.history.back();
+    } else {
+      navigate({
+        to: '/credential3rd/manage',
+      });
+    }
+  };
+
   const [insertCredential3rd, { loading }] = useMutation<
-    InsertCredential3rdMutation['credential3rdCreateOne'],
+    InsertCredential3rdMutation,
     InsertCredential3rdMutationVariables
   >(INSERT_CREDENTIAL_3RD, {
     onCompleted(data) {
       toast.success('Credential created');
-      navigate({
-        to: '/credential3rd/detail/$id',
-        params: { id: `${data.id}` },
-      });
+      if (search.completeAction === CreateCompleteAction.Back) {
+        handleBack();
+      } else {
+        navigate({
+          to: '/credential3rd/detail/$id',
+          params: { id: `${data.credential3rdCreateOne.id}` },
+        });
+      }
     },
     onError(error) {
       toast.error('Failed to create credential', {
@@ -168,8 +200,6 @@ function CredentialCreateRouteComponent() {
                 </div>
               )}
             </form.Field>
-
-            {/* 密码 */}
             <form.Field name="password">
               {(field) => (
                 <div className="space-y-2">
@@ -194,8 +224,6 @@ function CredentialCreateRouteComponent() {
                 </div>
               )}
             </form.Field>
-
-            {/* User Agent */}
             <form.Field name="userAgent">
               {(field) => (
                 <div className="space-y-2">

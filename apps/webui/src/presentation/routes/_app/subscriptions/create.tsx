@@ -52,14 +52,14 @@ function SubscriptionCreateRouteComponent() {
   const subscriptionService = useInject(SubscriptionService);
 
   const [insertSubscription, { loading }] = useMutation<
-    InsertSubscriptionMutation['subscriptionsCreateOne'],
+    InsertSubscriptionMutation,
     InsertSubscriptionMutationVariables
   >(INSERT_SUBSCRIPTION, {
     onCompleted(data) {
       toast.success('Subscription created');
       navigate({
         to: '/subscriptions/detail/$id',
-        params: { id: `${data.id}` },
+        params: { id: `${data.subscriptionsCreateOne.id}` },
       });
     },
     onError(error) {
@@ -80,7 +80,8 @@ function SubscriptionCreateRouteComponent() {
       seasonStr: '',
     } as unknown as SubscriptionInsertForm,
     validators: {
-      onBlur: SubscriptionInsertFormSchema,
+      onChangeAsync: SubscriptionInsertFormSchema,
+      onChangeAsyncDebounceMs: 300,
       onSubmit: SubscriptionInsertFormSchema,
     },
     onSubmit: async (form) => {
@@ -233,7 +234,7 @@ function SubscriptionCreateRouteComponent() {
                                   Number.parseInt(e.target.value)
                                 )
                               }
-                              placeholder="Please enter full year (e.g. 2025)"
+                              placeholder={`Please enter full year (e.g. ${new Date().getFullYear()})`}
                               autoComplete="off"
                             />
                             {field.state.meta.errors && (
@@ -252,7 +253,12 @@ function SubscriptionCreateRouteComponent() {
                         {(field) => (
                           <div className="space-y-2">
                             <Label htmlFor={field.name}>Season *</Label>
-                            <Select>
+                            <Select
+                              value={field.state.value}
+                              onValueChange={(value) =>
+                                field.handleChange(value as MikanSeasonEnum)
+                              }
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select season" />
                               </SelectTrigger>

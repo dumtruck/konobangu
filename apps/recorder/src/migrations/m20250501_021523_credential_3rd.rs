@@ -28,7 +28,11 @@ impl MigrationTrait for Migration {
                 table_auto_z(Credential3rd::Table)
                     .col(pk_auto(Credential3rd::Id))
                     .col(integer(Credential3rd::SubscriberId))
-                    .col(string(Credential3rd::CredentialType))
+                    .col(enumeration(
+                        Credential3rd::CredentialType,
+                        Credential3rdTypeEnum,
+                        Credential3rdType::iden_values(),
+                    ))
                     .col(string_null(Credential3rd::Cookies))
                     .col(string_null(Credential3rd::Username))
                     .col(string_null(Credential3rd::Password))

@@ -1,3 +1,4 @@
+import { type } from 'arktype';
 import {
   BookOpen,
   Folders,
@@ -112,3 +113,15 @@ export const AppNavMainData = [
     ],
   },
 ];
+
+export const CreateCompleteAction = {
+  Back: 'back',
+  Detail: 'detail',
+} as const;
+
+export type CreateCompleteAction =
+  (typeof CreateCompleteAction)[keyof typeof CreateCompleteAction];
+
+export const CreateCompleteActionSchema = type.enumerated(
+  ...Object.values(CreateCompleteAction)
+);
