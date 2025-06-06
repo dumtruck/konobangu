@@ -72,7 +72,7 @@ function SubscriptionManageRouteComponent() {
       variables: {
         pagination: {
           page: {
-            page: pagination.pageIndex + 1,
+            page: pagination.pageIndex,
             limit: pagination.pageSize,
           },
         },

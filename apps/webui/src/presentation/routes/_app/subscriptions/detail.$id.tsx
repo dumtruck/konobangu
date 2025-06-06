@@ -1,36 +1,346 @@
-import type { GetSubscriptionDetailQuery } from '@/infra/graphql/gql/graphql';
+import { DetailCardSkeleton } from '@/components/detail-card-skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { Label } from '@/components/ui/label';
+import { QueryErrorView } from '@/components/ui/query-error-view';
+import { Separator } from '@/components/ui/separator';
+import { GET_SUBSCRIPTION_DETAIL } from '@/domains/recorder/schema/subscriptions';
+import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
+import { useInject } from '@/infra/di/inject';
+import {
+  type GetSubscriptionDetailQuery,
+  SubscriptionCategoryEnum,
+} from '@/infra/graphql/gql/graphql';
 import { useQuery } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { GET_SUBSCRIPTION_DETAIL } from '../../../../domains/recorder/schema/subscriptions.js';
+import {
+  createFileRoute,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
+import { format } from 'date-fns';
+import { ArrowLeft, Edit, ExternalLink } from 'lucide-react';
+import { useMemo } from 'react';
 
 export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
-  component: DetailRouteComponent,
+  component: SubscriptionDetailRouteComponent,
 });
 
-function DetailRouteComponent() {
+function SubscriptionDetailRouteComponent() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const subscriptionService = useInject(SubscriptionService);
+
+  const handleBack = () => {
+    if (canGoBack) {
+      router.history.back();
+    } else {
+      navigate({
+        to: '/subscriptions/manage',
+      });
+    }
+  };
+
   const { data, loading, error } = useQuery<GetSubscriptionDetailQuery>(
     GET_SUBSCRIPTION_DETAIL,
     {
       variables: {
         id: Number.parseInt(id),
       },
+      fetchPolicy: 'cache-and-network',
     }
   );
 
+  const handleEnterEditMode = () => {
+    navigate({
+      to: '/subscriptions/edit/$id',
+      params: {
+        id,
+      },
+    });
+  };
+  const subscription = data?.subscriptions?.nodes?.[0];
+
+  const sourceUrlMeta = useMemo(
+    () =>
+      subscription
+        ? subscriptionService.extractSourceUrlMeta(
+            subscription?.category,
+            subscription?.sourceUrl
+          )
+        : null,
+    [
+      subscription,
+      subscription?.category,
+      subscription?.sourceUrl,
+      subscriptionService.extractSourceUrlMeta,
+    ]
+  );
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <DetailCardSkeleton />;
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <QueryErrorView message={error.message} />;
   }
 
-  const detail = data?.subscriptions?.nodes?.[0];
+  if (!subscription) {
+    return <DetailEmptyView message="Not found certain subscription" />;
+  }
 
   return (
-    <div
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(detail, null, 2) }}
-    />
+    <div className="container mx-auto max-w-4xl py-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="font-bold text-2xl">Subscription detail</h1>
+            <p className="mt-1 text-muted-foreground">
+              View subscription #{subscription.id}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button onClick={handleEnterEditMode}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Subscription information</CardTitle>
+              <CardDescription className="mt-2">
+                View subscription detail
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant={subscription.enabled ? 'default' : 'secondary'}>
+                {subscription.enabled ? 'Enabled' : 'Disabled'}
+              </Badge>
+              <Badge variant="outline">{subscription.category}</Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">ID</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <code className="text-sm">{subscription.id}</code>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">Category</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <Badge variant="outline">{subscription.category}</Badge>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">Display Name</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <span className="text-sm">
+                    {subscription.displayName || 'Not set'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">Enabled</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <Badge
+                    variant={subscription.enabled ? 'default' : 'secondary'}
+                  >
+                    {subscription.enabled ? 'Enabled' : 'Disabled'}
+                  </Badge>
+                </div>
+              </div>
+
+              {subscription.credential3rd && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">Credential ID</Label>
+                    <div className="rounded-md bg-muted p-3">
+                      <code className="text-sm">
+                        {subscription.credential3rd.id}
+                      </code>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">
+                      Credential Username
+                    </Label>
+                    <div className="rounded-md bg-muted p-3">
+                      <code className="text-sm">
+                        {subscription.credential3rd.username}
+                      </code>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label className="font-medium text-sm">Source URL</Label>
+              <div className="flex items-center justify-between rounded-md bg-muted p-3">
+                <span className="break-all text-sm">
+                  {subscription.sourceUrl || '-'}
+                </span>
+                {subscription.sourceUrl && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2 h-6 w-6 p-0"
+                    onClick={() =>
+                      window.open(subscription.sourceUrl, '_blank')
+                    }
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {sourceUrlMeta?.category ===
+                SubscriptionCategoryEnum.MikanSeason && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">Year</Label>
+                    <div className="rounded-md bg-muted p-3">
+                      <code className="text-sm">{sourceUrlMeta.year}</code>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">Season</Label>
+                    <div className="rounded-md bg-muted p-3">
+                      <code className="text-sm">{sourceUrlMeta.seasonStr}</code>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <Separator />
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">Created at</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <span className="text-sm">
+                    {format(
+                      new Date(subscription.createdAt),
+                      'yyyy-MM-dd HH:mm:ss'
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-medium text-sm">Updated at</Label>
+                <div className="rounded-md bg-muted p-3">
+                  <span className="text-sm">
+                    {format(
+                      new Date(subscription.updatedAt),
+                      'yyyy-MM-dd HH:mm:ss'
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {subscription.bangumi?.nodes &&
+              subscription.bangumi.nodes.length > 0 && (
+                <>
+                  <Separator />
+                  <div className="space-y-4">
+                    <Label className="font-medium text-sm">
+                      Associated Bangumi
+                    </Label>
+                    <div className="space-y-3">
+                      {subscription.bangumi.nodes.map((bangumi) => (
+                        <Card key={bangumi.id} className="p-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                              <Label className="font-medium text-muted-foreground text-xs">
+                                Display Name
+                              </Label>
+                              <div className="text-sm">
+                                {bangumi.displayName}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="font-medium text-muted-foreground text-xs">
+                                Season
+                              </Label>
+                              <div className="text-sm">
+                                {bangumi.season || '-'}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="font-medium text-muted-foreground text-xs">
+                                Fansub
+                              </Label>
+                              <div className="text-sm">
+                                {bangumi.fansub || '-'}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="font-medium text-muted-foreground text-xs">
+                                Save Path
+                              </Label>
+                              <div className="font-mono text-sm">
+                                {bangumi.savePath || '-'}
+                              </div>
+                            </div>
+                          </div>
+                          {bangumi.homepage && (
+                            <div className="mt-3 border-t pt-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  window.open(bangumi.homepage!, '_blank')
+                                }
+                              >
+                                <ExternalLink className="mr-2 h-3 w-3" />
+                                Homepage
+                              </Button>
+                            </div>
+                          )}
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

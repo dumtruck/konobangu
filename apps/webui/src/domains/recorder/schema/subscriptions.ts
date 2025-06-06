@@ -96,6 +96,7 @@ query GetSubscriptionDetail ($id: Int!) {
       enabled
       credential3rd {
          id
+         username
       }
       bangumi {
         nodes {

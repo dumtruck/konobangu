@@ -179,14 +179,3 @@ export function extractMikanSubscriptionSubscriberSourceUrl(
     ),
   });
 }
-
-export function extractMikanSubscriptionSourceUrl(
-  sourceUrl: string
-): MikanSubscriptionSourceUrl | ArkErrors {
-  const u = new URL(sourceUrl);
-  return MikanSubscriptionSourceUrlSchema({
-    category: SubscriptionCategoryEnum.MikanBangumi,
-    mikanBangumiId: u.searchParams.get(MIKAN_BANGUMI_ID_QUERY_KEY),
-    mikanFansubId: u.searchParams.get(MIKAN_FANSUB_ID_QUERY_KEY),
-  });
-}

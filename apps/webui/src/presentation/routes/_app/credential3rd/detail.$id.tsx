@@ -125,9 +125,7 @@ function Credential3rdDetailRouteComponent() {
                 View credential detail
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="capitalize">
-              {credential.credentialType}
-            </Badge>
+            <Badge variant="secondary">{credential.credentialType}</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -143,9 +141,7 @@ function Credential3rdDetailRouteComponent() {
               <div className="space-y-2">
                 <Label className="font-medium text-sm">Credential type</Label>
                 <div className="rounded-md bg-muted p-3">
-                  <Badge variant="secondary" className="capitalize">
-                    {credential.credentialType}
-                  </Badge>
+                  <Badge variant="secondary">{credential.credentialType}</Badge>
                 </div>
               </div>
 

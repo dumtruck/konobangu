@@ -104,7 +104,8 @@ function CredentialCreateRouteComponent() {
       userAgent: '',
     },
     validators: {
-      onBlur: Credential3rdInsertSchema,
+      onChangeAsync: Credential3rdInsertSchema,
+      onChangeAsyncDebounceMs: 300,
       onSubmit: Credential3rdInsertSchema,
     },
     onSubmit: async (form) => {
