@@ -2019,6 +2019,7 @@ dependencies = [
  "http-cache",
  "http-cache-reqwest",
  "http-cache-semantics",
+ "http-serde",
  "lazy_static",
  "leaky-bucket",
  "moka",
@@ -2031,6 +2032,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "snafu",
+ "tracing",
  "url",
  "util",
 ]
@@ -7701,6 +7703,8 @@ dependencies = [
  "bytes",
  "futures",
  "quirks_path",
+ "serde",
+ "serde_with",
  "snafu",
 ]
 

@@ -80,6 +80,14 @@ export const GET_CREDENTIAL_3RD_DETAIL = gql`
   }
 `;
 
+export const CHECK_CREDENTIAL_3RD_AVAILABLE = gql`
+  query CheckCredential3rdAvailable($id: Int!) {
+    credential3rdCheckAvailable(filter: { id: $id }) {
+       available
+    }
+  }
+`;
+
 export const Credential3rdTypedMikanSchema = type({
   credentialType: `'${Credential3rdTypeEnum.Mikan}'`,
   username: 'string > 0',

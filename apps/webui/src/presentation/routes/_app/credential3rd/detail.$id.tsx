@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
@@ -23,8 +24,9 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import { format } from 'date-fns/format';
-import { ArrowLeft, Edit, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, CheckIcon, Edit, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { Credential3rdCheckAvailableViewDialogContent } from './-check-available';
 
 export const Route = createFileRoute('/_app/credential3rd/detail/$id')({
   component: Credential3rdDetailRouteComponent,
@@ -57,7 +59,6 @@ function Credential3rdDetailRouteComponent() {
       variables: {
         id: Number.parseInt(id),
       },
-      fetchPolicy: 'cache-and-network',
     }
   );
 
@@ -125,7 +126,19 @@ function Credential3rdDetailRouteComponent() {
                 View credential detail
               </CardDescription>
             </div>
-            <Badge variant="secondary">{credential.credentialType}</Badge>
+            <div className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <CheckIcon className="h-4 w-4" />
+                    Check Available
+                  </Button>
+                </DialogTrigger>
+                <Credential3rdCheckAvailableViewDialogContent
+                  id={credential.id}
+                />
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

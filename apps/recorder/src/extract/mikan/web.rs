@@ -917,10 +917,11 @@ pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
     ctx: Arc<dyn AppContextTrait>,
     mikan_season_flow_url: Url,
     credential_id: i32,
+    subscriber_id: i32,
 ) -> impl Stream<Item = RecorderResult<MikanBangumiMeta>> {
     try_stream! {
         let mikan_base_url = ctx.mikan().base_url().clone();
-        let mikan_client = ctx.mikan().fork_with_credential_id(ctx.clone(), credential_id).await?;
+        let mikan_client = ctx.mikan().fork_with_credential_id(ctx.as_ref(), credential_id, subscriber_id).await?;
 
         let content = fetch_html(&mikan_client, mikan_season_flow_url.clone()).await?;
 
@@ -940,7 +941,7 @@ pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
 
 
         mikan_client
-            .sync_credential_cookies(ctx.clone(), credential_id)
+            .sync_credential_cookies(ctx.as_ref(), credential_id, subscriber_id)
             .await?;
 
         for bangumi_index in bangumi_indices_meta {
@@ -969,7 +970,7 @@ pub fn scrape_mikan_bangumi_meta_stream_from_season_flow_url(
         }
 
         mikan_client
-        .sync_credential_cookies(ctx, credential_id)
+            .sync_credential_cookies(ctx.as_ref(), credential_id, subscriber_id)
         .await?;
     }
 }
@@ -978,11 +979,13 @@ pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
     ctx: Arc<dyn AppContextTrait>,
     mikan_season_flow_url: Url,
     credential_id: i32,
+    subscriber_id: i32,
 ) -> RecorderResult<Vec<MikanBangumiMeta>> {
     let stream = scrape_mikan_bangumi_meta_stream_from_season_flow_url(
         ctx,
         mikan_season_flow_url,
         credential_id,
+        subscriber_id,
     );
 
     pin_mut!(stream);
@@ -1160,7 +1163,7 @@ mod test {
 
         let mikan_client = build_testing_mikan_client(mikan_base_url.clone())
             .await?
-            .fork_with_credential(build_testing_mikan_credential())
+            .fork_with_userpass_credential(build_testing_mikan_credential())
             .await?;
 
         mikan_client.login().await?;
@@ -1268,8 +1271,14 @@ mod test {
 
         let mikan_client = app_ctx.mikan();
 
+        let subscriber_id = 1;
+
         let credential = mikan_client
-            .submit_credential_form(app_ctx.clone(), 1, build_testing_mikan_credential_form())
+            .submit_credential_form(
+                app_ctx.as_ref(),
+                subscriber_id,
+                build_testing_mikan_credential_form(),
+            )
             .await?;
 
         let mikan_season_flow_url =
@@ -1279,6 +1288,7 @@ mod test {
             app_ctx.clone(),
             mikan_season_flow_url,
             credential.id,
+            subscriber_id,
         );
 
         pin_mut!(bangumi_meta_stream);

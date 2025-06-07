@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ops::Deref, sync::Arc};
+use std::{fmt::Debug, ops::Deref};
 
 use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
@@ -136,7 +136,7 @@ impl MikanClient {
 
     pub async fn submit_credential_form(
         &self,
-        ctx: Arc<dyn AppContextTrait>,
+        ctx: &dyn AppContextTrait,
         subscriber_id: i32,
         credential_form: MikanCredentialForm,
     ) -> RecorderResult<credential_3rd::Model> {
@@ -149,7 +149,7 @@ impl MikanClient {
             subscriber_id: Set(subscriber_id),
             ..Default::default()
         }
-        .try_encrypt(ctx.clone())
+        .try_encrypt(ctx)
         .await?;
 
         let credential: credential_3rd::Model = am.save(db).await?.try_into_model()?;
@@ -158,8 +158,9 @@ impl MikanClient {
 
     pub async fn sync_credential_cookies(
         &self,
-        ctx: Arc<dyn AppContextTrait>,
+        ctx: &dyn AppContextTrait,
         credential_id: i32,
+        subscriber_id: i32,
     ) -> RecorderResult<()> {
         let cookies = self.http_client.save_cookie_store_to_json()?;
         if let Some(cookies) = cookies {
@@ -167,19 +168,20 @@ impl MikanClient {
                 cookies: Set(Some(cookies)),
                 ..Default::default()
             }
-            .try_encrypt(ctx.clone())
+            .try_encrypt(ctx)
             .await?;
 
             credential_3rd::Entity::update_many()
                 .set(am)
                 .filter(credential_3rd::Column::Id.eq(credential_id))
+                .filter(credential_3rd::Column::SubscriberId.eq(subscriber_id))
                 .exec(ctx.db())
                 .await?;
         }
         Ok(())
     }
 
-    pub async fn fork_with_credential(
+    pub async fn fork_with_userpass_credential(
         &self,
         userpass_credential: UserPassCredential,
     ) -> RecorderResult<Self> {
@@ -204,10 +206,13 @@ impl MikanClient {
 
     pub async fn fork_with_credential_id(
         &self,
-        ctx: Arc<dyn AppContextTrait>,
+        ctx: &dyn AppContextTrait,
         credential_id: i32,
+        subscriber_id: i32,
     ) -> RecorderResult<Self> {
-        let credential = credential_3rd::Model::find_by_id(ctx.clone(), credential_id).await?;
+        let credential =
+            credential_3rd::Model::find_by_id_and_subscriber_id(ctx, credential_id, subscriber_id)
+                .await?;
         if let Some(credential) = credential {
             if credential.credential_type != Credential3rdType::Mikan {
                 return Err(RecorderError::Credential3rdError {
@@ -219,7 +224,8 @@ impl MikanClient {
             let userpass_credential: UserPassCredential =
                 credential.try_into_userpass_credential(ctx)?;
 
-            self.fork_with_credential(userpass_credential).await
+            self.fork_with_userpass_credential(userpass_credential)
+                .await
         } else {
             Err(RecorderError::from_db_record_not_found(
                 DbErr::RecordNotFound(format!("credential={credential_id} not found")),
@@ -249,7 +255,7 @@ impl HttpClientTrait for MikanClient {}
 #[cfg(test)]
 mod tests {
     #![allow(unused_variables)]
-    use std::assert_matches::assert_matches;
+    use std::{assert_matches::assert_matches, sync::Arc};
 
     use rstest::{fixture, rstest};
     use tracing::Level;
@@ -297,8 +303,10 @@ mod tests {
 
         let credential_form = build_testing_mikan_credential_form();
 
+        let subscriber_id = 1;
+
         let credential_model = mikan_client
-            .submit_credential_form(app_ctx.clone(), 1, credential_form.clone())
+            .submit_credential_form(app_ctx.as_ref(), subscriber_id, credential_form.clone())
             .await?;
 
         let expected_username = &credential_form.username;
@@ -322,7 +330,7 @@ mod tests {
         );
 
         let mikan_client = mikan_client
-            .fork_with_credential_id(app_ctx.clone(), credential_model.id)
+            .fork_with_credential_id(app_ctx.as_ref(), credential_model.id, subscriber_id)
             .await?;
 
         mikan_client.login().await?;

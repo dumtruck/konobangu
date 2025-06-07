@@ -9,12 +9,17 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
 import { GET_SUBSCRIPTION_DETAIL } from '@/domains/recorder/schema/subscriptions';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import {
   type GetSubscriptionDetailQuery,
   SubscriptionCategoryEnum,
@@ -27,8 +32,16 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import { format } from 'date-fns';
-import { ArrowLeft, Edit, ExternalLink } from 'lucide-react';
+import {
+  ArrowLeft,
+  Edit,
+  ExternalLink,
+  ListIcon,
+  RefreshCcwIcon,
+} from 'lucide-react';
 import { useMemo } from 'react';
+import { toast } from 'sonner';
+import { SubscriptionSyncDialogContent } from './-sync';
 
 export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
   component: SubscriptionDetailRouteComponent,
@@ -51,15 +64,22 @@ function SubscriptionDetailRouteComponent() {
     }
   };
 
-  const { data, loading, error } = useQuery<GetSubscriptionDetailQuery>(
-    GET_SUBSCRIPTION_DETAIL,
-    {
+  const handleReload = async () => {
+    const result = await refetch();
+    const error = getApolloQueryError(result);
+    if (error) {
+      toast.error('Failed to reload subscription', {
+        description: apolloErrorToMessage(error),
+      });
+    }
+  };
+
+  const { data, loading, error, refetch } =
+    useQuery<GetSubscriptionDetailQuery>(GET_SUBSCRIPTION_DETAIL, {
       variables: {
         id: Number.parseInt(id),
       },
-      fetchPolicy: 'cache-and-network',
-    }
-  );
+    });
 
   const handleEnterEditMode = () => {
     navigate({
@@ -69,6 +89,7 @@ function SubscriptionDetailRouteComponent() {
       },
     });
   };
+
   const subscription = data?.subscriptions?.nodes?.[0];
 
   const sourceUrlMeta = useMemo(
@@ -123,7 +144,7 @@ function SubscriptionDetailRouteComponent() {
           <Button onClick={handleEnterEditMode}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
-          </Button>
+          </Button>{' '}
         </div>
       </div>
 
@@ -137,10 +158,30 @@ function SubscriptionDetailRouteComponent() {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Badge variant={subscription.enabled ? 'default' : 'secondary'}>
-                {subscription.enabled ? 'Enabled' : 'Disabled'}
-              </Badge>
-              <Badge variant="outline">{subscription.category}</Badge>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <RefreshCcwIcon className="h-4 w-4" />
+                    Sync
+                  </Button>
+                </DialogTrigger>
+                <SubscriptionSyncDialogContent
+                  id={subscription.id}
+                  onCancel={handleReload}
+                />
+              </Dialog>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate({
+                    to: '/tasks/manage',
+                  })
+                }
+              >
+                <ListIcon className="h-4 w-4" />
+                Tasks
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -173,11 +214,9 @@ function SubscriptionDetailRouteComponent() {
               <div className="space-y-2">
                 <Label className="font-medium text-sm">Enabled</Label>
                 <div className="rounded-md bg-muted p-3">
-                  <Badge
-                    variant={subscription.enabled ? 'default' : 'secondary'}
-                  >
+                  <span className="text-sm">
                     {subscription.enabled ? 'Enabled' : 'Disabled'}
-                  </Badge>
+                  </span>
                 </div>
               </div>
 

@@ -19,6 +19,10 @@ import {
   type SubscriptionDto,
   UPDATE_SUBSCRIPTIONS,
 } from '@/domains/recorder/schema/subscriptions';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import type {
   GetSubscriptionsQuery,
   SubscriptionsUpdateInput,
@@ -81,15 +85,16 @@ function SubscriptionManageRouteComponent() {
           updatedAt: 'DESC',
         },
       },
-      refetchWritePolicy: 'overwrite',
-      nextFetchPolicy: 'network-only',
     }
   );
   const [updateSubscription] = useMutation(UPDATE_SUBSCRIPTIONS, {
     onCompleted: async () => {
       const refetchResult = await refetch();
-      if (refetchResult.errors) {
-        toast.error(refetchResult.errors[0].message);
+      const error = getApolloQueryError(refetchResult);
+      if (error) {
+        toast.error('Failed to update subscription', {
+          description: apolloErrorToMessage(error),
+        });
         return;
       }
       toast.success('Subscription updated');
@@ -103,8 +108,11 @@ function SubscriptionManageRouteComponent() {
   const [deleteSubscription] = useMutation(DELETE_SUBSCRIPTIONS, {
     onCompleted: async () => {
       const refetchResult = await refetch();
-      if (refetchResult.errors) {
-        toast.error(refetchResult.errors[0].message);
+      const error = getApolloQueryError(refetchResult);
+      if (error) {
+        toast.error('Failed to delete subscription', {
+          description: apolloErrorToMessage(error),
+        });
         return;
       }
       toast.success('Subscription deleted');

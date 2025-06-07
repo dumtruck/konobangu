@@ -27,6 +27,10 @@ import {
   GET_CREDENTIAL_3RD_DETAIL,
   UPDATE_CREDENTIAL_3RD,
 } from '@/domains/recorder/schema/credential3rd';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import type {
   Credential3rdTypeEnum,
   GetCredential3rdDetailQuery,
@@ -260,19 +264,19 @@ function Credential3rdEditRouteComponent() {
       variables: {
         id: Number.parseInt(id),
       },
-      fetchPolicy: 'cache-and-network',
     });
 
   const credential = data?.credential3rd?.nodes?.[0];
 
   const onCompleted = useCallback(async () => {
     const refetchResult = await refetch();
-    if (refetchResult.errors) {
-      toast('Update credential failed', {
-        description: refetchResult.errors[0].message,
+    const error = getApolloQueryError(refetchResult);
+    if (error) {
+      toast.error('Update credential failed', {
+        description: apolloErrorToMessage(error),
       });
     } else {
-      toast('Update credential successfully');
+      toast.success('Update credential successfully');
     }
   }, [refetch]);
 

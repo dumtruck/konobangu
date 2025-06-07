@@ -18,6 +18,10 @@ import {
   DELETE_CREDENTIAL_3RD,
   GET_CREDENTIAL_3RD,
 } from '@/domains/recorder/schema/credential3rd';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import type { GetCredential3rdQuery } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
@@ -79,17 +83,16 @@ function CredentialManageRouteComponent() {
           },
         },
       },
-      fetchPolicy: 'cache-and-network',
-      nextFetchPolicy: 'network-only',
     }
   );
 
   const [deleteCredential] = useMutation(DELETE_CREDENTIAL_3RD, {
     onCompleted: async () => {
       const refetchResult = await refetch();
-      if (refetchResult.errors) {
+      const error = getApolloQueryError(refetchResult);
+      if (error) {
         toast.error('Failed to delete credential', {
-          description: refetchResult.errors[0].message,
+          description: apolloErrorToMessage(error),
         });
         return;
       }

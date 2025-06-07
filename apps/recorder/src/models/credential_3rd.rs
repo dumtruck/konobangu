@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use sea_orm::{ActiveValue, prelude::*};
 use serde::{Deserialize, Serialize};
@@ -79,7 +77,7 @@ pub enum RelatedEntity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl ActiveModel {
-    pub async fn try_encrypt(mut self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Self> {
+    pub async fn try_encrypt(mut self, ctx: &dyn AppContextTrait) -> RecorderResult<Self> {
         let crypto = ctx.crypto();
 
         if let ActiveValue::Set(Some(username)) = self.username {
@@ -102,19 +100,24 @@ impl ActiveModel {
 }
 
 impl Model {
-    pub async fn find_by_id(
-        ctx: Arc<dyn AppContextTrait>,
+    pub async fn find_by_id_and_subscriber_id(
+        ctx: &dyn AppContextTrait,
         id: i32,
+        subscriber_id: i32,
     ) -> RecorderResult<Option<Self>> {
         let db = ctx.db();
-        let credential = Entity::find_by_id(id).one(db).await?;
+        let credential = Entity::find()
+            .filter(Column::Id.eq(id))
+            .filter(Column::SubscriberId.eq(subscriber_id))
+            .one(db)
+            .await?;
 
         Ok(credential)
     }
 
     pub fn try_into_userpass_credential(
         self,
-        ctx: Arc<dyn AppContextTrait>,
+        ctx: &dyn AppContextTrait,
     ) -> RecorderResult<UserPassCredential> {
         let crypto = ctx.crypto();
         let username_enc = self
@@ -148,5 +151,32 @@ impl Model {
             cookies,
             user_agent: self.user_agent,
         })
+    }
+
+    pub async fn check_available(self, ctx: &dyn AppContextTrait) -> RecorderResult<bool> {
+        let credential_id = self.id;
+        let subscriber_id = self.subscriber_id;
+        match self.credential_type {
+            Credential3rdType::Mikan => {
+                let mikan_client = {
+                    let userpass_credential: UserPassCredential =
+                        self.try_into_userpass_credential(ctx)?;
+                    ctx.mikan()
+                        .fork_with_userpass_credential(userpass_credential)
+                        .await?
+                };
+                let mut has_login = mikan_client.has_login().await?;
+                if !has_login {
+                    mikan_client.login().await?;
+                    has_login = true;
+                }
+                if has_login {
+                    mikan_client
+                        .sync_credential_cookies(ctx, credential_id, subscriber_id)
+                        .await?;
+                }
+                Ok(has_login)
+            }
+        }
     }
 }

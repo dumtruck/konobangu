@@ -22,6 +22,17 @@ export class GraphQLService {
   _apollo = new ApolloClient({
     link: this.authLink.concat(this.apiLink),
     cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'cache-and-network',
+        nextFetchPolicy: 'network-only',
+        errorPolicy: 'all',
+      },
+      query: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'all',
+      },
+    },
   });
 
   query = this._apollo.query;

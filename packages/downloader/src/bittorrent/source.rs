@@ -4,7 +4,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use fetch::{bytes::fetch_bytes, client::core::HttpClientTrait};
+use fetch::{bytes::fetch_bytes, client::HttpClientTrait};
 use librqbit_core::{magnet::Magnet, torrent_metainfo, torrent_metainfo::TorrentMetaV1Owned};
 use snafu::ResultExt;
 use url::Url;

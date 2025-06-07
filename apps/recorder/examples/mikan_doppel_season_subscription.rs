@@ -65,7 +65,7 @@ async fn main() -> Result<()> {
         .prompt()?;
 
     let mikan_scrape_client = mikan_scrape_client
-        .fork_with_credential(UserPassCredential {
+        .fork_with_userpass_credential(UserPassCredential {
             username,
             password,
             user_agent: None,

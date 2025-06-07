@@ -1,6 +1,11 @@
-pub mod core;
+mod core;
+mod error;
+mod proxy;
 
 pub use core::{
     HttpClient, HttpClientCacheBackendConfig, HttpClientCachePresetConfig, HttpClientConfig,
-    HttpClientError, HttpClientTrait,
+    HttpClientTrait,
 };
+
+pub use error::HttpClientError;
+pub use proxy::HttpClientProxyConfig;

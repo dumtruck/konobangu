@@ -16,7 +16,7 @@ use crate::{
 
 #[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
 struct SyncOneSubscriptionFilterInput {
-    pub subscription_id: i32,
+    pub id: i32,
 }
 
 impl SyncOneSubscriptionFilterInput {
@@ -32,7 +32,7 @@ impl SyncOneSubscriptionFilterInput {
         InputObject::new(Self::input_type_name())
             .description("The input of the subscriptionSyncOne series of mutations")
             .field(InputValue::new(
-                SyncOneSubscriptionFilterInputFieldEnum::SubscriptionId.as_str(),
+                SyncOneSubscriptionFilterInputFieldEnum::Id.as_str(),
                 TypeRef::named_nn(TypeRef::INT),
             ))
     }
@@ -74,7 +74,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
         .schema
         .register(SyncOneSubscriptionInfo::generate_output_object());
 
-    builder.queries.push(
+    builder.mutations.push(
         Field::new(
             "subscriptionSyncOneFeedsIncremental",
             TypeRef::named_nn(SyncOneSubscriptionInfo::object_type_name()),
@@ -93,7 +93,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
 
                     let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
                         app_ctx.as_ref(),
-                        filter_input.subscription_id,
+                        filter_input.id,
                         subscriber_id,
                     )
                     .await?;
@@ -124,7 +124,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
         )),
     );
 
-    builder.queries.push(
+    builder.mutations.push(
         Field::new(
             "subscriptionSyncOneFeedsFull",
             TypeRef::named_nn(SyncOneSubscriptionInfo::object_type_name()),
@@ -143,7 +143,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
 
                     let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
                         app_ctx.as_ref(),
-                        filter_input.subscription_id,
+                        filter_input.id,
                         subscriber_id,
                     )
                     .await?;
@@ -193,7 +193,7 @@ pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> Seaog
 
                     let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
                         app_ctx.as_ref(),
-                        filter_input.subscription_id,
+                        filter_input.id,
                         subscriber_id,
                     )
                     .await?;

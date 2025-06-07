@@ -20,7 +20,7 @@ use crate::{
             },
             util::{get_entity_column_key, get_entity_key},
         },
-        views::register_subscriptions_to_schema,
+        views::{register_credential3rd_to_schema, register_subscriptions_to_schema},
     },
 };
 
@@ -156,7 +156,7 @@ pub fn build_schema(
             &mut context,
             &subscriber_tasks::Column::Job,
         );
-        add_crypto_transformers(&mut context, app_ctx);
+        add_crypto_transformers(&mut context, app_ctx.clone());
         for column in subscribers::Column::iter() {
             if !matches!(column, subscribers::Column::Id) {
                 restrict_filter_input_for_entity::<subscribers::Entity>(
@@ -215,6 +215,7 @@ pub fn build_schema(
 
     {
         builder = register_subscriptions_to_schema(builder);
+        builder = register_credential3rd_to_schema(builder);
     }
 
     let schema = builder.schema_builder();
@@ -231,6 +232,7 @@ pub fn build_schema(
     };
     schema
         .data(database)
+        .data(app_ctx)
         .finish()
         .inspect_err(|e| tracing::error!(e = ?e))
 }

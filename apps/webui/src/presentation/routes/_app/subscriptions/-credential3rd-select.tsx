@@ -28,8 +28,6 @@ export function Credential3rdSelectContent({
     GetCredential3rdQuery,
     GetCredential3rdQueryVariables
   >(GET_CREDENTIAL_3RD, {
-    fetchPolicy: 'cache-and-network',
-    nextFetchPolicy: 'cache-and-network',
     variables: {
       filters: {
         credentialType: {

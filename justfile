@@ -1,8 +1,8 @@
 set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
-prepare-dev-recorder:
-    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest
+prepare-dev:
+    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest killport
     # install watchexec
 
 prepare-dev-testcontainers:
@@ -14,10 +14,11 @@ dev-webui:
     pnpm run --filter=webui dev
 
 dev-proxy:
+    npx kill-port 8899
     pnpm run --filter=proxy dev
 
 dev-recorder:
-    watchexec -r -w apps/recorder -- cargo run -p recorder --bin recorder_cli -- --environment development
+    watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin recorder_cli -- --environment development
 
 dev-recorder-migrate-down:
     cargo run -p recorder --bin migrate_down -- --environment development

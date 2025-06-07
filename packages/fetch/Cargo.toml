@@ -16,6 +16,7 @@ axum-extra = { workspace = true }
 async-trait = { workspace = true }
 moka = { workspace = true }
 reqwest = { workspace = true }
+tracing = { workspace = true }
 leaky-bucket = "1.1"
 http-cache-reqwest = { version = "0.15", features = [
     "manager-cacache",
@@ -32,5 +33,6 @@ http-cache = { version = "0.20", features = [
     "manager-moka",
 ], default-features = false }
 reqwest_cookie_store = { version = "0.8.0", features = ["serde"] }
+http-serde = "2.1.1"
 
 util = { workspace = true }

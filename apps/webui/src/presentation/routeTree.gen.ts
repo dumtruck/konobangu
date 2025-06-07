@@ -17,12 +17,14 @@ import { Route as AppRouteImport } from './routes/_app/route'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthSignUpImport } from './routes/auth/sign-up'
 import { Route as AuthSignInImport } from './routes/auth/sign-in'
+import { Route as AppTasksRouteImport } from './routes/_app/tasks/route'
 import { Route as AppSubscriptionsRouteImport } from './routes/_app/subscriptions/route'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings/route'
 import { Route as AppPlaygroundRouteImport } from './routes/_app/playground/route'
 import { Route as AppCredential3rdRouteImport } from './routes/_app/credential3rd/route'
 import { Route as AppBangumiRouteImport } from './routes/_app/bangumi/route'
 import { Route as AuthOidcCallbackImport } from './routes/auth/oidc/callback'
+import { Route as AppTasksManageImport } from './routes/_app/tasks/manage'
 import { Route as AppSubscriptionsManageImport } from './routes/_app/subscriptions/manage'
 import { Route as AppSubscriptionsCreateImport } from './routes/_app/subscriptions/create'
 import { Route as AppSettingsDownloaderImport } from './routes/_app/settings/downloader'
@@ -32,6 +34,7 @@ import { Route as AppCredential3rdCreateImport } from './routes/_app/credential3
 import { Route as AppBangumiManageImport } from './routes/_app/bangumi/manage'
 import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
 import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
+import { Route as AppTasksDetailIdImport } from './routes/_app/tasks/detail.$id'
 import { Route as AppSubscriptionsEditIdImport } from './routes/_app/subscriptions/edit.$id'
 import { Route as AppSubscriptionsDetailIdImport } from './routes/_app/subscriptions/detail.$id'
 import { Route as AppCredential3rdEditIdImport } from './routes/_app/credential3rd/edit.$id'
@@ -74,6 +77,12 @@ const AuthSignInRoute = AuthSignInImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AppTasksRouteRoute = AppTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+
 const AppSubscriptionsRouteRoute = AppSubscriptionsRouteImport.update({
   id: '/subscriptions',
   path: '/subscriptions',
@@ -108,6 +117,12 @@ const AuthOidcCallbackRoute = AuthOidcCallbackImport.update({
   id: '/auth/oidc/callback',
   path: '/auth/oidc/callback',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AppTasksManageRoute = AppTasksManageImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => AppTasksRouteRoute,
 } as any)
 
 const AppSubscriptionsManageRoute = AppSubscriptionsManageImport.update({
@@ -164,6 +179,12 @@ const AppExploreExploreRoute = AppExploreExploreImport.update({
   id: '/_explore/explore',
   path: '/explore',
   getParentRoute: () => AppRouteRoute,
+} as any)
+
+const AppTasksDetailIdRoute = AppTasksDetailIdImport.update({
+  id: '/detail/$id',
+  path: '/detail/$id',
+  getParentRoute: () => AppTasksRouteRoute,
 } as any)
 
 const AppSubscriptionsEditIdRoute = AppSubscriptionsEditIdImport.update({
@@ -257,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSubscriptionsRouteImport
       parentRoute: typeof AppRouteImport
     }
+    '/_app/tasks': {
+      id: '/_app/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AppTasksRouteImport
+      parentRoute: typeof AppRouteImport
+    }
     '/auth/sign-in': {
       id: '/auth/sign-in'
       path: '/auth/sign-in'
@@ -334,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSubscriptionsManageImport
       parentRoute: typeof AppSubscriptionsRouteImport
     }
+    '/_app/tasks/manage': {
+      id: '/_app/tasks/manage'
+      path: '/manage'
+      fullPath: '/tasks/manage'
+      preLoaderRoute: typeof AppTasksManageImport
+      parentRoute: typeof AppTasksRouteImport
+    }
     '/auth/oidc/callback': {
       id: '/auth/oidc/callback'
       path: '/auth/oidc/callback'
@@ -368,6 +403,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/subscriptions/edit/$id'
       preLoaderRoute: typeof AppSubscriptionsEditIdImport
       parentRoute: typeof AppSubscriptionsRouteImport
+    }
+    '/_app/tasks/detail/$id': {
+      id: '/_app/tasks/detail/$id'
+      path: '/detail/$id'
+      fullPath: '/tasks/detail/$id'
+      preLoaderRoute: typeof AppTasksDetailIdImport
+      parentRoute: typeof AppTasksRouteImport
     }
   }
 }
@@ -446,12 +488,27 @@ const AppSubscriptionsRouteRouteWithChildren =
     AppSubscriptionsRouteRouteChildren,
   )
 
+interface AppTasksRouteRouteChildren {
+  AppTasksManageRoute: typeof AppTasksManageRoute
+  AppTasksDetailIdRoute: typeof AppTasksDetailIdRoute
+}
+
+const AppTasksRouteRouteChildren: AppTasksRouteRouteChildren = {
+  AppTasksManageRoute: AppTasksManageRoute,
+  AppTasksDetailIdRoute: AppTasksDetailIdRoute,
+}
+
+const AppTasksRouteRouteWithChildren = AppTasksRouteRoute._addFileChildren(
+  AppTasksRouteRouteChildren,
+)
+
 interface AppRouteRouteChildren {
   AppBangumiRouteRoute: typeof AppBangumiRouteRouteWithChildren
   AppCredential3rdRouteRoute: typeof AppCredential3rdRouteRouteWithChildren
   AppPlaygroundRouteRoute: typeof AppPlaygroundRouteRouteWithChildren
   AppSettingsRouteRoute: typeof AppSettingsRouteRouteWithChildren
   AppSubscriptionsRouteRoute: typeof AppSubscriptionsRouteRouteWithChildren
+  AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppExploreExploreRoute: typeof AppExploreExploreRoute
   AppExploreFeedRoute: typeof AppExploreFeedRoute
 }
@@ -462,6 +519,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppPlaygroundRouteRoute: AppPlaygroundRouteRouteWithChildren,
   AppSettingsRouteRoute: AppSettingsRouteRouteWithChildren,
   AppSubscriptionsRouteRoute: AppSubscriptionsRouteRouteWithChildren,
+  AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppExploreExploreRoute: AppExploreExploreRoute,
   AppExploreFeedRoute: AppExploreFeedRoute,
 }
@@ -480,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/playground': typeof AppPlaygroundRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
   '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/explore': typeof AppExploreExploreRoute
@@ -491,11 +550,13 @@ export interface FileRoutesByFullPath {
   '/settings/downloader': typeof AppSettingsDownloaderRoute
   '/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/tasks/manage': typeof AppTasksManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/tasks/detail/$id': typeof AppTasksDetailIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -508,6 +569,7 @@ export interface FileRoutesByTo {
   '/playground': typeof AppPlaygroundRouteRouteWithChildren
   '/settings': typeof AppSettingsRouteRouteWithChildren
   '/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/explore': typeof AppExploreExploreRoute
@@ -519,11 +581,13 @@ export interface FileRoutesByTo {
   '/settings/downloader': typeof AppSettingsDownloaderRoute
   '/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/tasks/manage': typeof AppTasksManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/tasks/detail/$id': typeof AppTasksDetailIdRoute
 }
 
 export interface FileRoutesById {
@@ -537,6 +601,7 @@ export interface FileRoutesById {
   '/_app/playground': typeof AppPlaygroundRouteRouteWithChildren
   '/_app/settings': typeof AppSettingsRouteRouteWithChildren
   '/_app/subscriptions': typeof AppSubscriptionsRouteRouteWithChildren
+  '/_app/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/_app/_explore/explore': typeof AppExploreExploreRoute
@@ -548,11 +613,13 @@ export interface FileRoutesById {
   '/_app/settings/downloader': typeof AppSettingsDownloaderRoute
   '/_app/subscriptions/create': typeof AppSubscriptionsCreateRoute
   '/_app/subscriptions/manage': typeof AppSubscriptionsManageRoute
+  '/_app/tasks/manage': typeof AppTasksManageRoute
   '/auth/oidc/callback': typeof AuthOidcCallbackRoute
   '/_app/credential3rd/detail/$id': typeof AppCredential3rdDetailIdRoute
   '/_app/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/_app/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/_app/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/_app/tasks/detail/$id': typeof AppTasksDetailIdRoute
 }
 
 export interface FileRouteTypes {
@@ -567,6 +634,7 @@ export interface FileRouteTypes {
     | '/playground'
     | '/settings'
     | '/subscriptions'
+    | '/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/explore'
@@ -578,11 +646,13 @@ export interface FileRouteTypes {
     | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
+    | '/tasks/manage'
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
     | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$id'
     | '/subscriptions/edit/$id'
+    | '/tasks/detail/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -594,6 +664,7 @@ export interface FileRouteTypes {
     | '/playground'
     | '/settings'
     | '/subscriptions'
+    | '/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/explore'
@@ -605,11 +676,13 @@ export interface FileRouteTypes {
     | '/settings/downloader'
     | '/subscriptions/create'
     | '/subscriptions/manage'
+    | '/tasks/manage'
     | '/auth/oidc/callback'
     | '/credential3rd/detail/$id'
     | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$id'
     | '/subscriptions/edit/$id'
+    | '/tasks/detail/$id'
   id:
     | '__root__'
     | '/'
@@ -621,6 +694,7 @@ export interface FileRouteTypes {
     | '/_app/playground'
     | '/_app/settings'
     | '/_app/subscriptions'
+    | '/_app/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/_app/_explore/explore'
@@ -632,11 +706,13 @@ export interface FileRouteTypes {
     | '/_app/settings/downloader'
     | '/_app/subscriptions/create'
     | '/_app/subscriptions/manage'
+    | '/_app/tasks/manage'
     | '/auth/oidc/callback'
     | '/_app/credential3rd/detail/$id'
     | '/_app/credential3rd/edit/$id'
     | '/_app/subscriptions/detail/$id'
     | '/_app/subscriptions/edit/$id'
+    | '/_app/tasks/detail/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -690,6 +766,7 @@ export const routeTree = rootRoute
         "/_app/playground",
         "/_app/settings",
         "/_app/subscriptions",
+        "/_app/tasks",
         "/_app/_explore/explore",
         "/_app/_explore/feed"
       ]
@@ -741,6 +818,14 @@ export const routeTree = rootRoute
         "/_app/subscriptions/edit/$id"
       ]
     },
+    "/_app/tasks": {
+      "filePath": "_app/tasks/route.tsx",
+      "parent": "/_app",
+      "children": [
+        "/_app/tasks/manage",
+        "/_app/tasks/detail/$id"
+      ]
+    },
     "/auth/sign-in": {
       "filePath": "auth/sign-in.tsx"
     },
@@ -783,6 +868,10 @@ export const routeTree = rootRoute
       "filePath": "_app/subscriptions/manage.tsx",
       "parent": "/_app/subscriptions"
     },
+    "/_app/tasks/manage": {
+      "filePath": "_app/tasks/manage.tsx",
+      "parent": "/_app/tasks"
+    },
     "/auth/oidc/callback": {
       "filePath": "auth/oidc/callback.tsx"
     },
@@ -801,6 +890,10 @@ export const routeTree = rootRoute
     "/_app/subscriptions/edit/$id": {
       "filePath": "_app/subscriptions/edit.$id.tsx",
       "parent": "/_app/subscriptions"
+    },
+    "/_app/tasks/detail/$id": {
+      "filePath": "_app/tasks/detail.$id.tsx",
+      "parent": "/_app/tasks"
     }
   }
 }

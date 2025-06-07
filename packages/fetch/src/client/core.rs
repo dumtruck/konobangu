@@ -1,7 +1,7 @@
 use std::{fmt::Debug, ops::Deref, sync::Arc, time::Duration};
 
 use async_trait::async_trait;
-use axum::http::{self, Extensions};
+use axum::http::Extensions;
 use http_cache_reqwest::{
     Cache, CacheManager, CacheMode, HttpCache, HttpCacheOptions, MokaManager,
 };
@@ -15,10 +15,9 @@ use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 use reqwest_tracing::TracingMiddleware;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use snafu::Snafu;
 use util::OptDynErr;
 
-use crate::get_random_ua;
+use crate::{HttpClientError, client::proxy::HttpClientProxyConfig, get_random_ua};
 
 pub struct RateLimiterMiddleware {
     rate_limiter: RateLimiter,
@@ -56,7 +55,7 @@ impl Default for HttpClientCachePresetConfig {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpClientConfig {
     pub exponential_backoff_max_retries: Option<u32>,
     pub leaky_bucket_max_tokens: Option<u32>,
@@ -67,6 +66,7 @@ pub struct HttpClientConfig {
     pub user_agent: Option<String>,
     pub cache_backend: Option<HttpClientCacheBackendConfig>,
     pub cache_preset: Option<HttpClientCachePresetConfig>,
+    pub proxy: Option<HttpClientProxyConfig>,
 }
 
 pub(crate) struct CacheBackend(Box<dyn CacheManager>);
@@ -100,20 +100,6 @@ impl CacheManager for CacheBackend {
     async fn delete(&self, cache_key: &str) -> http_cache::Result<()> {
         self.0.delete(cache_key).await
     }
-}
-
-#[derive(Debug, Snafu)]
-pub enum HttpClientError {
-    #[snafu(transparent)]
-    ReqwestError { source: reqwest::Error },
-    #[snafu(transparent)]
-    ReqwestMiddlewareError { source: reqwest_middleware::Error },
-    #[snafu(transparent)]
-    HttpError { source: http::Error },
-    #[snafu(display("Failed to parse cookies: {}", source))]
-    ParseCookiesError { source: serde_json::Error },
-    #[snafu(display("Failed to save cookies, message: {}, source: {:?}", message, source))]
-    SaveCookiesError { message: String, source: OptDynErr },
 }
 
 pub trait HttpClientTrait: Deref<Target = ClientWithMiddleware> + Debug {}
@@ -179,12 +165,28 @@ impl Deref for HttpClient {
 impl HttpClient {
     pub fn from_config(config: HttpClientConfig) -> Result<Self, HttpClientError> {
         let mut middleware_stack: Vec<Arc<dyn Middleware>> = vec![];
-        let reqwest_client_builder = ClientBuilder::new().user_agent(
+        let mut reqwest_client_builder = ClientBuilder::new().user_agent(
             config
                 .user_agent
                 .as_deref()
                 .unwrap_or_else(|| get_random_ua()),
         );
+
+        if let Some(proxy) = config.proxy.as_ref() {
+            let accept_invalid_certs = proxy
+                .accept_invalid_certs
+                .as_ref()
+                .map(|b| b.as_bool())
+                .unwrap_or_default();
+            let proxy = proxy.clone().into_proxy()?;
+            if let Some(proxy) = proxy {
+                reqwest_client_builder = reqwest_client_builder.proxy(proxy);
+                if accept_invalid_certs {
+                    reqwest_client_builder =
+                        reqwest_client_builder.danger_accept_invalid_certs(true);
+                }
+            }
+        }
 
         #[cfg(not(target_arch = "wasm32"))]
         let reqwest_client_builder =
@@ -294,12 +296,28 @@ impl HttpClient {
     }
 
     pub fn fork(&self) -> HttpClientFork {
-        let reqwest_client_builder = ClientBuilder::new().user_agent(
+        let mut reqwest_client_builder = ClientBuilder::new().user_agent(
             self.config
                 .user_agent
                 .as_deref()
                 .unwrap_or_else(|| get_random_ua()),
         );
+
+        if let Some(proxy) = self.config.proxy.as_ref() {
+            let accept_invalid_certs = proxy
+                .accept_invalid_certs
+                .as_ref()
+                .map(|b| b.as_bool())
+                .unwrap_or_default();
+            let proxy = proxy.clone().into_proxy().unwrap_or_default();
+            if let Some(proxy) = proxy {
+                reqwest_client_builder = reqwest_client_builder.proxy(proxy);
+                if accept_invalid_certs {
+                    reqwest_client_builder =
+                        reqwest_client_builder.danger_accept_invalid_certs(true);
+                }
+            }
+        }
 
         #[cfg(not(target_arch = "wasm32"))]
         let reqwest_client_builder =

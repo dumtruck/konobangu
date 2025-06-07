@@ -86,6 +86,14 @@ leaky_bucket_initial_tokens = 1
 leaky_bucket_refill_tokens = 1
 leaky_bucket_refill_interval = 500
 
+
+[mikan.http_client.proxy]
+server = '{{ get_env(name="MIKAN_PROXY", default = "") }}'
+auth_header = '{{ get_env(name="MIKAN_PROXY_AUTH_HEADER", default = "") }}'
+no_proxy = '{{ get_env(name="MIKAN_NO_PROXY", default = "") }}'
+accept_invalid_certs = '{{ get_env(name="MIKAN_PROXY_ACCEPT_INVALID_CERTS", default = "false") }}'
+
+
 [auth]
 auth_type = '{{ get_env(name="AUTH_TYPE", default = "basic") }}'
 basic_user = '{{ get_env(name="BASIC_USER", default = "konobangu") }}'

@@ -32,6 +32,10 @@ import {
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
 import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
+import {
   Credential3rdTypeEnum,
   type GetSubscriptionDetailQuery,
   SubscriptionCategoryEnum,
@@ -382,16 +386,16 @@ function SubscriptionEditRouteComponent() {
       variables: {
         id: Number.parseInt(id),
       },
-      fetchPolicy: 'cache-and-network',
     });
 
   const subscription = data?.subscriptions?.nodes?.[0];
 
   const onCompleted = useCallback(async () => {
     const refetchResult = await refetch();
-    if (refetchResult.errors) {
+    const error = getApolloQueryError(refetchResult);
+    if (error) {
       toast.error('Update subscription failed', {
-        description: refetchResult.errors[0].message,
+        description: apolloErrorToMessage(error),
       });
     } else {
       toast.success('Update subscription successfully');

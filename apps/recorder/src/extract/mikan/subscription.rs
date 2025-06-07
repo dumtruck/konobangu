@@ -387,6 +387,7 @@ impl MikanSeasonSubscription {
             ctx,
             mikan_season_flow_url,
             credential_id,
+            self.get_subscriber_id(),
         )
     }
 
