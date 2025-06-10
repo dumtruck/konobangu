@@ -134,7 +134,6 @@ export type BangumiInsertInput = {
 export type BangumiOrderInput = {
   createdAt?: InputMaybe<OrderByEnum>;
   displayName?: InputMaybe<OrderByEnum>;
-  extra?: InputMaybe<OrderByEnum>;
   fansub?: InputMaybe<OrderByEnum>;
   filter?: InputMaybe<OrderByEnum>;
   homepage?: InputMaybe<OrderByEnum>;
@@ -729,7 +728,6 @@ export type EpisodesOrderInput = {
   createdAt?: InputMaybe<OrderByEnum>;
   displayName?: InputMaybe<OrderByEnum>;
   episodeIndex?: InputMaybe<OrderByEnum>;
-  extra?: InputMaybe<OrderByEnum>;
   fansub?: InputMaybe<OrderByEnum>;
   homepage?: InputMaybe<OrderByEnum>;
   id?: InputMaybe<OrderByEnum>;
