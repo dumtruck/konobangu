@@ -15,8 +15,20 @@ export class OidcAuthProvider extends AuthProvider {
   checkAuthResultEvent$ = inject(CHECK_AUTH_RESULT_EVENT);
   injector = injectInjector();
 
+  private setupSilentRenew() {
+    const parent = document.defaultView?.parent;
+    if (parent) {
+      const event = new CustomEvent('oidc-silent-renew-message', {
+        detail: document.defaultView?.location!,
+      });
+      parent.dispatchEvent(event);
+    }
+  }
+
   setup() {
-    this.oidcSecurityService.checkAuth().subscribe();
+    this.oidcSecurityService.checkAuth().subscribe(() => {
+      this.setupSilentRenew();
+    });
   }
 
   get isAuthenticated$() {

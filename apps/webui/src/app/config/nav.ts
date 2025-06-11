@@ -67,7 +67,7 @@ export const AppNavMainData: NavMainGroup[] = [
           {
             title: 'Manage',
             link: {
-              to: '/task/manage',
+              to: '/tasks/manage',
             },
           },
         ],

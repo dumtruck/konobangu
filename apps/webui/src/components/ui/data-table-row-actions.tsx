@@ -12,10 +12,12 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
-import { PropsWithChildren, useMemo } from "react";
+import { ComponentProps, PropsWithChildren, useMemo } from "react";
 
-interface DataTableRowActionsProps<DataView, Id> {
+interface DataTableRowActionsProps<DataView, Id>
+  extends ComponentProps<typeof DropdownMenuPrimitive.Root> {
   row: Row<DataView>;
   getId: (row: Row<DataView>) => Id;
   showDetail?: boolean;
@@ -24,7 +26,6 @@ interface DataTableRowActionsProps<DataView, Id> {
   onDetail?: (id: Id) => void;
   onDelete?: (id: Id) => void;
   onEdit?: (id: Id) => void;
-  modal?: boolean;
 }
 
 export function DataTableRowActions<DataView, Id>({
@@ -37,11 +38,11 @@ export function DataTableRowActions<DataView, Id>({
   onDelete,
   onEdit,
   children,
-  modal,
+  ...rest
 }: PropsWithChildren<DataTableRowActionsProps<DataView, Id>>) {
   const id = useMemo(() => getId(row), [getId, row]);
   return (
-    <DropdownMenu modal={modal}>
+    <DropdownMenu {...rest}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::ValueAccessor;
+use async_graphql::dynamic::{ResolverContext, ValueAccessor};
 use sea_orm::{EntityTrait, Value as SeaValue};
 use seaography::{BuilderContext, SeaResult};
 
@@ -25,11 +25,15 @@ fn register_crypto_column_input_conversion_to_schema_context<T>(
 
     context.types.input_conversions.insert(
         format!("{entity_name}.{column_name}"),
-        Box::new(move |value: &ValueAccessor| -> SeaResult<sea_orm::Value> {
-            let source = value.string()?;
-            let encrypted = ctx.crypto().encrypt_string(source.into())?;
-            Ok(encrypted.into())
-        }),
+        Box::new(
+            move |_resolve_context: &ResolverContext<'_>,
+                  value: &ValueAccessor|
+                  -> SeaResult<sea_orm::Value> {
+                let source = value.string()?;
+                let encrypted = ctx.crypto().encrypt_string(source.into())?;
+                Ok(encrypted.into())
+            },
+        ),
     );
 }
 

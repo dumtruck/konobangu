@@ -25,8 +25,8 @@ import { useAppForm } from '@/components/ui/tanstack-form';
 import { MikanSeasonEnum } from '@/domains/recorder/schema/mikan';
 import {
   GET_SUBSCRIPTION_DETAIL,
-  type SubscriptionInsertForm,
-  SubscriptionInsertFormSchema,
+  type SubscriptionForm,
+  SubscriptionFormSchema,
   UPDATE_SUBSCRIPTIONS,
 } from '@/domains/recorder/schema/subscriptions';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
@@ -125,11 +125,11 @@ function FormView({
   }, [subscription, sourceUrlMeta]);
 
   const form = useAppForm({
-    defaultValues: defaultValues as unknown as SubscriptionInsertForm,
+    defaultValues: defaultValues as unknown as SubscriptionForm,
     validators: {
-      onChangeAsync: SubscriptionInsertFormSchema,
+      onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
-      onSubmit: SubscriptionInsertFormSchema,
+      onSubmit: SubscriptionFormSchema,
     },
     onSubmit: async (form) => {
       const input = subscriptionService.transformInsertFormToInput(form.value);

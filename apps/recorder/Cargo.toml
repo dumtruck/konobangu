@@ -87,6 +87,7 @@ seaography = { version = "1.1", features = [
     "with-decimal",
     "with-bigdecimal",
     "with-postgres-array",
+    "with-json-as-scalar",
 ] }
 base64 = "0.22.1"
 tower = "0.5.2"

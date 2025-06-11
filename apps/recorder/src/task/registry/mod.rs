@@ -1,7 +1,7 @@
 mod subscription;
 use std::sync::Arc;
 
-use sea_orm::FromJsonQueryResult;
+use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
 pub use subscription::{
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
@@ -15,16 +15,28 @@ use crate::{
     models::subscriptions::SubscriptionTrait,
 };
 
-#[derive(async_graphql::Enum, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Copy)]
+#[derive(
+    Clone,
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Copy,
+    DeriveActiveEnum,
+    DeriveDisplay,
+    EnumIter,
+)]
+#[sea_orm(rs_type = "String", db_type = "Text")]
 pub enum SubscriberTaskType {
     #[serde(rename = "sync_one_subscription_feeds_incremental")]
-    #[graphql(name = "sync_one_subscription_feeds_incremental")]
+    #[sea_orm(string_value = "sync_one_subscription_feeds_incremental")]
     SyncOneSubscriptionFeedsIncremental,
     #[serde(rename = "sync_one_subscription_feeds_full")]
-    #[graphql(name = "sync_one_subscription_feeds_full")]
+    #[sea_orm(string_value = "sync_one_subscription_feeds_full")]
     SyncOneSubscriptionFeedsFull,
     #[serde(rename = "sync_one_subscription_sources")]
-    #[graphql(name = "sync_one_subscription_sources")]
+    #[sea_orm(string_value = "sync_one_subscription_sources")]
     SyncOneSubscriptionSources,
 }
 

@@ -67,4 +67,4 @@ color-eyre = "0.6.5"
 inquire = "0.7.5"
 
 [patch.crates-io]
-seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "10ba248" }
+seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "01d3f99" }

@@ -1,6 +1,6 @@
 use async_graphql::{
     Error as GraphqlError,
-    dynamic::{Scalar, SchemaError},
+    dynamic::{ResolverContext, Scalar, SchemaError},
     to_value,
 };
 use itertools::Itertools;
@@ -9,13 +9,12 @@ use sea_orm::{
     Condition, EntityTrait,
     sea_query::{ArrayType, Expr, ExprTrait, IntoLikeExpr, SimpleExpr, Value as DbValue},
 };
-use seaography::{Builder as SeaographyBuilder, BuilderContext, FilterType, SeaographyError};
+use seaography::{
+    Builder as SeaographyBuilder, BuilderContext, FilterType, FnFilterCondition, SeaographyError,
+};
 use serde_json::Value as JsonValue;
 
-use crate::{
-    errors::RecorderResult,
-    graphql::infra::{filter::FnFilterCondition, util::get_entity_column_key},
-};
+use crate::{errors::RecorderResult, graphql::infra::util::get_entity_column_key};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub enum JsonbFilterOperation {
@@ -904,20 +903,29 @@ where
     <T as EntityTrait>::Model: Sync,
 {
     let column = *column;
-    Box::new(move |mut condition, filter| {
-        let filter_value = to_value(filter.as_index_map())
-            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e)))?;
+    Box::new(
+        move |_resolve_context: &ResolverContext<'_>, condition, filter| {
+            if let Some(filter) = filter {
+                let filter_value = to_value(filter.as_index_map()).map_err(|e| {
+                    SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e))
+                })?;
 
-        let filter_json: JsonValue = filter_value
-            .into_json()
-            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new(format!("{e:?}"))))?;
+                let filter_json: JsonValue = filter_value.into_json().map_err(|e| {
+                    SeaographyError::AsyncGraphQLError(GraphqlError::new(format!("{e:?}")))
+                })?;
 
-        let cond_where = prepare_jsonb_filter_input(&Expr::col(column), filter_json)
-            .map_err(|e| SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e)))?;
+                let cond_where = prepare_jsonb_filter_input(&Expr::col(column), filter_json)
+                    .map_err(|e| {
+                        SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e))
+                    })?;
 
-        condition = condition.add(cond_where);
-        Ok(condition)
-    })
+                let condition = condition.add(cond_where);
+                Ok(condition)
+            } else {
+                Ok(condition)
+            }
+        },
+    )
 }
 
 pub fn register_jsonb_input_filter_to_schema_builder(

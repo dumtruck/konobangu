@@ -6,7 +6,9 @@ import {
 import { gql } from '@apollo/client';
 import { type } from 'arktype';
 import {
+  MikanSubscriptionBangumiSourceUrlSchema,
   MikanSubscriptionSeasonSourceUrlSchema,
+  MikanSubscriptionSubscriberSourceUrlSchema,
   extractMikanSubscriptionBangumiSourceUrl,
   extractMikanSubscriptionSubscriberSourceUrl,
 } from './mikan';
@@ -144,14 +146,14 @@ export const SYNC_SUBSCRIPTION_SOURCES = gql`
   }
 `;
 
-export const SubscriptionTypedMikanSeasonSchema =
+export const SubscriptionFormTypedMikanSeasonSchema =
   MikanSubscriptionSeasonSourceUrlSchema.and(
     type({
       credentialId: 'number>0',
     })
   );
 
-export const SubscriptionTypedMikanBangumiSchema = type({
+export const SubscriptionFormTypedMikanBangumiSchema = type({
   category: `'${SubscriptionCategoryEnum.MikanBangumi}'`,
   sourceUrl: type.string
     .atLeastLength(1)
@@ -160,7 +162,7 @@ export const SubscriptionTypedMikanBangumiSchema = type({
     ),
 });
 
-export const SubscriptionTypedMikanSubscriberSchema = type({
+export const SubscriptionFormTypedMikanSubscriberSchema = type({
   category: `'${SubscriptionCategoryEnum.MikanSubscriber}'`,
   sourceUrl: type.string
     .atLeastLength(1)
@@ -169,13 +171,36 @@ export const SubscriptionTypedMikanSubscriberSchema = type({
     ),
 });
 
+export const SubscriptionFormTypedSchema =
+  SubscriptionFormTypedMikanSeasonSchema.or(
+    SubscriptionFormTypedMikanBangumiSchema
+  ).or(SubscriptionFormTypedMikanSubscriberSchema);
+
+export const SubscriptionFormSchema = type({
+  enabled: 'boolean',
+  displayName: 'string>0',
+}).and(SubscriptionFormTypedSchema);
+
+export type SubscriptionForm = typeof SubscriptionFormSchema.infer;
+
+export const SubscriptionTypedMikanSeasonSchema =
+  MikanSubscriptionSeasonSourceUrlSchema.and(
+    type({
+      credentialId: 'number>0',
+    })
+  );
+
+export const SubscriptionTypedMikanBangumiSchema =
+  MikanSubscriptionBangumiSourceUrlSchema;
+
+export const SubscriptionTypedMikanSubscriberSchema =
+  MikanSubscriptionSubscriberSourceUrlSchema;
+
 export const SubscriptionTypedSchema = SubscriptionTypedMikanSeasonSchema.or(
   SubscriptionTypedMikanBangumiSchema
 ).or(SubscriptionTypedMikanSubscriberSchema);
 
-export const SubscriptionInsertFormSchema = type({
-  enabled: 'boolean',
-  displayName: 'string>0',
+export const SubscriptionSchema = type({
+  subscription_id: 'number>0',
+  subscriber_id: 'number>0',
 }).and(SubscriptionTypedSchema);
-
-export type SubscriptionInsertForm = typeof SubscriptionInsertFormSchema.infer;

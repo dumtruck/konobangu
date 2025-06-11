@@ -21,8 +21,8 @@ import { useAppForm } from '@/components/ui/tanstack-form';
 import { MikanSeasonEnum } from '@/domains/recorder/schema/mikan';
 import {
   INSERT_SUBSCRIPTION,
-  type SubscriptionInsertForm,
-  SubscriptionInsertFormSchema,
+  type SubscriptionForm,
+  SubscriptionFormSchema,
 } from '@/domains/recorder/schema/subscriptions';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
@@ -78,11 +78,11 @@ function SubscriptionCreateRouteComponent() {
       credentialId: '',
       year: undefined,
       seasonStr: '',
-    } as unknown as SubscriptionInsertForm,
+    } as unknown as SubscriptionForm,
     validators: {
-      onChangeAsync: SubscriptionInsertFormSchema,
+      onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
-      onSubmit: SubscriptionInsertFormSchema,
+      onSubmit: SubscriptionFormSchema,
     },
     onSubmit: async (form) => {
       const input = subscriptionService.transformInsertFormToInput(form.value);
@@ -152,9 +152,7 @@ function SubscriptionCreateRouteComponent() {
                   <Select
                     value={field.state.value}
                     onValueChange={(value) =>
-                      field.handleChange(
-                        value as SubscriptionInsertForm['category']
-                      )
+                      field.handleChange(value as SubscriptionForm['category'])
                     }
                   >
                     <SelectTrigger>

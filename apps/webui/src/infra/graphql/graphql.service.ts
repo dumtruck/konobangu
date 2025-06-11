@@ -1,8 +1,8 @@
+import { AUTH_PROVIDER } from '@/infra/auth/auth.provider';
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { Injectable, inject } from '@outposts/injection-js';
 import { firstValueFrom } from 'rxjs';
-import { AUTH_PROVIDER } from '../auth/auth.provider.ts';
 
 @Injectable()
 export class GraphQLService {
@@ -33,6 +33,7 @@ export class GraphQLService {
         errorPolicy: 'all',
       },
     },
+    connectToDevTools: process.env.NODE_ENV === 'development',
   });
 
   query = this._apollo.query;

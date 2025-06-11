@@ -14,16 +14,14 @@ import {
   extractMikanSubscriptionSeasonSourceUrl,
   extractMikanSubscriptionSubscriberSourceUrl,
 } from '../schema/mikan';
-import type { SubscriptionInsertForm } from '../schema/subscriptions';
+import type { SubscriptionForm } from '../schema/subscriptions';
 import { MikanService } from './mikan.service';
 
 @Injectable()
 export class SubscriptionService {
   private mikan = inject(MikanService);
 
-  transformInsertFormToInput(
-    form: SubscriptionInsertForm
-  ): SubscriptionsInsertInput {
+  transformInsertFormToInput(form: SubscriptionForm): SubscriptionsInsertInput {
     if (form.category === SubscriptionCategoryEnum.MikanSeason) {
       return {
         ...omit(form, ['seasonStr', 'year']),

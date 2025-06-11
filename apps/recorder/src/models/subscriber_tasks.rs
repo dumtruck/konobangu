@@ -1,6 +1,7 @@
+use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 
-pub use crate::task::SubscriberTask;
+pub use crate::task::{SubscriberTask, SubscriberTaskType};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "subscriber_tasks")]
@@ -9,6 +10,7 @@ pub struct Model {
     pub id: String,
     pub subscriber_id: i32,
     pub job: SubscriberTask,
+    pub task_type: SubscriberTaskType,
     pub status: String,
     pub attempts: i32,
     pub max_attempts: i32,
@@ -44,4 +46,5 @@ pub enum RelatedEntity {
     Subscriber,
 }
 
+#[async_trait]
 impl ActiveModelBehavior for ActiveModel {}

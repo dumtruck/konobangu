@@ -7,6 +7,8 @@ pub use core::{SUBSCRIBER_TASK_APALIS_NAME, SubscriberAsyncTaskTrait, Subscriber
 
 pub use config::TaskConfig;
 pub use registry::{
-    SubscriberTask, SyncOneSubscriptionFeedsIncrementalTask, SyncOneSubscriptionSourcesTask,
+    SubscriberTask, SubscriberTaskType, SubscriberTaskTypeEnum, SubscriberTaskTypeVariant,
+    SubscriberTaskTypeVariantIter, SyncOneSubscriptionFeedsFullTask,
+    SyncOneSubscriptionFeedsIncrementalTask, SyncOneSubscriptionSourcesTask,
 };
 pub use service::TaskService;

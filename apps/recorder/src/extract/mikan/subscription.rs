@@ -142,7 +142,7 @@ async fn sync_mikan_feeds_from_rss_item_list(
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanSubscriberSubscription {
-    pub id: i32,
+    pub subscription_id: i32,
     pub mikan_subscription_token: String,
     pub subscriber_id: i32,
 }
@@ -154,7 +154,7 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
     }
 
     fn get_subscription_id(&self) -> i32 {
-        self.id
+        self.subscription_id
     }
 
     async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -204,7 +204,7 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
             })?;
 
         Ok(Self {
-            id: model.id,
+            subscription_id: model.id,
             mikan_subscription_token: meta.mikan_subscription_token,
             subscriber_id: model.subscriber_id,
         })
@@ -243,7 +243,8 @@ impl MikanSubscriberSubscription {
         ctx: &dyn AppContextTrait,
     ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
         let subscribed_bangumi_list =
-            bangumi::Model::get_subsribed_bangumi_list_from_subscription(ctx, self.id).await?;
+            bangumi::Model::get_subsribed_bangumi_list_from_subscription(ctx, self.subscription_id)
+                .await?;
 
         let mut rss_item_list = vec![];
         for subscribed_bangumi in subscribed_bangumi_list {
@@ -252,7 +253,7 @@ impl MikanSubscriberSubscription {
                 .with_whatever_context::<_, String, RecorderError>(|| {
                     format!(
                         "rss link is required, subscription_id = {:?}, bangumi_name = {}",
-                        self.id, subscribed_bangumi.display_name
+                        self.subscription_id, subscribed_bangumi.display_name
                     )
                 })?;
             let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
@@ -273,7 +274,7 @@ impl MikanSubscriberSubscription {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, InputObject, SimpleObject)]
 pub struct MikanSeasonSubscription {
-    pub id: i32,
+    pub subscription_id: i32,
     pub year: i32,
     pub season_str: MikanSeasonStr,
     pub credential_id: i32,
@@ -287,7 +288,7 @@ impl SubscriptionTrait for MikanSeasonSubscription {
     }
 
     fn get_subscription_id(&self) -> i32 {
-        self.id
+        self.subscription_id
     }
 
     async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -363,7 +364,7 @@ impl SubscriptionTrait for MikanSeasonSubscription {
             })?;
 
         Ok(Self {
-            id: model.id,
+            subscription_id: model.id,
             year: source_url_meta.year,
             season_str: source_url_meta.season_str,
             credential_id,
@@ -400,7 +401,10 @@ impl MikanSeasonSubscription {
         let db = ctx.db();
 
         let subscribed_bangumi_list = bangumi::Entity::find()
-            .filter(Condition::all().add(subscription_bangumi::Column::SubscriptionId.eq(self.id)))
+            .filter(
+                Condition::all()
+                    .add(subscription_bangumi::Column::SubscriptionId.eq(self.subscription_id)),
+            )
             .join_rev(
                 JoinType::InnerJoin,
                 subscription_bangumi::Relation::Bangumi.def(),
@@ -415,7 +419,7 @@ impl MikanSeasonSubscription {
                 .with_whatever_context::<_, String, RecorderError>(|| {
                     format!(
                         "rss_link is required, subscription_id = {}, bangumi_name = {}",
-                        self.id, subscribed_bangumi.display_name
+                        self.subscription_id, subscribed_bangumi.display_name
                     )
                 })?;
             let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
@@ -436,7 +440,7 @@ impl MikanSeasonSubscription {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, InputObject, SimpleObject)]
 pub struct MikanBangumiSubscription {
-    pub id: i32,
+    pub subscription_id: i32,
     pub mikan_bangumi_id: String,
     pub mikan_fansub_id: String,
     pub subscriber_id: i32,
@@ -449,7 +453,7 @@ impl SubscriptionTrait for MikanBangumiSubscription {
     }
 
     fn get_subscription_id(&self) -> i32 {
-        self.id
+        self.subscription_id
     }
 
     async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -487,7 +491,7 @@ impl SubscriptionTrait for MikanBangumiSubscription {
             })?;
 
         Ok(Self {
-            id: model.id,
+            subscription_id: model.id,
             mikan_bangumi_id: meta.mikan_bangumi_id,
             mikan_fansub_id: meta.mikan_fansub_id,
             subscriber_id: model.subscriber_id,

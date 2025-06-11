@@ -12,13 +12,13 @@ impl MigrationTrait for Migration {
         let db = manager.get_connection();
 
         db.execute_unprepared(&format!(
-            r#"CREATE OR REPLACE VIEW subscriber_task AS
+            r#"CREATE OR REPLACE VIEW subscriber_tasks AS
 SELECT
     job,
     job_type,
     status,
-    (job->'subscriber_id')::integer AS subscriber_id,
-    (job->'task_type')::text AS task_type,
+    (job ->> 'subscriber_id'::text)::integer AS subscriber_id,
+    job ->> 'task_type'::text                AS task_type,
     id,
     attempts,
     max_attempts,
@@ -56,7 +56,7 @@ AND jsonb_path_exists(job, '$.task_type ? (@.type() == "string")')"#,
         )
         .await?;
 
-        db.execute_unprepared("DROP VIEW IF EXISTS subscriber_task")
+        db.execute_unprepared("DROP VIEW IF EXISTS subscriber_tasks")
             .await?;
 
         Ok(())

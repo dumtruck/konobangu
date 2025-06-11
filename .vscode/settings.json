@@ -39,5 +39,13 @@
             "username": "konobangu"
         }
     ],
-    "rust-analyzer.cargo.features": "all"
+    "rust-analyzer.cargo.features": "all",
+    // https://github.com/rust-lang/rust/issues/141540
+    "rust-analyzer.cargo.targetDir": "target/rust-analyzer",
+    "rust-analyzer.check.extraEnv": {
+        "CARGO_TARGET_DIR": "target/rust-analyzer"
+    },
+    "rust-analyzer.cargo.extraEnv": {
+        "CARGO_TARGET_DIR": "target/analyzer"
+    }
 }
