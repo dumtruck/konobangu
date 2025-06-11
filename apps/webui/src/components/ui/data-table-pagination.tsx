@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMemo } from "react";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

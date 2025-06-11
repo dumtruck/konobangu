@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useStateRef } from './use-state-ref.ts';
+import { useStateRef } from './use-state-ref';
 export interface UseDebouncedSkeletonProps {
   minSkeletonDuration?: number;
   loading?: boolean;

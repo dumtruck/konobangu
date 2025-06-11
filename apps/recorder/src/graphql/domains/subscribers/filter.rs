@@ -1,16 +1,20 @@
-use async_graphql::dynamic::ObjectAccessor;
-use once_cell::sync::OnceCell;
-use sea_orm::{ColumnTrait, Condition, EntityTrait};
-use seaography::{
-    BuilderContext, FilterInfo, FilterOperation as SeaographqlFilterOperation, SeaResult,
-};
+use async_graphql::dynamic::TypeRef;
+use lazy_static::lazy_static;
+use maplit::btreeset;
+use sea_orm::{ColumnTrait, EntityTrait};
+use seaography::{BuilderContext, FilterInfo, FilterOperation as SeaographqlFilterOperation};
 
-pub static SUBSCRIBER_ID_FILTER_INFO: OnceCell<FilterInfo> = OnceCell::new();
+use crate::graphql::infra::filter::FnFilterCondition;
 
-pub type FnFilterCondition =
-    Box<dyn Fn(Condition, &ObjectAccessor) -> SeaResult<Condition> + Send + Sync>;
+lazy_static! {
+    pub static ref SUBSCRIBER_ID_FILTER_INFO: FilterInfo = FilterInfo {
+        type_name: String::from("SubscriberIdFilterInput"),
+        base_type: TypeRef::INT.into(),
+        supported_operations: btreeset! { SeaographqlFilterOperation::Equals },
+    };
+}
 
-pub fn subscriber_id_condition_function<T>(
+pub fn generate_subscriber_id_condition_function<T>(
     _context: &BuilderContext,
     column: &T::Column,
 ) -> FnFilterCondition
@@ -20,9 +24,7 @@ where
 {
     let column = *column;
     Box::new(move |mut condition, filter| {
-        let subscriber_id_filter_info = SUBSCRIBER_ID_FILTER_INFO.get().unwrap();
-        let operations = &subscriber_id_filter_info.supported_operations;
-        for operation in operations {
+        for operation in &SUBSCRIBER_ID_FILTER_INFO.supported_operations {
             match operation {
                 SeaographqlFilterOperation::Equals => {
                     if let Some(value) = filter.get("eq") {

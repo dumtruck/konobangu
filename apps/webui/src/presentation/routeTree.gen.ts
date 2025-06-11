@@ -32,7 +32,6 @@ import { Route as AppPlaygroundGraphqlApiImport } from './routes/_app/playground
 import { Route as AppCredential3rdManageImport } from './routes/_app/credential3rd/manage'
 import { Route as AppCredential3rdCreateImport } from './routes/_app/credential3rd/create'
 import { Route as AppBangumiManageImport } from './routes/_app/bangumi/manage'
-import { Route as AppExploreFeedImport } from './routes/_app/_explore/feed'
 import { Route as AppExploreExploreImport } from './routes/_app/_explore/explore'
 import { Route as AppTasksDetailIdImport } from './routes/_app/tasks/detail.$id'
 import { Route as AppSubscriptionsEditIdImport } from './routes/_app/subscriptions/edit.$id'
@@ -169,12 +168,6 @@ const AppBangumiManageRoute = AppBangumiManageImport.update({
   getParentRoute: () => AppBangumiRouteRoute,
 } as any)
 
-const AppExploreFeedRoute = AppExploreFeedImport.update({
-  id: '/_explore/feed',
-  path: '/feed',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-
 const AppExploreExploreRoute = AppExploreExploreImport.update({
   id: '/_explore/explore',
   path: '/explore',
@@ -304,13 +297,6 @@ declare module '@tanstack/react-router' {
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof AppExploreExploreImport
-      parentRoute: typeof AppRouteImport
-    }
-    '/_app/_explore/feed': {
-      id: '/_app/_explore/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof AppExploreFeedImport
       parentRoute: typeof AppRouteImport
     }
     '/_app/bangumi/manage': {
@@ -510,7 +496,6 @@ interface AppRouteRouteChildren {
   AppSubscriptionsRouteRoute: typeof AppSubscriptionsRouteRouteWithChildren
   AppTasksRouteRoute: typeof AppTasksRouteRouteWithChildren
   AppExploreExploreRoute: typeof AppExploreExploreRoute
-  AppExploreFeedRoute: typeof AppExploreFeedRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -521,7 +506,6 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppSubscriptionsRouteRoute: AppSubscriptionsRouteRouteWithChildren,
   AppTasksRouteRoute: AppTasksRouteRouteWithChildren,
   AppExploreExploreRoute: AppExploreExploreRoute,
-  AppExploreFeedRoute: AppExploreFeedRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
@@ -542,7 +526,6 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/explore': typeof AppExploreExploreRoute
-  '/feed': typeof AppExploreFeedRoute
   '/bangumi/manage': typeof AppBangumiManageRoute
   '/credential3rd/create': typeof AppCredential3rdCreateRoute
   '/credential3rd/manage': typeof AppCredential3rdManageRoute
@@ -573,7 +556,6 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/explore': typeof AppExploreExploreRoute
-  '/feed': typeof AppExploreFeedRoute
   '/bangumi/manage': typeof AppBangumiManageRoute
   '/credential3rd/create': typeof AppCredential3rdCreateRoute
   '/credential3rd/manage': typeof AppCredential3rdManageRoute
@@ -605,7 +587,6 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/_app/_explore/explore': typeof AppExploreExploreRoute
-  '/_app/_explore/feed': typeof AppExploreFeedRoute
   '/_app/bangumi/manage': typeof AppBangumiManageRoute
   '/_app/credential3rd/create': typeof AppCredential3rdCreateRoute
   '/_app/credential3rd/manage': typeof AppCredential3rdManageRoute
@@ -638,7 +619,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/explore'
-    | '/feed'
     | '/bangumi/manage'
     | '/credential3rd/create'
     | '/credential3rd/manage'
@@ -668,7 +648,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/explore'
-    | '/feed'
     | '/bangumi/manage'
     | '/credential3rd/create'
     | '/credential3rd/manage'
@@ -698,7 +677,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/_app/_explore/explore'
-    | '/_app/_explore/feed'
     | '/_app/bangumi/manage'
     | '/_app/credential3rd/create'
     | '/_app/credential3rd/manage'
@@ -767,8 +745,7 @@ export const routeTree = rootRoute
         "/_app/settings",
         "/_app/subscriptions",
         "/_app/tasks",
-        "/_app/_explore/explore",
-        "/_app/_explore/feed"
+        "/_app/_explore/explore"
       ]
     },
     "/404": {
@@ -834,10 +811,6 @@ export const routeTree = rootRoute
     },
     "/_app/_explore/explore": {
       "filePath": "_app/_explore/explore.tsx",
-      "parent": "/_app"
-    },
-    "/_app/_explore/feed": {
-      "filePath": "_app/_explore/feed.tsx",
       "parent": "/_app"
     },
     "/_app/bangumi/manage": {

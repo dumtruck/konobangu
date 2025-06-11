@@ -1,8 +1,8 @@
 pub mod config;
+pub mod domains;
 pub mod infra;
 mod schema;
 pub mod service;
-pub mod views;
 
 pub use config::GraphQLConfig;
 pub use schema::build_schema;

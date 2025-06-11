@@ -220,13 +220,14 @@ function SubscriptionDetailRouteComponent() {
                 </div>
               </div>
 
-              {subscription.credential3rd && (
+              {subscription.category ===
+                SubscriptionCategoryEnum.MikanSeason && (
                 <>
                   <div className="space-y-2">
                     <Label className="font-medium text-sm">Credential ID</Label>
                     <div className="rounded-md bg-muted p-3">
                       <code className="text-sm">
-                        {subscription.credential3rd.id}
+                        {subscription.credential3rd?.id ?? '-'}
                       </code>
                     </div>
                   </div>
@@ -237,7 +238,7 @@ function SubscriptionDetailRouteComponent() {
                     </Label>
                     <div className="rounded-md bg-muted p-3">
                       <code className="text-sm">
-                        {subscription.credential3rd.username}
+                        {subscription.credential3rd?.username ?? '-'}
                       </code>
                     </div>
                   </div>

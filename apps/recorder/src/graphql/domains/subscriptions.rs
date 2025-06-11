@@ -66,7 +66,9 @@ impl SyncOneSubscriptionInfo {
     }
 }
 
-pub fn register_subscriptions_to_schema(mut builder: SeaographyBuilder) -> SeaographyBuilder {
+pub fn register_subscriptions_to_schema_builder(
+    mut builder: SeaographyBuilder,
+) -> SeaographyBuilder {
     builder.schema = builder
         .schema
         .register(SyncOneSubscriptionFilterInput::generate_input_object());

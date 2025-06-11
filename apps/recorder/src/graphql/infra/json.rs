@@ -1,6 +1,6 @@
 use async_graphql::{
     Error as GraphqlError,
-    dynamic::{Scalar, SchemaBuilder, SchemaError},
+    dynamic::{Scalar, SchemaError},
     to_value,
 };
 use itertools::Itertools;
@@ -9,10 +9,13 @@ use sea_orm::{
     Condition, EntityTrait,
     sea_query::{ArrayType, Expr, ExprTrait, IntoLikeExpr, SimpleExpr, Value as DbValue},
 };
-use seaography::{BuilderContext, SeaographyError};
+use seaography::{Builder as SeaographyBuilder, BuilderContext, FilterType, SeaographyError};
 use serde_json::Value as JsonValue;
 
-use crate::{errors::RecorderResult, graphql::infra::filter::subscriber::FnFilterCondition};
+use crate::{
+    errors::RecorderResult,
+    graphql::infra::{filter::FnFilterCondition, util::get_entity_column_key},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub enum JsonbFilterOperation {
@@ -892,7 +895,7 @@ where
 
 pub const JSONB_FILTER_NAME: &str = "JsonbFilterInput";
 
-pub fn jsonb_filter_condition_function<T>(
+pub fn generate_jsonb_filter_condition_function<T>(
     _context: &BuilderContext,
     column: &T::Column,
 ) -> FnFilterCondition
@@ -917,11 +920,24 @@ where
     })
 }
 
-pub fn register_jsonb_input_filter_to_dynamic_schema(
-    schema_builder: SchemaBuilder,
-) -> SchemaBuilder {
+pub fn register_jsonb_input_filter_to_schema_builder(
+    mut builder: SeaographyBuilder,
+) -> SeaographyBuilder {
     let json_filter_input_type = Scalar::new(JSONB_FILTER_NAME);
-    schema_builder.register(json_filter_input_type)
+    builder.schema = builder.schema.register(json_filter_input_type);
+    builder
+}
+
+pub fn restrict_jsonb_filter_input_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
+where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let entity_column_key = get_entity_column_key::<T>(context, column);
+    context.filter_types.overwrites.insert(
+        entity_column_key.clone(),
+        Some(FilterType::Custom(JSONB_FILTER_NAME.to_string())),
+    );
 }
 
 #[cfg(test)]

@@ -269,7 +269,7 @@ function CredentialManageRouteComponent() {
   }, [handleDeleteRecord, navigate, showPasswords, togglePasswordVisibility]);
 
   const table = useReactTable({
-    data: data?.credential3rd?.nodes ?? [],
+    data: useMemo(() => credentials?.nodes ?? [], [credentials]),
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -335,7 +335,7 @@ function CredentialManageRouteComponent() {
           </TableHeader>
           <TableBody>
             {showSkeleton &&
-              Array.from(new Array(pagination.pageSize)).map((_, index) => (
+              Array.from(new Array(10)).map((_, index) => (
                 <TableRow key={index}>
                   {table.getVisibleLeafColumns().map((column) => (
                     <TableCell key={column.id}>

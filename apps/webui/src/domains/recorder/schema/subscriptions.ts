@@ -8,7 +8,6 @@ import { type } from 'arktype';
 import {
   MikanSubscriptionSeasonSourceUrlSchema,
   extractMikanSubscriptionBangumiSourceUrl,
-  extractMikanSubscriptionSeasonSourceUrl,
   extractMikanSubscriptionSubscriberSourceUrl,
 } from './mikan';
 

@@ -63,7 +63,9 @@ impl Credential3rdCheckAvailableInfo {
     }
 }
 
-pub fn register_credential3rd_to_schema(mut builder: SeaographyBuilder) -> SeaographyBuilder {
+pub fn register_credential3rd_to_schema_builder(
+    mut builder: SeaographyBuilder,
+) -> SeaographyBuilder {
     builder.schema = builder
         .schema
         .register(Credential3rdCheckAvailableInput::generate_input_object());

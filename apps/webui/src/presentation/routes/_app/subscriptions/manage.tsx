@@ -90,6 +90,7 @@ function SubscriptionManageRouteComponent() {
       },
     }
   );
+
   const [updateSubscription] = useMutation(UPDATE_SUBSCRIPTIONS, {
     onCompleted: async () => {
       const refetchResult = await refetch();
@@ -260,7 +261,7 @@ function SubscriptionManageRouteComponent() {
   }, [handleUpdateRecord, handleDeleteRecord, navigate]);
 
   const table = useReactTable({
-    data: data?.subscriptions?.nodes ?? [],
+    data: useMemo(() => subscriptions?.nodes ?? [], [subscriptions]),
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -270,6 +271,8 @@ function SubscriptionManageRouteComponent() {
     pageCount: subscriptions?.paginationInfo?.pages,
     rowCount: subscriptions?.paginationInfo?.total,
     enableColumnPinning: true,
+    autoResetPageIndex: true,
+    manualPagination: true,
     state: {
       pagination,
       sorting,
@@ -323,7 +326,7 @@ function SubscriptionManageRouteComponent() {
           </TableHeader>
           <TableBody>
             {showSkeleton &&
-              Array.from(new Array(pagination.pageSize)).map((_, index) => (
+              Array.from(new Array(10)).map((_, index) => (
                 <TableRow key={index}>
                   {table.getVisibleLeafColumns().map((column) => (
                     <TableCell key={column.id}>

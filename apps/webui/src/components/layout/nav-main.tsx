@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 import {
   Collapsible,
@@ -26,19 +26,8 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import type { NavMainGroup, NavMainItem } from '@/infra/routes/nav';
 import { useMatches } from '@tanstack/react-router';
-
-export interface NavMainItem {
-  link?: ProLinkProps;
-  title: string;
-  icon?: LucideIcon;
-  children?: { title: string; link: ProLinkProps }[];
-}
-
-export interface NavMainGroup {
-  group: string;
-  items: NavMainItem[];
-}
 
 export function NavMain({
   groups,

@@ -1,6 +1,6 @@
 use sea_orm::entity::prelude::*;
 
-use crate::task::SubscriberTask;
+pub use crate::task::SubscriberTask;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "subscriber_tasks")]

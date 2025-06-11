@@ -28,6 +28,7 @@ type Documents = {
     "\n  mutation SyncSubscriptionFeedsIncremental($id: Int!) {\n    subscriptionSyncOneFeedsIncremental(filter: { id: $id }) {\n      taskId\n    }\n  }\n": typeof types.SyncSubscriptionFeedsIncrementalDocument,
     "\n  mutation SyncSubscriptionFeedsFull($id: Int!) {\n    subscriptionSyncOneFeedsFull(filter: { id: $id }) {\n      taskId\n    }\n  }\n": typeof types.SyncSubscriptionFeedsFullDocument,
     "\n  mutation SyncSubscriptionSources($id: Int!) {\n    subscriptionSyncOneSources(filter: { id: $id }) {\n      taskId\n    }\n  }\n": typeof types.SyncSubscriptionSourcesDocument,
+    "\n  query GetTasks($filters: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {\n    subscriberTasks(\n      pagination: $pagination\n      filters: $filters\n      orderBy: $orderBy\n    ) {\n      nodes {\n        id,\n        status,\n        attempts,\n        maxAttempts,\n        runAt,\n        lastError,\n        lockAt,\n        lockBy,\n        doneAt,\n        priority\n      }\n      paginationInfo {\n        total\n        pages\n      }\n    }\n  }\n": typeof types.GetTasksDocument,
 };
 const documents: Documents = {
     "\n  query GetCredential3rd($filters: Credential3rdFilterInput!, $orderBy: Credential3rdOrderInput, $pagination: PaginationInput) {\n    credential3rd(filters: $filters, orderBy: $orderBy, pagination: $pagination) {\n      nodes {\n        id\n        cookies\n        username\n        password\n        userAgent\n        createdAt\n        updatedAt\n        credentialType\n      }\n      paginationInfo {\n        total\n        pages\n      }\n    }\n  }\n": types.GetCredential3rdDocument,
@@ -44,6 +45,7 @@ const documents: Documents = {
     "\n  mutation SyncSubscriptionFeedsIncremental($id: Int!) {\n    subscriptionSyncOneFeedsIncremental(filter: { id: $id }) {\n      taskId\n    }\n  }\n": types.SyncSubscriptionFeedsIncrementalDocument,
     "\n  mutation SyncSubscriptionFeedsFull($id: Int!) {\n    subscriptionSyncOneFeedsFull(filter: { id: $id }) {\n      taskId\n    }\n  }\n": types.SyncSubscriptionFeedsFullDocument,
     "\n  mutation SyncSubscriptionSources($id: Int!) {\n    subscriptionSyncOneSources(filter: { id: $id }) {\n      taskId\n    }\n  }\n": types.SyncSubscriptionSourcesDocument,
+    "\n  query GetTasks($filters: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {\n    subscriberTasks(\n      pagination: $pagination\n      filters: $filters\n      orderBy: $orderBy\n    ) {\n      nodes {\n        id,\n        status,\n        attempts,\n        maxAttempts,\n        runAt,\n        lastError,\n        lockAt,\n        lockBy,\n        doneAt,\n        priority\n      }\n      paginationInfo {\n        total\n        pages\n      }\n    }\n  }\n": types.GetTasksDocument,
 };
 
 /**
@@ -116,6 +118,10 @@ export function gql(source: "\n  mutation SyncSubscriptionFeedsFull($id: Int!) {
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  mutation SyncSubscriptionSources($id: Int!) {\n    subscriptionSyncOneSources(filter: { id: $id }) {\n      taskId\n    }\n  }\n"): (typeof documents)["\n  mutation SyncSubscriptionSources($id: Int!) {\n    subscriptionSyncOneSources(filter: { id: $id }) {\n      taskId\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query GetTasks($filters: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {\n    subscriberTasks(\n      pagination: $pagination\n      filters: $filters\n      orderBy: $orderBy\n    ) {\n      nodes {\n        id,\n        status,\n        attempts,\n        maxAttempts,\n        runAt,\n        lastError,\n        lockAt,\n        lockBy,\n        doneAt,\n        priority\n      }\n      paginationInfo {\n        total\n        pages\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetTasks($filters: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {\n    subscriberTasks(\n      pagination: $pagination\n      filters: $filters\n      orderBy: $orderBy\n    ) {\n      nodes {\n        id,\n        status,\n        attempts,\n        maxAttempts,\n        runAt,\n        lastError,\n        lockAt,\n        lockBy,\n        doneAt,\n        priority\n      }\n      paginationInfo {\n        total\n        pages\n      }\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
