@@ -10,6 +10,6 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "whistle": "^2.9.93"
+    "whistle": "^2.9.99"
   }
 }

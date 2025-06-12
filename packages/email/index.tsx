@@ -10,6 +10,7 @@ export interface SendOptions {
 
 export const konosend = {
   emails: {
+    // biome-ignore lint/suspicious/useAwait: <explanation>
     send: async (_props: SendOptions) => {
       throw new Error('unimplemented');
     },

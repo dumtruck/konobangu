@@ -4,7 +4,7 @@ import {
 } from '@/infra/graphql/gql/graphql';
 import { Injectable, inject } from '@outposts/injection-js';
 import { ArkErrors } from 'arktype';
-import { omit } from 'lodash-es';
+import { omit } from 'es-toolkit';
 import {
   type MikanSubscriptionBangumiSourceUrl,
   type MikanSubscriptionSeasonSourceUrl,

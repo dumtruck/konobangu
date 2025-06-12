@@ -3,42 +3,35 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "workspaces": ["packages/*", "apps/*"],
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/dumtruck/konobangu.git"
   },
   "scripts": {
-    "dev-webui": "just dev-webui",
-    "dev-proxy": "just dev-proxy",
-    "dev-recorder": "just dev-recorder",
-    "dev-deps": "just dev-deps",
-    "dev-codegen-wait": "just dev-codegen-wait",
-    "dev-all": "turbo run //#dev-recorder //#dev-proxy //#dev-webui //#dev-deps //#dev-codegen-wait",
     "lint": "ultracite lint",
     "format": "ultracite format",
-    "bump-deps": "npx --yes npm-check-updates --deep -u -x react-day-picker && pnpm install",
+    "bump-deps": "npx --yes npm-check-updates --deep -u && pnpm install",
     "clean": "git clean -xdf node_modules"
   },
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "@auto-it/all-contributors": "^11.3.0",
-    "@auto-it/first-time-contributor": "^11.3.0",
     "@biomejs/biome": "1.9.4",
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.0.1",
     "cross-env": "^7.0.3",
     "kill-port": "^2.0.1",
     "npm-run-all": "^4.1.5",
-    "tsx": "^4.19.4",
-    "turbo": "^2.5.4",
+    "tsx": "^4.20.2",
     "typescript": "^5.8.3",
-    "ultracite": "^4.2.8"
+    "ultracite": "^4.2.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "codemirror-graphql>@codemirror/language": "^6.11.1"
+    }
   }
 }

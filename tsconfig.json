@@ -11,9 +11,6 @@
       "path": "./packages/email"
     },
     {
-      "path": "./packages/seo"
-    },
-    {
       "path": "./packages/testing"
     },
     {
