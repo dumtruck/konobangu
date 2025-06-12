@@ -39,7 +39,12 @@ import type {
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { ArrowLeft, Eye, EyeOff, Save, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
@@ -63,11 +68,17 @@ function FormView({
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
 
   const handleBack = () => {
-    navigate({
-      to: '/credential3rd/manage',
-    });
+    if (canGoBack) {
+      router.history.back();
+    } else {
+      navigate({
+        to: '/credential3rd/manage',
+      });
+    }
   };
 
   const [updateCredential, { loading: updating }] = useMutation<

@@ -267,6 +267,7 @@ where
     Box::new(
         move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
             let field_name = context.field().name();
+            tracing::warn!("field_name: {:?}", field_name);
             if field_name == entity_create_one_mutation_field_name.as_str()
                 || field_name == entity_create_batch_mutation_field_name.as_str()
             {
@@ -291,7 +292,7 @@ where
 {
     let entity_key = get_entity_key::<T>(context);
     let entity_column_key = get_entity_column_key::<T>(context, column);
-    let column_name = context.entity_object.column_name.as_ref()(&entity_key, &entity_column_key);
+
     context.guards.entity_guards.insert(
         entity_key.clone(),
         guard_entity_with_subscriber_id::<T>(context, column),
@@ -311,13 +312,9 @@ where
         generate_subscriber_id_filter_condition::<T>(context, column),
     );
     context.types.input_none_conversions.insert(
-        column_name.clone(),
+        entity_column_key.clone(),
         generate_default_subscriber_id_input_conversion::<T>(context, column),
     );
-    context
-        .entity_input
-        .insert_skips
-        .push(entity_column_key.clone());
 
     context.entity_input.update_skips.push(entity_column_key);
 }

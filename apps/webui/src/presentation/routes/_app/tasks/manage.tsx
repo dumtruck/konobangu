@@ -1,12 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
-import { DataTableRowActions } from '@/components/ui/data-table-row-actions';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GET_TASKS, type TaskDto } from '@/domains/recorder/schema/tasks';
-import type { GetTasksQuery } from '@/infra/graphql/gql/graphql';
+import {
+  type GetTasksQuery,
+  SubscriberTaskStatusEnum,
+} from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { useQuery } from '@apollo/client';
@@ -21,14 +24,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+
 import { useMemo, useState } from 'react';
+import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/manage')({
   component: TaskManageRouteComponent,
@@ -87,111 +86,9 @@ function TaskManageRouteComponent() {
           );
         },
       },
-      {
-        header: 'Status',
-        accessorKey: 'status',
-        cell: ({ row }) => {
-          return getStatusBadge(row.original.status);
-        },
-      },
-      {
-        header: 'Priority',
-        accessorKey: 'priority',
-        cell: ({ row }) => {
-          return getPriorityBadge(row.original.priority);
-        },
-      },
-      {
-        header: 'Attempts',
-        accessorKey: 'attempts',
-        cell: ({ row }) => {
-          const attempts = row.original.attempts;
-          const maxAttempts = row.original.maxAttempts;
-          return (
-            <div className="text-sm">
-              {attempts} / {maxAttempts}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Run At',
-        accessorKey: 'runAt',
-        cell: ({ row }) => {
-          const runAt = row.original.runAt;
-          return (
-            <div className="text-sm">
-              {format(new Date(runAt), 'yyyy-MM-dd HH:mm:ss')}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Done At',
-        accessorKey: 'doneAt',
-        cell: ({ row }) => {
-          const doneAt = row.original.doneAt;
-          return (
-            <div className="text-sm">
-              {doneAt ? format(new Date(doneAt), 'yyyy-MM-dd HH:mm:ss') : '-'}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Last Error',
-        accessorKey: 'lastError',
-        cell: ({ row }) => {
-          const lastError = row.original.lastError;
-          return (
-            <div
-              className="max-w-xs truncate text-sm"
-              title={lastError || undefined}
-            >
-              {lastError || '-'}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Lock At',
-        accessorKey: 'lockAt',
-        cell: ({ row }) => {
-          const lockAt = row.original.lockAt;
-          return (
-            <div className="text-sm">
-              {lockAt ? format(new Date(lockAt), 'yyyy-MM-dd HH:mm:ss') : '-'}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Lock By',
-        accessorKey: 'lockBy',
-        cell: ({ row }) => {
-          const lockBy = row.original.lockBy;
-          return <div className="font-mono text-sm">{lockBy || '-'}</div>;
-        },
-      },
-      {
-        id: 'actions',
-        cell: ({ row }) => (
-          <DataTableRowActions
-            row={row}
-            getId={(row) => row.original.id}
-            showDetail
-            onDetail={() => {
-              navigate({
-                to: '/tasks/detail/$id',
-                params: { id: row.original.id },
-              });
-            }}
-          />
-        ),
-      },
     ];
     return cs;
-  }, [navigate]);
+  }, []);
 
   const table = useReactTable({
     data: useMemo(() => (tasks?.nodes ?? []) as TaskDto[], [tasks]),
@@ -226,8 +123,8 @@ function TaskManageRouteComponent() {
     <div className="container mx-auto space-y-4 px-4">
       <div className="flex items-center justify-between pt-4">
         <div>
-          <h1 className="font-bold text-2xl">Subscription Management</h1>
-          <p className="text-muted-foreground">Manage your subscription</p>
+          <h1 className="font-bold text-2xl">Tasks Management</h1>
+          <p className="text-muted-foreground">Manage your tasks</p>
         </div>
         <Button onClick={() => refetch()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4" />
@@ -241,12 +138,12 @@ function TaskManageRouteComponent() {
           ))}
 
         {!showSkeleton && table.getRowModel().rows?.length > 0 ? (
-          table.getRowModel().rows.map((row) => {
+          table.getRowModel().rows.map((row, index) => {
             const task = row.original;
             return (
               <div
-                key={task.id}
                 className="space-y-3 rounded-lg border bg-card p-4"
+                key={`${task.id}-${index}`}
               >
                 {/* Header with status and priority */}
                 <div className="flex items-center justify-between gap-2">
@@ -259,10 +156,10 @@ function TaskManageRouteComponent() {
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   {getStatusBadge(task.status)}
+                  <Badge variant="outline">Priority: {task.priority}</Badge>
                   <div className="mr-0 ml-auto">
-                    <DataTableRowActions
-                      row={row}
-                      getId={(r) => r.original.id}
+                    <DropdownMenuActions
+                      id={task.id}
                       showDetail
                       onDetail={() => {
                         navigate({
@@ -273,19 +170,6 @@ function TaskManageRouteComponent() {
                     />
                   </div>
                 </div>
-
-                {task.job && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Job: </span>
-                    <br />
-                    <span
-                      className="whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: JSON.stringify(task.job, null, 2),
-                      }}
-                    />
-                  </div>
-                )}
 
                 {/* Time info */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -311,19 +195,38 @@ function TaskManageRouteComponent() {
                     </span>
                   </div>
 
-                  {/* Priority */}
+                  {/* Lock at */}
                   <div className="text-sm">
-                    <span className="text-muted-foreground">Priority: </span>
-                    <span>{task.priority}</span>
+                    <span className="text-muted-foreground">Lock at: </span>
+                    <span>
+                      {task.lockAt
+                        ? format(new Date(task.lockAt), 'MM/dd HH:mm')
+                        : '-'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Error if exists */}
-                {task.status === 'error' && task.lastError && (
-                  <div className="rounded bg-destructive/10 p-2 text-destructive text-sm">
-                    {task.lastError}
+                {task.job && (
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Job: </span>
+                    <br />
+                    <span
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(task.job, null, 2),
+                      }}
+                    />
                   </div>
                 )}
+
+                {/* Error if exists */}
+                {(task.status === SubscriberTaskStatusEnum.Failed ||
+                  task.status === SubscriberTaskStatusEnum.Killed) &&
+                  task.lastError && (
+                    <div className="rounded bg-destructive/10 p-2 text-destructive text-sm">
+                      {task.lastError}
+                    </div>
+                  )}
               </div>
             );
           })
@@ -335,43 +238,4 @@ function TaskManageRouteComponent() {
       <DataTablePagination table={table} showSelectedRowCount={false} />
     </div>
   );
-}
-
-function getStatusBadge(status: string) {
-  switch (status.toLowerCase()) {
-    case 'completed':
-    case 'done':
-      return (
-        <Badge variant="secondary" className="bg-green-100 text-green-800">
-          <CheckCircle className="mr-1 h-3 w-3" />
-          Completed
-        </Badge>
-      );
-    case 'running':
-    case 'active':
-      return (
-        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-          Running
-        </Badge>
-      );
-    case 'failed':
-    case 'error':
-      return (
-        <Badge variant="destructive">
-          <AlertCircle className="mr-1 h-3 w-3" />
-          Failed
-        </Badge>
-      );
-    case 'pending':
-    case 'waiting':
-      return (
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-          <Clock className="mr-1 h-3 w-3" />
-          Pending
-        </Badge>
-      );
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
 }

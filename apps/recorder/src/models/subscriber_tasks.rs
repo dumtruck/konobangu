@@ -1,7 +1,27 @@
 use async_trait::async_trait;
 use sea_orm::entity::prelude::*;
 
-pub use crate::task::{SubscriberTask, SubscriberTaskType};
+pub use crate::task::{
+    SubscriberTask, SubscriberTaskType, SubscriberTaskTypeEnum, SubscriberTaskTypeVariant,
+    SubscriberTaskTypeVariantIter,
+};
+
+#[derive(Clone, Debug, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay)]
+#[sea_orm(rs_type = "String", db_type = "Text")]
+pub enum SubscriberTaskStatus {
+    #[sea_orm(string_value = "Pending")]
+    Pending,
+    #[sea_orm(string_value = "Scheduled")]
+    Scheduled,
+    #[sea_orm(string_value = "Running")]
+    Running,
+    #[sea_orm(string_value = "Done")]
+    Done,
+    #[sea_orm(string_value = "Failed")]
+    Failed,
+    #[sea_orm(string_value = "Killed")]
+    Killed,
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "subscriber_tasks")]
@@ -11,7 +31,7 @@ pub struct Model {
     pub subscriber_id: i32,
     pub job: SubscriberTask,
     pub task_type: SubscriberTaskType,
-    pub status: String,
+    pub status: SubscriberTaskStatus,
     pub attempts: i32,
     pub max_attempts: i32,
     pub run_at: DateTimeUtc,

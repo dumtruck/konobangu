@@ -32,6 +32,16 @@
   "pnpm": {
     "overrides": {
       "codemirror-graphql>@codemirror/language": "^6.11.1"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "bufferutil",
+      "core-js",
+      "esbuild",
+      "sharp",
+      "utf-8-validate"
+    ]
   }
 }

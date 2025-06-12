@@ -1,6 +1,5 @@
 "use client";
 
-import type { Row } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 
-import { ComponentProps, PropsWithChildren, useMemo } from "react";
+import { ComponentProps, PropsWithChildren } from "react";
 
-interface DataTableRowActionsProps<DataView, Id>
+interface DropdownMenuActionsProps<Id>
   extends ComponentProps<typeof DropdownMenuPrimitive.Root> {
-  row: Row<DataView>;
-  getId: (row: Row<DataView>) => Id;
+  id: Id;
   showDetail?: boolean;
   showEdit?: boolean;
   showDelete?: boolean;
@@ -28,9 +26,8 @@ interface DataTableRowActionsProps<DataView, Id>
   onEdit?: (id: Id) => void;
 }
 
-export function DataTableRowActions<DataView, Id>({
-  row,
-  getId,
+export function DropdownMenuActions<Id>({
+  id,
   showDetail,
   showDelete,
   showEdit,
@@ -39,8 +36,7 @@ export function DataTableRowActions<DataView, Id>({
   onEdit,
   children,
   ...rest
-}: PropsWithChildren<DataTableRowActionsProps<DataView, Id>>) {
-  const id = useMemo(() => getId(row), [getId, row]);
+}: PropsWithChildren<DropdownMenuActionsProps<Id>>) {
   return (
     <DropdownMenu {...rest}>
       <DropdownMenuTrigger asChild>

@@ -121,6 +121,7 @@ pub fn build_schema(
             builder.register_enumeration::<downloaders::DownloaderCategory>();
             builder.register_enumeration::<downloads::DownloadMime>();
             builder.register_enumeration::<credential_3rd::Credential3rdType>();
+            builder.register_enumeration::<subscriber_tasks::SubscriberTaskStatus>();
         }
 
         builder = register_subscriptions_to_schema_builder(builder);

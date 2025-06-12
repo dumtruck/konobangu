@@ -2,7 +2,7 @@ set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
 prepare-dev:
-    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest killport
+    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest
     # install watchexec
 
 prepare-dev-testcontainers:
@@ -32,9 +32,6 @@ dev-deps-clean:
 dev-codegen:
     pnpm run --filter=webui codegen
 
-dev-all:
-    zellij --layout dev.kdl
-
 dev-codegen-wait:
     @until nc -z localhost 5001; do echo "Waiting for Recorder..."; sleep 1; done
     pnpm run --filter=webui codegen-watch
@@ -42,3 +39,10 @@ dev-codegen-wait:
 dev-coverage:
     cargo llvm-cov test --html
 
+[unix]
+dev-all:
+    zellij --layout dev.kdl
+
+[windows]
+dev-all:
+    @echo "zellij is not supported on Windows, please use vscode tasks 'dev-all'"

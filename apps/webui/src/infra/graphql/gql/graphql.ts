@@ -133,6 +133,7 @@ export type BangumiInsertInput = {
   savePath?: InputMaybe<Scalars['String']['input']>;
   season: Scalars['Int']['input'];
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -266,6 +267,7 @@ export type Credential3rdInsertInput = {
   credentialType: Credential3rdTypeEnum;
   id?: InputMaybe<Scalars['Int']['input']>;
   password?: InputMaybe<Scalars['String']['input']>;
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   userAgent?: InputMaybe<Scalars['String']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
@@ -448,6 +450,7 @@ export type DownloadersInsertInput = {
   id?: InputMaybe<Scalars['Int']['input']>;
   password: Scalars['String']['input'];
   savePath: Scalars['String']['input'];
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   username: Scalars['String']['input'];
 };
@@ -563,6 +566,7 @@ export type DownloadsInsertInput = {
   rawName: Scalars['String']['input'];
   savePath?: InputMaybe<Scalars['String']['input']>;
   status: DownloadStatusEnum;
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   url: Scalars['String']['input'];
 };
@@ -725,6 +729,7 @@ export type EpisodesInsertInput = {
   season: Scalars['Int']['input'];
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<Scalars['String']['input']>;
+  subscriberId: Scalars['Int']['input'];
   subtitle?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1191,6 +1196,16 @@ export type SubscriberIdFilterInput = {
   eq?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export const SubscriberTaskStatusEnum = {
+  Done: 'Done',
+  Failed: 'Failed',
+  Killed: 'Killed',
+  Pending: 'Pending',
+  Running: 'Running',
+  Scheduled: 'Scheduled'
+} as const;
+
+export type SubscriberTaskStatusEnum = typeof SubscriberTaskStatusEnum[keyof typeof SubscriberTaskStatusEnum];
 export const SubscriberTaskTypeEnum = {
   SyncOneSubscriptionFeedsFull: 'sync_one_subscription_feeds_full',
   SyncOneSubscriptionFeedsIncremental: 'sync_one_subscription_feeds_incremental',
@@ -1210,7 +1225,7 @@ export type SubscriberTasks = {
   maxAttempts: Scalars['Int']['output'];
   priority: Scalars['Int']['output'];
   runAt: Scalars['String']['output'];
-  status: Scalars['String']['output'];
+  status: SubscriberTaskStatusEnum;
   subscriber?: Maybe<Subscribers>;
   subscriberId: Scalars['Int']['output'];
   taskType: SubscriberTaskTypeEnum;
@@ -1228,7 +1243,7 @@ export type SubscriberTasksBasic = {
   maxAttempts: Scalars['Int']['output'];
   priority: Scalars['Int']['output'];
   runAt: Scalars['String']['output'];
-  status: Scalars['String']['output'];
+  status: SubscriberTaskStatusEnum;
   subscriberId: Scalars['Int']['output'];
   taskType: SubscriberTaskTypeEnum;
 };
@@ -1276,7 +1291,8 @@ export type SubscriberTasksInsertInput = {
   maxAttempts: Scalars['Int']['input'];
   priority: Scalars['Int']['input'];
   runAt: Scalars['String']['input'];
-  status: Scalars['String']['input'];
+  status: SubscriberTaskStatusEnum;
+  subscriberId: Scalars['Int']['input'];
   taskType: SubscriberTaskTypeEnum;
 };
 
@@ -1307,7 +1323,7 @@ export type SubscriberTasksUpdateInput = {
   maxAttempts?: InputMaybe<Scalars['Int']['input']>;
   priority?: InputMaybe<Scalars['Int']['input']>;
   runAt?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<SubscriberTaskStatusEnum>;
   taskType?: InputMaybe<SubscriberTaskTypeEnum>;
 };
 
@@ -1433,6 +1449,7 @@ export type SubscriptionBangumiFilterInput = {
 export type SubscriptionBangumiInsertInput = {
   bangumiId: Scalars['Int']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
+  subscriberId: Scalars['Int']['input'];
   subscriptionId: Scalars['Int']['input'];
 };
 
@@ -1515,6 +1532,7 @@ export type SubscriptionEpisodeFilterInput = {
 export type SubscriptionEpisodeInsertInput = {
   episodeId: Scalars['Int']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
+  subscriberId: Scalars['Int']['input'];
   subscriptionId: Scalars['Int']['input'];
 };
 
@@ -1627,6 +1645,7 @@ export type SubscriptionsInsertInput = {
   enabled: Scalars['Boolean']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
   sourceUrl: Scalars['String']['input'];
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -1790,7 +1809,7 @@ export type GetTasksQueryVariables = Exact<{
 }>;
 
 
-export type GetTasksQuery = { __typename?: 'Query', subscriberTasks: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: string, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+export type GetTasksQuery = { __typename?: 'Query', subscriberTasks: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
 
 
 export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdOrderInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdQuery, GetCredential3rdQueryVariables>;

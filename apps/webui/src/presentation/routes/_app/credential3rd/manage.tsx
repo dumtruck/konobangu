@@ -1,10 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
-import { DataTableRowActions } from '@/components/ui/data-table-row-actions';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
 import { DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -231,9 +231,8 @@ function CredentialManageRouteComponent() {
       {
         id: 'actions',
         cell: ({ row }) => (
-          <DataTableRowActions
-            row={row}
-            getId={(row) => row.original.id}
+          <DropdownMenuActions
+            id={row.original.id}
             showEdit
             showDelete
             showDetail
@@ -261,7 +260,7 @@ function CredentialManageRouteComponent() {
                 id={row.original.id}
               />
             </Dialog>
-          </DataTableRowActions>
+          </DropdownMenuActions>
         ),
       },
     ];
