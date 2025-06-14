@@ -28,7 +28,7 @@ downloader = { path = "./packages/downloader" }
 recorder = { path = "./apps/recorder" }
 proxy = { path = "./apps/proxy" }
 
-reqwest = { version = "0.12", features = [
+reqwest = { version = "0.12.20", features = [
     "charset",
     "http2",
     "json",
@@ -69,4 +69,4 @@ color-eyre = "0.6.5"
 inquire = "0.7.5"
 
 [patch.crates-io]
-seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "01d3f99" }
+seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "a787c3a" }

@@ -111,7 +111,12 @@ tracing-appender = "0.2.3"
 clap = "4.5.31"
 ipnetwork = "0.21.1"
 typed-builder = "0.21.0"
-apalis = { version = "0.7", features = ["limit", "tracing", "catch-panic"] }
+apalis = { version = "0.7", features = [
+    "limit",
+    "tracing",
+    "catch-panic",
+    "retry",
+] }
 apalis-sql = { version = "0.7", features = ["postgres"] }
 cocoon = { version = "0.4.3", features = ["getrandom", "thiserror"] }
 rand = "0.9.1"

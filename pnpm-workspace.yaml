@@ -1,13 +1,13 @@
 packages:
-  - packages/*
-  - apps/*
-  - '!packages/testing-torrents'
+    - packages/*
+    - apps/*
+    - "!packages/testing-torrents"
 onlyBuiltDependencies:
-  - '@biomejs/biome'
-  - '@parcel/watcher'
-  - '@tailwindcss/oxide'
-  - bufferutil
-  - core-js
-  - esbuild
-  - sharp
-  - utf-8-validate
+    - "@biomejs/biome"
+    - "@parcel/watcher"
+    - "@tailwindcss/oxide"
+    - bufferutil
+    - core-js
+    - esbuild
+    - sharp
+    - utf-8-validate

@@ -133,7 +133,7 @@ export type BangumiInsertInput = {
   savePath?: InputMaybe<Scalars['String']['input']>;
   season: Scalars['Int']['input'];
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -267,7 +267,7 @@ export type Credential3rdInsertInput = {
   credentialType: Credential3rdTypeEnum;
   id?: InputMaybe<Scalars['Int']['input']>;
   password?: InputMaybe<Scalars['String']['input']>;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   userAgent?: InputMaybe<Scalars['String']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
@@ -450,7 +450,7 @@ export type DownloadersInsertInput = {
   id?: InputMaybe<Scalars['Int']['input']>;
   password: Scalars['String']['input'];
   savePath: Scalars['String']['input'];
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   username: Scalars['String']['input'];
 };
@@ -566,7 +566,7 @@ export type DownloadsInsertInput = {
   rawName: Scalars['String']['input'];
   savePath?: InputMaybe<Scalars['String']['input']>;
   status: DownloadStatusEnum;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   url: Scalars['String']['input'];
 };
@@ -729,7 +729,7 @@ export type EpisodesInsertInput = {
   season: Scalars['Int']['input'];
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<Scalars['String']['input']>;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   subtitle?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1292,7 +1292,7 @@ export type SubscriberTasksInsertInput = {
   priority: Scalars['Int']['input'];
   runAt: Scalars['String']['input'];
   status: SubscriberTaskStatusEnum;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   taskType: SubscriberTaskTypeEnum;
 };
 
@@ -1449,7 +1449,7 @@ export type SubscriptionBangumiFilterInput = {
 export type SubscriptionBangumiInsertInput = {
   bangumiId: Scalars['Int']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   subscriptionId: Scalars['Int']['input'];
 };
 
@@ -1532,7 +1532,7 @@ export type SubscriptionEpisodeFilterInput = {
 export type SubscriptionEpisodeInsertInput = {
   episodeId: Scalars['Int']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   subscriptionId: Scalars['Int']['input'];
 };
 
@@ -1645,7 +1645,7 @@ export type SubscriptionsInsertInput = {
   enabled: Scalars['Boolean']['input'];
   id?: InputMaybe<Scalars['Int']['input']>;
   sourceUrl: Scalars['String']['input'];
-  subscriberId: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 

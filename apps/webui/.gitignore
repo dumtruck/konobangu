@@ -13,3 +13,4 @@ dist/
 .idea
 .env.local
 .env.*.lcoal
+.tanstack

@@ -10,7 +10,7 @@ async fn main() -> RecorderResult<()> {
         .with_max_level(Level::DEBUG)
         .init();
 
-    let mut mikan_server = MikanMockServer::new_with_port(5010).await.unwrap();
+    let mut mikan_server = MikanMockServer::new_with_port(5005).await.unwrap();
 
     let resources_mock = mikan_server.mock_resources_with_doppel();
 

@@ -3,6 +3,7 @@ use std::{ops::Deref, sync::Arc};
 use apalis::prelude::*;
 use apalis_sql::{
     Config,
+    context::SqlContext,
     postgres::{PgListen, PostgresStorage},
 };
 use tokio::sync::RwLock;
@@ -51,7 +52,13 @@ impl TaskService {
     ) -> RecorderResult<TaskId> {
         let task_id = {
             let mut storage = self.subscriber_task_storage.write().await;
-            storage.push(subscriber_task).await?.task_id
+            let sql_context = {
+                let mut c = SqlContext::default();
+                c.set_max_attempts(1);
+                c
+            };
+            let request = Request::new_with_ctx(subscriber_task, sql_context);
+            storage.push_request(request).await?.task_id
         };
 
         Ok(task_id)

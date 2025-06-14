@@ -710,6 +710,7 @@ pub async fn scrape_mikan_bangumi_meta_from_bangumi_homepage_url(
     )
 }
 
+#[allow(dead_code)]
 #[instrument(err, skip_all, fields(mikan_bangumi_homepage_url = mikan_bangumi_homepage_url.as_str()))]
 pub async fn scrape_mikan_bangumi_index_meta_from_bangumi_homepage_url(
     mikan_client: &MikanClient,

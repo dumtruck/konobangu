@@ -2,8 +2,9 @@ set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
 prepare-dev:
-    cargo install sea-orm-cli cargo-llvm-cov cargo-nextest
-    # install watchexec
+    cargo install cargo-binstall
+    cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest
+    # <package-manager> install watchexec just zellij
 
 prepare-dev-testcontainers:
     docker pull linuxserver/qbittorrent:latest
@@ -14,7 +15,7 @@ dev-webui:
     pnpm run --filter=webui dev
 
 dev-proxy:
-    npx --yes kill-port --port 8899,5010
+    npx --yes kill-port --port 8899,5005
     pnpm run --parallel --filter=proxy dev
 
 dev-recorder:

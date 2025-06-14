@@ -231,7 +231,7 @@ function TaskManageRouteComponent() {
             );
           })
         ) : (
-          <DetailEmptyView message="No tasks found" />
+          <DetailEmptyView message="No tasks found" fullWidth />
         )}
       </div>
 
