@@ -21,6 +21,8 @@ export function buildOidcConfig(): OpenIdConfiguration {
     logLevel: LogLevel.Warn,
     autoUserInfo: !resource,
     renewUserInfoAfterTokenRenew: !resource,
+    ignoreNonceAfterRefresh: !!resource,
+    renewTimeBeforeTokenExpiresInSeconds: 30,
     customParamsAuthRequest: {
       prompt: 'consent',
       resource,

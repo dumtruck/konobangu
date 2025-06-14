@@ -1,5 +1,6 @@
 import { injectInjector } from '@/infra/di/inject';
 import { inject, runInInjectionContext } from '@outposts/injection-js';
+import type { ParsedLocation } from '@tanstack/react-router';
 import {
   CHECK_AUTH_RESULT_EVENT,
   OidcSecurityService,
@@ -15,20 +16,8 @@ export class OidcAuthProvider extends AuthProvider {
   checkAuthResultEvent$ = inject(CHECK_AUTH_RESULT_EVENT);
   injector = injectInjector();
 
-  private setupSilentRenew() {
-    const parent = document.defaultView?.parent;
-    if (parent) {
-      const event = new CustomEvent('oidc-silent-renew-message', {
-        detail: document.defaultView?.location!,
-      });
-      parent.dispatchEvent(event);
-    }
-  }
-
   setup() {
-    this.oidcSecurityService.checkAuth().subscribe(() => {
-      this.setupSilentRenew();
-    });
+    this.oidcSecurityService.checkAuth().subscribe(() => {});
   }
 
   get isAuthenticated$() {
@@ -45,9 +34,9 @@ export class OidcAuthProvider extends AuthProvider {
     return this.oidcSecurityService.getAccessToken();
   }
 
-  autoLoginPartialRoutesGuard() {
+  autoLoginPartialRoutesGuard({ location }: { location: ParsedLocation }) {
     return runInInjectionContext(this.injector, () =>
-      autoLoginPartialRoutesGuard()
+      autoLoginPartialRoutesGuard(undefined, { url: location.href })
     );
   }
 }

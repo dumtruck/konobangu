@@ -1,16 +1,20 @@
 import type { RouterContext } from '@/infra/routes/traits';
+import type { ParsedLocation } from '@tanstack/react-router';
 import { firstValueFrom } from 'rxjs';
 import { authContextFromInjector } from './context';
 
 export const beforeLoadGuard = async ({
   context,
-}: { context: RouterContext }) => {
+  location,
+}: { context: RouterContext; location: ParsedLocation }) => {
   const { isAuthenticated$, authProvider } = authContextFromInjector(
     context.injector
   );
   if (!(await firstValueFrom(isAuthenticated$))) {
     const isAuthenticated = await firstValueFrom(
-      authProvider.autoLoginPartialRoutesGuard()
+      authProvider.autoLoginPartialRoutesGuard({
+        location,
+      })
     );
     if (!isAuthenticated) {
       throw !isAuthenticated;
