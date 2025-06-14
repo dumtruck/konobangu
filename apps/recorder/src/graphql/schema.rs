@@ -42,10 +42,6 @@ pub fn build_schema(
             register_subscribers_to_schema_context(&mut context);
 
             {
-                restrict_subscriber_for_entity::<bangumi::Entity>(
-                    &mut context,
-                    &bangumi::Column::SubscriberId,
-                );
                 restrict_subscriber_for_entity::<downloaders::Entity>(
                     &mut context,
                     &downloaders::Column::SubscriberId,
@@ -73,10 +69,6 @@ pub fn build_schema(
                 restrict_subscriber_for_entity::<subscription_episode::Entity>(
                     &mut context,
                     &subscription_episode::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<subscriber_tasks::Entity>(
-                    &mut context,
-                    &subscriber_tasks::Column::SubscriberId,
                 );
                 restrict_subscriber_for_entity::<credential_3rd::Entity>(
                     &mut context,
@@ -110,7 +102,6 @@ pub fn build_schema(
                 subscription_bangumi,
                 subscription_episode,
                 subscriptions,
-                subscriber_tasks,
                 credential_3rd
             ]
         );
@@ -121,7 +112,6 @@ pub fn build_schema(
             builder.register_enumeration::<downloaders::DownloaderCategory>();
             builder.register_enumeration::<downloads::DownloadMime>();
             builder.register_enumeration::<credential_3rd::Credential3rdType>();
-            builder.register_enumeration::<subscriber_tasks::SubscriberTaskStatus>();
         }
 
         builder = register_subscriptions_to_schema_builder(builder);

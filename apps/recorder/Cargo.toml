@@ -55,6 +55,9 @@ moka = { workspace = true }
 chrono = { workspace = true }
 tracing-subscriber = { workspace = true }
 mockito = { workspace = true }
+color-eyre = { workspace = true, optional = true }
+inquire = { workspace = true, optional = true }
+convert_case = { workspace = true }
 
 sea-orm = { version = "1.1", features = [
     "sqlx-sqlite",
@@ -124,8 +127,6 @@ rust_decimal = "1.37.1"
 reqwest_cookie_store = "0.8.0"
 nanoid = "0.4.0"
 jwtk = "0.4.0"
-color-eyre = { workspace = true, optional = true }
-inquire = { workspace = true, optional = true }
 percent-encoding = "2.3.1"
 
 

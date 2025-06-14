@@ -20,6 +20,7 @@ pub mod database;
 pub mod errors;
 pub mod extract;
 pub mod graphql;
+pub mod infra;
 pub mod logger;
 pub mod message;
 pub mod migrations;

@@ -1,2 +1,3 @@
+pub mod custom;
 pub mod json;
 pub mod util;

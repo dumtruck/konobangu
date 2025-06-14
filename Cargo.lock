@@ -5217,6 +5217,7 @@ dependencies = [
  "clap",
  "cocoon",
  "color-eyre",
+ "convert_case 0.8.0",
  "ctor",
  "dotenvy",
  "downloader",
