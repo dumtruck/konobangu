@@ -186,19 +186,13 @@ impl Model {
         let subscription_model = Entity::find_by_id(subscription_id)
             .one(db)
             .await?
-            .ok_or_else(|| RecorderError::DbError {
-                source: DbErr::RecordNotFound(format!(
-                    "Subscription id {subscription_id} not found or not belong to subscriber \
-                     {subscriber_id}",
-                )),
+            .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                entity: "Subscription".into(),
             })?;
 
         if subscription_model.subscriber_id != subscriber_id {
-            Err(RecorderError::DbError {
-                source: DbErr::RecordNotFound(format!(
-                    "Subscription id {subscription_id} not found or not belong to subscriber \
-                     {subscriber_id}",
-                )),
+            Err(RecorderError::ModelEntityNotFound {
+                entity: "Subscription".into(),
             })?;
         }
 

@@ -1,104 +1,58 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::{
-    Field, FieldFuture, FieldValue, InputObject, InputValue, Object, TypeRef,
+use async_graphql::dynamic::{FieldValue, TypeRef};
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use seaography::{
+    Builder as SeaographyBuilder, EntityObjectBuilder, EntityQueryFieldBuilder,
+    get_filter_conditions,
 };
-use seaography::Builder as SeaographyBuilder;
-use serde::{Deserialize, Serialize};
-use util_derive::DynamicGraphql;
 
 use crate::{
-    app::AppContextTrait,
-    auth::AuthUserInfo,
-    models::subscriptions::{self, SubscriptionTrait},
+    errors::RecorderError,
+    graphql::infra::custom::generate_entity_filter_mutation_field,
+    models::{
+        subscriber_tasks,
+        subscriptions::{self, SubscriptionTrait},
+    },
     task::SubscriberTask,
 };
-
-#[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
-struct SyncOneSubscriptionFilterInput {
-    pub id: i32,
-}
-
-impl SyncOneSubscriptionFilterInput {
-    fn input_type_name() -> &'static str {
-        "SyncOneSubscriptionFilterInput"
-    }
-
-    fn arg_name() -> &'static str {
-        "filter"
-    }
-
-    fn generate_input_object() -> InputObject {
-        InputObject::new(Self::input_type_name())
-            .description("The input of the subscriptionSyncOne series of mutations")
-            .field(InputValue::new(
-                SyncOneSubscriptionFilterInputFieldEnum::Id.as_str(),
-                TypeRef::named_nn(TypeRef::INT),
-            ))
-    }
-}
-
-#[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
-pub struct SyncOneSubscriptionInfo {
-    pub task_id: String,
-}
-
-impl SyncOneSubscriptionInfo {
-    fn object_type_name() -> &'static str {
-        "SyncOneSubscriptionInfo"
-    }
-
-    fn generate_output_object() -> Object {
-        Object::new(Self::object_type_name())
-            .description("The output of the subscriptionSyncOne series of mutations")
-            .field(Field::new(
-                SyncOneSubscriptionInfoFieldEnum::TaskId,
-                TypeRef::named_nn(TypeRef::STRING),
-                move |ctx| {
-                    FieldFuture::new(async move {
-                        let subscription_info = ctx.parent_value.try_downcast_ref::<Self>()?;
-                        Ok(Some(async_graphql::Value::from(
-                            subscription_info.task_id.as_str(),
-                        )))
-                    })
-                },
-            ))
-    }
-}
 
 pub fn register_subscriptions_to_schema_builder(
     mut builder: SeaographyBuilder,
 ) -> SeaographyBuilder {
-    builder.schema = builder
-        .schema
-        .register(SyncOneSubscriptionFilterInput::generate_input_object());
-    builder.schema = builder
-        .schema
-        .register(SyncOneSubscriptionInfo::generate_output_object());
+    let context = builder.context;
 
-    builder.mutations.push(
-        Field::new(
-            "subscriptionSyncOneFeedsIncremental",
-            TypeRef::named_nn(SyncOneSubscriptionInfo::object_type_name()),
-            move |ctx| {
-                FieldFuture::new(async move {
-                    let auth_user_info = ctx.data::<AuthUserInfo>()?;
+    let entity_object_builder = EntityObjectBuilder { context };
+    let entity_query_field = EntityQueryFieldBuilder { context };
 
-                    let app_ctx = ctx.data::<Arc<dyn AppContextTrait>>()?;
-                    let subscriber_id = auth_user_info.subscriber_auth.subscriber_id;
+    {
+        let sync_one_feeds_incremental_mutation_name = format!(
+            "{}SyncOneFeedsIncremental",
+            entity_query_field.type_name::<subscriptions::Entity>()
+        );
 
-                    let filter_input: SyncOneSubscriptionFilterInput = ctx
-                        .args
-                        .get(SyncOneSubscriptionFilterInput::arg_name())
-                        .unwrap()
-                        .deserialize()?;
+        let sync_one_feeds_incremental_mutation = generate_entity_filter_mutation_field::<
+            subscriptions::Entity,
+            _,
+            _,
+        >(
+            builder.context,
+            sync_one_feeds_incremental_mutation_name,
+            TypeRef::named_nn(entity_object_builder.type_name::<subscriber_tasks::Entity>()),
+            Arc::new(|resolver_ctx, app_ctx, filters| {
+                let filters_condition =
+                    get_filter_conditions::<subscriptions::Entity>(resolver_ctx, context, filters);
 
-                    let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
-                        app_ctx.as_ref(),
-                        filter_input.id,
-                        subscriber_id,
-                    )
-                    .await?;
+                Box::pin(async move {
+                    let db = app_ctx.db();
+
+                    let subscription_model = subscriptions::Entity::find()
+                        .filter(filters_condition)
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "Subscription".into(),
+                        })?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -107,48 +61,56 @@ pub fn register_subscriptions_to_schema_builder(
 
                     let task_id = task_service
                         .add_subscriber_task(
-                            auth_user_info.subscriber_auth.subscriber_id,
+                            subscription_model.subscriber_id,
                             SubscriberTask::SyncOneSubscriptionFeedsIncremental(
                                 subscription.into(),
                             ),
                         )
                         .await?;
 
-                    Ok(Some(FieldValue::owned_any(SyncOneSubscriptionInfo {
-                        task_id: task_id.to_string(),
-                    })))
+                    let task_model = subscriber_tasks::Entity::find()
+                        .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "SubscriberTask".into(),
+                        })?;
+
+                    Ok(Some(FieldValue::owned_any(task_model)))
                 })
-            },
-        )
-        .argument(InputValue::new(
-            SyncOneSubscriptionFilterInput::arg_name(),
-            TypeRef::named_nn(SyncOneSubscriptionFilterInput::input_type_name()),
-        )),
-    );
+            }),
+        );
 
-    builder.mutations.push(
-        Field::new(
-            "subscriptionSyncOneFeedsFull",
-            TypeRef::named_nn(SyncOneSubscriptionInfo::object_type_name()),
-            move |ctx| {
-                FieldFuture::new(async move {
-                    let auth_user_info = ctx.data::<AuthUserInfo>()?;
+        builder.mutations.push(sync_one_feeds_incremental_mutation);
+    }
+    {
+        let sync_one_feeds_full_mutation_name = format!(
+            "{}SyncOneFeedsFull",
+            entity_query_field.type_name::<subscriptions::Entity>()
+        );
 
-                    let app_ctx = ctx.data::<Arc<dyn AppContextTrait>>()?;
-                    let subscriber_id = auth_user_info.subscriber_auth.subscriber_id;
+        let sync_one_feeds_full_mutation = generate_entity_filter_mutation_field::<
+            subscriptions::Entity,
+            _,
+            _,
+        >(
+            builder.context,
+            sync_one_feeds_full_mutation_name,
+            TypeRef::named_nn(entity_object_builder.type_name::<subscriber_tasks::Entity>()),
+            Arc::new(|resolver_ctx, app_ctx, filters| {
+                let filters_condition =
+                    get_filter_conditions::<subscriptions::Entity>(resolver_ctx, context, filters);
 
-                    let filter_input: SyncOneSubscriptionFilterInput = ctx
-                        .args
-                        .get(SyncOneSubscriptionFilterInput::arg_name())
-                        .unwrap()
-                        .deserialize()?;
+                Box::pin(async move {
+                    let db = app_ctx.db();
 
-                    let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
-                        app_ctx.as_ref(),
-                        filter_input.id,
-                        subscriber_id,
-                    )
-                    .await?;
+                    let subscription_model = subscriptions::Entity::find()
+                        .filter(filters_condition)
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "Subscription".into(),
+                        })?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -157,46 +119,55 @@ pub fn register_subscriptions_to_schema_builder(
 
                     let task_id = task_service
                         .add_subscriber_task(
-                            auth_user_info.subscriber_auth.subscriber_id,
+                            subscription_model.subscriber_id,
                             SubscriberTask::SyncOneSubscriptionFeedsFull(subscription.into()),
                         )
                         .await?;
 
-                    Ok(Some(FieldValue::owned_any(SyncOneSubscriptionInfo {
-                        task_id: task_id.to_string(),
-                    })))
+                    let task_model = subscriber_tasks::Entity::find()
+                        .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "SubscriberTask".into(),
+                        })?;
+
+                    Ok(Some(FieldValue::owned_any(task_model)))
                 })
-            },
-        )
-        .argument(InputValue::new(
-            SyncOneSubscriptionFilterInput::arg_name(),
-            TypeRef::named_nn(SyncOneSubscriptionFilterInput::input_type_name()),
-        )),
-    );
+            }),
+        );
 
-    builder.mutations.push(
-        Field::new(
-            "subscriptionSyncOneSources",
-            TypeRef::named_nn(SyncOneSubscriptionInfo::object_type_name()),
-            move |ctx| {
-                FieldFuture::new(async move {
-                    let auth_user_info = ctx.data::<AuthUserInfo>()?;
-                    let app_ctx = ctx.data::<Arc<dyn AppContextTrait>>()?;
+        builder.mutations.push(sync_one_feeds_full_mutation);
+    }
 
-                    let subscriber_id = auth_user_info.subscriber_auth.subscriber_id;
+    {
+        let sync_one_sources_mutation_name = format!(
+            "{}SyncOneSources",
+            entity_query_field.type_name::<subscriptions::Entity>()
+        );
 
-                    let filter_input: SyncOneSubscriptionFilterInput = ctx
-                        .args
-                        .get(SyncOneSubscriptionFilterInput::arg_name())
-                        .unwrap()
-                        .deserialize()?;
+        let sync_one_sources_mutation = generate_entity_filter_mutation_field::<
+            subscriptions::Entity,
+            _,
+            _,
+        >(
+            builder.context,
+            sync_one_sources_mutation_name,
+            TypeRef::named_nn(entity_object_builder.type_name::<subscriber_tasks::Entity>()),
+            Arc::new(|resolver_ctx, app_ctx, filters| {
+                let filters_condition =
+                    get_filter_conditions::<subscriptions::Entity>(resolver_ctx, context, filters);
 
-                    let subscription_model = subscriptions::Model::find_by_id_and_subscriber_id(
-                        app_ctx.as_ref(),
-                        filter_input.id,
-                        subscriber_id,
-                    )
-                    .await?;
+                Box::pin(async move {
+                    let db = app_ctx.db();
+
+                    let subscription_model = subscriptions::Entity::find()
+                        .filter(filters_condition)
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "Subscription".into(),
+                        })?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -205,22 +176,26 @@ pub fn register_subscriptions_to_schema_builder(
 
                     let task_id = task_service
                         .add_subscriber_task(
-                            auth_user_info.subscriber_auth.subscriber_id,
+                            subscription_model.subscriber_id,
                             SubscriberTask::SyncOneSubscriptionSources(subscription.into()),
                         )
                         .await?;
 
-                    Ok(Some(FieldValue::owned_any(SyncOneSubscriptionInfo {
-                        task_id: task_id.to_string(),
-                    })))
+                    let task_model = subscriber_tasks::Entity::find()
+                        .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
+                            entity: "SubscriberTask".into(),
+                        })?;
+
+                    Ok(Some(FieldValue::owned_any(task_model)))
                 })
-            },
-        )
-        .argument(InputValue::new(
-            SyncOneSubscriptionFilterInput::arg_name(),
-            TypeRef::named_nn(SyncOneSubscriptionFilterInput::input_type_name()),
-        )),
-    );
+            }),
+        );
+
+        builder.mutations.push(sync_one_sources_mutation);
+    }
 
     builder
 }

@@ -1,4 +1,4 @@
-use std::{ops::Deref, sync::Arc};
+use std::{ops::Deref, str::FromStr, sync::Arc};
 
 use apalis::prelude::*;
 use apalis_sql::{
@@ -10,7 +10,7 @@ use tokio::sync::RwLock;
 
 use crate::{
     app::AppContextTrait,
-    errors::RecorderResult,
+    errors::{RecorderError, RecorderResult},
     task::{SUBSCRIBER_TASK_APALIS_NAME, SubscriberTask, TaskConfig},
 };
 
@@ -45,6 +45,19 @@ impl TaskService {
         job.run(ctx).await
     }
 
+    pub async fn retry_subscriber_task(&self, job_id: String) -> RecorderResult<()> {
+        {
+            let mut storage = self.subscriber_task_storage.write().await;
+            let task_id =
+                TaskId::from_str(&job_id).map_err(|err| RecorderError::InvalidTaskId {
+                    message: err.to_string(),
+                })?;
+            let worker_id = WorkerId::new(SUBSCRIBER_TASK_APALIS_NAME);
+            storage.retry(&worker_id, &task_id).await?;
+        }
+        Ok(())
+    }
+
     pub async fn add_subscriber_task(
         &self,
         _subscriber_id: i32,
@@ -65,15 +78,23 @@ impl TaskService {
     }
 
     pub async fn setup_monitor(&self) -> RecorderResult<Monitor> {
-        let monitor = Monitor::new();
-        let worker = WorkerBuilder::new(SUBSCRIBER_TASK_APALIS_NAME)
-            .catch_panic()
-            .enable_tracing()
-            .data(self.ctx.clone())
-            .backend(self.subscriber_task_storage.read().await.clone())
-            .build_fn(Self::run_subscriber_task);
+        let mut monitor = Monitor::new();
 
-        Ok(monitor.register(worker))
+        {
+            let subscriber_task_worker = WorkerBuilder::new(SUBSCRIBER_TASK_APALIS_NAME)
+                .catch_panic()
+                .enable_tracing()
+                .data(self.ctx.clone())
+                .backend({
+                    let storage = self.subscriber_task_storage.read().await;
+                    storage.clone()
+                })
+                .build_fn(Self::run_subscriber_task);
+
+            monitor = monitor.register(subscriber_task_worker);
+        }
+
+        Ok(monitor)
     }
 
     pub async fn setup_listener(&self) -> RecorderResult<PgListen> {

@@ -26,7 +26,7 @@ import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 
 export type SubscriptionSyncViewCompletePayload = {
-  taskId: string;
+  id: string;
 };
 
 export interface SubscriptionSyncViewProps {
@@ -43,7 +43,7 @@ export const SubscriptionSyncView = memo(
       >(SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL, {
         onCompleted: (data) => {
           toast.success('Sync completed');
-          onComplete(data.subscriptionSyncOneFeedsIncremental);
+          onComplete(data.subscriptionsSyncOneFeedsIncremental);
         },
         onError: (error) => {
           toast.error('Failed to sync subscription', {
@@ -58,7 +58,7 @@ export const SubscriptionSyncView = memo(
     >(SYNC_SUBSCRIPTION_FEEDS_FULL, {
       onCompleted: (data) => {
         toast.success('Sync completed');
-        onComplete(data.subscriptionSyncOneFeedsFull);
+        onComplete(data.subscriptionsSyncOneFeedsFull);
       },
       onError: (error) => {
         toast.error('Failed to sync subscription', {
@@ -73,7 +73,7 @@ export const SubscriptionSyncView = memo(
     >(SYNC_SUBSCRIPTION_SOURCES, {
       onCompleted: (data) => {
         toast.success('Sync completed');
-        onComplete(data.subscriptionSyncOneSources);
+        onComplete(data.subscriptionsSyncOneSources);
       },
       onError: (error) => {
         toast.error('Failed to sync subscription', {
@@ -89,7 +89,11 @@ export const SubscriptionSyncView = memo(
         <Button
           size="lg"
           variant="outline"
-          onClick={() => syncSubscriptionSources({ variables: { id } })}
+          onClick={() =>
+            syncSubscriptionSources({
+              variables: { filter: { id: { eq: id } } },
+            })
+          }
         >
           <RefreshCcwIcon className="h-4 w-4" />
           <span>Sources</span>
@@ -98,7 +102,9 @@ export const SubscriptionSyncView = memo(
           size="lg"
           variant="outline"
           onClick={() =>
-            syncSubscriptionFeedsIncremental({ variables: { id } })
+            syncSubscriptionFeedsIncremental({
+              variables: { filter: { id: { eq: id } } },
+            })
           }
         >
           <RefreshCcwIcon className="h-4 w-4" />
@@ -107,7 +113,11 @@ export const SubscriptionSyncView = memo(
         <Button
           size="lg"
           variant="outline"
-          onClick={() => syncSubscriptionFeedsFull({ variables: { id } })}
+          onClick={() =>
+            syncSubscriptionFeedsFull({
+              variables: { filter: { id: { eq: id } } },
+            })
+          }
         >
           <RefreshCcwIcon className="h-4 w-4" />
           <span>Full Feeds</span>
@@ -138,7 +148,7 @@ export const SubscriptionSyncDialogContent = memo(
         navigate({
           to: '/tasks/detail/$id',
           params: {
-            id: `${payload.taskId}`,
+            id: `${payload.id}`,
           },
         });
       },

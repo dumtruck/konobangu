@@ -12,14 +12,18 @@ import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
-import { GET_TASKS } from '@/domains/recorder/schema/tasks';
+import { GET_TASKS, RETRY_TASKS } from '@/domains/recorder/schema/tasks';
+import { getApolloQueryError } from '@/infra/errors/apollo';
+import { apolloErrorToMessage } from '@/infra/errors/apollo';
 import {
   type GetTasksQuery,
   type GetTasksQueryVariables,
+  type RetryTasksMutation,
+  type RetryTasksMutationVariables,
   SubscriberTaskStatusEnum,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import {
   createFileRoute,
   useCanGoBack,
@@ -28,6 +32,7 @@ import {
 } from '@tanstack/react-router';
 import { format } from 'date-fns';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/detail/$id')({
@@ -76,6 +81,28 @@ function TaskDetailRouteComponent() {
 
   const task = data?.subscriberTasks?.nodes?.[0];
 
+  const [retryTasks] = useMutation<
+    RetryTasksMutation,
+    RetryTasksMutationVariables
+  >(RETRY_TASKS, {
+    onCompleted: async () => {
+      const refetchResult = await refetch();
+      const error = getApolloQueryError(refetchResult);
+      if (error) {
+        toast.error('Failed to retry task', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Task retried successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to retry task', {
+        description: apolloErrorToMessage(error),
+      });
+    },
+  });
+
   if (loading) {
     return <DetailCardSkeleton />;
   }
@@ -123,6 +150,21 @@ function TaskDetailRouteComponent() {
             </div>
             <div className="flex items-center gap-2">
               {getStatusBadge(task.status)}
+              {task.status ===
+                (SubscriberTaskStatusEnum.Killed ||
+                  SubscriberTaskStatusEnum.Failed) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    retryTasks({
+                      variables: { filters: { id: { eq: task.id } } },
+                    })
+                  }
+                >
+                  Retry
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>

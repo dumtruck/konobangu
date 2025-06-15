@@ -25,13 +25,9 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from '@/infra/errors/apollo';
-import type {
-  GetSubscriptionsQuery,
-  SubscriptionsUpdateInput,
-} from '@/infra/graphql/gql/graphql';
+import type { GetSubscriptionsQuery } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
-import { useEvent } from '@/presentation/hooks/use-event';
 import { cn } from '@/presentation/utils';
 import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
@@ -39,7 +35,6 @@ import { useNavigate } from '@tanstack/react-router';
 import {
   type ColumnDef,
   type PaginationState,
-  type Row,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -131,29 +126,6 @@ function SubscriptionManageRouteComponent() {
 
   const subscriptions = data?.subscriptions;
 
-  const handleUpdateRecord = useEvent(
-    (row: Row<SubscriptionDto>) => async (data: SubscriptionsUpdateInput) => {
-      await updateSubscription({
-        variables: {
-          data,
-          filters: {
-            id: {
-              eq: row.original.id,
-            },
-          },
-        },
-      });
-    }
-  );
-
-  const handleDeleteRecord = useEvent(
-    (row: Row<SubscriptionDto>) => async () => {
-      await deleteSubscription({
-        variables: { filters: { id: { eq: row.original.id } } },
-      });
-    }
-  );
-
   const columns = useMemo(() => {
     const cs: ColumnDef<SubscriptionDto>[] = [
       {
@@ -166,7 +138,18 @@ function SubscriptionManageRouteComponent() {
               <Switch
                 checked={enabled}
                 onCheckedChange={(enabled) =>
-                  handleUpdateRecord(row)({ enabled: enabled })
+                  updateSubscription({
+                    variables: {
+                      data: {
+                        enabled,
+                      },
+                      filters: {
+                        id: {
+                          eq: row.original.id,
+                        },
+                      },
+                    },
+                  })
                 }
               />
             </div>
@@ -242,7 +225,11 @@ function SubscriptionManageRouteComponent() {
                 params: { id: `${row.original.id}` },
               });
             }}
-            onDelete={handleDeleteRecord(row)}
+            onDelete={() =>
+              deleteSubscription({
+                variables: { filters: { id: { eq: row.original.id } } },
+              })
+            }
           >
             <Dialog>
               <DialogTrigger asChild>
@@ -257,7 +244,7 @@ function SubscriptionManageRouteComponent() {
       },
     ];
     return cs;
-  }, [handleUpdateRecord, handleDeleteRecord, navigate]);
+  }, [updateSubscription, deleteSubscription, navigate]);
 
   const table = useReactTable({
     data: useMemo(() => subscriptions?.nodes ?? [], [subscriptions]),

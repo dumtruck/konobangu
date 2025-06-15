@@ -114,7 +114,7 @@ export type BangumiFilterInput = {
   savePath?: InputMaybe<StringFilterInput>;
   season?: InputMaybe<IntegerFilterInput>;
   seasonRaw?: InputMaybe<StringFilterInput>;
-  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  subscriberId?: InputMaybe<IntegerFilterInput>;
   updatedAt?: InputMaybe<TextFilterInput>;
 };
 
@@ -133,7 +133,7 @@ export type BangumiInsertInput = {
   savePath?: InputMaybe<Scalars['String']['input']>;
   season: Scalars['Int']['input'];
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
-  subscriberId?: InputMaybe<Scalars['Int']['input']>;
+  subscriberId: Scalars['Int']['input'];
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -171,6 +171,7 @@ export type BangumiUpdateInput = {
   savePath?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<Scalars['Int']['input']>;
   seasonRaw?: InputMaybe<Scalars['String']['input']>;
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -813,10 +814,8 @@ export type Mutation = {
   episodesCreateOne: EpisodesBasic;
   episodesDelete: Scalars['Int']['output'];
   episodesUpdate: Array<EpisodesBasic>;
-  subscriberTasksCreateBatch: Array<SubscriberTasksBasic>;
-  subscriberTasksCreateOne: SubscriberTasksBasic;
   subscriberTasksDelete: Scalars['Int']['output'];
-  subscriberTasksUpdate: Array<SubscriberTasksBasic>;
+  subscriberTasksRetryOne: SubscriberTasks;
   subscriptionBangumiCreateBatch: Array<SubscriptionBangumiBasic>;
   subscriptionBangumiCreateOne: SubscriptionBangumiBasic;
   subscriptionBangumiDelete: Scalars['Int']['output'];
@@ -825,12 +824,12 @@ export type Mutation = {
   subscriptionEpisodeCreateOne: SubscriptionEpisodeBasic;
   subscriptionEpisodeDelete: Scalars['Int']['output'];
   subscriptionEpisodeUpdate: Array<SubscriptionEpisodeBasic>;
-  subscriptionSyncOneFeedsFull: SyncOneSubscriptionInfo;
-  subscriptionSyncOneFeedsIncremental: SyncOneSubscriptionInfo;
-  subscriptionSyncOneSources: SyncOneSubscriptionInfo;
   subscriptionsCreateBatch: Array<SubscriptionsBasic>;
   subscriptionsCreateOne: SubscriptionsBasic;
   subscriptionsDelete: Scalars['Int']['output'];
+  subscriptionsSyncOneFeedsFull: SubscriberTasks;
+  subscriptionsSyncOneFeedsIncremental: SubscriberTasks;
+  subscriptionsSyncOneSources: SubscriberTasks;
   subscriptionsUpdate: Array<SubscriptionsBasic>;
 };
 
@@ -940,23 +939,12 @@ export type MutationEpisodesUpdateArgs = {
 };
 
 
-export type MutationSubscriberTasksCreateBatchArgs = {
-  data: Array<SubscriberTasksInsertInput>;
-};
-
-
-export type MutationSubscriberTasksCreateOneArgs = {
-  data: SubscriberTasksInsertInput;
-};
-
-
 export type MutationSubscriberTasksDeleteArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
 };
 
 
-export type MutationSubscriberTasksUpdateArgs = {
-  data: SubscriberTasksUpdateInput;
+export type MutationSubscriberTasksRetryOneArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
 };
 
@@ -1003,21 +991,6 @@ export type MutationSubscriptionEpisodeUpdateArgs = {
 };
 
 
-export type MutationSubscriptionSyncOneFeedsFullArgs = {
-  filter: SyncOneSubscriptionFilterInput;
-};
-
-
-export type MutationSubscriptionSyncOneFeedsIncrementalArgs = {
-  filter: SyncOneSubscriptionFilterInput;
-};
-
-
-export type MutationSubscriptionSyncOneSourcesArgs = {
-  filter: SyncOneSubscriptionFilterInput;
-};
-
-
 export type MutationSubscriptionsCreateBatchArgs = {
   data: Array<SubscriptionsInsertInput>;
 };
@@ -1029,6 +1002,21 @@ export type MutationSubscriptionsCreateOneArgs = {
 
 
 export type MutationSubscriptionsDeleteArgs = {
+  filter?: InputMaybe<SubscriptionsFilterInput>;
+};
+
+
+export type MutationSubscriptionsSyncOneFeedsFullArgs = {
+  filter?: InputMaybe<SubscriptionsFilterInput>;
+};
+
+
+export type MutationSubscriptionsSyncOneFeedsIncrementalArgs = {
+  filter?: InputMaybe<SubscriptionsFilterInput>;
+};
+
+
+export type MutationSubscriptionsSyncOneSourcesArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
 };
 
@@ -1231,23 +1219,6 @@ export type SubscriberTasks = {
   taskType: SubscriberTaskTypeEnum;
 };
 
-export type SubscriberTasksBasic = {
-  __typename?: 'SubscriberTasksBasic';
-  attempts: Scalars['Int']['output'];
-  doneAt?: Maybe<Scalars['String']['output']>;
-  id: Scalars['String']['output'];
-  job: Scalars['Json']['output'];
-  lastError?: Maybe<Scalars['String']['output']>;
-  lockAt?: Maybe<Scalars['String']['output']>;
-  lockBy?: Maybe<Scalars['String']['output']>;
-  maxAttempts: Scalars['Int']['output'];
-  priority: Scalars['Int']['output'];
-  runAt: Scalars['String']['output'];
-  status: SubscriberTaskStatusEnum;
-  subscriberId: Scalars['Int']['output'];
-  taskType: SubscriberTaskTypeEnum;
-};
-
 export type SubscriberTasksConnection = {
   __typename?: 'SubscriberTasksConnection';
   edges: Array<SubscriberTasksEdge>;
@@ -1280,22 +1251,6 @@ export type SubscriberTasksFilterInput = {
   taskType?: InputMaybe<StringFilterInput>;
 };
 
-export type SubscriberTasksInsertInput = {
-  attempts: Scalars['Int']['input'];
-  doneAt?: InputMaybe<Scalars['String']['input']>;
-  id?: InputMaybe<Scalars['String']['input']>;
-  job: Scalars['Json']['input'];
-  lastError?: InputMaybe<Scalars['String']['input']>;
-  lockAt?: InputMaybe<Scalars['String']['input']>;
-  lockBy?: InputMaybe<Scalars['String']['input']>;
-  maxAttempts: Scalars['Int']['input'];
-  priority: Scalars['Int']['input'];
-  runAt: Scalars['String']['input'];
-  status: SubscriberTaskStatusEnum;
-  subscriberId?: InputMaybe<Scalars['Int']['input']>;
-  taskType: SubscriberTaskTypeEnum;
-};
-
 export type SubscriberTasksOrderInput = {
   attempts?: InputMaybe<OrderByEnum>;
   doneAt?: InputMaybe<OrderByEnum>;
@@ -1310,21 +1265,6 @@ export type SubscriberTasksOrderInput = {
   status?: InputMaybe<OrderByEnum>;
   subscriberId?: InputMaybe<OrderByEnum>;
   taskType?: InputMaybe<OrderByEnum>;
-};
-
-export type SubscriberTasksUpdateInput = {
-  attempts?: InputMaybe<Scalars['Int']['input']>;
-  doneAt?: InputMaybe<Scalars['String']['input']>;
-  id?: InputMaybe<Scalars['String']['input']>;
-  job?: InputMaybe<Scalars['Json']['input']>;
-  lastError?: InputMaybe<Scalars['String']['input']>;
-  lockAt?: InputMaybe<Scalars['String']['input']>;
-  lockBy?: InputMaybe<Scalars['String']['input']>;
-  maxAttempts?: InputMaybe<Scalars['Int']['input']>;
-  priority?: InputMaybe<Scalars['Int']['input']>;
-  runAt?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<SubscriberTaskStatusEnum>;
-  taskType?: InputMaybe<SubscriberTaskTypeEnum>;
 };
 
 export type Subscribers = {
@@ -1672,17 +1612,6 @@ export type SubscriptionsUpdateInput = {
   updatedAt?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** The input of the subscriptionSyncOne series of mutations */
-export type SyncOneSubscriptionFilterInput = {
-  id: Scalars['Int']['input'];
-};
-
-/** The output of the subscriptionSyncOne series of mutations */
-export type SyncOneSubscriptionInfo = {
-  __typename?: 'SyncOneSubscriptionInfo';
-  taskId: Scalars['String']['output'];
-};
-
 export type TextFilterInput = {
   between?: InputMaybe<Array<Scalars['String']['input']>>;
   eq?: InputMaybe<Scalars['String']['input']>;
@@ -1782,25 +1711,25 @@ export type GetSubscriptionDetailQueryVariables = Exact<{
 export type GetSubscriptionDetailQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, displayName: string, createdAt: string, updatedAt: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, credential3rd?: { __typename?: 'Credential3rd', id: number, username?: string | null } | null, bangumi: { __typename?: 'BangumiConnection', nodes: Array<{ __typename?: 'Bangumi', createdAt: string, updatedAt: string, id: number, mikanBangumiId?: string | null, displayName: string, rawName: string, season: number, seasonRaw?: string | null, fansub?: string | null, mikanFansubId?: string | null, rssLink?: string | null, posterLink?: string | null, savePath?: string | null, homepage?: string | null }> } }> } };
 
 export type SyncSubscriptionFeedsIncrementalMutationVariables = Exact<{
-  id: Scalars['Int']['input'];
+  filter: SubscriptionsFilterInput;
 }>;
 
 
-export type SyncSubscriptionFeedsIncrementalMutation = { __typename?: 'Mutation', subscriptionSyncOneFeedsIncremental: { __typename?: 'SyncOneSubscriptionInfo', taskId: string } };
+export type SyncSubscriptionFeedsIncrementalMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsIncremental: { __typename?: 'SubscriberTasks', id: string } };
 
 export type SyncSubscriptionFeedsFullMutationVariables = Exact<{
-  id: Scalars['Int']['input'];
+  filter: SubscriptionsFilterInput;
 }>;
 
 
-export type SyncSubscriptionFeedsFullMutation = { __typename?: 'Mutation', subscriptionSyncOneFeedsFull: { __typename?: 'SyncOneSubscriptionInfo', taskId: string } };
+export type SyncSubscriptionFeedsFullMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsFull: { __typename?: 'SubscriberTasks', id: string } };
 
 export type SyncSubscriptionSourcesMutationVariables = Exact<{
-  id: Scalars['Int']['input'];
+  filter: SubscriptionsFilterInput;
 }>;
 
 
-export type SyncSubscriptionSourcesMutation = { __typename?: 'Mutation', subscriptionSyncOneSources: { __typename?: 'SyncOneSubscriptionInfo', taskId: string } };
+export type SyncSubscriptionSourcesMutation = { __typename?: 'Mutation', subscriptionsSyncOneSources: { __typename?: 'SubscriberTasks', id: string } };
 
 export type GetTasksQueryVariables = Exact<{
   filters: SubscriberTasksFilterInput;
@@ -1810,6 +1739,20 @@ export type GetTasksQueryVariables = Exact<{
 
 
 export type GetTasksQuery = { __typename?: 'Query', subscriberTasks: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+
+export type DeleteTasksMutationVariables = Exact<{
+  filters: SubscriberTasksFilterInput;
+}>;
+
+
+export type DeleteTasksMutation = { __typename?: 'Mutation', subscriberTasksDelete: number };
+
+export type RetryTasksMutationVariables = Exact<{
+  filters: SubscriberTasksFilterInput;
+}>;
+
+
+export type RetryTasksMutation = { __typename?: 'Mutation', subscriberTasksRetryOne: { __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number } };
 
 
 export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdOrderInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdQuery, GetCredential3rdQueryVariables>;
@@ -1823,7 +1766,9 @@ export const InsertSubscriptionDocument = {"kind":"Document","definitions":[{"ki
 export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
 export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
 export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"rawName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"savePath"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
-export const SyncSubscriptionFeedsIncrementalDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsIncremental"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionSyncOneFeedsIncremental"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"taskId"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsIncrementalMutation, SyncSubscriptionFeedsIncrementalMutationVariables>;
-export const SyncSubscriptionFeedsFullDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsFull"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionSyncOneFeedsFull"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"taskId"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsFullMutation, SyncSubscriptionFeedsFullMutationVariables>;
-export const SyncSubscriptionSourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionSources"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionSyncOneSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"taskId"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionSourcesMutation, SyncSubscriptionSourcesMutationVariables>;
+export const SyncSubscriptionFeedsIncrementalDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsIncremental"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsIncremental"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsIncrementalMutation, SyncSubscriptionFeedsIncrementalMutationVariables>;
+export const SyncSubscriptionFeedsFullDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsFull"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsFull"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsFullMutation, SyncSubscriptionFeedsFullMutationVariables>;
+export const SyncSubscriptionSourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionSources"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionSourcesMutation, SyncSubscriptionSourcesMutationVariables>;
 export const GetTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
+export const DeleteTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteTasksMutation, DeleteTasksMutationVariables>;
+export const RetryTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RetryTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksRetryOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}}]}}]} as unknown as DocumentNode<RetryTasksMutation, RetryTasksMutationVariables>;

@@ -103,7 +103,7 @@ pub enum RecorderError {
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
         source: OptDynErr,
     },
-    #[snafu(display("Model Entity {entity} not found"))]
+    #[snafu(display("Model Entity {entity} not found or not belong to subscriber"))]
     ModelEntityNotFound { entity: Cow<'static, str> },
     #[snafu(transparent)]
     FetchError { source: FetchError },
@@ -123,6 +123,8 @@ pub enum RecorderError {
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
         source: OptDynErr,
     },
+    #[snafu(display("Invalid task id: {message}"))]
+    InvalidTaskId { message: String },
 }
 
 impl RecorderError {

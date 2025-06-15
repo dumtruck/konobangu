@@ -35,6 +35,31 @@ export const GET_TASKS = gql`
   }
 `;
 
+export const DELETE_TASKS = gql`
+  mutation DeleteTasks($filters: SubscriberTasksFilterInput!) {
+    subscriberTasksDelete(filter: $filters)
+  }
+`;
+
+export const RETRY_TASKS = gql`
+  mutation RetryTasks($filters: SubscriberTasksFilterInput!) {
+    subscriberTasksRetryOne(filter: $filters) {
+        id,
+        job,
+        taskType,
+        status,
+        attempts,
+        maxAttempts,
+        runAt,
+        lastError,
+        lockAt,
+        lockBy,
+        doneAt,
+        priority
+    }
+  }
+`;
+
 export const TaskTypedSyncOneSubscriptionFeedsIncrementalSchema = type({
   taskType: `'${SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsIncremental}'`,
 }).and(SubscriptionSchema);

@@ -123,25 +123,25 @@ query GetSubscriptionDetail ($id: Int!) {
 `;
 
 export const SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL = gql`
-  mutation SyncSubscriptionFeedsIncremental($id: Int!) {
-    subscriptionSyncOneFeedsIncremental(filter: { id: $id }) {
-      taskId
+  mutation SyncSubscriptionFeedsIncremental($filter: SubscriptionsFilterInput!) {
+    subscriptionsSyncOneFeedsIncremental(filter: $filter) {
+      id
     }
   }
 `;
 
 export const SYNC_SUBSCRIPTION_FEEDS_FULL = gql`
-  mutation SyncSubscriptionFeedsFull($id: Int!) {
-    subscriptionSyncOneFeedsFull(filter: { id: $id }) {
-      taskId
+  mutation SyncSubscriptionFeedsFull($filter: SubscriptionsFilterInput!) {
+    subscriptionsSyncOneFeedsFull(filter: $filter) {
+      id
     }
   }
 `;
 
 export const SYNC_SUBSCRIPTION_SOURCES = gql`
-  mutation SyncSubscriptionSources($id: Int!) {
-    subscriptionSyncOneSources(filter: { id: $id }) {
-      taskId
+  mutation SyncSubscriptionSources($filter: SubscriptionsFilterInput!) {
+    subscriptionsSyncOneSources(filter: $filter) {
+      id
     }
   }
 `;

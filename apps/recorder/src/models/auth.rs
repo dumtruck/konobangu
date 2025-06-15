@@ -99,7 +99,9 @@ impl Model {
             ..Default::default()
         };
 
-        let new_item: Model = new_item.save(&txn).await?.try_into()?;
+        let new_item: Model = new_item.insert(&txn).await?;
+
+        txn.commit().await?;
 
         Ok(new_item)
     }

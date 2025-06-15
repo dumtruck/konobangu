@@ -5,14 +5,23 @@ import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GET_TASKS, type TaskDto } from '@/domains/recorder/schema/tasks';
 import {
+  DELETE_TASKS,
+  GET_TASKS,
+  RETRY_TASKS,
+  type TaskDto,
+} from '@/domains/recorder/schema/tasks';
+import {
+  type DeleteTasksMutation,
+  type DeleteTasksMutationVariables,
   type GetTasksQuery,
+  type RetryTasksMutation,
+  type RetryTasksMutationVariables,
   SubscriberTaskStatusEnum,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   type ColumnDef,
@@ -26,7 +35,13 @@ import {
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/manage')({
@@ -69,6 +84,42 @@ function TaskManageRouteComponent() {
   const { showSkeleton } = useDebouncedSkeleton({ loading });
 
   const tasks = data?.subscriberTasks;
+
+  const [deleteTasks] = useMutation<
+    DeleteTasksMutation,
+    DeleteTasksMutationVariables
+  >(DELETE_TASKS, {
+    onCompleted: async () => {
+      const refetchResult = await refetch();
+      const error = getApolloQueryError(refetchResult);
+      if (error) {
+        toast.error('Failed to delete tasks', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Tasks deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete tasks', {
+        description: error.message,
+      });
+    },
+  });
+
+  const [retryTasks] = useMutation<
+    RetryTasksMutation,
+    RetryTasksMutationVariables
+  >(RETRY_TASKS, {
+    onCompleted: () => {
+      toast.success('Tasks retried');
+    },
+    onError: (error) => {
+      toast.error('Failed to retry tasks', {
+        description: error.message,
+      });
+    },
+  });
 
   const columns = useMemo(() => {
     const cs: ColumnDef<TaskDto>[] = [
@@ -167,7 +218,39 @@ function TaskManageRouteComponent() {
                           params: { id: task.id },
                         });
                       }}
-                    />
+                      showDelete
+                      onDelete={() =>
+                        deleteTasks({
+                          variables: {
+                            filters: {
+                              id: {
+                                eq: task.id,
+                              },
+                            },
+                          },
+                        })
+                      }
+                    >
+                      {task.status ===
+                        (SubscriberTaskStatusEnum.Killed ||
+                          SubscriberTaskStatusEnum.Failed) && (
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            retryTasks({
+                              variables: {
+                                filters: {
+                                  id: {
+                                    eq: task.id,
+                                  },
+                                },
+                              },
+                            })
+                          }
+                        >
+                          Retry
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuActions>
                   </div>
                 </div>
 
