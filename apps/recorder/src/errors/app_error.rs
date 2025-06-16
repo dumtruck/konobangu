@@ -5,8 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use fetch::{FetchError, HttpClientError, reqwest, reqwest_middleware};
-use http::StatusCode;
-use serde::{Deserialize, Deserializer, Serialize};
+use http::{HeaderMap, StatusCode};
 use snafu::Snafu;
 
 use crate::{
@@ -19,6 +18,19 @@ use crate::{
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub enum RecorderError {
+    #[snafu(display(
+        "HTTP {status} {reason}, source = {source:?}",
+        status = status,
+        reason = status.canonical_reason().unwrap_or("Unknown")
+    ))]
+    HttpResponseError {
+        status: StatusCode,
+        headers: Option<HeaderMap>,
+        #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
+        source: OptDynErr,
+    },
+    #[snafu(transparent, context(false))]
+    HttpError { source: http::Error },
     #[snafu(transparent, context(false))]
     FancyRegexError {
         #[snafu(source(from(fancy_regex::Error, Box::new)))]
@@ -128,6 +140,22 @@ pub enum RecorderError {
 }
 
 impl RecorderError {
+    pub fn from_status(status: StatusCode) -> Self {
+        Self::HttpResponseError {
+            status,
+            headers: None,
+            source: None.into(),
+        }
+    }
+
+    pub fn from_status_and_headers(status: StatusCode, headers: HeaderMap) -> Self {
+        Self::HttpResponseError {
+            status,
+            headers: Some(headers),
+            source: None.into(),
+        }
+    }
+
     pub fn from_mikan_meta_missing_field(field: Cow<'static, str>) -> Self {
         Self::MikanMetaMissingFieldError {
             field,
@@ -177,38 +205,53 @@ impl snafu::FromString for RecorderError {
     }
 }
 
+impl From<StatusCode> for RecorderError {
+    fn from(status: StatusCode) -> Self {
+        Self::HttpResponseError {
+            status,
+            headers: None,
+            source: None.into(),
+        }
+    }
+}
+
+impl From<(StatusCode, HeaderMap)> for RecorderError {
+    fn from((status, headers): (StatusCode, HeaderMap)) -> Self {
+        Self::HttpResponseError {
+            status,
+            headers: Some(headers),
+            source: None.into(),
+        }
+    }
+}
+
 impl IntoResponse for RecorderError {
     fn into_response(self) -> Response {
         match self {
             Self::AuthError { source: auth_error } => auth_error.into_response(),
+            Self::HttpResponseError {
+                status,
+                headers,
+                source,
+            } => {
+                let message = Option::<_>::from(source)
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| {
+                        String::from(status.canonical_reason().unwrap_or("Unknown"))
+                    });
+                (
+                    status,
+                    headers,
+                    Json::<StandardErrorResponse>(StandardErrorResponse::from(message)),
+                )
+                    .into_response()
+            }
             err => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json::<StandardErrorResponse>(StandardErrorResponse::from(err.to_string())),
             )
                 .into_response(),
         }
-    }
-}
-
-impl Serialize for RecorderError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for RecorderError {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        Ok(Self::Whatever {
-            message: s,
-            source: None.into(),
-        })
     }
 }
 

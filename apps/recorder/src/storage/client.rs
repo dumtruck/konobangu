@@ -1,8 +1,8 @@
 use std::fmt;
 
 use bytes::Bytes;
-use opendal::{Buffer, Operator, layers::LoggingLayer};
-use quirks_path::{Path, PathBuf};
+use opendal::{Buffer, Metadata, Operator, Reader, Writer, layers::LoggingLayer};
+use quirks_path::PathBuf;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
@@ -43,88 +43,6 @@ impl fmt::Display for StorageStoredUrl {
     }
 }
 
-#[async_trait::async_trait]
-pub trait StorageServiceTrait: Sync {
-    fn get_operator(&self) -> RecorderResult<Operator>;
-
-    fn get_fullname(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-    ) -> PathBuf {
-        [
-            &subscriber_id.to_string(),
-            content_category.as_ref(),
-            bucket.unwrap_or_default(),
-            filename,
-        ]
-        .into_iter()
-        .map(Path::new)
-        .collect::<PathBuf>()
-    }
-    async fn store_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-        data: Bytes,
-    ) -> RecorderResult<StorageStoredUrl> {
-        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
-
-        let operator = self.get_operator()?;
-
-        if let Some(dirname) = fullname.parent() {
-            let dirname = dirname.join("/");
-            operator.create_dir(dirname.as_str()).await?;
-        }
-
-        operator.write(fullname.as_str(), data).await?;
-
-        Ok(StorageStoredUrl::RelativePath {
-            path: fullname.to_string(),
-        })
-    }
-
-    async fn exists_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-    ) -> RecorderResult<Option<StorageStoredUrl>> {
-        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
-
-        let operator = self.get_operator()?;
-
-        if operator.exists(fullname.as_str()).await? {
-            Ok(Some(StorageStoredUrl::RelativePath {
-                path: fullname.to_string(),
-            }))
-        } else {
-            Ok(None)
-        }
-    }
-
-    async fn load_object(
-        &self,
-        content_category: StorageContentCategory,
-        subscriber_id: i32,
-        bucket: Option<&str>,
-        filename: &str,
-    ) -> RecorderResult<Buffer> {
-        let fullname = self.get_fullname(content_category, subscriber_id, bucket, filename);
-
-        let operator = self.get_operator()?;
-
-        let data = operator.read(fullname.as_str()).await?;
-
-        Ok(data)
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct StorageService {
     pub data_dir: String,
@@ -136,15 +54,106 @@ impl StorageService {
             data_dir: config.data_dir.to_string(),
         })
     }
-}
 
-#[async_trait::async_trait]
-impl StorageServiceTrait for StorageService {
-    fn get_operator(&self) -> RecorderResult<Operator> {
-        let fs_op = Operator::new(opendal::services::Fs::default().root(&self.data_dir))?
-            .layer(LoggingLayer::default())
-            .finish();
+    pub fn get_operator(&self) -> Result<Operator, opendal::Error> {
+        let op = if cfg!(test) {
+            Operator::new(opendal::services::Memory::default())?
+                .layer(LoggingLayer::default())
+                .finish()
+        } else {
+            Operator::new(opendal::services::Fs::default().root(&self.data_dir))?
+                .layer(LoggingLayer::default())
+                .finish()
+        };
 
-        Ok(fs_op)
+        Ok(op)
+    }
+
+    pub fn build_subscriber_path(&self, subscriber_id: i32, path: &str) -> PathBuf {
+        let mut p = PathBuf::from("/subscribers");
+        p.push(subscriber_id.to_string());
+        p.push(path);
+        p
+    }
+
+    pub fn build_subscriber_object_path(
+        &self,
+        content_category: StorageContentCategory,
+        subscriber_id: i32,
+        bucket: &str,
+        object_name: &str,
+    ) -> PathBuf {
+        self.build_subscriber_path(
+            subscriber_id,
+            &format!("{}/{}/{}", content_category.as_ref(), bucket, object_name),
+        )
+    }
+
+    pub async fn write<P: Into<PathBuf> + Send>(
+        &self,
+        path: P,
+        data: Bytes,
+    ) -> Result<StorageStoredUrl, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let path = path.into();
+
+        if let Some(dirname) = path.parent() {
+            let dirname = dirname.join("/");
+            operator.create_dir(dirname.as_str()).await?;
+        }
+
+        operator.write(path.as_str(), data).await?;
+
+        Ok(StorageStoredUrl::RelativePath {
+            path: path.to_string(),
+        })
+    }
+
+    pub async fn exists<P: ToString + Send>(
+        &self,
+        path: P,
+    ) -> Result<Option<StorageStoredUrl>, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let path = path.to_string();
+
+        if operator.exists(&path).await? {
+            Ok(Some(StorageStoredUrl::RelativePath { path }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub async fn read(&self, path: impl AsRef<str>) -> Result<Buffer, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let data = operator.read(path.as_ref()).await?;
+
+        Ok(data)
+    }
+
+    pub async fn reader(&self, path: impl AsRef<str>) -> Result<Reader, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let reader = operator.reader(path.as_ref()).await?;
+
+        Ok(reader)
+    }
+
+    pub async fn writer(&self, path: impl AsRef<str>) -> Result<Writer, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let writer = operator.writer(path.as_ref()).await?;
+
+        Ok(writer)
+    }
+
+    pub async fn stat(&self, path: impl AsRef<str>) -> Result<Metadata, opendal::Error> {
+        let operator = self.get_operator()?;
+
+        let metadata = operator.stat(path.as_ref()).await?;
+
+        Ok(metadata)
     }
 }

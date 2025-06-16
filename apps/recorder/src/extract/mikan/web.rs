@@ -28,7 +28,7 @@ use crate::{
             MIKAN_YEAR_QUERY_KEY, MikanClient,
         },
     },
-    storage::{StorageContentCategory, StorageServiceTrait},
+    storage::{StorageContentCategory, StorageService},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -739,18 +739,20 @@ pub async fn scrape_mikan_poster_data_from_image_url(
 #[instrument(skip_all, fields(origin_poster_src_url = origin_poster_src_url.as_str()))]
 pub async fn scrape_mikan_poster_meta_from_image_url(
     mikan_client: &MikanClient,
-    storage_service: &dyn StorageServiceTrait,
+    storage_service: &StorageService,
     origin_poster_src_url: Url,
     subscriber_id: i32,
 ) -> RecorderResult<MikanBangumiPosterMeta> {
     if let Some(poster_src) = storage_service
-        .exists_object(
-            StorageContentCategory::Image,
-            subscriber_id,
-            Some(MIKAN_POSTER_BUCKET_KEY),
-            &origin_poster_src_url
-                .path()
-                .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
+        .exists(
+            storage_service.build_subscriber_object_path(
+                StorageContentCategory::Image,
+                subscriber_id,
+                MIKAN_POSTER_BUCKET_KEY,
+                &origin_poster_src_url
+                    .path()
+                    .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
+            ),
         )
         .await?
     {
@@ -765,13 +767,15 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             .await?;
 
     let poster_str = storage_service
-        .store_object(
-            StorageContentCategory::Image,
-            subscriber_id,
-            Some(MIKAN_POSTER_BUCKET_KEY),
-            &origin_poster_src_url
-                .path()
-                .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
+        .write(
+            storage_service.build_subscriber_object_path(
+                StorageContentCategory::Image,
+                subscriber_id,
+                MIKAN_POSTER_BUCKET_KEY,
+                &origin_poster_src_url
+                    .path()
+                    .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
+            ),
             poster_data,
         )
         .await?;
@@ -1086,10 +1090,10 @@ mod test {
 
         resources_mock.shared_resource_mock.expect(1);
 
-        let storage_fullname = storage_service.get_fullname(
+        let storage_fullname = storage_service.build_subscriber_object_path(
             StorageContentCategory::Image,
             1,
-            Some(MIKAN_POSTER_BUCKET_KEY),
+            MIKAN_POSTER_BUCKET_KEY,
             "202309/5ce9fed1.jpg",
         );
         let storage_fullename_str = storage_fullname.as_str();

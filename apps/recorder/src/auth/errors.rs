@@ -11,13 +11,14 @@ use openidconnect::{
 };
 use serde::{Deserialize, Serialize};
 use snafu::prelude::*;
-use util::OptDynErr;
 
 use crate::models::auth::AuthType;
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
 pub enum AuthError {
+    #[snafu(display("Permission denied"))]
+    PermissionError,
     #[snafu(display("Not support auth method"))]
     NotSupportAuthMethod {
         supported: Vec<AuthType>,
@@ -92,12 +93,6 @@ pub enum AuthError {
         field: String,
         column: String,
         context_path: String,
-    },
-    #[snafu(display("GraphQL permission denied since {field}"))]
-    GraphqlStaticPermissionError {
-        #[snafu(source)]
-        source: OptDynErr,
-        field: String,
     },
 }
 

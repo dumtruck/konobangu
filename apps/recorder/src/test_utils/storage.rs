@@ -1,28 +1,13 @@
-use opendal::{Operator, layers::LoggingLayer};
+use crate::{
+    errors::RecorderResult,
+    storage::{StorageConfig, StorageService},
+};
 
-use crate::{errors::RecorderResult, storage::StorageServiceTrait};
+pub async fn build_testing_storage_service() -> RecorderResult<StorageService> {
+    let service = StorageService::from_config(StorageConfig {
+        data_dir: "tests/data".to_string(),
+    })
+    .await?;
 
-pub struct TestingStorageService {
-    operator: Operator,
-}
-
-impl TestingStorageService {
-    pub fn new() -> RecorderResult<Self> {
-        let op = Operator::new(opendal::services::Memory::default())?
-            .layer(LoggingLayer::default())
-            .finish();
-
-        Ok(Self { operator: op })
-    }
-}
-
-#[async_trait::async_trait]
-impl StorageServiceTrait for TestingStorageService {
-    fn get_operator(&self) -> RecorderResult<Operator> {
-        Ok(self.operator.clone())
-    }
-}
-
-pub async fn build_testing_storage_service() -> RecorderResult<TestingStorageService> {
-    TestingStorageService::new()
+    Ok(service)
 }

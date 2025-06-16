@@ -128,6 +128,7 @@ reqwest_cookie_store = "0.8.0"
 nanoid = "0.4.0"
 jwtk = "0.4.0"
 percent-encoding = "2.3.1"
+mime_guess = "2.0.5"
 
 
 [dev-dependencies]

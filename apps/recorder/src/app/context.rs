@@ -4,17 +4,9 @@ use tokio::sync::OnceCell;
 
 use super::{Environment, config::AppConfig};
 use crate::{
-    auth::AuthService,
-    cache::CacheService,
-    crypto::CryptoService,
-    database::DatabaseService,
-    errors::RecorderResult,
-    extract::mikan::MikanClient,
-    graphql::GraphQLService,
-    logger::LoggerService,
-    message::MessageService,
-    storage::{StorageService, StorageServiceTrait},
-    task::TaskService,
+    auth::AuthService, cache::CacheService, crypto::CryptoService, database::DatabaseService,
+    errors::RecorderResult, extract::mikan::MikanClient, graphql::GraphQLService,
+    logger::LoggerService, message::MessageService, storage::StorageService, task::TaskService,
 };
 
 pub trait AppContextTrait: Send + Sync + Debug {
@@ -25,7 +17,7 @@ pub trait AppContextTrait: Send + Sync + Debug {
     fn mikan(&self) -> &MikanClient;
     fn auth(&self) -> &AuthService;
     fn graphql(&self) -> &GraphQLService;
-    fn storage(&self) -> &dyn StorageServiceTrait;
+    fn storage(&self) -> &StorageService;
     fn working_dir(&self) -> &String;
     fn environment(&self) -> &Environment;
     fn crypto(&self) -> &CryptoService;
@@ -126,7 +118,7 @@ impl AppContextTrait for AppContext {
     fn graphql(&self) -> &GraphQLService {
         self.graphql.get().expect("graphql should be set")
     }
-    fn storage(&self) -> &dyn StorageServiceTrait {
+    fn storage(&self) -> &StorageService {
         &self.storage
     }
     fn working_dir(&self) -> &String {
