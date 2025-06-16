@@ -44,7 +44,7 @@ timeout = 5000
 
 # Set the value of the [`Access-Control-Allow-Origin`][mdn] header
 # allow_origins:
-#   - https://loco.rs
+#   - https://konobangu.com
 # Set the value of the [`Access-Control-Allow-Headers`][mdn] header
 # allow_headers:
 # - Content-Type

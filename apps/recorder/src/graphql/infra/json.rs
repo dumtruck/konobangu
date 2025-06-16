@@ -18,7 +18,7 @@ use serde_json::Value as JsonValue;
 
 use crate::{
     errors::RecorderResult, graphql::infra::util::get_entity_column_key,
-    infra::json::convert_json_keys,
+    utils::json::convert_json_keys,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
