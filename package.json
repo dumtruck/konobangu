@@ -19,6 +19,9 @@
   "engines": {
     "node": ">=22"
   },
+  "dependencies": {
+    "es-toolkit": "^1.39.3"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/node": "^24.0.1",

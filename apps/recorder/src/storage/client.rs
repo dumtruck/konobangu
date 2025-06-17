@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 use async_stream::try_stream;
 use axum::{body::Body, response::Response};
@@ -206,6 +206,12 @@ impl StorageService {
         let mime_type = mime_guess::from_path(storage_path.as_ref()).first_or_octet_stream();
 
         let content_type = HeaderValue::from_str(mime_type.as_ref())?;
+        let etag = metadata.etag().map(Cow::Borrowed).or_else(|| {
+            let len = metadata.content_length();
+            let lm = metadata.last_modified()?.timestamp();
+            Some(Cow::Owned(format!("\"{lm:x}-{len:x}\"")))
+        });
+        let last_modified = metadata.last_modified().map(|lm| lm.to_rfc2822());
 
         let response = if let Some(TypedHeader(range)) = range {
             let ranges = range
@@ -240,7 +246,7 @@ impl StorageService {
                     };
                     let body = Body::from_stream(stream);
 
-                    Response::builder()
+                    let mut builder = Response::builder()
                         .status(StatusCode::PARTIAL_CONTENT)
                         .header(
                             header::CONTENT_TYPE,
@@ -248,17 +254,34 @@ impl StorageService {
                                 format!("multipart/byteranges; boundary={boundary}").as_str(),
                             )
                             .unwrap(),
-                        )
-                        .body(body)?
+                        );
+
+                    if let Some(etag) = etag {
+                        builder = builder.header(header::ETAG, etag.to_string());
+                    }
+
+                    if let Some(last_modified) = last_modified {
+                        builder = builder.header(header::LAST_MODIFIED, last_modified);
+                    }
+
+                    builder.body(body)?
                 } else if let Some((r, content_range)) = ranges.pop() {
                     let reader = self.reader(storage_path.as_ref()).await?;
                     let stream = reader.into_bytes_stream(r).await?;
 
-                    Response::builder()
+                    let mut builder = Response::builder()
                         .status(StatusCode::PARTIAL_CONTENT)
                         .header(header::CONTENT_TYPE, content_type.clone())
-                        .header(header::CONTENT_RANGE, content_range)
-                        .body(Body::from_stream(stream))?
+                        .header(header::CONTENT_RANGE, content_range);
+
+                    if let Some(etag) = metadata.etag() {
+                        builder = builder.header(header::ETAG, etag);
+                    }
+                    if let Some(last_modified) = last_modified {
+                        builder = builder.header(header::LAST_MODIFIED, last_modified);
+                    }
+
+                    builder.body(Body::from_stream(stream))?
                 } else {
                     unreachable!("ranges length should be greater than 0")
                 }
@@ -276,10 +299,19 @@ impl StorageService {
             let reader = self.reader(storage_path.as_ref()).await?;
             let stream = reader.into_bytes_stream(..).await?;
 
-            Response::builder()
+            let mut builder = Response::builder()
                 .status(StatusCode::OK)
-                .header(header::CONTENT_TYPE, content_type)
-                .body(Body::from_stream(stream))?
+                .header(header::CONTENT_TYPE, content_type);
+
+            if let Some(etag) = etag {
+                builder = builder.header(header::ETAG, etag.to_string());
+            }
+
+            if let Some(last_modified) = last_modified {
+                builder = builder.header(header::LAST_MODIFIED, last_modified);
+            }
+
+            builder.body(Body::from_stream(stream))?
         };
 
         Ok(response)
