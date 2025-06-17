@@ -6,6 +6,7 @@ use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
+    app::Environment,
     errors::{RecorderError, RecorderResult},
     web::{
         controller::{self, core::ControllerTrait},
@@ -64,8 +65,10 @@ impl App {
 
         let middlewares = default_middleware_stack(context.clone());
         for mid in middlewares {
-            router = mid.apply(router)?;
-            tracing::info!(name = mid.name(), "+middleware");
+            if mid.is_enabled() {
+                router = mid.apply(router)?;
+                tracing::info!(name = mid.name(), "+middleware");
+            }
         }
 
         let router = router
@@ -86,13 +89,17 @@ impl App {
             async {
                 {
                     let monitor = task.setup_monitor().await?;
-                    monitor
-                        .run_with_signal(async move {
-                            Self::shutdown_signal().await;
-                            tracing::info!("apalis shutting down...");
-                            Ok(())
-                        })
-                        .await?;
+                    if matches!(context.environment(), Environment::Development) {
+                        monitor.run().await?;
+                    } else {
+                        monitor
+                            .run_with_signal(async move {
+                                Self::shutdown_signal().await;
+                                tracing::info!("apalis shutting down...");
+                                Ok(())
+                            })
+                            .await?;
+                    }
                 }
 
                 Ok::<(), RecorderError>(())

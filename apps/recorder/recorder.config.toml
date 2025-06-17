@@ -26,18 +26,18 @@ host = '{{ get_env(name="HOST", default="localhost") }}'
 enable = true
 
 # Generating a unique request ID and enhancing logging with additional information such as the start and completion of request processing, latency, status code, and other request details.
-[server.middleware.request_id]
+[server.middlewares.request_id]
 enable = true
 
-[server.middleware.logger]
+[server.middlewares.logger]
 enable = true
 
 # when your code is panicked, the request still returns 500 status code.
-[server.middleware.catch_panic]
+[server.middlewares.catch_panic]
 enable = true
 
 # Timeout for incoming requests middleware. requests that take more time from the configuration will cute and 408 status code will returned.
-[server.middleware.timeout_request]
+[server.middlewares.timeout_request]
 enable = false
 # Duration time in milliseconds.
 timeout = 5000
@@ -53,7 +53,10 @@ timeout = 5000
 #   - POST
 # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
 # max_age: 3600
-[server.middleware.cors]
+[server.middlewares.cors]
+enable = true
+
+[server.middlewares.compression]
 enable = true
 
 # Database Configuration
