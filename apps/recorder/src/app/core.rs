@@ -6,7 +6,6 @@ use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-    app::Environment,
     errors::{RecorderError, RecorderResult},
     web::{
         controller::{self, core::ControllerTrait},
@@ -52,13 +51,14 @@ impl App {
 
         let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 
-        let (graphql_c, oidc_c, metadata_c) = futures::try_join!(
+        let (graphql_c, oidc_c, metadata_c, static_c) = futures::try_join!(
             controller::graphql::create(context.clone()),
             controller::oidc::create(context.clone()),
-            controller::metadata::create(context.clone())
+            controller::metadata::create(context.clone()),
+            controller::r#static::create(context.clone()),
         )?;
 
-        for c in [graphql_c, oidc_c, metadata_c] {
+        for c in [graphql_c, oidc_c, metadata_c, static_c] {
             router = c.apply_to(router);
         }
 
@@ -86,17 +86,13 @@ impl App {
             async {
                 {
                     let monitor = task.setup_monitor().await?;
-                    if matches!(context.environment(), Environment::Development) {
-                        monitor.run().await?;
-                    } else {
-                        monitor
-                            .run_with_signal(async move {
-                                Self::shutdown_signal().await;
-                                tracing::info!("apalis shutting down...");
-                                Ok(())
-                            })
-                            .await?;
-                    }
+                    monitor
+                        .run_with_signal(async move {
+                            Self::shutdown_signal().await;
+                            tracing::info!("apalis shutting down...");
+                            Ok(())
+                        })
+                        .await?;
                 }
 
                 Ok::<(), RecorderError>(())

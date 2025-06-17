@@ -30,8 +30,9 @@ export type Bangumi = {
   id: Scalars['Int']['output'];
   mikanBangumiId?: Maybe<Scalars['String']['output']>;
   mikanFansubId?: Maybe<Scalars['String']['output']>;
+  originName: Scalars['String']['output'];
+  originPosterLink?: Maybe<Scalars['String']['output']>;
   posterLink?: Maybe<Scalars['String']['output']>;
-  rawName: Scalars['String']['output'];
   rssLink?: Maybe<Scalars['String']['output']>;
   savePath?: Maybe<Scalars['String']['output']>;
   season: Scalars['Int']['output'];
@@ -74,8 +75,9 @@ export type BangumiBasic = {
   id: Scalars['Int']['output'];
   mikanBangumiId?: Maybe<Scalars['String']['output']>;
   mikanFansubId?: Maybe<Scalars['String']['output']>;
+  originName: Scalars['String']['output'];
+  originPosterLink?: Maybe<Scalars['String']['output']>;
   posterLink?: Maybe<Scalars['String']['output']>;
-  rawName: Scalars['String']['output'];
   rssLink?: Maybe<Scalars['String']['output']>;
   savePath?: Maybe<Scalars['String']['output']>;
   season: Scalars['Int']['output'];
@@ -108,8 +110,9 @@ export type BangumiFilterInput = {
   mikanBangumiId?: InputMaybe<StringFilterInput>;
   mikanFansubId?: InputMaybe<StringFilterInput>;
   or?: InputMaybe<Array<BangumiFilterInput>>;
+  originName?: InputMaybe<StringFilterInput>;
+  originPosterLink?: InputMaybe<StringFilterInput>;
   posterLink?: InputMaybe<StringFilterInput>;
-  rawName?: InputMaybe<StringFilterInput>;
   rssLink?: InputMaybe<StringFilterInput>;
   savePath?: InputMaybe<StringFilterInput>;
   season?: InputMaybe<IntegerFilterInput>;
@@ -127,8 +130,9 @@ export type BangumiInsertInput = {
   id?: InputMaybe<Scalars['Int']['input']>;
   mikanBangumiId?: InputMaybe<Scalars['String']['input']>;
   mikanFansubId?: InputMaybe<Scalars['String']['input']>;
+  originName: Scalars['String']['input'];
+  originPosterLink?: InputMaybe<Scalars['String']['input']>;
   posterLink?: InputMaybe<Scalars['String']['input']>;
-  rawName: Scalars['String']['input'];
   rssLink?: InputMaybe<Scalars['String']['input']>;
   savePath?: InputMaybe<Scalars['String']['input']>;
   season: Scalars['Int']['input'];
@@ -146,8 +150,9 @@ export type BangumiOrderInput = {
   id?: InputMaybe<OrderByEnum>;
   mikanBangumiId?: InputMaybe<OrderByEnum>;
   mikanFansubId?: InputMaybe<OrderByEnum>;
+  originName?: InputMaybe<OrderByEnum>;
+  originPosterLink?: InputMaybe<OrderByEnum>;
   posterLink?: InputMaybe<OrderByEnum>;
-  rawName?: InputMaybe<OrderByEnum>;
   rssLink?: InputMaybe<OrderByEnum>;
   savePath?: InputMaybe<OrderByEnum>;
   season?: InputMaybe<OrderByEnum>;
@@ -165,8 +170,9 @@ export type BangumiUpdateInput = {
   id?: InputMaybe<Scalars['Int']['input']>;
   mikanBangumiId?: InputMaybe<Scalars['String']['input']>;
   mikanFansubId?: InputMaybe<Scalars['String']['input']>;
+  originName?: InputMaybe<Scalars['String']['input']>;
+  originPosterLink?: InputMaybe<Scalars['String']['input']>;
   posterLink?: InputMaybe<Scalars['String']['input']>;
-  rawName?: InputMaybe<Scalars['String']['input']>;
   rssLink?: InputMaybe<Scalars['String']['input']>;
   savePath?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<Scalars['Int']['input']>;
@@ -492,7 +498,7 @@ export type Downloads = {
   homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   mime: DownloadMimeEnum;
-  rawName: Scalars['String']['output'];
+  originName: Scalars['String']['output'];
   savePath?: Maybe<Scalars['String']['output']>;
   status: DownloadStatusEnum;
   subscriber?: Maybe<Subscribers>;
@@ -512,7 +518,7 @@ export type DownloadsBasic = {
   homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   mime: DownloadMimeEnum;
-  rawName: Scalars['String']['output'];
+  originName: Scalars['String']['output'];
   savePath?: Maybe<Scalars['String']['output']>;
   status: DownloadStatusEnum;
   subscriberId: Scalars['Int']['output'];
@@ -546,7 +552,7 @@ export type DownloadsFilterInput = {
   id?: InputMaybe<IntegerFilterInput>;
   mime?: InputMaybe<DownloadMimeEnumFilterInput>;
   or?: InputMaybe<Array<DownloadsFilterInput>>;
-  rawName?: InputMaybe<StringFilterInput>;
+  originName?: InputMaybe<StringFilterInput>;
   savePath?: InputMaybe<StringFilterInput>;
   status?: InputMaybe<DownloadStatusEnumFilterInput>;
   subscriberId?: InputMaybe<SubscriberIdFilterInput>;
@@ -564,7 +570,7 @@ export type DownloadsInsertInput = {
   homepage?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;
   mime: DownloadMimeEnum;
-  rawName: Scalars['String']['input'];
+  originName: Scalars['String']['input'];
   savePath?: InputMaybe<Scalars['String']['input']>;
   status: DownloadStatusEnum;
   subscriberId?: InputMaybe<Scalars['Int']['input']>;
@@ -582,7 +588,7 @@ export type DownloadsOrderInput = {
   homepage?: InputMaybe<OrderByEnum>;
   id?: InputMaybe<OrderByEnum>;
   mime?: InputMaybe<OrderByEnum>;
-  rawName?: InputMaybe<OrderByEnum>;
+  originName?: InputMaybe<OrderByEnum>;
   savePath?: InputMaybe<OrderByEnum>;
   status?: InputMaybe<OrderByEnum>;
   subscriberId?: InputMaybe<OrderByEnum>;
@@ -600,7 +606,7 @@ export type DownloadsUpdateInput = {
   homepage?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;
   mime?: InputMaybe<DownloadMimeEnum>;
-  rawName?: InputMaybe<Scalars['String']['input']>;
+  originName?: InputMaybe<Scalars['String']['input']>;
   savePath?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<DownloadStatusEnum>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
@@ -619,8 +625,9 @@ export type Episodes = {
   homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   mikanEpisodeId?: Maybe<Scalars['String']['output']>;
+  originName: Scalars['String']['output'];
+  originPosterLink?: Maybe<Scalars['String']['output']>;
   posterLink?: Maybe<Scalars['String']['output']>;
-  rawName: Scalars['String']['output'];
   resolution?: Maybe<Scalars['String']['output']>;
   savePath?: Maybe<Scalars['String']['output']>;
   season: Scalars['Int']['output'];
@@ -665,8 +672,9 @@ export type EpisodesBasic = {
   homepage?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   mikanEpisodeId?: Maybe<Scalars['String']['output']>;
+  originName: Scalars['String']['output'];
+  originPosterLink?: Maybe<Scalars['String']['output']>;
   posterLink?: Maybe<Scalars['String']['output']>;
-  rawName: Scalars['String']['output'];
   resolution?: Maybe<Scalars['String']['output']>;
   savePath?: Maybe<Scalars['String']['output']>;
   season: Scalars['Int']['output'];
@@ -702,8 +710,9 @@ export type EpisodesFilterInput = {
   id?: InputMaybe<IntegerFilterInput>;
   mikanEpisodeId?: InputMaybe<StringFilterInput>;
   or?: InputMaybe<Array<EpisodesFilterInput>>;
+  originName?: InputMaybe<StringFilterInput>;
+  originPosterLink?: InputMaybe<StringFilterInput>;
   posterLink?: InputMaybe<StringFilterInput>;
-  rawName?: InputMaybe<StringFilterInput>;
   resolution?: InputMaybe<StringFilterInput>;
   savePath?: InputMaybe<StringFilterInput>;
   season?: InputMaybe<IntegerFilterInput>;
@@ -723,8 +732,9 @@ export type EpisodesInsertInput = {
   homepage?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;
   mikanEpisodeId?: InputMaybe<Scalars['String']['input']>;
+  originName: Scalars['String']['input'];
+  originPosterLink?: InputMaybe<Scalars['String']['input']>;
   posterLink?: InputMaybe<Scalars['String']['input']>;
-  rawName: Scalars['String']['input'];
   resolution?: InputMaybe<Scalars['String']['input']>;
   savePath?: InputMaybe<Scalars['String']['input']>;
   season: Scalars['Int']['input'];
@@ -744,8 +754,9 @@ export type EpisodesOrderInput = {
   homepage?: InputMaybe<OrderByEnum>;
   id?: InputMaybe<OrderByEnum>;
   mikanEpisodeId?: InputMaybe<OrderByEnum>;
+  originName?: InputMaybe<OrderByEnum>;
+  originPosterLink?: InputMaybe<OrderByEnum>;
   posterLink?: InputMaybe<OrderByEnum>;
-  rawName?: InputMaybe<OrderByEnum>;
   resolution?: InputMaybe<OrderByEnum>;
   savePath?: InputMaybe<OrderByEnum>;
   season?: InputMaybe<OrderByEnum>;
@@ -765,8 +776,9 @@ export type EpisodesUpdateInput = {
   homepage?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['Int']['input']>;
   mikanEpisodeId?: InputMaybe<Scalars['String']['input']>;
+  originName?: InputMaybe<Scalars['String']['input']>;
+  originPosterLink?: InputMaybe<Scalars['String']['input']>;
   posterLink?: InputMaybe<Scalars['String']['input']>;
-  rawName?: InputMaybe<Scalars['String']['input']>;
   resolution?: InputMaybe<Scalars['String']['input']>;
   savePath?: InputMaybe<Scalars['String']['input']>;
   season?: InputMaybe<Scalars['Int']['input']>;
@@ -1708,7 +1720,7 @@ export type GetSubscriptionDetailQueryVariables = Exact<{
 }>;
 
 
-export type GetSubscriptionDetailQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, displayName: string, createdAt: string, updatedAt: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, credential3rd?: { __typename?: 'Credential3rd', id: number, username?: string | null } | null, bangumi: { __typename?: 'BangumiConnection', nodes: Array<{ __typename?: 'Bangumi', createdAt: string, updatedAt: string, id: number, mikanBangumiId?: string | null, displayName: string, rawName: string, season: number, seasonRaw?: string | null, fansub?: string | null, mikanFansubId?: string | null, rssLink?: string | null, posterLink?: string | null, savePath?: string | null, homepage?: string | null }> } }> } };
+export type GetSubscriptionDetailQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, displayName: string, createdAt: string, updatedAt: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, credential3rd?: { __typename?: 'Credential3rd', id: number, username?: string | null } | null, bangumi: { __typename?: 'BangumiConnection', nodes: Array<{ __typename?: 'Bangumi', createdAt: string, updatedAt: string, id: number, mikanBangumiId?: string | null, displayName: string, season: number, seasonRaw?: string | null, fansub?: string | null, mikanFansubId?: string | null, rssLink?: string | null, posterLink?: string | null, savePath?: string | null, homepage?: string | null }> } }> } };
 
 export type SyncSubscriptionFeedsIncrementalMutationVariables = Exact<{
   filter: SubscriptionsFilterInput;
@@ -1765,7 +1777,7 @@ export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind
 export const InsertSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}}]}}]} as unknown as DocumentNode<InsertSubscriptionMutation, InsertSubscriptionMutationVariables>;
 export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
 export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
-export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"rawName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"savePath"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
+export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"savePath"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
 export const SyncSubscriptionFeedsIncrementalDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsIncremental"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsIncremental"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsIncrementalMutation, SyncSubscriptionFeedsIncrementalMutationVariables>;
 export const SyncSubscriptionFeedsFullDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsFull"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsFull"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsFullMutation, SyncSubscriptionFeedsFullMutationVariables>;
 export const SyncSubscriptionSourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionSources"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionSourcesMutation, SyncSubscriptionSourcesMutationVariables>;

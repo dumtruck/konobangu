@@ -17,7 +17,7 @@ use crate::{
             MikanBangumiHash, MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url,
             scrape_mikan_poster_meta_from_image_url,
         },
-        rawname::extract_season_from_title_body,
+        origin::extract_season_from_title_body,
     },
 };
 
@@ -41,7 +41,7 @@ pub struct Model {
     pub mikan_bangumi_id: Option<String>,
     pub subscriber_id: i32,
     pub display_name: String,
-    pub raw_name: String,
+    pub origin_name: String,
     pub season: i32,
     pub season_raw: Option<String>,
     pub fansub: Option<String>,
@@ -49,6 +49,7 @@ pub struct Model {
     pub filter: Option<BangumiFilter>,
     pub rss_link: Option<String>,
     pub poster_link: Option<String>,
+    pub origin_poster_link: Option<String>,
     pub save_path: Option<String>,
     pub homepage: Option<String>,
 }
@@ -130,12 +131,11 @@ impl ActiveModel {
             Some(&meta.mikan_fansub_id),
         );
 
-        let poster_link = if let Some(origin_poster_src) = meta.origin_poster_src {
+        let poster_link = if let Some(origin_poster_src) = meta.origin_poster_src.clone() {
             let poster_meta = scrape_mikan_poster_meta_from_image_url(
                 mikan_client,
                 storage_service,
                 origin_poster_src,
-                subscriber_id,
             )
             .await?;
             poster_meta.poster_src
@@ -148,11 +148,12 @@ impl ActiveModel {
             mikan_fansub_id: ActiveValue::Set(Some(meta.mikan_fansub_id)),
             subscriber_id: ActiveValue::Set(subscriber_id),
             display_name: ActiveValue::Set(meta.bangumi_title.clone()),
-            raw_name: ActiveValue::Set(meta.bangumi_title),
+            origin_name: ActiveValue::Set(meta.bangumi_title),
             season: ActiveValue::Set(season_index),
             season_raw: ActiveValue::Set(season_raw),
             fansub: ActiveValue::Set(Some(meta.fansub)),
             poster_link: ActiveValue::Set(poster_link),
+            origin_poster_link: ActiveValue::Set(meta.origin_poster_src.map(|src| src.to_string())),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
             ..Default::default()
@@ -228,7 +229,7 @@ impl Model {
                         Column::SubscriberId,
                     ])
                     .update_columns([
-                        Column::RawName,
+                        Column::OriginName,
                         Column::Fansub,
                         Column::PosterLink,
                         Column::Season,

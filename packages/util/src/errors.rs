@@ -21,6 +21,10 @@ impl OptDynErr {
     pub fn none() -> Self {
         Self(None)
     }
+
+    pub fn into_inner(self) -> Option<Box<dyn std::error::Error + Send + Sync>> {
+        self.0
+    }
 }
 
 impl Display for OptDynErr {

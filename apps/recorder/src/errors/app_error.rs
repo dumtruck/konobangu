@@ -40,12 +40,10 @@ pub enum RecorderError {
     NetAddrParseError { source: std::net::AddrParseError },
     #[snafu(transparent)]
     RegexError { source: regex::Error },
-    #[snafu(transparent)]
-    InvalidMethodError { source: http::method::InvalidMethod },
-    #[snafu(transparent)]
-    InvalidHeaderNameError {
-        source: http::header::InvalidHeaderName,
-    },
+    #[snafu(display("Invalid method"))]
+    InvalidMethodError,
+    #[snafu(display("Invalid header name"))]
+    InvalidHeaderNameError,
     #[snafu(transparent)]
     TracingAppenderInitError {
         source: tracing_appender::rolling::InitError,
@@ -84,10 +82,8 @@ pub enum RecorderError {
         #[snafu(source(from(opendal::Error, Box::new)))]
         source: Box<opendal::Error>,
     },
-    #[snafu(transparent)]
-    InvalidHeaderValueError {
-        source: http::header::InvalidHeaderValue,
-    },
+    #[snafu(display("Invalid header value"))]
+    InvalidHeaderValueError,
     #[snafu(transparent)]
     HttpClientError { source: HttpClientError },
     #[cfg(feature = "testcontainers")]
@@ -234,7 +230,8 @@ impl IntoResponse for RecorderError {
                 headers,
                 source,
             } => {
-                let message = Option::<_>::from(source)
+                let message = source
+                    .into_inner()
                     .map(|s| s.to_string())
                     .unwrap_or_else(|| {
                         String::from(status.canonical_reason().unwrap_or("Unknown"))
@@ -264,6 +261,24 @@ impl From<reqwest::Error> for RecorderError {
 impl From<reqwest_middleware::Error> for RecorderError {
     fn from(error: reqwest_middleware::Error) -> Self {
         FetchError::from(error).into()
+    }
+}
+
+impl From<http::header::InvalidHeaderValue> for RecorderError {
+    fn from(_error: http::header::InvalidHeaderValue) -> Self {
+        Self::InvalidHeaderValueError
+    }
+}
+
+impl From<http::header::InvalidHeaderName> for RecorderError {
+    fn from(_error: http::header::InvalidHeaderName) -> Self {
+        Self::InvalidHeaderNameError
+    }
+}
+
+impl From<http::method::InvalidMethod> for RecorderError {
+    fn from(_error: http::method::InvalidMethod) -> Self {
+        Self::InvalidMethodError
     }
 }
 

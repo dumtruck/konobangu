@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Img } from '@/components/ui/img';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
@@ -324,21 +325,24 @@ function SubscriptionDetailRouteComponent() {
                     <div className="space-y-3">
                       {subscription.bangumi.nodes.map((bangumi) => (
                         <Card key={bangumi.id} className="p-4">
-                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                            <div className="col-span-1 row-span-2 space-y-2">
+                              <div className="flex h-full items-center justify-center overflow-hidden rounded-md bg-muted">
+                                {bangumi.posterLink && (
+                                  <Img
+                                    src={`/api/static${bangumi.posterLink}`}
+                                    alt="Poster"
+                                    className="h-full w-full object-cover"
+                                  />
+                                )}
+                              </div>
+                            </div>
                             <div className="space-y-2">
                               <Label className="font-medium text-muted-foreground text-xs">
                                 Display Name
                               </Label>
                               <div className="text-sm">
                                 {bangumi.displayName}
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="font-medium text-muted-foreground text-xs">
-                                Season
-                              </Label>
-                              <div className="text-sm">
-                                {bangumi.season || '-'}
                               </div>
                             </div>
                             <div className="space-y-2">
@@ -351,10 +355,21 @@ function SubscriptionDetailRouteComponent() {
                             </div>
                             <div className="space-y-2">
                               <Label className="font-medium text-muted-foreground text-xs">
-                                Save Path
+                                Season
+                              </Label>
+                              <div className="text-sm">
+                                {bangumi.season || '-'}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="font-medium text-muted-foreground text-xs">
+                                Updated At
                               </Label>
                               <div className="font-mono text-sm">
-                                {bangumi.savePath || '-'}
+                                {format(
+                                  new Date(bangumi.updatedAt),
+                                  'yyyy-MM-dd'
+                                )}
                               </div>
                             </div>
                           </div>

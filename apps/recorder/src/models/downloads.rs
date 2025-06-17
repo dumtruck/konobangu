@@ -44,7 +44,7 @@ pub struct Model {
     pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub raw_name: String,
+    pub origin_name: String,
     pub display_name: String,
     pub downloader_id: i32,
     pub episode_id: i32,

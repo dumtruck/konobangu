@@ -741,13 +741,11 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
     mikan_client: &MikanClient,
     storage_service: &StorageService,
     origin_poster_src_url: Url,
-    subscriber_id: i32,
 ) -> RecorderResult<MikanBangumiPosterMeta> {
     if let Some(poster_src) = storage_service
         .exists(
-            storage_service.build_subscriber_object_path(
+            storage_service.build_public_object_path(
                 StorageContentCategory::Image,
-                subscriber_id,
                 MIKAN_POSTER_BUCKET_KEY,
                 &origin_poster_src_url
                     .path()
@@ -768,9 +766,8 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
 
     let poster_str = storage_service
         .write(
-            storage_service.build_subscriber_object_path(
+            storage_service.build_public_object_path(
                 StorageContentCategory::Image,
-                subscriber_id,
                 MIKAN_POSTER_BUCKET_KEY,
                 &origin_poster_src_url
                     .path()
@@ -1084,15 +1081,13 @@ mod test {
             &mikan_client,
             &storage_service,
             bangumi_poster_url,
-            1,
         )
         .await?;
 
         resources_mock.shared_resource_mock.expect(1);
 
-        let storage_fullname = storage_service.build_subscriber_object_path(
+        let storage_fullname = storage_service.build_public_object_path(
             StorageContentCategory::Image,
-            1,
             MIKAN_POSTER_BUCKET_KEY,
             "202309/5ce9fed1.jpg",
         );

@@ -80,7 +80,7 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto_z(Downloads::Table)
                     .col(pk_auto(Downloads::Id))
-                    .col(string(Downloads::RawName))
+                    .col(string(Downloads::OriginName))
                     .col(string(Downloads::DisplayName))
                     .col(integer(Downloads::SubscriberId))
                     .col(integer(Downloads::DownloaderId))

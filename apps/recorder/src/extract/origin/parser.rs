@@ -261,7 +261,7 @@ pub fn check_is_movie(title: &str) -> bool {
     MOVIE_TITLE_RE.is_match(title)
 }
 
-pub fn extract_episode_meta_from_raw_name(s: &str) -> RecorderResult<RawEpisodeMeta> {
+pub fn extract_episode_meta_from_origin_name(s: &str) -> RecorderResult<RawEpisodeMeta> {
     let raw_title = s.trim();
     let raw_title_without_ch_brackets = replace_ch_bracket_to_en(raw_title);
     let fansub = extract_fansub(&raw_title_without_ch_brackets);
@@ -321,11 +321,11 @@ pub fn extract_episode_meta_from_raw_name(s: &str) -> RecorderResult<RawEpisodeM
 #[cfg(test)]
 mod tests {
 
-    use super::{RawEpisodeMeta, extract_episode_meta_from_raw_name};
+    use super::{RawEpisodeMeta, extract_episode_meta_from_origin_name};
 
     fn test_raw_ep_parser_case(raw_name: &str, expected: &str) {
         let expected: Option<RawEpisodeMeta> = serde_json::from_str(expected).unwrap_or_default();
-        let found = extract_episode_meta_from_raw_name(raw_name).ok();
+        let found = extract_episode_meta_from_origin_name(raw_name).ok();
 
         if expected != found {
             println!(

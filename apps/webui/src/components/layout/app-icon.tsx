@@ -4,7 +4,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-import { Image } from '@/components/ui/image';
+import { Img } from '@/components/ui/img';
 
 export function AppIcon() {
   return (
@@ -16,7 +16,7 @@ export function AppIcon() {
         >
           <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <div className="relative size-8">
-              <Image
+              <Img
                 src="/assets/favicon.png"
                 alt="App Logo"
                 className="object-cover"

@@ -106,7 +106,6 @@ query GetSubscriptionDetail ($id: Int!) {
           id
           mikanBangumiId
           displayName
-          rawName
           season
           seasonRaw
           fansub

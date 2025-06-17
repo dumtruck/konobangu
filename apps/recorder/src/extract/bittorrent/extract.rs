@@ -268,8 +268,8 @@ mod tests {
         )
     }
 
-    pub fn test_torrent_ep_parser(raw_name: &str, expected: &str) {
-        let extname = Path::new(raw_name)
+    pub fn test_torrent_ep_parser(origin_name: &str, expected: &str) {
+        let extname = Path::new(origin_name)
             .extension()
             .map(|e| format!(".{e}"))
             .unwrap_or_default()
@@ -278,7 +278,7 @@ mod tests {
         if extname == ".srt" || extname == ".ass" {
             let expected: Option<TorrentEpisodeSubtitleMeta> = serde_json::from_str(expected).ok();
             let found_raw =
-                parse_episode_subtitle_meta_from_torrent(Path::new(raw_name), None, None);
+                parse_episode_subtitle_meta_from_torrent(Path::new(origin_name), None, None);
             let found = found_raw.as_ref().ok().cloned();
 
             if expected != found {
@@ -299,7 +299,8 @@ mod tests {
             assert_eq!(expected, found);
         } else {
             let expected: Option<TorrentEpisodeMediaMeta> = serde_json::from_str(expected).ok();
-            let found_raw = parse_episode_media_meta_from_torrent(Path::new(raw_name), None, None);
+            let found_raw =
+                parse_episode_media_meta_from_torrent(Path::new(origin_name), None, None);
             let found = found_raw.as_ref().ok().cloned();
 
             if expected != found {

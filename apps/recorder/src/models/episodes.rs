@@ -10,7 +10,7 @@ use crate::{
     errors::RecorderResult,
     extract::{
         mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
-        rawname::extract_episode_meta_from_raw_name,
+        origin::extract_episode_meta_from_origin_name,
     },
 };
 
@@ -25,7 +25,7 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(indexed)]
     pub mikan_episode_id: Option<String>,
-    pub raw_name: String,
+    pub origin_name: String,
     pub display_name: String,
     pub bangumi_id: i32,
     pub subscriber_id: i32,
@@ -35,6 +35,7 @@ pub struct Model {
     pub season_raw: Option<String>,
     pub fansub: Option<String>,
     pub poster_link: Option<String>,
+    pub origin_poster_link: Option<String>,
     pub episode_index: i32,
     pub homepage: Option<String>,
     pub subtitle: Option<String>,
@@ -123,7 +124,7 @@ impl ActiveModel {
         episode: MikanEpisodeMeta,
     ) -> RecorderResult<Self> {
         let mikan_base_url = ctx.mikan().base_url().clone();
-        let episode_extention_meta = extract_episode_meta_from_raw_name(&episode.episode_title)
+        let episode_extention_meta = extract_episode_meta_from_origin_name(&episode.episode_title)
             .inspect_err(|err| {
                 tracing::error!(
                     err = ?err,
@@ -136,7 +137,7 @@ impl ActiveModel {
 
         let mut episode_active_model = Self {
             mikan_episode_id: ActiveValue::Set(Some(episode.mikan_episode_id)),
-            raw_name: ActiveValue::Set(episode.episode_title.clone()),
+            origin_name: ActiveValue::Set(episode.episode_title.clone()),
             display_name: ActiveValue::Set(episode.episode_title.clone()),
             bangumi_id: ActiveValue::Set(bangumi.id),
             subscriber_id: ActiveValue::Set(bangumi.subscriber_id),
@@ -145,6 +146,7 @@ impl ActiveModel {
             season: ActiveValue::Set(bangumi.season),
             fansub: ActiveValue::Set(bangumi.fansub.clone()),
             poster_link: ActiveValue::Set(bangumi.poster_link.clone()),
+            origin_poster_link: ActiveValue::Set(bangumi.origin_poster_link.clone()),
             episode_index: ActiveValue::Set(0),
             ..Default::default()
         };
@@ -231,7 +233,7 @@ impl Model {
         let new_episode_ids = Entity::insert_many(new_episode_active_modes)
             .on_conflict(
                 OnConflict::columns([Column::MikanEpisodeId, Column::SubscriberId])
-                    .update_columns([Column::RawName, Column::PosterLink, Column::Homepage])
+                    .update_columns([Column::OriginName, Column::PosterLink, Column::Homepage])
                     .to_owned(),
             )
             .exec_with_returning_columns(db, [Column::Id])
