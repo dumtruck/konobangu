@@ -10,7 +10,7 @@ use crate::{
     errors::RecorderResult,
     extract::{
         mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
-        origin::extract_episode_meta_from_origin_name,
+        origin::{OriginCompTrait, OriginNameRoot},
     },
 };
 
@@ -124,7 +124,7 @@ impl ActiveModel {
         episode: MikanEpisodeMeta,
     ) -> RecorderResult<Self> {
         let mikan_base_url = ctx.mikan().base_url().clone();
-        let episode_extention_meta = extract_episode_meta_from_origin_name(&episode.episode_title)
+        let episode_extention_meta = OriginNameRoot::parse_comp(&episode.episode_title)
             .inspect_err(|err| {
                 tracing::error!(
                     err = ?err,
@@ -132,6 +132,7 @@ impl ActiveModel {
                     "Failed to parse episode extension meta from episode title, skip"
                 );
             })
+            .map(|(_, e)| e.into_meta())
             .ok();
         let homepage = build_mikan_episode_homepage_url(mikan_base_url, &episode.mikan_episode_id);
 
