@@ -151,7 +151,7 @@ impl App {
         #[cfg(not(unix))]
         let terminate = std::future::pending::<()>();
 
-        #[cfg(all(not(unix), debug_assertions))]
+        #[cfg(not(all(unix, debug_assertions)))]
         let quit = std::future::pending::<()>();
 
         tokio::select! {
