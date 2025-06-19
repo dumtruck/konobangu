@@ -1,6 +1,8 @@
+mod media;
 mod subscription;
 use std::sync::Arc;
 
+pub use media::OptimizeImageTask;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
 pub use subscription::{
@@ -8,11 +10,11 @@ pub use subscription::{
     SyncOneSubscriptionSourcesTask,
 };
 
-use super::SubscriberAsyncTaskTrait;
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
     models::subscriptions::SubscriptionTrait,
+    task::AsyncTaskTrait,
 };
 
 #[derive(
@@ -94,6 +96,39 @@ impl SubscriberTask {
                 SubscriberTaskType::SyncOneSubscriptionFeedsFull
             }
             Self::SyncOneSubscriptionSources(_) => SubscriberTaskType::SyncOneSubscriptionSources,
+        }
+    }
+}
+
+#[derive(
+    Clone,
+    Debug,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    Copy,
+    DeriveActiveEnum,
+    DeriveDisplay,
+    EnumIter,
+)]
+#[sea_orm(rs_type = "String", db_type = "Text")]
+pub enum SystemTaskType {
+    #[serde(rename = "optimize_image")]
+    #[sea_orm(string_value = "optimize_image")]
+    OptimizeImage,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, FromJsonQueryResult)]
+pub enum SystemTask {
+    #[serde(rename = "optimize_image")]
+    OptimizeImage(OptimizeImageTask),
+}
+
+impl SystemTask {
+    pub async fn run(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
+        match self {
+            Self::OptimizeImage(task) => task.run(ctx).await,
         }
     }
 }

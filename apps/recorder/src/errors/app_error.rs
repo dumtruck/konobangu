@@ -29,6 +29,11 @@ pub enum RecorderError {
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
         source: OptDynErr,
     },
+    #[snafu(transparent)]
+    ImageError { source: image::ImageError },
+    #[cfg(feature = "jxl")]
+    #[snafu(transparent)]
+    JxlEncodeError { source: jpegxl_rs::EncodeError },
     #[snafu(transparent, context(false))]
     HttpError { source: http::Error },
     #[snafu(transparent, context(false))]

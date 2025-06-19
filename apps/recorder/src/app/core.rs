@@ -6,7 +6,6 @@ use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-    app::Environment,
     errors::{RecorderError, RecorderResult},
     web::{
         controller::{self, core::ControllerTrait},
@@ -76,22 +75,30 @@ impl App {
             .into_make_service_with_connect_info::<SocketAddr>();
 
         let task = context.task();
+
+        let graceful_shutdown = self.builder.graceful_shutdown;
+
         tokio::try_join!(
             async {
-                axum::serve(listener, router)
-                    .with_graceful_shutdown(async move {
-                        Self::shutdown_signal().await;
-                        tracing::info!("axum shutting down...");
-                    })
-                    .await?;
+                let axum_serve = axum::serve(listener, router);
+
+                if graceful_shutdown {
+                    axum_serve
+                        .with_graceful_shutdown(async move {
+                            Self::shutdown_signal().await;
+                            tracing::info!("axum shutting down...");
+                        })
+                        .await?;
+                } else {
+                    axum_serve.await?;
+                }
+
                 Ok::<(), RecorderError>(())
             },
             async {
                 {
                     let monitor = task.setup_monitor().await?;
-                    if matches!(context.environment(), Environment::Development) {
-                        monitor.run().await?;
-                    } else {
+                    if graceful_shutdown {
                         monitor
                             .run_with_signal(async move {
                                 Self::shutdown_signal().await;
@@ -99,6 +106,8 @@ impl App {
                                 Ok(())
                             })
                             .await?;
+                    } else {
+                        monitor.run().await?;
                     }
                 }
 

@@ -121,7 +121,6 @@ impl ActiveModel {
         _subscription_id: i32,
     ) -> RecorderResult<Self> {
         let mikan_client = ctx.mikan();
-        let storage_service = ctx.storage();
         let mikan_base_url = mikan_client.base_url();
         let season_comp = SeasonComp::parse_comp(&meta.bangumi_title)
             .ok()
@@ -136,12 +135,8 @@ impl ActiveModel {
         );
 
         let poster_link = if let Some(origin_poster_src) = meta.origin_poster_src.clone() {
-            let poster_meta = scrape_mikan_poster_meta_from_image_url(
-                mikan_client,
-                storage_service,
-                origin_poster_src,
-            )
-            .await?;
+            let poster_meta =
+                scrape_mikan_poster_meta_from_image_url(ctx, origin_poster_src).await?;
             poster_meta.poster_src
         } else {
             None

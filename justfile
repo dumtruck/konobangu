@@ -4,7 +4,7 @@ set dotenv-load := true
 prepare-dev:
     cargo install cargo-binstall
     cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest
-    # <package-manager> install watchexec just zellij
+    # <package-manager> install watchexec just zellij nasm libjxl
 
 prepare-dev-testcontainers:
     docker pull linuxserver/qbittorrent:latest
@@ -22,7 +22,7 @@ dev-proxy:
     pnpm run --parallel --filter=proxy dev
 
 dev-recorder:
-    watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin recorder_cli -- --environment development
+    watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin recorder_cli -- --environment=development --graceful-shutdown=false
 
 dev-recorder-migrate-down:
     cargo run -p recorder --bin migrate_down -- --environment development

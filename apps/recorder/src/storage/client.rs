@@ -5,6 +5,7 @@ use axum::{body::Body, response::Response};
 use axum_extra::{TypedHeader, headers::Range};
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
+use headers_accept::Accept;
 use http::{HeaderValue, StatusCode, header};
 use opendal::{Buffer, Metadata, Operator, Reader, Writer, layers::LoggingLayer};
 use quirks_path::{Path, PathBuf};
@@ -56,22 +57,24 @@ impl fmt::Display for StorageStoredUrl {
 #[derive(Debug, Clone)]
 pub struct StorageService {
     pub data_dir: String,
+    pub operator: Operator,
 }
 
 impl StorageService {
     pub async fn from_config(config: StorageConfig) -> RecorderResult<Self> {
         Ok(Self {
             data_dir: config.data_dir.to_string(),
+            operator: Self::get_operator(&config.data_dir)?,
         })
     }
 
-    pub fn get_operator(&self) -> Result<Operator, opendal::Error> {
+    pub fn get_operator(data_dir: &str) -> Result<Operator, opendal::Error> {
         let op = if cfg!(test) {
             Operator::new(opendal::services::Memory::default())?
                 .layer(LoggingLayer::default())
                 .finish()
         } else {
-            Operator::new(opendal::services::Fs::default().root(&self.data_dir))?
+            Operator::new(opendal::services::Fs::default().root(data_dir))?
                 .layer(LoggingLayer::default())
                 .finish()
         };
@@ -125,7 +128,7 @@ impl StorageService {
         path: P,
         data: Bytes,
     ) -> Result<StorageStoredUrl, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let path = path.into();
 
@@ -145,7 +148,7 @@ impl StorageService {
         &self,
         path: P,
     ) -> Result<Option<StorageStoredUrl>, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let path = path.to_string();
 
@@ -157,7 +160,7 @@ impl StorageService {
     }
 
     pub async fn read(&self, path: impl AsRef<str>) -> Result<Buffer, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let data = operator.read(path.as_ref()).await?;
 
@@ -165,7 +168,7 @@ impl StorageService {
     }
 
     pub async fn reader(&self, path: impl AsRef<str>) -> Result<Reader, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let reader = operator.reader(path.as_ref()).await?;
 
@@ -173,7 +176,7 @@ impl StorageService {
     }
 
     pub async fn writer(&self, path: impl AsRef<str>) -> Result<Writer, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let writer = operator.writer(path.as_ref()).await?;
 
@@ -181,11 +184,55 @@ impl StorageService {
     }
 
     pub async fn stat(&self, path: impl AsRef<str>) -> Result<Metadata, opendal::Error> {
-        let operator = self.get_operator()?;
+        let operator = &self.operator;
 
         let metadata = operator.stat(path.as_ref()).await?;
 
         Ok(metadata)
+    }
+
+    #[cfg(test)]
+    pub async fn list_public(&self) -> Result<Vec<opendal::Entry>, opendal::Error> {
+        use futures::TryStreamExt;
+        let lister = self.operator.lister_with("public/").recursive(true).await?;
+        lister.try_collect().await
+    }
+
+    #[cfg(test)]
+    pub async fn list_subscribers(&self) -> Result<Vec<opendal::Entry>, opendal::Error> {
+        use futures::TryStreamExt;
+        let lister = self
+            .operator
+            .lister_with("subscribers/")
+            .recursive(true)
+            .await?;
+        lister.try_collect().await
+    }
+
+    #[instrument(skip_all, err, fields(storage_path = %storage_path.as_ref(), range = ?range, accept = ?accept))]
+    pub async fn serve_optimized_image(
+        &self,
+        storage_path: impl AsRef<Path>,
+        range: Option<TypedHeader<Range>>,
+        accept: Accept,
+    ) -> RecorderResult<Response> {
+        let storage_path = Path::new(storage_path.as_ref());
+        for mime_type in accept.media_types() {
+            let accpetable_path = match mime_type.subty().as_str() {
+                "webp" => Some(storage_path.with_extension("webp")),
+                "avif" => Some(storage_path.with_extension("avif")),
+                "jxl" => Some(storage_path.with_extension("jxl")),
+                _ => None,
+            };
+            if let Some(accpetable_path) = accpetable_path
+                && self.exists(&accpetable_path).await?.is_some()
+                && self.stat(&accpetable_path).await?.is_file()
+            {
+                return self.serve_file(accpetable_path, range).await;
+            }
+        }
+
+        self.serve_file(storage_path, range).await
     }
 
     #[instrument(skip_all, err, fields(storage_path = %storage_path.as_ref(), range = ?range))]

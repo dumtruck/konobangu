@@ -11,8 +11,8 @@ use super::env::Environment;
 use crate::{
     auth::AuthConfig, cache::CacheConfig, crypto::CryptoConfig, database::DatabaseConfig,
     errors::RecorderResult, extract::mikan::MikanConfig, graphql::GraphQLConfig,
-    logger::LoggerConfig, message::MessageConfig, storage::StorageConfig, task::TaskConfig,
-    web::WebServerConfig,
+    logger::LoggerConfig, media::MediaConfig, message::MessageConfig, storage::StorageConfig,
+    task::TaskConfig, web::WebServerConfig,
 };
 
 const DEFAULT_CONFIG_MIXIN: &str = include_str!("./default_mixin.toml");
@@ -27,6 +27,7 @@ pub struct AppConfig {
     pub mikan: MikanConfig,
     pub crypto: CryptoConfig,
     pub graphql: GraphQLConfig,
+    pub media: MediaConfig,
     pub logger: LoggerConfig,
     pub database: DatabaseConfig,
     pub task: TaskConfig,

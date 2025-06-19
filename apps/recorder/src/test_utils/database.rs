@@ -17,6 +17,10 @@ impl Default for TestingDatabaseServiceConfig {
 pub async fn build_testing_database_service(
     config: TestingDatabaseServiceConfig,
 ) -> RecorderResult<DatabaseService> {
+    tracing::info!(
+        "enable testcontainers feature, build testing database service in testcontainers..."
+    );
+
     use testcontainers::{ImageExt, runners::AsyncRunner};
     use testcontainers_ext::{ImageDefaultLogConsumerExt, ImagePruneExistedLabelExt};
     use testcontainers_modules::postgres::Postgres;
@@ -37,6 +41,11 @@ pub async fn build_testing_database_service(
 
     let connection_string =
         format!("postgres://konobangu:konobangu@{host_ip}:{host_port}/konobangu");
+
+    tracing::debug!(
+        "testing database service connection string: {}",
+        connection_string
+    );
 
     let mut db_service = DatabaseService::from_config(DatabaseConfig {
         uri: connection_string,

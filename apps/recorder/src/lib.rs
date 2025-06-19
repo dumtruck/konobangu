@@ -21,6 +21,7 @@ pub mod errors;
 pub mod extract;
 pub mod graphql;
 pub mod logger;
+pub mod media;
 pub mod message;
 pub mod migrations;
 pub mod models;

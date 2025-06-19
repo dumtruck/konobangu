@@ -6,7 +6,8 @@ use super::{Environment, config::AppConfig};
 use crate::{
     auth::AuthService, cache::CacheService, crypto::CryptoService, database::DatabaseService,
     errors::RecorderResult, extract::mikan::MikanClient, graphql::GraphQLService,
-    logger::LoggerService, message::MessageService, storage::StorageService, task::TaskService,
+    logger::LoggerService, media::MediaService, message::MessageService, storage::StorageService,
+    task::TaskService,
 };
 
 pub trait AppContextTrait: Send + Sync + Debug {
@@ -23,6 +24,7 @@ pub trait AppContextTrait: Send + Sync + Debug {
     fn crypto(&self) -> &CryptoService;
     fn task(&self) -> &TaskService;
     fn message(&self) -> &MessageService;
+    fn media(&self) -> &MediaService;
 }
 
 pub struct AppContext {
@@ -37,6 +39,7 @@ pub struct AppContext {
     working_dir: String,
     environment: Environment,
     message: MessageService,
+    media: MediaService,
     task: OnceCell<TaskService>,
     graphql: OnceCell<GraphQLService>,
 }
@@ -57,6 +60,7 @@ impl AppContext {
         let auth = AuthService::from_conf(config.auth).await?;
         let mikan = MikanClient::from_config(config.mikan).await?;
         let crypto = CryptoService::from_config(config.crypto).await?;
+        let media = MediaService::from_config(config.media).await?;
 
         let ctx = Arc::new(AppContext {
             config: config_cloned,
@@ -70,6 +74,7 @@ impl AppContext {
             working_dir: working_dir.to_string(),
             crypto,
             message,
+            media,
             task: OnceCell::new(),
             graphql: OnceCell::new(),
         });
@@ -135,5 +140,8 @@ impl AppContextTrait for AppContext {
     }
     fn message(&self) -> &MessageService {
         &self.message
+    }
+    fn media(&self) -> &MediaService {
+        &self.media
     }
 }

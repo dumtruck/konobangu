@@ -556,13 +556,8 @@ mod tests {
             subscriptions::{self, SubscriptionTrait},
         },
         test_utils::{
-            app::TestingAppContext,
-            crypto::build_testing_crypto_service,
-            database::build_testing_database_service,
-            mikan::{
-                MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential_form,
-            },
-            storage::build_testing_storage_service,
+            app::{TestingAppContext, TestingAppContextPreset},
+            mikan::{MikanMockServer, build_testing_mikan_credential_form},
             tracing::try_init_testing_tracing,
         },
     };
@@ -577,20 +572,11 @@ mod tests {
 
         let mikan_base_url = mikan_server.base_url().clone();
 
-        let app_ctx = {
-            let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
-            let db_service = build_testing_database_service(Default::default()).await?;
-            let crypto_service = build_testing_crypto_service().await?;
-            let storage_service = build_testing_storage_service().await?;
-            let app_ctx = TestingAppContext::builder()
-                .mikan(mikan_client)
-                .db(db_service)
-                .crypto(crypto_service)
-                .storage(storage_service)
-                .build();
-
-            Arc::new(app_ctx)
-        };
+        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
+            mikan_base_url: mikan_base_url.to_string(),
+            database_config: None,
+        })
+        .await?;
 
         Ok(TestingResources {
             app_ctx,

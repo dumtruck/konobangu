@@ -5,10 +5,11 @@ use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{app::AppContextTrait, errors::RecorderResult};
 
+pub const SYSTEM_TASK_APALIS_NAME: &str = "system_task";
 pub const SUBSCRIBER_TASK_APALIS_NAME: &str = "subscriber_task";
 
 #[async_trait::async_trait]
-pub trait SubscriberAsyncTaskTrait: Serialize + DeserializeOwned + Sized {
+pub trait AsyncTaskTrait: Serialize + DeserializeOwned + Sized {
     async fn run_async(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()>;
 
     async fn run(self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
@@ -19,7 +20,7 @@ pub trait SubscriberAsyncTaskTrait: Serialize + DeserializeOwned + Sized {
 }
 
 #[async_trait::async_trait]
-pub trait SubscriberStreamTaskTrait: Serialize + DeserializeOwned + Sized {
+pub trait StreamTaskTrait: Serialize + DeserializeOwned + Sized {
     type Yield: Serialize + DeserializeOwned + Send;
 
     fn run_stream(

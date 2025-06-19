@@ -40,6 +40,7 @@
         }
     ],
     "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.testExplorer": true
     // https://github.com/rust-lang/rust/issues/141540
     // "rust-analyzer.cargo.targetDir": "target/rust-analyzer",
     // "rust-analyzer.check.extraEnv": {

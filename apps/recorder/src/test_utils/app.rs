@@ -3,7 +3,17 @@ use std::{fmt::Debug, sync::Arc};
 use once_cell::sync::OnceCell;
 use typed_builder::TypedBuilder;
 
-use crate::app::AppContextTrait;
+use crate::{
+    app::AppContextTrait,
+    test_utils::{
+        crypto::build_testing_crypto_service,
+        database::{TestingDatabaseServiceConfig, build_testing_database_service},
+        media::build_testing_media_service,
+        mikan::build_testing_mikan_client,
+        storage::build_testing_storage_service,
+        task::build_testing_task_service,
+    },
+};
 
 #[derive(TypedBuilder)]
 #[builder(field_defaults(default, setter(strip_option)))]
@@ -17,6 +27,7 @@ pub struct TestingAppContext {
     graphql: Option<crate::graphql::GraphQLService>,
     storage: Option<crate::storage::StorageService>,
     crypto: Option<crate::crypto::CryptoService>,
+    media: Option<crate::media::MediaService>,
     #[builder(default = Arc::new(OnceCell::new()), setter(!strip_option))]
     task: Arc<OnceCell<crate::task::TaskService>>,
     message: Option<crate::message::MessageService>,
@@ -29,6 +40,32 @@ pub struct TestingAppContext {
 impl TestingAppContext {
     pub fn set_task(&self, task: crate::task::TaskService) {
         self.task.get_or_init(|| task);
+    }
+
+    pub async fn from_preset(
+        preset: TestingAppContextPreset,
+    ) -> crate::errors::RecorderResult<Arc<Self>> {
+        let mikan_client = build_testing_mikan_client(preset.mikan_base_url.clone()).await?;
+        let db_service =
+            build_testing_database_service(preset.database_config.unwrap_or_default()).await?;
+        let crypto_service = build_testing_crypto_service().await?;
+        let storage_service = build_testing_storage_service().await?;
+        let media_service = build_testing_media_service().await?;
+        let app_ctx = Arc::new(
+            TestingAppContext::builder()
+                .mikan(mikan_client)
+                .db(db_service)
+                .crypto(crypto_service)
+                .storage(storage_service)
+                .media(media_service)
+                .build(),
+        );
+
+        let task_service = build_testing_task_service(app_ctx.clone()).await?;
+
+        app_ctx.set_task(task_service);
+
+        Ok(app_ctx)
     }
 }
 
@@ -90,4 +127,13 @@ impl AppContextTrait for TestingAppContext {
     fn message(&self) -> &crate::message::MessageService {
         self.message.as_ref().expect("should set message")
     }
+
+    fn media(&self) -> &crate::media::MediaService {
+        self.media.as_ref().expect("should set media")
+    }
+}
+
+pub struct TestingAppContextPreset {
+    pub mikan_base_url: String,
+    pub database_config: Option<TestingDatabaseServiceConfig>,
 }

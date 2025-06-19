@@ -9,7 +9,7 @@ fn build_testing_tracing_filter(level: Level) -> EnvFilter {
     let level = level.as_str().to_lowercase();
     let mut filter = EnvFilter::new(format!("{crate_name}[]={level}"));
 
-    let mut modules = vec!["mockito"];
+    let mut modules = vec!["mockito", "testcontainers"];
     modules.extend(MODULE_WHITELIST.iter());
     for module in modules {
         filter = filter.add_directive(format!("{module}[]={level}").parse().unwrap());

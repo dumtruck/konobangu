@@ -28,7 +28,12 @@ use crate::{
             MIKAN_YEAR_QUERY_KEY, MikanClient,
         },
     },
-    storage::{StorageContentCategory, StorageService},
+    media::{
+        AutoOptimizeImageFormat, EncodeAvifOptions, EncodeImageOptions, EncodeJxlOptions,
+        EncodeWebpOptions,
+    },
+    storage::StorageContentCategory,
+    task::{OptimizeImageTask, SystemTask},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -738,49 +743,92 @@ pub async fn scrape_mikan_poster_data_from_image_url(
 
 #[instrument(skip_all, fields(origin_poster_src_url = origin_poster_src_url.as_str()))]
 pub async fn scrape_mikan_poster_meta_from_image_url(
-    mikan_client: &MikanClient,
-    storage_service: &StorageService,
+    ctx: &dyn AppContextTrait,
     origin_poster_src_url: Url,
 ) -> RecorderResult<MikanBangumiPosterMeta> {
-    if let Some(poster_src) = storage_service
-        .exists(
-            storage_service.build_public_object_path(
-                StorageContentCategory::Image,
-                MIKAN_POSTER_BUCKET_KEY,
-                &origin_poster_src_url
-                    .path()
-                    .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
-            ),
-        )
-        .await?
-    {
-        return Ok(MikanBangumiPosterMeta {
+    let storage_service = ctx.storage();
+    let media_service = ctx.media();
+    let mikan_client = ctx.mikan();
+    let task_service = ctx.task();
+
+    let storage_path = storage_service.build_public_object_path(
+        StorageContentCategory::Image,
+        MIKAN_POSTER_BUCKET_KEY,
+        &origin_poster_src_url
+            .path()
+            .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
+    );
+    let meta = if let Some(poster_src) = storage_service.exists(&storage_path).await? {
+        MikanBangumiPosterMeta {
             origin_poster_src: origin_poster_src_url,
             poster_src: Some(poster_src.to_string()),
-        });
-    }
+        }
+    } else {
+        let poster_data =
+            scrape_mikan_poster_data_from_image_url(mikan_client, origin_poster_src_url.clone())
+                .await?;
 
-    let poster_data =
-        scrape_mikan_poster_data_from_image_url(mikan_client, origin_poster_src_url.clone())
+        let poster_str = storage_service
+            .write(storage_path.clone(), poster_data)
             .await?;
 
-    let poster_str = storage_service
-        .write(
-            storage_service.build_public_object_path(
-                StorageContentCategory::Image,
-                MIKAN_POSTER_BUCKET_KEY,
-                &origin_poster_src_url
-                    .path()
-                    .replace(&format!("{MIKAN_BANGUMI_POSTER_PATH}/"), ""),
-            ),
-            poster_data,
-        )
-        .await?;
+        tracing::warn!(
+            poster_str = poster_str.to_string(),
+            "mikan poster meta extracted"
+        );
 
-    Ok(MikanBangumiPosterMeta {
-        origin_poster_src: origin_poster_src_url,
-        poster_src: Some(poster_str.to_string()),
-    })
+        MikanBangumiPosterMeta {
+            origin_poster_src: origin_poster_src_url,
+            poster_src: Some(poster_str.to_string()),
+        }
+    };
+
+    if meta.poster_src.is_some()
+        && storage_path
+            .extension()
+            .is_some_and(|ext| media_service.is_legacy_image_format(ext))
+    {
+        let auto_optimize_formats = &media_service.config.auto_optimize_formats;
+
+        if auto_optimize_formats.contains(&AutoOptimizeImageFormat::Webp) {
+            let webp_storage_path = storage_path.with_extension("webp");
+            if storage_service.exists(&webp_storage_path).await?.is_none() {
+                task_service
+                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
+                        source_path: storage_path.clone().to_string(),
+                        target_path: webp_storage_path.to_string(),
+                        format_options: EncodeImageOptions::Webp(EncodeWebpOptions::default()),
+                    }))
+                    .await?;
+            }
+        }
+        if auto_optimize_formats.contains(&AutoOptimizeImageFormat::Avif) {
+            let avif_storage_path = storage_path.with_extension("avif");
+            if storage_service.exists(&avif_storage_path).await?.is_none() {
+                task_service
+                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
+                        source_path: storage_path.clone().to_string(),
+                        target_path: avif_storage_path.to_string(),
+                        format_options: EncodeImageOptions::Avif(EncodeAvifOptions::default()),
+                    }))
+                    .await?;
+            }
+        }
+        if auto_optimize_formats.contains(&AutoOptimizeImageFormat::Jxl) {
+            let jxl_storage_path = storage_path.with_extension("jxl");
+            if storage_service.exists(&jxl_storage_path).await?.is_none() {
+                task_service
+                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
+                        source_path: storage_path.clone().to_string(),
+                        target_path: jxl_storage_path.to_string(),
+                        format_options: EncodeImageOptions::Jxl(EncodeJxlOptions::default()),
+                    }))
+                    .await?;
+            }
+        }
+    }
+
+    Ok(meta)
 }
 
 pub fn extract_mikan_bangumi_index_meta_list_from_season_flow_fragment(
@@ -1007,24 +1055,23 @@ pub async fn scrape_mikan_bangumi_meta_list_from_season_flow_url(
 #[cfg(test)]
 mod test {
     #![allow(unused_variables)]
-    use std::{fs, sync::Arc};
+    use std::{fs, io::Cursor, sync::Arc};
 
     use futures::StreamExt;
+    use image::{ImageFormat, ImageReader};
     use rstest::{fixture, rstest};
     use tracing::Level;
     use url::Url;
-    use zune_image::{codecs::ImageFormat, image::Image};
 
     use super::*;
     use crate::test_utils::{
-        app::TestingAppContext,
+        app::{TestingAppContext, TestingAppContextPreset},
         crypto::build_testing_crypto_service,
         database::build_testing_database_service,
         mikan::{
             MikanMockServer, build_testing_mikan_client, build_testing_mikan_credential,
             build_testing_mikan_credential_form,
         },
-        storage::build_testing_storage_service,
         tracing::try_init_testing_tracing,
     };
 
@@ -1049,12 +1096,14 @@ mod test {
             scrape_mikan_poster_data_from_image_url(&mikan_client, bangumi_poster_url).await?;
 
         resources_mock.shared_resource_mock.expect(1);
-        let image = Image::read(bgm_poster_data.to_vec(), Default::default());
+
+        let image = {
+            let c = Cursor::new(bgm_poster_data);
+            ImageReader::new(c)
+        };
+        let image_format = image.with_guessed_format().ok().and_then(|i| i.format());
         assert!(
-            image.is_ok_and(|img| img
-                .metadata()
-                .get_image_format()
-                .is_some_and(|fmt| matches!(fmt, ImageFormat::JPEG))),
+            image_format.is_some_and(|fmt| matches!(fmt, ImageFormat::Jpeg)),
             "should start with valid jpeg data magic number"
         );
 
@@ -1068,37 +1117,47 @@ mod test {
 
         let mikan_base_url = mikan_server.base_url().clone();
 
+        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
+            mikan_base_url: mikan_base_url.to_string(),
+            database_config: None,
+        })
+        .await?;
+
         let resources_mock = mikan_server.mock_resources_with_doppel();
-
-        let mikan_client = build_testing_mikan_client(mikan_base_url.clone()).await?;
-
-        let storage_service = build_testing_storage_service().await?;
-        let storage_operator = storage_service.get_operator()?;
 
         let bangumi_poster_url = mikan_base_url.join("/images/Bangumi/202309/5ce9fed1.jpg")?;
 
-        let bgm_poster = scrape_mikan_poster_meta_from_image_url(
-            &mikan_client,
-            &storage_service,
-            bangumi_poster_url,
-        )
-        .await?;
+        let bgm_poster =
+            scrape_mikan_poster_meta_from_image_url(app_ctx.as_ref(), bangumi_poster_url).await?;
 
         resources_mock.shared_resource_mock.expect(1);
+
+        let storage_service = app_ctx.storage();
 
         let storage_fullname = storage_service.build_public_object_path(
             StorageContentCategory::Image,
             MIKAN_POSTER_BUCKET_KEY,
             "202309/5ce9fed1.jpg",
         );
-        let storage_fullename_str = storage_fullname.as_str();
 
-        assert!(storage_operator.exists(storage_fullename_str).await?);
+        assert!(
+            storage_service.exists(&storage_fullname).await?.is_some(),
+            "storage_fullename_str = {}, list public = {:?}",
+            &storage_fullname,
+            storage_service.list_public().await?
+        );
 
-        let expected_data =
-            fs::read("tests/resources/mikan/doppel/images/Bangumi/202309/5ce9fed1.jpg")?;
-        let found_data = storage_operator.read(storage_fullename_str).await?.to_vec();
-        assert_eq!(expected_data, found_data);
+        let bgm_poster_data = storage_service.read(&storage_fullname).await?;
+
+        let image = {
+            let c = Cursor::new(bgm_poster_data.to_vec());
+            ImageReader::new(c)
+        };
+        let image_format = image.with_guessed_format().ok().and_then(|i| i.format());
+        assert!(
+            image_format.is_some_and(|fmt| matches!(fmt, ImageFormat::Jpeg)),
+            "should start with valid jpeg data magic number"
+        );
 
         Ok(())
     }

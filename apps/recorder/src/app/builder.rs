@@ -21,6 +21,9 @@ pub struct MainCliArgs {
     /// Explicit environment
     #[arg(short, long)]
     environment: Option<Environment>,
+
+    #[arg(long)]
+    graceful_shutdown: Option<bool>,
 }
 
 pub struct AppBuilder {
@@ -28,6 +31,7 @@ pub struct AppBuilder {
     config_file: Option<String>,
     working_dir: String,
     environment: Environment,
+    pub graceful_shutdown: bool,
 }
 
 impl AppBuilder {
@@ -61,7 +65,8 @@ impl AppBuilder {
         builder = builder
             .config_file(args.config_file)
             .dotenv_file(args.dotenv_file)
-            .environment(environment);
+            .environment(environment)
+            .graceful_shutdown(args.graceful_shutdown.unwrap_or(true));
 
         Ok(builder)
     }
@@ -118,6 +123,12 @@ impl AppBuilder {
         ret
     }
 
+    pub fn graceful_shutdown(self, graceful_shutdown: bool) -> Self {
+        let mut ret = self;
+        ret.graceful_shutdown = graceful_shutdown;
+        ret
+    }
+
     pub fn dotenv_file(self, dotenv_file: Option<String>) -> Self {
         let mut ret = self;
         ret.dotenv_file = dotenv_file;
@@ -141,6 +152,7 @@ impl Default for AppBuilder {
             dotenv_file: None,
             config_file: None,
             working_dir: String::from("."),
+            graceful_shutdown: true,
         }
     }
 }
