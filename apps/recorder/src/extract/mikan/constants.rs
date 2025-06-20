@@ -12,6 +12,7 @@ pub const MIKAN_BANGUMI_POSTER_PATH: &str = "/images/Bangumi";
 pub const MIKAN_EPISODE_TORRENT_PATH: &str = "/Download";
 pub const MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH: &str = "/RSS/MyBangumi";
 pub const MIKAN_BANGUMI_RSS_PATH: &str = "/RSS/Bangumi";
+pub const MIKAN_FANSUB_HOMEPAGE_PATH: &str = "/Home/PublishGroup";
 pub const MIKAN_BANGUMI_ID_QUERY_KEY: &str = "bangumiId";
 pub const MIKAN_FANSUB_ID_QUERY_KEY: &str = "subgroupid";
 pub const MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY: &str = "token";

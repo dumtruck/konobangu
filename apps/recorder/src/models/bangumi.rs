@@ -152,7 +152,10 @@ impl ActiveModel {
             season_raw: ActiveValue::Set(season_raw),
             fansub: ActiveValue::Set(Some(meta.fansub)),
             poster_link: ActiveValue::Set(poster_link),
-            origin_poster_link: ActiveValue::Set(meta.origin_poster_src.map(|src| src.to_string())),
+            origin_poster_link: ActiveValue::Set(
+                meta.origin_poster_src
+                    .map(|src| src[url::Position::BeforePath..].to_string()),
+            ),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
             ..Default::default()

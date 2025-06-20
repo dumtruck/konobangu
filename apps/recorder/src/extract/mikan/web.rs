@@ -22,8 +22,8 @@ use crate::{
         mikan::{
             MIKAN_BANGUMI_EXPAND_SUBSCRIBED_PAGE_PATH, MIKAN_BANGUMI_HOMEPAGE_PATH,
             MIKAN_BANGUMI_ID_QUERY_KEY, MIKAN_BANGUMI_POSTER_PATH, MIKAN_BANGUMI_RSS_PATH,
-            MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY, MIKAN_POSTER_BUCKET_KEY,
-            MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SEASON_STR_QUERY_KEY,
+            MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY,
+            MIKAN_POSTER_BUCKET_KEY, MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SEASON_STR_QUERY_KEY,
             MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
             MIKAN_YEAR_QUERY_KEY, MikanClient,
         },
@@ -202,6 +202,32 @@ impl MikanBangumiMeta {
             mikan_fansub_id: fansub_meta.mikan_fansub_id,
             fansub: fansub_meta.fansub,
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct MikanFansubHash {
+    pub mikan_fansub_id: String,
+}
+
+impl MikanFansubHash {
+    pub fn from_homepage_url(url: &Url) -> Option<Self> {
+        let path = url.path();
+        if path.starts_with(MIKAN_FANSUB_HOMEPAGE_PATH) {
+            let mikan_fansub_id = path.replace(&format!("{MIKAN_FANSUB_HOMEPAGE_PATH}/"), "");
+            Some(Self { mikan_fansub_id })
+        } else {
+            None
+        }
+    }
+
+    pub fn build_homepage_url(self, mikan_base_url: Url) -> Url {
+        let mut url = mikan_base_url;
+        url.set_path(&format!(
+            "{MIKAN_FANSUB_HOMEPAGE_PATH}/{}",
+            self.mikan_fansub_id
+        ));
+        url
     }
 }
 

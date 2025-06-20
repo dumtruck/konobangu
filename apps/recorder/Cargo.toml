@@ -2,8 +2,20 @@
 name = "recorder"
 version = "0.1.0"
 edition = "2024"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["jxl"]
+playground = ["dep:inquire", "dep:color-eyre", "dep:polars"]
+testcontainers = [
+    "dep:testcontainers",
+    "dep:testcontainers-modules",
+    "dep:testcontainers-ext",
+    "downloader/testcontainers",
+    "testcontainers-modules/postgres",
+]
+jxl = ["dep:jpegxl-rs", "dep:jpegxl-sys"]
+
 [lib]
 name = "recorder"
 path = "src/lib.rs"
@@ -13,17 +25,25 @@ name = "recorder_cli"
 path = "src/bin/main.rs"
 required-features = []
 
-[features]
-default = ["jxl"]
-playground = ["dep:inquire", "dep:color-eyre"]
-testcontainers = [
-    "dep:testcontainers",
-    "dep:testcontainers-modules",
-    "dep:testcontainers-ext",
-    "downloader/testcontainers",
-    "testcontainers-modules/postgres",
-]
-jxl = ["dep:jpegxl-rs", "dep:jpegxl-sys"]
+[[example]]
+name = "mikan_collect_classic_eps"
+path = "examples/mikan_collect_classic_eps.rs"
+required-features = ["playground"]
+
+[[example]]
+name = "mikan_doppel_season_subscription"
+path = "examples/mikan_doppel_season_subscription.rs"
+required-features = ["playground"]
+
+[[example]]
+name = "mikan_doppel_subscriber_subscription"
+path = "examples/mikan_doppel_subscriber_subscription.rs"
+required-features = ["playground"]
+
+[[example]]
+name = "playground"
+path = "examples/playground.rs"
+required-features = ["playground"]
 
 [dependencies]
 downloader = { workspace = true }
@@ -93,7 +113,7 @@ fancy-regex = "0.14"
 lightningcss = "1.0.0-alpha.66"
 html-escape = "0.2.13"
 opendal = { version = "0.53", features = ["default", "services-fs"] }
-scraper = "0.23"
+scraper = "0.23.1"
 async-graphql = { version = "7", features = ["dynamic-schema"] }
 async-graphql-axum = "7"
 seaography = { version = "1.1", features = [
@@ -134,11 +154,11 @@ icu = "2.0.0"
 tracing-tree = "0.4.0"
 num_cpus = "1.17.0"
 headers-accept = "0.1.4"
+polars = { version = "0.49.1", features = ["parquet"], optional = true }
 
 [dev-dependencies]
 inquire = { workspace = true }
 color-eyre = { workspace = true }
-
 serial_test = "3"
 insta = { version = "1", features = ["redactions", "toml", "filters"] }
 rstest = "0.25"
