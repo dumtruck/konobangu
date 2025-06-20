@@ -254,6 +254,7 @@ impl MikanClassicEpisodeTablePage {
 
         std::fs::write(html_path, self.html.clone())?;
 
+        let mut id_vec = Vec::new();
         let mut publish_at_vec = Vec::new();
         let mut mikan_fansub_id_vec = Vec::new();
         let mut fansub_name_vec = Vec::new();
@@ -264,6 +265,7 @@ impl MikanClassicEpisodeTablePage {
         let mut torrent_link_vec = Vec::new();
 
         for row in &self.rows {
+            id_vec.push(row.id);
             publish_at_vec.push(row.publish_at.to_rfc3339());
             mikan_fansub_id_vec.push(row.mikan_fansub_id.clone());
             fansub_name_vec.push(row.fansub_name.clone());
@@ -275,6 +277,7 @@ impl MikanClassicEpisodeTablePage {
         }
 
         let df = df! [
+            "id" => id_vec,
             "publish_at_timestamp" => publish_at_vec,
             "mikan_fansub_id" => mikan_fansub_id_vec,
             "fansub_name" => fansub_name_vec,
@@ -405,7 +408,7 @@ async fn main() -> RecorderResult<()> {
         http_client: HttpClientConfig {
             exponential_backoff_max_retries: Some(3),
             leaky_bucket_max_tokens: Some(2),
-            leaky_bucket_initial_tokens: Some(0),
+            leaky_bucket_initial_tokens: Some(1),
             leaky_bucket_refill_tokens: Some(1),
             leaky_bucket_refill_interval: Some(std::time::Duration::from_millis(1000)),
             user_agent: Some(
