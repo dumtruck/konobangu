@@ -20,12 +20,15 @@ use super::scrape_mikan_bangumi_meta_stream_from_season_flow_url;
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
-    extract::mikan::{
-        MikanBangumiHash, MikanBangumiMeta, MikanEpisodeHash, MikanEpisodeMeta,
-        MikanRssEpisodeItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
-        MikanSubscriberSubscriptionRssUrlMeta, build_mikan_bangumi_subscription_rss_url,
-        build_mikan_season_flow_url, build_mikan_subscriber_subscription_rss_url,
-        scrape_mikan_episode_meta_from_episode_homepage_url,
+    extract::{
+        bittorrent::EpisodeEnclosureMeta,
+        mikan::{
+            MikanBangumiHash, MikanBangumiMeta, MikanEpisodeHash, MikanEpisodeMeta,
+            MikanRssEpisodeItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
+            MikanSubscriberSubscriptionRssUrlMeta, build_mikan_bangumi_subscription_rss_url,
+            build_mikan_season_flow_url, build_mikan_subscriber_subscription_rss_url,
+            scrape_mikan_episode_meta_from_episode_homepage_url,
+        },
     },
     models::{
         bangumi, episodes, subscription_bangumi, subscription_episode,
@@ -54,7 +57,7 @@ async fn sync_mikan_feeds_from_rss_item_list(
         .map(|(episode_id, hash, bangumi_id)| (hash.mikan_episode_id, (episode_id, bangumi_id)))
         .collect::<HashMap<_, _>>();
 
-        let mut new_episode_meta_list: Vec<MikanEpisodeMeta> = vec![];
+        let mut new_episode_meta_list: Vec<(MikanEpisodeMeta, EpisodeEnclosureMeta)> = vec![];
 
         let mikan_client = ctx.mikan();
         for to_insert_rss_item in rss_item_list.into_iter().filter(|rss_item| {
@@ -65,7 +68,8 @@ async fn sync_mikan_feeds_from_rss_item_list(
                 to_insert_rss_item.build_homepage_url(mikan_base_url.clone()),
             )
             .await?;
-            new_episode_meta_list.push(episode_meta);
+            let episode_enclosure_meta = EpisodeEnclosureMeta::from(to_insert_rss_item);
+            new_episode_meta_list.push((episode_meta, episode_enclosure_meta));
         }
 
         (new_episode_meta_list, existed_episode_hash2id_map)
@@ -92,22 +96,22 @@ async fn sync_mikan_feeds_from_rss_item_list(
 
     let new_episode_meta_list_group_by_bangumi_hash: HashMap<
         MikanBangumiHash,
-        Vec<MikanEpisodeMeta>,
+        Vec<(MikanEpisodeMeta, EpisodeEnclosureMeta)>,
     > = {
         let mut m = hashmap! {};
-        for episode_meta in new_episode_meta_list {
+        for (episode_meta, episode_enclosure_meta) in new_episode_meta_list {
             let bangumi_hash = episode_meta.bangumi_hash();
 
             m.entry(bangumi_hash)
                 .or_insert_with(Vec::new)
-                .push(episode_meta);
+                .push((episode_meta, episode_enclosure_meta));
         }
         m
     };
 
     for (group_bangumi_hash, group_episode_meta_list) in new_episode_meta_list_group_by_bangumi_hash
     {
-        let first_episode_meta = group_episode_meta_list.first().unwrap();
+        let (first_episode_meta, _) = group_episode_meta_list.first().unwrap();
         let group_bangumi_model = bangumi::Model::get_or_insert_from_mikan(
             ctx,
             group_bangumi_hash,
@@ -126,9 +130,12 @@ async fn sync_mikan_feeds_from_rss_item_list(
             },
         )
         .await?;
-        let group_episode_creation_list = group_episode_meta_list
-            .into_iter()
-            .map(|episode_meta| (&group_bangumi_model, episode_meta));
+        let group_episode_creation_list =
+            group_episode_meta_list
+                .into_iter()
+                .map(|(episode_meta, episode_enclosure_meta)| {
+                    (&group_bangumi_model, episode_meta, episode_enclosure_meta)
+                });
 
         episodes::Model::add_mikan_episodes_for_subscription(
             ctx,
@@ -273,7 +280,7 @@ impl MikanSubscriberSubscription {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, InputObject, SimpleObject)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanSeasonSubscription {
     pub subscription_id: i32,
     pub year: i32,

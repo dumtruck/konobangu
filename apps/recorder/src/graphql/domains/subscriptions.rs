@@ -3,13 +3,16 @@ use std::sync::Arc;
 use async_graphql::dynamic::{FieldValue, TypeRef};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use seaography::{
-    Builder as SeaographyBuilder, EntityObjectBuilder, EntityQueryFieldBuilder,
+    Builder as SeaographyBuilder, BuilderContext, EntityObjectBuilder, EntityQueryFieldBuilder,
     get_filter_conditions,
 };
 
 use crate::{
     errors::RecorderError,
-    graphql::infra::custom::generate_entity_filter_mutation_field,
+    graphql::{
+        domains::subscribers::restrict_subscriber_for_entity,
+        infra::custom::generate_entity_filter_mutation_field,
+    },
     models::{
         subscriber_tasks,
         subscriptions::{self, SubscriptionTrait},
@@ -17,9 +20,19 @@ use crate::{
     task::SubscriberTask,
 };
 
+pub fn register_subscriptions_to_schema_context(context: &mut BuilderContext) {
+    restrict_subscriber_for_entity::<subscriptions::Entity>(
+        context,
+        &subscriptions::Column::SubscriberId,
+    );
+}
+
 pub fn register_subscriptions_to_schema_builder(
     mut builder: SeaographyBuilder,
 ) -> SeaographyBuilder {
+    builder.register_enumeration::<subscriptions::SubscriptionCategory>();
+    seaography::register_entity!(builder, subscriptions);
+
     let context = builder.context;
 
     let entity_object_builder = EntityObjectBuilder { context };

@@ -4,6 +4,7 @@ pub mod credential_3rd;
 pub mod downloaders;
 pub mod downloads;
 pub mod episodes;
+pub mod feeds;
 pub mod query;
 pub mod subscriber_tasks;
 pub mod subscribers;

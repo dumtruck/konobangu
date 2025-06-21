@@ -52,8 +52,12 @@ pub enum Bangumi {
     RssLink,
     PosterLink,
     OriginPosterLink,
+    /**
+     * @deprecated
+     */
     SavePath,
     Homepage,
+    BangumiType,
 }
 
 #[derive(DeriveIden)]
@@ -86,7 +90,11 @@ pub enum Episodes {
     Homepage,
     Subtitle,
     Source,
-    Extra,
+    EpisodeType,
+    EnclosureTorrentLink,
+    EnclosureMagnetLink,
+    EnclosurePubDate,
+    EnclosureContentLength,
 }
 
 #[derive(DeriveIden)]
@@ -147,6 +155,17 @@ pub enum Credential3rd {
     Username,
     Password,
     UserAgent,
+}
+
+#[derive(DeriveIden)]
+pub enum Feeds {
+    Table,
+    Id,
+    Token,
+    FeedType,
+    FeedSource,
+    SubscriberId,
+    SubscriptionId,
 }
 
 macro_rules! create_postgres_enum_for_active_enum {

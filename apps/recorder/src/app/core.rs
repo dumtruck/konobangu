@@ -13,6 +13,8 @@ use crate::{
     },
 };
 
+pub const PROJECT_NAME: &str = "konobangu";
+
 pub struct App {
     pub context: Arc<dyn AppContextTrait>,
     pub builder: AppBuilder,

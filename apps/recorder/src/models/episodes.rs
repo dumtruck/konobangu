@@ -9,10 +9,18 @@ use crate::{
     app::AppContextTrait,
     errors::RecorderResult,
     extract::{
+        bittorrent::EpisodeEnclosureMeta,
         mikan::{MikanEpisodeHash, MikanEpisodeMeta, build_mikan_episode_homepage_url},
         origin::{OriginCompTrait, OriginNameRoot},
     },
 };
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "episode_type")]
+pub enum EpisodeType {
+    #[sea_orm(string_value = "mikan")]
+    Mikan,
+}
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "episodes")]
@@ -25,11 +33,15 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(indexed)]
     pub mikan_episode_id: Option<String>,
+    pub enclosure_torrent_link: Option<String>,
+    pub enclosure_magnet_link: Option<String>,
+    pub enclosure_pub_date: Option<DateTimeUtc>,
+    pub enclosure_content_length: Option<u64>,
+    pub episode_type: EpisodeType,
     pub origin_name: String,
     pub display_name: String,
     pub bangumi_id: i32,
     pub subscriber_id: i32,
-    pub save_path: Option<String>,
     pub resolution: Option<String>,
     pub season: i32,
     pub season_raw: Option<String>,
@@ -122,6 +134,7 @@ impl ActiveModel {
         ctx: &dyn AppContextTrait,
         bangumi: &bangumi::Model,
         episode: MikanEpisodeMeta,
+        enclosure_meta: EpisodeEnclosureMeta,
     ) -> RecorderResult<Self> {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let episode_extention_meta = OriginNameRoot::parse_comp(&episode.episode_title)
@@ -149,6 +162,10 @@ impl ActiveModel {
             poster_link: ActiveValue::Set(bangumi.poster_link.clone()),
             origin_poster_link: ActiveValue::Set(bangumi.origin_poster_link.clone()),
             episode_index: ActiveValue::Set(0),
+            enclosure_torrent_link: ActiveValue::Set(enclosure_meta.torrent_link),
+            enclosure_magnet_link: ActiveValue::Set(enclosure_meta.magnet_link),
+            enclosure_pub_date: ActiveValue::Set(enclosure_meta.pub_date),
+            enclosure_content_length: ActiveValue::Set(enclosure_meta.content_length),
             ..Default::default()
         };
 
@@ -216,14 +233,19 @@ impl Model {
 
     pub async fn add_mikan_episodes_for_subscription(
         ctx: &dyn AppContextTrait,
-        creations: impl Iterator<Item = (&bangumi::Model, MikanEpisodeMeta)>,
+        creations: impl Iterator<Item = (&bangumi::Model, MikanEpisodeMeta, EpisodeEnclosureMeta)>,
         subscriber_id: i32,
         subscription_id: i32,
     ) -> RecorderResult<()> {
         let db = ctx.db();
         let new_episode_active_modes: Vec<ActiveModel> = creations
-            .map(|(bangumi, episode_meta)| {
-                ActiveModel::from_mikan_bangumi_and_episode_meta(ctx, bangumi, episode_meta)
+            .map(|(bangumi, episode_meta, enclosure_meta)| {
+                ActiveModel::from_mikan_bangumi_and_episode_meta(
+                    ctx,
+                    bangumi,
+                    episode_meta,
+                    enclosure_meta,
+                )
             })
             .collect::<Result<_, _>>()?;
 
@@ -234,7 +256,23 @@ impl Model {
         let new_episode_ids = Entity::insert_many(new_episode_active_modes)
             .on_conflict(
                 OnConflict::columns([Column::MikanEpisodeId, Column::SubscriberId])
-                    .update_columns([Column::OriginName, Column::PosterLink, Column::Homepage])
+                    .update_columns([
+                        Column::OriginName,
+                        Column::PosterLink,
+                        Column::OriginPosterLink,
+                        Column::Homepage,
+                        Column::EnclosureContentLength,
+                        Column::EnclosurePubDate,
+                        Column::EnclosureTorrentLink,
+                        Column::EnclosureMagnetLink,
+                        Column::EpisodeIndex,
+                        Column::Subtitle,
+                        Column::Source,
+                        Column::Resolution,
+                        Column::Season,
+                        Column::SeasonRaw,
+                        Column::Fansub,
+                    ])
                     .to_owned(),
             )
             .exec_with_returning_columns(db, [Column::Id])

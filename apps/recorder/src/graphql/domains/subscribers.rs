@@ -320,6 +320,7 @@ where
 }
 
 pub fn register_subscribers_to_schema_context(context: &mut BuilderContext) {
+    restrict_subscriber_for_entity::<subscribers::Entity>(context, &subscribers::Column::Id);
     for column in subscribers::Column::iter() {
         if !matches!(column, subscribers::Column::Id) {
             let key = get_entity_column_key::<subscribers::Entity>(context, &column);

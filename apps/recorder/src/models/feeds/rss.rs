@@ -1,0 +1,142 @@
+use std::borrow::Cow;
+
+use chrono::{DateTime, Utc};
+use downloader::bittorrent::BITTORRENT_MIME_TYPE;
+use maplit::btreemap;
+use rss::{
+    Channel, ChannelBuilder, EnclosureBuilder, GuidBuilder, Item, ItemBuilder,
+    extension::{ExtensionBuilder, ExtensionMap},
+};
+use url::Url;
+
+use crate::{
+    app::AppContextTrait,
+    errors::{RecorderError, RecorderResult},
+};
+
+pub trait RssFeedItemTrait: Sized {
+    fn get_guid_value(&self) -> Cow<'_, str>;
+    fn get_title(&self) -> Cow<'_, str>;
+    fn get_description(&self) -> Cow<'_, str>;
+    fn get_link(&self, ctx: &dyn AppContextTrait, api_base: &Url) -> Option<Cow<'_, str>>;
+    fn get_enclosure_mime(&self) -> Option<Cow<'_, str>>;
+    fn get_enclosure_link(&self, ctx: &dyn AppContextTrait, api_base: &Url)
+    -> Option<Cow<'_, str>>;
+    fn get_enclosure_pub_date(&self) -> Option<DateTime<Utc>>;
+    fn get_enclosure_content_length(&self) -> Option<u64>;
+    fn into_item(self, ctx: &dyn AppContextTrait, api_base: &Url) -> RecorderResult<Item> {
+        let enclosure_mime_type =
+            self.get_enclosure_mime()
+                .ok_or_else(|| RecorderError::MikanRssInvalidFieldError {
+                    field: "enclosure_mime_type".into(),
+                    source: None.into(),
+                })?;
+        let enclosure_link = self.get_enclosure_link(ctx, api_base).ok_or_else(|| {
+            RecorderError::MikanRssInvalidFieldError {
+                field: "enclosure_link".into(),
+                source: None.into(),
+            }
+        })?;
+        let enclosure_content_length = self.get_enclosure_content_length().ok_or_else(|| {
+            RecorderError::MikanRssInvalidFieldError {
+                field: "enclosure_content_length".into(),
+                source: None.into(),
+            }
+        })?;
+        let enclosure_pub_date = self.get_enclosure_pub_date().ok_or_else(|| {
+            RecorderError::MikanRssInvalidFieldError {
+                field: "enclosure_pub_date".into(),
+                source: None.into(),
+            }
+        })?;
+        let link = self.get_link(ctx, api_base).ok_or_else(|| {
+            RecorderError::MikanRssInvalidFieldError {
+                field: "link".into(),
+                source: None.into(),
+            }
+        })?;
+
+        let mut extensions = ExtensionMap::default();
+        if enclosure_mime_type == BITTORRENT_MIME_TYPE {
+            extensions.insert(
+                "torrent".to_string(),
+                btreemap! {
+                    "link".to_string() => vec![
+                        ExtensionBuilder::default().name(
+                        "link"
+                        ).value(enclosure_link.to_string()).build()
+                    ],
+                    "contentLength".to_string() => vec![
+                        ExtensionBuilder::default().name(
+                            "contentLength"
+                        ).value(enclosure_content_length.to_string()).build()
+                    ],
+                    "pubDate".to_string() => vec![
+                        ExtensionBuilder::default().name(
+                            "pubDate"
+                        ).value(enclosure_pub_date.to_rfc3339()).build()
+                    ],
+                },
+            );
+        };
+
+        let enclosure = EnclosureBuilder::default()
+            .mime_type(enclosure_mime_type)
+            .url(enclosure_link.to_string())
+            .length(enclosure_content_length.to_string())
+            .build();
+
+        let guid = GuidBuilder::default()
+            .value(self.get_guid_value())
+            .permalink(false)
+            .build();
+
+        let item = ItemBuilder::default()
+            .guid(guid)
+            .title(self.get_title().to_string())
+            .description(self.get_description().to_string())
+            .link(link.to_string())
+            .enclosure(enclosure)
+            .pub_date(enclosure_pub_date.to_rfc3339())
+            .extensions(extensions)
+            .build();
+
+        Ok(item)
+    }
+}
+
+pub trait RssFeedTrait: Sized {
+    type Item: RssFeedItemTrait;
+
+    fn get_description(&self) -> Cow<'_, str>;
+
+    fn get_title(&self) -> Cow<'_, str>;
+
+    fn get_link(&self, ctx: &dyn AppContextTrait, api_base: &Url) -> Option<Cow<'_, str>>;
+
+    fn items(&self) -> impl Iterator<Item = &Self::Item>;
+
+    fn into_items(self) -> impl Iterator<Item = Self::Item>;
+
+    fn into_channel(self, ctx: &dyn AppContextTrait, api_base: &Url) -> RecorderResult<Channel> {
+        let link = self.get_link(ctx, api_base).ok_or_else(|| {
+            RecorderError::MikanRssInvalidFieldError {
+                field: "link".into(),
+                source: None.into(),
+            }
+        })?;
+
+        let channel = ChannelBuilder::default()
+            .title(self.get_title())
+            .link(link.to_string())
+            .description(self.get_description())
+            .items({
+                self.into_items()
+                    .map(|item| item.into_item(ctx, api_base))
+                    .collect::<RecorderResult<Vec<_>>>()?
+            })
+            .build();
+
+        Ok(channel)
+    }
+}

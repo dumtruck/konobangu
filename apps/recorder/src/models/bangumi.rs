@@ -29,7 +29,14 @@ pub struct BangumiFilter {
     pub group: Option<Vec<String>>,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "bangumi_type")]
+pub enum BangumiType {
+    #[sea_orm(string_value = "mikan")]
+    Mikan,
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "bangumi")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
@@ -39,6 +46,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub mikan_bangumi_id: Option<String>,
+    pub bangumi_type: BangumiType,
     pub subscriber_id: i32,
     pub display_name: String,
     pub origin_name: String,
@@ -50,7 +58,6 @@ pub struct Model {
     pub rss_link: Option<String>,
     pub poster_link: Option<String>,
     pub origin_poster_link: Option<String>,
-    pub save_path: Option<String>,
     pub homepage: Option<String>,
 }
 
@@ -152,10 +159,7 @@ impl ActiveModel {
             season_raw: ActiveValue::Set(season_raw),
             fansub: ActiveValue::Set(Some(meta.fansub)),
             poster_link: ActiveValue::Set(poster_link),
-            origin_poster_link: ActiveValue::Set(
-                meta.origin_poster_src
-                    .map(|src| src[url::Position::BeforePath..].to_string()),
-            ),
+            origin_poster_link: ActiveValue::Set(meta.origin_poster_src.map(|src| src.to_string())),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
             ..Default::default()
@@ -234,6 +238,7 @@ impl Model {
                         Column::OriginName,
                         Column::Fansub,
                         Column::PosterLink,
+                        Column::OriginPosterLink,
                         Column::Season,
                         Column::SeasonRaw,
                         Column::RssLink,

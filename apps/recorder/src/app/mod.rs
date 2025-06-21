@@ -4,7 +4,7 @@ pub mod context;
 pub mod core;
 pub mod env;
 
-pub use core::App;
+pub use core::{App, PROJECT_NAME};
 
 pub use builder::AppBuilder;
 pub use config::AppConfig;

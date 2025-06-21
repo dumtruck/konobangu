@@ -47,8 +47,12 @@ pub enum RecorderError {
     RegexError { source: regex::Error },
     #[snafu(display("Invalid method"))]
     InvalidMethodError,
+    #[snafu(display("Invalid header value"))]
+    InvalidHeaderValueError,
     #[snafu(display("Invalid header name"))]
     InvalidHeaderNameError,
+    #[snafu(display("Missing origin (protocol or host) in headers and forwarded info"))]
+    MissingOriginError,
     #[snafu(transparent)]
     TracingAppenderInitError {
         source: tracing_appender::rolling::InitError,
@@ -87,8 +91,6 @@ pub enum RecorderError {
         #[snafu(source(from(opendal::Error, Box::new)))]
         source: Box<opendal::Error>,
     },
-    #[snafu(display("Invalid header value"))]
-    InvalidHeaderValueError,
     #[snafu(transparent)]
     HttpClientError { source: HttpClientError },
     #[cfg(feature = "testcontainers")]
@@ -248,6 +250,11 @@ impl IntoResponse for RecorderError {
                 )
                     .into_response()
             }
+            Self::ModelEntityNotFound { entity } => (
+                StatusCode::NOT_FOUND,
+                Json::<StandardErrorResponse>(StandardErrorResponse::from(entity.to_string())),
+            )
+                .into_response(),
             err => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json::<StandardErrorResponse>(StandardErrorResponse::from(err.to_string())),

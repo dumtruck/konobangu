@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use axum::{
-    Json, Router,
-    extract::{Query, Request, State},
+    Extension, Json, Router,
+    extract::{Query, State},
     routing::get,
 };
 use snafu::ResultExt;
@@ -42,12 +42,11 @@ async fn oidc_callback(
 
 async fn oidc_auth(
     State(ctx): State<Arc<dyn AppContextTrait>>,
-    request: Request,
+    forwarded_info: Extension<ForwardedRelatedInfo>,
 ) -> Result<Json<OidcAuthRequest>, AuthError> {
     let auth_service = ctx.auth();
     if let AuthService::Oidc(oidc_auth_service) = auth_service {
-        let (parts, _) = request.into_parts();
-        let mut redirect_uri = ForwardedRelatedInfo::from_request_parts(&parts)
+        let mut redirect_uri = forwarded_info
             .resolved_origin()
             .ok_or(url::ParseError::EmptyHost)
             .context(OidcRequestRedirectUriSnafu)?;

@@ -7,10 +7,9 @@ use seaography::{BuilderContext, SeaResult};
 use crate::{
     app::AppContextTrait,
     graphql::infra::util::{get_column_key, get_entity_key},
-    models::credential_3rd,
 };
 
-fn register_crypto_column_input_conversion_to_schema_context<T>(
+pub fn register_crypto_column_input_conversion_to_schema_context<T>(
     context: &mut BuilderContext,
     ctx: Arc<dyn AppContextTrait>,
     column: &T::Column,
@@ -37,7 +36,7 @@ fn register_crypto_column_input_conversion_to_schema_context<T>(
     );
 }
 
-fn register_crypto_column_output_conversion_to_schema_context<T>(
+pub fn register_crypto_column_output_conversion_to_schema_context<T>(
     context: &mut BuilderContext,
     ctx: Arc<dyn AppContextTrait>,
     column: &T::Column,
@@ -66,41 +65,5 @@ fn register_crypto_column_output_conversion_to_schema_context<T>(
                 }
             },
         ),
-    );
-}
-
-pub fn register_crypto_to_schema_context(
-    context: &mut BuilderContext,
-    ctx: Arc<dyn AppContextTrait>,
-) {
-    register_crypto_column_input_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx.clone(),
-        &credential_3rd::Column::Cookies,
-    );
-    register_crypto_column_input_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx.clone(),
-        &credential_3rd::Column::Username,
-    );
-    register_crypto_column_input_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx.clone(),
-        &credential_3rd::Column::Password,
-    );
-    register_crypto_column_output_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx.clone(),
-        &credential_3rd::Column::Cookies,
-    );
-    register_crypto_column_output_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx.clone(),
-        &credential_3rd::Column::Username,
-    );
-    register_crypto_column_output_conversion_to_schema_context::<credential_3rd::Entity>(
-        context,
-        ctx,
-        &credential_3rd::Column::Password,
     );
 }

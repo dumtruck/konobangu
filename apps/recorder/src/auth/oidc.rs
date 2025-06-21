@@ -32,7 +32,11 @@ use super::{
     errors::{AuthError, OidcProviderUrlSnafu, OidcRequestRedirectUriSnafu},
     service::{AuthServiceTrait, AuthUserInfo},
 };
-use crate::{app::AppContextTrait, errors::RecorderError, models::auth::AuthType};
+use crate::{
+    app::{AppContextTrait, PROJECT_NAME},
+    errors::RecorderError,
+    models::auth::AuthType,
+};
 
 pub struct OidcHttpClient(pub Arc<HttpClient>);
 
@@ -351,7 +355,7 @@ impl AuthServiceTrait for OidcAuthService {
     }
 
     fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
-        Some(HeaderValue::from_static(r#"Bearer realm="konobangu""#))
+        Some(HeaderValue::from_str(format!("Bearer realm=\"{PROJECT_NAME}\"").as_str()).unwrap())
     }
 
     fn auth_type(&self) -> AuthType {

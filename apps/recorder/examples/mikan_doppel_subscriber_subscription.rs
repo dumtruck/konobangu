@@ -72,7 +72,7 @@ async fn main() -> RecorderResult<()> {
         }?;
 
         {
-            let episode_torrent_url = rss_item.url;
+            let episode_torrent_url = rss_item.torrent_link;
             let episode_torrent_doppel_path = MikanDoppelPath::new(episode_torrent_url.clone());
             tracing::info!(title = rss_item.title, "Scraping episode torrent...");
             if !episode_torrent_doppel_path.exists_any() {
@@ -173,7 +173,7 @@ async fn main() -> RecorderResult<()> {
                 };
 
                 {
-                    let episode_torrent_url = rss_item.url;
+                    let episode_torrent_url = rss_item.torrent_link;
                     let episode_torrent_doppel_path =
                         MikanDoppelPath::new(episode_torrent_url.clone());
                     tracing::info!(title = rss_item.title, "Scraping episode torrent...");

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use fancy_regex::Regex as FancyRegex;
 use lazy_static::lazy_static;
 use quirks_path::Path;
@@ -31,6 +32,14 @@ lazy_static! {
     static ref GET_SEASON_AND_TITLE_SUB_RE: Regex = Regex::new(r"([Ss]|Season )\d{1,3}").unwrap();
     static ref GET_SEASON_AND_TITLE_FIND_RE: Regex =
         Regex::new(r"([Ss]|Season )(\d{1,3})").unwrap();
+}
+
+#[derive(Clone, Debug)]
+pub struct EpisodeEnclosureMeta {
+    pub magnet_link: Option<String>,
+    pub torrent_link: Option<String>,
+    pub pub_date: Option<DateTime<Utc>>,
+    pub content_length: Option<u64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

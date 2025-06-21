@@ -9,7 +9,7 @@ use super::{
     service::{AuthServiceTrait, AuthUserInfo},
 };
 use crate::{
-    app::AppContextTrait,
+    app::{AppContextTrait, PROJECT_NAME},
     models::{auth::AuthType, subscribers::SEED_SUBSCRIBER},
 };
 
@@ -86,7 +86,7 @@ impl AuthServiceTrait for BasicAuthService {
     }
 
     fn www_authenticate_header_value(&self) -> Option<HeaderValue> {
-        Some(HeaderValue::from_static(r#"Basic realm="konobangu""#))
+        Some(HeaderValue::from_str(format!("Basic realm=\"{PROJECT_NAME}\"").as_str()).unwrap())
     }
 
     fn auth_type(&self) -> AuthType {

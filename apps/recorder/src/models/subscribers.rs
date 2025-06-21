@@ -3,11 +3,11 @@ use sea_orm::{ActiveValue, FromJsonQueryResult, TransactionTrait, entity::prelud
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::AppContextTrait,
+    app::{AppContextTrait, PROJECT_NAME},
     errors::app_error::{RecorderError, RecorderResult},
 };
 
-pub const SEED_SUBSCRIBER: &str = "konobangu";
+pub const SEED_SUBSCRIBER: &str = PROJECT_NAME;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, FromJsonQueryResult)]
 pub struct SubscriberBangumiConfig {

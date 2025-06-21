@@ -2,7 +2,7 @@ use std::{borrow::Cow, fmt, str::FromStr, sync::Arc};
 
 use async_stream::try_stream;
 use bytes::Bytes;
-use chrono::DateTime;
+use chrono::{DateTime, Utc};
 use downloader::bittorrent::defs::BITTORRENT_MIME_TYPE;
 use fetch::{html::fetch_html, image::fetch_image};
 use futures::{Stream, TryStreamExt, pin_mut};
@@ -17,6 +17,7 @@ use crate::{
     app::AppContextTrait,
     errors::app_error::{RecorderError, RecorderResult},
     extract::{
+        bittorrent::EpisodeEnclosureMeta,
         html::{extract_background_image_src_from_style_attr, extract_inner_text_from_element_ref},
         media::extract_image_src_from_str,
         mikan::{
@@ -39,11 +40,12 @@ use crate::{
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanRssEpisodeItem {
     pub title: String,
-    pub url: Url,
+    pub torrent_link: Url,
     pub content_length: Option<u64>,
     pub mime: String,
-    pub pub_date: Option<i64>,
+    pub pub_date: Option<DateTime<Utc>>,
     pub mikan_episode_id: String,
+    pub magnet_link: Option<String>,
 }
 
 impl MikanRssEpisodeItem {
@@ -95,18 +97,30 @@ impl TryFrom<rss::Item> for MikanRssEpisodeItem {
 
         Ok(MikanRssEpisodeItem {
             title,
-            url: enclosure_url,
+            torrent_link: enclosure_url,
             content_length: enclosure.length.parse().ok(),
             mime: mime_type,
-            pub_date: item
-                .pub_date
-                .and_then(|s| DateTime::parse_from_rfc2822(&s).ok())
-                .map(|s| s.timestamp_millis()),
+            pub_date: item.pub_date.and_then(|s| {
+                DateTime::parse_from_rfc2822(&s)
+                    .ok()
+                    .map(|s| s.with_timezone(&Utc))
+            }),
             mikan_episode_id,
+            magnet_link: None,
         })
     }
 }
 
+impl From<MikanRssEpisodeItem> for EpisodeEnclosureMeta {
+    fn from(item: MikanRssEpisodeItem) -> Self {
+        Self {
+            magnet_link: item.magnet_link,
+            torrent_link: Some(item.torrent_link.to_string()),
+            pub_date: item.pub_date,
+            content_length: item.content_length,
+        }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MikanSubscriberSubscriptionRssUrlMeta {
     pub mikan_subscription_token: String,

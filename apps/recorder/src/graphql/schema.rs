@@ -8,17 +8,36 @@ use crate::{
     app::AppContextTrait,
     graphql::{
         domains::{
-            credential_3rd::register_credential3rd_to_schema_builder,
-            crypto::register_crypto_to_schema_context,
+            bangumi::{register_bangumi_to_schema_builder, register_bangumi_to_schema_context},
+            credential_3rd::{
+                register_credential3rd_to_schema_builder, register_credential3rd_to_schema_context,
+            },
+            downloaders::{
+                register_downloaders_to_schema_builder, register_downloaders_to_schema_context,
+            },
+            downloads::{
+                register_downloads_to_schema_builder, register_downloads_to_schema_context,
+            },
+            episodes::{register_episodes_to_schema_builder, register_episodes_to_schema_context},
+            feeds::{register_feeds_to_schema_builder, register_feeds_to_schema_context},
             subscriber_tasks::{
                 register_subscriber_tasks_to_schema_builder,
                 register_subscriber_tasks_to_schema_context,
             },
             subscribers::{
                 register_subscribers_to_schema_builder, register_subscribers_to_schema_context,
-                restrict_subscriber_for_entity,
             },
-            subscriptions::register_subscriptions_to_schema_builder,
+            subscription_bangumi::{
+                register_subscription_bangumi_to_schema_builder,
+                register_subscription_bangumi_to_schema_context,
+            },
+            subscription_episode::{
+                register_subscription_episode_to_schema_builder,
+                register_subscription_episode_to_schema_context,
+            },
+            subscriptions::{
+                register_subscriptions_to_schema_builder, register_subscriptions_to_schema_context,
+            },
         },
         infra::json::register_jsonb_input_filter_to_schema_builder,
     },
@@ -31,7 +50,6 @@ pub fn build_schema(
     depth: Option<usize>,
     complexity: Option<usize>,
 ) -> Result<Schema, SchemaError> {
-    use crate::models::*;
     let database = app_ctx.db().as_ref().clone();
 
     let context = CONTEXT.get_or_init(|| {
@@ -39,45 +57,17 @@ pub fn build_schema(
 
         {
             // domains
+            register_feeds_to_schema_context(&mut context);
             register_subscribers_to_schema_context(&mut context);
-
-            {
-                restrict_subscriber_for_entity::<downloaders::Entity>(
-                    &mut context,
-                    &downloaders::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<downloads::Entity>(
-                    &mut context,
-                    &downloads::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<episodes::Entity>(
-                    &mut context,
-                    &episodes::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<subscriptions::Entity>(
-                    &mut context,
-                    &subscriptions::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<subscribers::Entity>(
-                    &mut context,
-                    &subscribers::Column::Id,
-                );
-                restrict_subscriber_for_entity::<subscription_bangumi::Entity>(
-                    &mut context,
-                    &subscription_bangumi::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<subscription_episode::Entity>(
-                    &mut context,
-                    &subscription_episode::Column::SubscriberId,
-                );
-                restrict_subscriber_for_entity::<credential_3rd::Entity>(
-                    &mut context,
-                    &credential_3rd::Column::SubscriberId,
-                );
-            }
-
-            register_crypto_to_schema_context(&mut context, app_ctx.clone());
+            register_subscriptions_to_schema_context(&mut context);
             register_subscriber_tasks_to_schema_context(&mut context);
+            register_credential3rd_to_schema_context(&mut context, app_ctx.clone());
+            register_downloaders_to_schema_context(&mut context);
+            register_downloads_to_schema_context(&mut context);
+            register_episodes_to_schema_context(&mut context);
+            register_subscription_bangumi_to_schema_context(&mut context);
+            register_subscription_episode_to_schema_context(&mut context);
+            register_bangumi_to_schema_context(&mut context);
         }
         context
     });
@@ -91,32 +81,16 @@ pub fn build_schema(
     {
         // domains
         builder = register_subscribers_to_schema_builder(builder);
-
-        seaography::register_entities!(
-            builder,
-            [
-                bangumi,
-                downloaders,
-                downloads,
-                episodes,
-                subscription_bangumi,
-                subscription_episode,
-                subscriptions,
-                credential_3rd
-            ]
-        );
-
-        {
-            builder.register_enumeration::<downloads::DownloadStatus>();
-            builder.register_enumeration::<subscriptions::SubscriptionCategory>();
-            builder.register_enumeration::<downloaders::DownloaderCategory>();
-            builder.register_enumeration::<downloads::DownloadMime>();
-            builder.register_enumeration::<credential_3rd::Credential3rdType>();
-        }
-
+        builder = register_feeds_to_schema_builder(builder);
+        builder = register_episodes_to_schema_builder(builder);
+        builder = register_subscription_bangumi_to_schema_builder(builder);
+        builder = register_subscription_episode_to_schema_builder(builder);
+        builder = register_downloaders_to_schema_builder(builder);
+        builder = register_downloads_to_schema_builder(builder);
         builder = register_subscriptions_to_schema_builder(builder);
         builder = register_credential3rd_to_schema_builder(builder);
         builder = register_subscriber_tasks_to_schema_builder(builder);
+        builder = register_bangumi_to_schema_builder(builder);
     }
 
     let schema = builder.schema_builder();

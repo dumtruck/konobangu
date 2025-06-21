@@ -1,6 +1,11 @@
-use axum::http::{HeaderName, HeaderValue, Uri, header, request::Parts};
+use axum::{
+    extract::FromRequestParts,
+    http::{HeaderName, HeaderValue, Uri, header, request::Parts},
+};
 use itertools::Itertools;
 use url::Url;
+
+use crate::errors::RecorderError;
 
 /// Fields from a "Forwarded" header per [RFC7239 sec 4](https://www.rfc-editor.org/rfc/rfc7239#section-4)
 #[derive(Debug, Clone)]
@@ -101,9 +106,13 @@ pub struct ForwardedRelatedInfo {
     pub origin: Option<String>,
 }
 
-impl ForwardedRelatedInfo {
-    pub fn from_request_parts(request_parts: &Parts) -> ForwardedRelatedInfo {
-        let headers = &request_parts.headers;
+impl<T> FromRequestParts<T> for ForwardedRelatedInfo {
+    type Rejection = RecorderError;
+    fn from_request_parts(
+        parts: &mut Parts,
+        _state: &T,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send {
+        let headers = &parts.headers;
         let forwarded = headers
             .get(header::FORWARDED)
             .and_then(|s| ForwardedHeader::try_from(s.clone()).ok());
@@ -132,17 +141,19 @@ impl ForwardedRelatedInfo {
             .get(header::ORIGIN)
             .and_then(|s| s.to_str().map(String::from).ok());
 
-        ForwardedRelatedInfo {
+        futures::future::ready(Ok(ForwardedRelatedInfo {
             host,
             x_forwarded_for,
             x_forwarded_host,
             x_forwarded_proto,
             forwarded,
-            uri: request_parts.uri.clone(),
+            uri: parts.uri.clone(),
             origin,
-        }
+        }))
     }
+}
 
+impl ForwardedRelatedInfo {
     pub fn resolved_protocol(&self) -> Option<&str> {
         self.forwarded
             .as_ref()
