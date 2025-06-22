@@ -154,7 +154,11 @@ icu = "2.0.0"
 tracing-tree = "0.4.0"
 num_cpus = "1.17.0"
 headers-accept = "0.1.4"
-polars = { version = "0.49.1", features = ["parquet"], optional = true }
+polars = { version = "0.49.1", features = [
+    "parquet",
+    "lazy",
+    "diagonal_concat",
+], optional = true }
 
 [dev-dependencies]
 inquire = { workspace = true }
