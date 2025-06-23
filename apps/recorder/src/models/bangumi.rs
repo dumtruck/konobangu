@@ -17,7 +17,7 @@ use crate::{
             MikanBangumiHash, MikanBangumiMeta, build_mikan_bangumi_subscription_rss_url,
             scrape_mikan_poster_meta_from_image_url,
         },
-        origin::{OriginCompTrait, SeasonComp},
+        origin::{BangumiComps, OriginCompTrait},
     },
 };
 
@@ -129,11 +129,12 @@ impl ActiveModel {
     ) -> RecorderResult<Self> {
         let mikan_client = ctx.mikan();
         let mikan_base_url = mikan_client.base_url();
-        let season_comp = SeasonComp::parse_comp(&meta.bangumi_title)
+        let season_comp = BangumiComps::parse_comp(&meta.bangumi_title)
             .ok()
-            .map(|(_, s)| s);
+            .map(|(_, s)| s)
+            .and_then(|s| s.season);
         let season_index = season_comp.as_ref().map(|s| s.num).unwrap_or(1);
-        let season_raw = season_comp.map(|s| s.source.into_owned());
+        let season_raw = season_comp.map(|s| s.source.to_string());
 
         let rss_url = build_mikan_bangumi_subscription_rss_url(
             mikan_base_url.clone(),
@@ -162,6 +163,7 @@ impl ActiveModel {
             origin_poster_link: ActiveValue::Set(meta.origin_poster_src.map(|src| src.to_string())),
             homepage: ActiveValue::Set(Some(meta.homepage.to_string())),
             rss_link: ActiveValue::Set(Some(rss_url.to_string())),
+            bangumi_type: ActiveValue::Set(BangumiType::Mikan),
             ..Default::default()
         })
     }

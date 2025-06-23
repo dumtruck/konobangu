@@ -23,7 +23,7 @@ pub trait RssFeedItemTrait: Sized {
     fn get_enclosure_link(&self, ctx: &dyn AppContextTrait, api_base: &Url)
     -> Option<Cow<'_, str>>;
     fn get_enclosure_pub_date(&self) -> Option<DateTime<Utc>>;
-    fn get_enclosure_content_length(&self) -> Option<u64>;
+    fn get_enclosure_content_length(&self) -> Option<i64>;
     fn into_item(self, ctx: &dyn AppContextTrait, api_base: &Url) -> RecorderResult<Item> {
         let enclosure_mime_type =
             self.get_enclosure_mime()
@@ -43,12 +43,7 @@ pub trait RssFeedItemTrait: Sized {
                 source: None.into(),
             }
         })?;
-        let enclosure_pub_date = self.get_enclosure_pub_date().ok_or_else(|| {
-            RecorderError::MikanRssInvalidFieldError {
-                field: "enclosure_pub_date".into(),
-                source: None.into(),
-            }
-        })?;
+        let enclosure_pub_date = self.get_enclosure_pub_date();
         let link = self.get_link(ctx, api_base).ok_or_else(|| {
             RecorderError::MikanRssInvalidFieldError {
                 field: "link".into(),
@@ -58,9 +53,8 @@ pub trait RssFeedItemTrait: Sized {
 
         let mut extensions = ExtensionMap::default();
         if enclosure_mime_type == BITTORRENT_MIME_TYPE {
-            extensions.insert(
-                "torrent".to_string(),
-                btreemap! {
+            extensions.insert("torrent".to_string(), {
+                let mut map = btreemap! {
                     "link".to_string() => vec![
                         ExtensionBuilder::default().name(
                         "link"
@@ -71,13 +65,20 @@ pub trait RssFeedItemTrait: Sized {
                             "contentLength"
                         ).value(enclosure_content_length.to_string()).build()
                     ],
-                    "pubDate".to_string() => vec![
-                        ExtensionBuilder::default().name(
-                            "pubDate"
-                        ).value(enclosure_pub_date.to_rfc3339()).build()
-                    ],
-                },
-            );
+                };
+                if let Some(pub_date) = enclosure_pub_date {
+                    map.insert(
+                        "pubDate".to_string(),
+                        vec![
+                            ExtensionBuilder::default()
+                                .name("pubDate")
+                                .value(pub_date.to_rfc3339())
+                                .build(),
+                        ],
+                    );
+                }
+                map
+            });
         };
 
         let enclosure = EnclosureBuilder::default()
@@ -97,7 +98,6 @@ pub trait RssFeedItemTrait: Sized {
             .description(self.get_description().to_string())
             .link(link.to_string())
             .enclosure(enclosure)
-            .pub_date(enclosure_pub_date.to_rfc3339())
             .extensions(extensions)
             .build();
 

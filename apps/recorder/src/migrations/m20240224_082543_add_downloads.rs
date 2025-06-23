@@ -95,8 +95,8 @@ impl MigrationTrait for Migration {
                         DownloadMimeEnum,
                         DownloadMime::iden_values(),
                     ))
-                    .col(big_unsigned(Downloads::AllSize))
-                    .col(big_unsigned(Downloads::CurrSize))
+                    .col(big_integer(Downloads::AllSize))
+                    .col(big_integer(Downloads::CurrSize))
                     .col(text(Downloads::Url))
                     .col(text_null(Downloads::Homepage))
                     .col(text_null(Downloads::SavePath))

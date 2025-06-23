@@ -267,7 +267,6 @@ where
     Box::new(
         move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
             let field_name = context.field().name();
-            tracing::warn!("field_name: {:?}", field_name);
             if field_name == entity_create_one_mutation_field_name.as_str()
                 || field_name == entity_create_batch_mutation_field_name.as_str()
             {

@@ -1,5 +1,5 @@
 use rss::Channel;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait};
 use url::Url;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     models::{
         episodes,
         feeds::{self, FeedSource, RssFeedTrait, SubscriptionEpisodesFeed},
-        subscriptions,
+        subscription_episode, subscriptions,
     },
 };
 
@@ -22,19 +22,30 @@ impl Feed {
             FeedSource::SubscriptionEpisode => {
                 let db = ctx.db();
                 let (subscription, episodes) = if let Some(subscription_id) = m.subscription_id
-                    && let Some((subscription, episodes)) = subscriptions::Entity::find()
+                    && let Some(subscription) = subscriptions::Entity::find()
                         .filter(subscriptions::Column::Id.eq(subscription_id))
-                        .find_with_related(episodes::Entity)
-                        .all(db)
+                        .one(db)
                         .await?
-                        .pop()
                 {
+                    let episodes = episodes::Entity::find()
+                        .join(
+                            JoinType::InnerJoin,
+                            episodes::Relation::SubscriptionEpisode.def(),
+                        )
+                        .join(
+                            JoinType::InnerJoin,
+                            subscription_episode::Relation::Subscription.def(),
+                        )
+                        .filter(subscriptions::Column::Id.eq(subscription_id))
+                        .all(db)
+                        .await?;
                     (subscription, episodes)
                 } else {
                     return Err(RecorderError::ModelEntityNotFound {
                         entity: "Subscription".into(),
                     });
                 };
+
                 Ok(Feed::SubscritpionEpisodes(
                     SubscriptionEpisodesFeed::from_model(m, subscription, episodes),
                 ))

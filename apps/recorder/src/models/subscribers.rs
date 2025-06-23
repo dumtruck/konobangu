@@ -41,6 +41,10 @@ pub enum Relation {
     Auth,
     #[sea_orm(has_many = "super::credential_3rd::Entity")]
     Credential3rd,
+    #[sea_orm(has_many = "super::feeds::Entity")]
+    Feed,
+    #[sea_orm(has_many = "super::subscriber_tasks::Entity")]
+    SubscriberTask,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -79,6 +83,18 @@ impl Related<super::credential_3rd::Entity> for Entity {
     }
 }
 
+impl Related<super::feeds::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Feed.def()
+    }
+}
+
+impl Related<super::subscriber_tasks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriberTask.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscriptions::Entity")]
@@ -91,6 +107,10 @@ pub enum RelatedEntity {
     Episode,
     #[sea_orm(entity = "super::credential_3rd::Entity")]
     Credential3rd,
+    #[sea_orm(entity = "super::feeds::Entity")]
+    Feed,
+    #[sea_orm(entity = "super::subscriber_tasks::Entity")]
+    SubscriberTask,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

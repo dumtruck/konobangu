@@ -39,7 +39,7 @@ pub struct EpisodeEnclosureMeta {
     pub magnet_link: Option<String>,
     pub torrent_link: Option<String>,
     pub pub_date: Option<DateTime<Utc>>,
-    pub content_length: Option<u64>,
+    pub content_length: Option<i64>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

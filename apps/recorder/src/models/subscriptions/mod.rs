@@ -59,6 +59,8 @@ pub enum Relation {
         on_delete = "SetNull"
     )]
     Credential3rd,
+    #[sea_orm(has_many = "super::feeds::Entity")]
+    Feed,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -90,6 +92,12 @@ impl Related<super::bangumi::Entity> for Entity {
                 .def()
                 .rev(),
         )
+    }
+}
+
+impl Related<super::feeds::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Feed.def()
     }
 }
 
@@ -127,6 +135,8 @@ pub enum RelatedEntity {
     SubscriptionBangumi,
     #[sea_orm(entity = "super::credential_3rd::Entity")]
     Credential3rd,
+    #[sea_orm(entity = "super::feeds::Entity")]
+    Feed,
 }
 
 #[async_trait]

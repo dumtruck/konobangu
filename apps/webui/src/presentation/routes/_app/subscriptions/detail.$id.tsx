@@ -14,6 +14,7 @@ import { Img } from '@/components/ui/img';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
+import { DELETE_FEED, INSERT_FEED } from '@/domains/recorder/schema/feeds';
 import { GET_SUBSCRIPTION_DETAIL } from '@/domains/recorder/schema/subscriptions';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
@@ -22,10 +23,16 @@ import {
   getApolloQueryError,
 } from '@/infra/errors/apollo';
 import {
+  type DeleteFeedMutation,
+  type DeleteFeedMutationVariables,
+  FeedSourceEnum,
+  FeedTypeEnum,
   type GetSubscriptionDetailQuery,
+  type InsertFeedMutation,
+  type InsertFeedMutationVariables,
   SubscriptionCategoryEnum,
 } from '@/infra/graphql/gql/graphql';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import {
   createFileRoute,
   useCanGoBack,
@@ -38,7 +45,9 @@ import {
   Edit,
   ExternalLink,
   ListIcon,
+  PlusIcon,
   RefreshCcwIcon,
+  Trash2,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
@@ -90,6 +99,50 @@ function SubscriptionDetailRouteComponent() {
       },
     });
   };
+
+  const [insertFeed] = useMutation<
+    InsertFeedMutation,
+    InsertFeedMutationVariables
+  >(INSERT_FEED, {
+    onCompleted: async () => {
+      const result = await refetch();
+      const error = getApolloQueryError(result);
+      if (error) {
+        toast.error('Failed to add feed', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Feed added');
+    },
+    onError: (error) => {
+      toast.error('Failed to add feed', {
+        description: apolloErrorToMessage(error),
+      });
+    },
+  });
+
+  const [deleteFeed] = useMutation<
+    DeleteFeedMutation,
+    DeleteFeedMutationVariables
+  >(DELETE_FEED, {
+    onCompleted: async () => {
+      const result = await refetch();
+      const error = getApolloQueryError(result);
+      if (error) {
+        toast.error('Failed to delete feed', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Feed deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete feed', {
+        description: apolloErrorToMessage(error),
+      });
+    },
+  });
 
   const subscription = data?.subscriptions?.nodes?.[0];
 
@@ -311,6 +364,85 @@ function SubscriptionDetailRouteComponent() {
                     )}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            <Separator />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium text-sm">Associated Feeds</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    insertFeed({
+                      variables: {
+                        data: {
+                          subscriptionId: Number.parseInt(id),
+                          feedType: FeedTypeEnum.Rss,
+                          feedSource: FeedSourceEnum.SubscriptionEpisode,
+                        },
+                      },
+                    })
+                  }
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add Feed
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {subscription.feed?.nodes &&
+                subscription.feed.nodes.length > 0 ? (
+                  subscription.feed.nodes.map((feed) => (
+                    <Card
+                      key={feed.id}
+                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
+                      onClick={() => {
+                        window.open(`/api/feeds/rss/${feed.token}`, '_blank');
+                      }}
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="whitespace-nowrap font-medium text-sm capitalize">
+                            <span>{feed.feedType} Feed</span>
+                          </Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteFeed({
+                                variables: {
+                                  filters: {
+                                    id: {
+                                      eq: feed.id,
+                                    },
+                                  },
+                                },
+                              });
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+
+                        <code className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">
+                          {feed.token}
+                        </code>
+
+                        <div className="text-muted-foreground text-xs">
+                          {format(new Date(feed.createdAt), 'MM-dd HH:mm')}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full py-8 text-center text-muted-foreground">
+                    No associated feeds now
+                  </div>
+                )}
               </div>
             </div>
 

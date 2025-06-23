@@ -39,7 +39,9 @@ pub enum FeedSource {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, DeriveEntityModel)]
 #[sea_orm(table_name = "feeds")]
 pub struct Model {
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub created_at: DateTimeUtc,
+    #[sea_orm(default_expr = "Expr::current_timestamp()")]
     pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,

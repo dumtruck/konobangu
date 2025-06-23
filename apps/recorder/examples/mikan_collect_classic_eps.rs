@@ -500,31 +500,31 @@ async fn merge_mikan_classic_episodes_and_strip_columns() -> RecorderResult<()> 
     }
 
     select_columns_and_write(merged_df.clone(), "tiny", &["fansub_name", "original_name"])?;
-    select_columns_and_write(
-        merged_df.clone(),
-        "lite",
-        &[
-            "mikan_fansub_id",
-            "fansub_name",
-            "mikan_episode_id",
-            "original_name",
-        ],
-    )?;
-    select_columns_and_write(
-        merged_df,
-        "full",
-        &[
-            "id",
-            "publish_at_timestamp",
-            "mikan_fansub_id",
-            "fansub_name",
-            "mikan_episode_id",
-            "original_name",
-            "magnet_link",
-            "file_size",
-            "torrent_link",
-        ],
-    )?;
+    // select_columns_and_write(
+    //     merged_df.clone(),
+    //     "lite",
+    //     &[
+    //         "mikan_fansub_id",
+    //         "fansub_name",
+    //         "mikan_episode_id",
+    //         "original_name",
+    //     ],
+    // )?;
+    // select_columns_and_write(
+    //     merged_df,
+    //     "full",
+    //     &[
+    //         "id",
+    //         "publish_at_timestamp",
+    //         "mikan_fansub_id",
+    //         "fansub_name",
+    //         "mikan_episode_id",
+    //         "original_name",
+    //         "magnet_link",
+    //         "file_size",
+    //         "torrent_link",
+    //     ],
+    // )?;
 
     Ok(())
 }

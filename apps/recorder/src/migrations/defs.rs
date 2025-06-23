@@ -79,6 +79,9 @@ pub enum Episodes {
     BangumiId,
     SubscriberId,
     DownloadId,
+    /**
+     * @deprecated
+     */
     SavePath,
     Resolution,
     Season,

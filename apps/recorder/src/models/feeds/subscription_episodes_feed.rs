@@ -74,7 +74,7 @@ impl RssFeedItemTrait for episodes::Model {
         self.enclosure_pub_date
     }
 
-    fn get_enclosure_content_length(&self) -> Option<u64> {
+    fn get_enclosure_content_length(&self) -> Option<i64> {
         self.enclosure_content_length
     }
 }
@@ -84,8 +84,8 @@ impl RssFeedTrait for SubscriptionEpisodesFeed {
 
     fn get_description(&self) -> Cow<'_, str> {
         Cow::Owned(format!(
-            "{PROJECT_NAME} - episodes of subscription \"{}\"",
-            self.subscription.display_name
+            "{PROJECT_NAME} - episodes of subscription {}",
+            self.subscription.id
         ))
     }
 

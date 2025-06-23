@@ -52,8 +52,8 @@ pub struct Model {
     pub status: DownloadStatus,
     pub mime: DownloadMime,
     pub url: String,
-    pub all_size: Option<u64>,
-    pub curr_size: Option<u64>,
+    pub all_size: Option<i64>,
+    pub curr_size: Option<i64>,
     pub homepage: Option<String>,
     pub save_path: Option<String>,
 }

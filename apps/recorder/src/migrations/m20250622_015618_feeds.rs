@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use sea_orm_migration::{
-    prelude::*,
-    schema::{enumeration, integer_null, pk_auto, text},
-};
+use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
     migrations::defs::{

@@ -1,10 +1,5 @@
 use async_trait::async_trait;
-use sea_orm_migration::{
-    prelude::*,
-    schema::{
-        enumeration, enumeration_null, integer_null, text_null, timestamp_with_time_zone_null,
-    },
-};
+use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
     migrations::defs::{Bangumi, CustomSchemaManagerExt, Episodes},
@@ -85,7 +80,10 @@ impl MigrationTrait for Migration {
                         .add_column_if_not_exists(timestamp_with_time_zone_null(
                             Episodes::EnclosurePubDate,
                         ))
-                        .add_column_if_not_exists(integer_null(Episodes::EnclosureContentLength))
+                        .add_column_if_not_exists(big_integer_null(
+                            Episodes::EnclosureContentLength,
+                        ))
+                        .drop_column(Episodes::SavePath)
                         .to_owned(),
                 )
                 .await?;

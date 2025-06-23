@@ -41,7 +41,7 @@ use crate::{
 pub struct MikanRssEpisodeItem {
     pub title: String,
     pub torrent_link: Url,
-    pub content_length: Option<u64>,
+    pub content_length: Option<i64>,
     pub mime: String,
     pub pub_date: Option<DateTime<Utc>>,
     pub mikan_episode_id: String,
@@ -95,15 +95,32 @@ impl TryFrom<rss::Item> for MikanRssEpisodeItem {
             RecorderError::from_mikan_rss_invalid_field(Cow::Borrowed("mikan_episode_id"))
         })?;
 
+        let pub_date = item
+            .extensions
+            .get("torrent")
+            .and_then(|t| t.get("pubDate"))
+            .and_then(|e| e.first())
+            .and_then(|e| e.value.as_deref());
+
         Ok(MikanRssEpisodeItem {
             title,
             torrent_link: enclosure_url,
             content_length: enclosure.length.parse().ok(),
             mime: mime_type,
-            pub_date: item.pub_date.and_then(|s| {
-                DateTime::parse_from_rfc2822(&s)
+            pub_date: pub_date.and_then(|s| {
+                DateTime::parse_from_rfc2822(s)
                     .ok()
                     .map(|s| s.with_timezone(&Utc))
+                    .or_else(|| {
+                        DateTime::parse_from_rfc3339(s)
+                            .ok()
+                            .map(|s| s.with_timezone(&Utc))
+                    })
+                    .or_else(|| {
+                        DateTime::parse_from_rfc3339(&format!("{s}+08:00"))
+                            .ok()
+                            .map(|s| s.with_timezone(&Utc))
+                    })
             }),
             mikan_episode_id,
             magnet_link: None,

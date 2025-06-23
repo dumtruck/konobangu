@@ -36,7 +36,7 @@ pub struct Model {
     pub enclosure_torrent_link: Option<String>,
     pub enclosure_magnet_link: Option<String>,
     pub enclosure_pub_date: Option<DateTimeUtc>,
-    pub enclosure_content_length: Option<u64>,
+    pub enclosure_content_length: Option<i64>,
     pub episode_type: EpisodeType,
     pub origin_name: String,
     pub display_name: String,
@@ -166,6 +166,7 @@ impl ActiveModel {
             enclosure_magnet_link: ActiveValue::Set(enclosure_meta.magnet_link),
             enclosure_pub_date: ActiveValue::Set(enclosure_meta.pub_date),
             enclosure_content_length: ActiveValue::Set(enclosure_meta.content_length),
+            episode_type: ActiveValue::Set(EpisodeType::Mikan),
             ..Default::default()
         };
 

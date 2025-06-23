@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-    Extension, Json, Router,
+    Json, Router,
     extract::{Query, State},
     routing::get,
 };
@@ -42,7 +42,7 @@ async fn oidc_callback(
 
 async fn oidc_auth(
     State(ctx): State<Arc<dyn AppContextTrait>>,
-    forwarded_info: Extension<ForwardedRelatedInfo>,
+    forwarded_info: ForwardedRelatedInfo,
 ) -> Result<Json<OidcAuthRequest>, AuthError> {
     let auth_service = ctx.auth();
     if let AuthService::Oidc(oidc_auth_service) = auth_service {

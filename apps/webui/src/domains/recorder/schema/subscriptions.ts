@@ -95,6 +95,16 @@ query GetSubscriptionDetail ($id: Int!) {
       category
       sourceUrl
       enabled
+      feed {
+        nodes {
+           id
+           createdAt
+           updatedAt
+           token
+           feedType
+           feedSource
+        }
+      }
       credential3rd {
          id
          username
@@ -112,7 +122,6 @@ query GetSubscriptionDetail ($id: Int!) {
           mikanFansubId
           rssLink
           posterLink
-          savePath
           homepage
         }
       }
