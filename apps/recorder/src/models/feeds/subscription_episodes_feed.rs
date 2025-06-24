@@ -42,6 +42,12 @@ impl RssFeedItemTrait for episodes::Model {
         Cow::Owned(format!("{PROJECT_NAME}:episode:{}", self.id))
     }
 
+    fn get_xmlns(&self) -> Cow<'_, str> {
+        match self.episode_type {
+            episodes::EpisodeType::Mikan => Cow::Borrowed("https://mikanani.me/0.1/"),
+        }
+    }
+
     fn get_title(&self) -> Cow<'_, str> {
         Cow::Borrowed(&self.display_name)
     }

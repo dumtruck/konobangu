@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use color_eyre::{Result, eyre::OptionExt};
 use fetch::{FetchError, HttpClientConfig, fetch_bytes, fetch_html, fetch_image, reqwest};
@@ -6,7 +6,8 @@ use inquire::{Password, Text, validator::Validation};
 use recorder::{
     crypto::UserPassCredential,
     extract::mikan::{
-        MikanClient, MikanConfig, MikanRssEpisodeItem, build_mikan_bangumi_expand_subscribed_url,
+        MikanClient, MikanConfig, MikanRssItemMeta, MikanRssRoot,
+        build_mikan_bangumi_expand_subscribed_url,
         extract_mikan_bangumi_index_meta_list_from_season_flow_fragment,
         extract_mikan_bangumi_meta_from_expand_subscribed_fragment,
     },
@@ -190,10 +191,10 @@ async fn main() -> Result<()> {
                 );
                 String::from_utf8(bangumi_rss_doppel_path.read()?)?
             };
-            let rss_items = rss::Channel::read_from(bangumi_rss_data.as_bytes())?.items;
+            let rss_items = MikanRssRoot::from_str(&bangumi_rss_data)?.channel.items;
             rss_items
                 .into_iter()
-                .map(MikanRssEpisodeItem::try_from)
+                .map(MikanRssItemMeta::try_from)
                 .collect::<Result<Vec<_>, _>>()
         }?;
         for rss_item in rss_items {

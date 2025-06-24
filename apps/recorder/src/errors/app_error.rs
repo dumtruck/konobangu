@@ -49,6 +49,8 @@ pub enum RecorderError {
     InvalidMethodError,
     #[snafu(display("Invalid header value"))]
     InvalidHeaderValueError,
+    #[snafu(transparent)]
+    QuickXmlDeserializeError { source: quick_xml::DeError },
     #[snafu(display("Invalid header name"))]
     InvalidHeaderNameError,
     #[snafu(display("Missing origin (protocol or host) in headers and forwarded info"))]

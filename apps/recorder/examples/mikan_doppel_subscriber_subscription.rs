@@ -1,10 +1,10 @@
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 use fetch::{FetchError, HttpClientConfig, fetch_bytes, fetch_html, fetch_image, reqwest};
 use recorder::{
     errors::RecorderResult,
     extract::mikan::{
-        MikanClient, MikanConfig, MikanRssEpisodeItem,
+        MikanClient, MikanConfig, MikanRssItemMeta, MikanRssRoot,
         extract_mikan_episode_meta_from_episode_homepage_html,
     },
     test_utils::mikan::{MikanDoppelMeta, MikanDoppelPath},
@@ -41,12 +41,12 @@ async fn main() -> RecorderResult<()> {
     let mikan_base_url = mikan_scrape_client.base_url().clone();
     tracing::info!("Scraping subscriber subscription...");
     let subscriber_subscription =
-        fs::read("tests/resources/mikan/doppel/RSS/MyBangumi-token%3Dtest.html").await?;
-    let channel = rss::Channel::read_from(&subscriber_subscription[..])?;
-    let rss_items: Vec<MikanRssEpisodeItem> = channel
+        fs::read_to_string("tests/resources/mikan/doppel/RSS/MyBangumi-token%3Dtest.html").await?;
+    let channel = MikanRssRoot::from_str(&subscriber_subscription)?.channel;
+    let rss_items: Vec<MikanRssItemMeta> = channel
         .items
         .into_iter()
-        .map(MikanRssEpisodeItem::try_from)
+        .map(MikanRssItemMeta::try_from)
         .collect::<Result<Vec<_>, _>>()?;
     for rss_item in rss_items {
         let episode_homepage_meta = {
@@ -150,11 +150,11 @@ async fn main() -> RecorderResult<()> {
                 String::from_utf8(bangumi_rss_doppel_path.read()?)?
             };
 
-            let channel = rss::Channel::read_from(bangumi_rss_data.as_bytes())?;
-            let rss_items: Vec<MikanRssEpisodeItem> = channel
+            let rss_items: Vec<MikanRssItemMeta> = MikanRssRoot::from_str(&bangumi_rss_data)?
+                .channel
                 .items
                 .into_iter()
-                .map(MikanRssEpisodeItem::try_from)
+                .map(MikanRssItemMeta::try_from)
                 .collect::<Result<Vec<_>, _>>()?;
             for rss_item in rss_items {
                 {

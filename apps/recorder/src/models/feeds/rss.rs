@@ -24,6 +24,7 @@ pub trait RssFeedItemTrait: Sized {
     -> Option<Cow<'_, str>>;
     fn get_enclosure_pub_date(&self) -> Option<DateTime<Utc>>;
     fn get_enclosure_content_length(&self) -> Option<i64>;
+    fn get_xmlns(&self) -> Cow<'_, str>;
     fn into_item(self, ctx: &dyn AppContextTrait, api_base: &Url) -> RecorderResult<Item> {
         let enclosure_mime_type =
             self.get_enclosure_mime()
@@ -53,32 +54,49 @@ pub trait RssFeedItemTrait: Sized {
 
         let mut extensions = ExtensionMap::default();
         if enclosure_mime_type == BITTORRENT_MIME_TYPE {
-            extensions.insert("torrent".to_string(), {
-                let mut map = btreemap! {
-                    "link".to_string() => vec![
-                        ExtensionBuilder::default().name(
-                        "link"
-                        ).value(enclosure_link.to_string()).build()
-                    ],
-                    "contentLength".to_string() => vec![
-                        ExtensionBuilder::default().name(
-                            "contentLength"
-                        ).value(enclosure_content_length.to_string()).build()
-                    ],
-                };
-                if let Some(pub_date) = enclosure_pub_date {
-                    map.insert(
-                        "pubDate".to_string(),
-                        vec![
+            let xmlns = self.get_xmlns();
+
+            let torrent_extension = ExtensionBuilder::default()
+                .name("torrent")
+                .attrs(btreemap! {
+                    "xmlns".to_string() => xmlns.to_string()
+                })
+                .children({
+                    let mut m = btreemap! {
+                        "link".to_string() => vec![
                             ExtensionBuilder::default()
-                                .name("pubDate")
-                                .value(pub_date.to_rfc3339())
-                                .build(),
+                                .name("link")
+                                .value(link.to_string())
+                                .build()
                         ],
-                    );
-                }
-                map
-            });
+                        "contentLength".to_string() => vec![
+                            ExtensionBuilder::default()
+                                .name("contentLength")
+                                .value(enclosure_content_length.to_string())
+                                .build()
+                        ]
+                    };
+                    if let Some(pub_date) = enclosure_pub_date {
+                        m.insert(
+                            "pubDate".to_string(),
+                            vec![
+                                ExtensionBuilder::default()
+                                    .name("pubDate")
+                                    .value(pub_date.to_rfc3339())
+                                    .build(),
+                            ],
+                        );
+                    };
+                    m
+                })
+                .build();
+
+            extensions.insert(
+                "".to_string(),
+                btreemap! {
+                    "torrent".to_string() => vec![torrent_extension]
+                },
+            );
         };
 
         let enclosure = EnclosureBuilder::default()

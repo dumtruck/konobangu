@@ -1,12 +1,13 @@
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
+    str::FromStr,
     sync::Arc,
 };
 
 use async_graphql::{InputObject, SimpleObject};
 use async_stream::try_stream;
-use fetch::fetch_bytes;
+use fetch::fetch_html;
 use futures::{Stream, TryStreamExt, pin_mut, try_join};
 use maplit::hashmap;
 use sea_orm::{
@@ -24,8 +25,8 @@ use crate::{
         bittorrent::EpisodeEnclosureMeta,
         mikan::{
             MikanBangumiHash, MikanBangumiMeta, MikanEpisodeHash, MikanEpisodeMeta,
-            MikanRssEpisodeItem, MikanSeasonFlowUrlMeta, MikanSeasonStr,
-            MikanSubscriberSubscriptionRssUrlMeta, build_mikan_bangumi_subscription_rss_url,
+            MikanRssItemMeta, MikanRssRoot, MikanSeasonFlowUrlMeta, MikanSeasonStr,
+            MikanSubscriberSubscriptionUrlMeta, build_mikan_bangumi_subscription_rss_url,
             build_mikan_season_flow_url, build_mikan_subscriber_subscription_rss_url,
             scrape_mikan_episode_meta_from_episode_homepage_url,
         },
@@ -39,7 +40,7 @@ use crate::{
 #[tracing::instrument(err, skip(ctx, rss_item_list))]
 async fn sync_mikan_feeds_from_rss_item_list(
     ctx: &dyn AppContextTrait,
-    rss_item_list: Vec<MikanRssEpisodeItem>,
+    rss_item_list: Vec<MikanRssItemMeta>,
     subscriber_id: i32,
     subscription_id: i32,
 ) -> RecorderResult<()> {
@@ -202,7 +203,7 @@ impl SubscriptionTrait for MikanSubscriberSubscription {
     fn try_from_model(model: &subscriptions::Model) -> RecorderResult<Self> {
         let source_url = Url::parse(&model.source_url)?;
 
-        let meta = MikanSubscriberSubscriptionRssUrlMeta::from_rss_url(&source_url)
+        let meta = MikanSubscriberSubscriptionUrlMeta::from_rss_url(&source_url)
             .with_whatever_context::<_, String, RecorderError>(|| {
                 format!(
                     "MikanSubscriberSubscription should extract mikan_subscription_token from \
@@ -224,19 +225,19 @@ impl MikanSubscriberSubscription {
     async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
+    ) -> RecorderResult<Vec<MikanRssItemMeta>> {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let rss_url = build_mikan_subscriber_subscription_rss_url(
             mikan_base_url.clone(),
             &self.mikan_subscription_token,
         );
-        let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
+        let html = fetch_html(ctx.mikan(), rss_url).await?;
 
-        let channel = rss::Channel::read_from(&bytes[..])?;
+        let channel = MikanRssRoot::from_str(&html)?.channel;
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssEpisodeItem::try_from(item)
+            let item = MikanRssItemMeta::try_from(item)
                 .with_whatever_context::<_, String, RecorderError>(|_| {
                     format!("failed to extract rss item at idx {idx}")
                 })?;
@@ -249,7 +250,7 @@ impl MikanSubscriberSubscription {
     async fn get_rss_item_list_from_subsribed_url_rss_link(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
+    ) -> RecorderResult<Vec<MikanRssItemMeta>> {
         let subscribed_bangumi_list =
             bangumi::Model::get_subsribed_bangumi_list_from_subscription(ctx, self.subscription_id)
                 .await?;
@@ -264,12 +265,12 @@ impl MikanSubscriberSubscription {
                         self.subscription_id, subscribed_bangumi.display_name
                     )
                 })?;
-            let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
+            let html = fetch_html(ctx.mikan(), rss_url).await?;
 
-            let channel = rss::Channel::read_from(&bytes[..])?;
+            let channel = MikanRssRoot::from_str(&html)?.channel;
 
             for (idx, item) in channel.items.into_iter().enumerate() {
-                let item = MikanRssEpisodeItem::try_from(item)
+                let item = MikanRssItemMeta::try_from(item)
                     .with_whatever_context::<_, String, RecorderError>(|_| {
                         format!("failed to extract rss item at idx {idx}")
                     })?;
@@ -406,7 +407,7 @@ impl MikanSeasonSubscription {
     fn get_rss_item_stream_from_subsribed_url_rss_link(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> impl Stream<Item = RecorderResult<Vec<MikanRssEpisodeItem>>> {
+    ) -> impl Stream<Item = RecorderResult<Vec<MikanRssItemMeta>>> {
         try_stream! {
 
             let db = ctx.db();
@@ -433,14 +434,14 @@ impl MikanSeasonSubscription {
                             self.subscription_id, subscribed_bangumi.display_name
                         )
                     })?;
-                let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
+                let html = fetch_html(ctx.mikan(), rss_url).await?;
 
-                let channel = rss::Channel::read_from(&bytes[..])?;
+                let channel = MikanRssRoot::from_str(&html)?.channel;
 
                 let mut rss_item_list = vec![];
 
                 for (idx, item) in channel.items.into_iter().enumerate() {
-                    let item = MikanRssEpisodeItem::try_from(item)
+                    let item = MikanRssItemMeta::try_from(item)
                         .with_whatever_context::<_, String, RecorderError>(|_| {
                             format!("failed to extract rss item at idx {idx}")
                         })?;
@@ -519,20 +520,20 @@ impl MikanBangumiSubscription {
     async fn get_rss_item_list_from_source_url(
         &self,
         ctx: &dyn AppContextTrait,
-    ) -> RecorderResult<Vec<MikanRssEpisodeItem>> {
+    ) -> RecorderResult<Vec<MikanRssItemMeta>> {
         let mikan_base_url = ctx.mikan().base_url().clone();
         let rss_url = build_mikan_bangumi_subscription_rss_url(
             mikan_base_url.clone(),
             &self.mikan_bangumi_id,
             Some(&self.mikan_fansub_id),
         );
-        let bytes = fetch_bytes(ctx.mikan(), rss_url).await?;
+        let html = fetch_html(ctx.mikan(), rss_url).await?;
 
-        let channel = rss::Channel::read_from(&bytes[..])?;
+        let channel = MikanRssRoot::from_str(&html)?.channel;
 
         let mut result = vec![];
         for (idx, item) in channel.items.into_iter().enumerate() {
-            let item = MikanRssEpisodeItem::try_from(item)
+            let item = MikanRssItemMeta::try_from(item)
                 .with_whatever_context::<_, String, RecorderError>(|_| {
                     format!("failed to extract rss item at idx {idx}")
                 })?;
@@ -556,7 +557,7 @@ mod tests {
         errors::RecorderResult,
         extract::mikan::{
             MikanBangumiHash, MikanSeasonFlowUrlMeta, MikanSeasonStr,
-            MikanSubscriberSubscriptionRssUrlMeta,
+            MikanSubscriberSubscriptionUrlMeta,
         },
         models::{
             bangumi, episodes,
@@ -677,7 +678,7 @@ mod tests {
             subscriber_id: ActiveValue::Set(subscriber_id),
             category: ActiveValue::Set(subscriptions::SubscriptionCategory::MikanSubscriber),
             source_url: ActiveValue::Set(
-                MikanSubscriberSubscriptionRssUrlMeta {
+                MikanSubscriberSubscriptionUrlMeta {
                     mikan_subscription_token: "test".into(),
                 }
                 .build_rss_url(mikan_server.base_url().clone())

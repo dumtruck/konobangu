@@ -26,7 +26,8 @@ use crate::{
             MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY,
             MIKAN_POSTER_BUCKET_KEY, MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SEASON_STR_QUERY_KEY,
             MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
-            MIKAN_YEAR_QUERY_KEY, MikanClient,
+            MIKAN_YEAR_QUERY_KEY, MikanClient, build_mikan_bangumi_subscription_rss_url,
+            build_mikan_subscriber_subscription_rss_url,
         },
     },
     media::{
@@ -139,16 +140,16 @@ impl From<MikanRssEpisodeItem> for EpisodeEnclosureMeta {
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct MikanSubscriberSubscriptionRssUrlMeta {
+pub struct MikanSubscriberSubscriptionUrlMeta {
     pub mikan_subscription_token: String,
 }
 
-impl MikanSubscriberSubscriptionRssUrlMeta {
+impl MikanSubscriberSubscriptionUrlMeta {
     pub fn from_rss_url(url: &Url) -> Option<Self> {
         if url.path() == MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH {
             url.query_pairs()
                 .find(|(k, _)| k == MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY)
-                .map(|(_, v)| MikanSubscriberSubscriptionRssUrlMeta {
+                .map(|(_, v)| MikanSubscriberSubscriptionUrlMeta {
                     mikan_subscription_token: v.to_string(),
                 })
         } else {
@@ -159,19 +160,6 @@ impl MikanSubscriberSubscriptionRssUrlMeta {
     pub fn build_rss_url(self, mikan_base_url: Url) -> Url {
         build_mikan_subscriber_subscription_rss_url(mikan_base_url, &self.mikan_subscription_token)
     }
-}
-
-pub fn build_mikan_subscriber_subscription_rss_url(
-    mikan_base_url: Url,
-    mikan_subscription_token: &str,
-) -> Url {
-    let mut url = mikan_base_url;
-    url.set_path(MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH);
-    url.query_pairs_mut().append_pair(
-        MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
-        mikan_subscription_token,
-    );
-    url
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Eq)]
@@ -287,22 +275,6 @@ impl MikanEpisodeMeta {
 pub struct MikanBangumiPosterMeta {
     pub origin_poster_src: Url,
     pub poster_src: Option<String>,
-}
-
-pub fn build_mikan_bangumi_subscription_rss_url(
-    mikan_base_url: Url,
-    mikan_bangumi_id: &str,
-    mikan_fansub_id: Option<&str>,
-) -> Url {
-    let mut url = mikan_base_url;
-    url.set_path(MIKAN_BANGUMI_RSS_PATH);
-    url.query_pairs_mut()
-        .append_pair(MIKAN_BANGUMI_ID_QUERY_KEY, mikan_bangumi_id);
-    if let Some(mikan_fansub_id) = mikan_fansub_id {
-        url.query_pairs_mut()
-            .append_pair(MIKAN_FANSUB_ID_QUERY_KEY, mikan_fansub_id);
-    };
-    url
 }
 
 #[derive(Clone, Debug, PartialEq)]

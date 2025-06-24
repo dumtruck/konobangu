@@ -552,6 +552,7 @@ dependencies = [
  "diligent-date-parser",
  "never",
  "quick-xml",
+ "serde",
 ]
 
 [[package]]
@@ -6784,6 +6785,7 @@ dependencies = [
  "openidconnect",
  "percent-encoding",
  "polars",
+ "quick-xml",
  "quirks_path",
  "rand 0.9.1",
  "regex",
@@ -7216,6 +7218,7 @@ dependencies = [
  "derive_builder",
  "never",
  "quick-xml",
+ "serde",
 ]
 
 [[package]]
