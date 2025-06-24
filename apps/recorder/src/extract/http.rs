@@ -167,6 +167,7 @@ impl ForwardedRelatedInfo {
             .as_ref()
             .and_then(|s| s.host.as_deref())
             .or(self.x_forwarded_host.as_deref())
+            .or(self.host.as_deref())
             .or(self.uri.host())
     }
 

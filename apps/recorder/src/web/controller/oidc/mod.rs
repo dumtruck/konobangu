@@ -77,5 +77,5 @@ pub async fn create(_context: Arc<dyn AppContextTrait>) -> RecorderResult<Contro
         .route("/auth", get(oidc_auth))
         .route("/callback", get(oidc_callback));
 
-    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
+    Ok(Controller::from_nest_router(CONTROLLER_PREFIX, router))
 }

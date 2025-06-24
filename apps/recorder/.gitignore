@@ -29,3 +29,5 @@ temp/*
 !temp/.gitkeep
 tests/resources/mikan/classic_episodes/*/*
 !tests/resources/mikan/classic_episodes/parquet/tiny.parquet
+webui/
+data/

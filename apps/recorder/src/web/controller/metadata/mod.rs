@@ -38,5 +38,5 @@ pub async fn create(_context: Arc<dyn AppContextTrait>) -> RecorderResult<Contro
         .route("/health", get(health))
         .route("/ping", get(ping));
 
-    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
+    Ok(Controller::from_nest_router(CONTROLLER_PREFIX, router))
 }

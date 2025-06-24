@@ -9,12 +9,12 @@ pub trait ControllerTrait: Sized {
     -> Router<Arc<dyn AppContextTrait>>;
 }
 
-pub struct PrefixController {
+pub struct NestRouterController {
     prefix: Cow<'static, str>,
     router: Router<Arc<dyn AppContextTrait>>,
 }
 
-impl PrefixController {
+impl NestRouterController {
     pub fn new(
         prefix: impl Into<Cow<'static, str>>,
         router: Router<Arc<dyn AppContextTrait>>,
@@ -26,7 +26,7 @@ impl PrefixController {
     }
 }
 
-impl ControllerTrait for PrefixController {
+impl ControllerTrait for NestRouterController {
     fn apply_to(
         self,
         router: Router<Arc<dyn AppContextTrait>>,
@@ -36,15 +36,15 @@ impl ControllerTrait for PrefixController {
 }
 
 pub enum Controller {
-    Prefix(PrefixController),
+    NestRouter(NestRouterController),
 }
 
 impl Controller {
-    pub fn from_prefix(
+    pub fn from_nest_router(
         prefix: impl Into<Cow<'static, str>>,
         router: Router<Arc<dyn AppContextTrait>>,
     ) -> Self {
-        Self::Prefix(PrefixController::new(prefix, router))
+        Self::NestRouter(NestRouterController::new(prefix, router))
     }
 }
 
@@ -54,7 +54,7 @@ impl ControllerTrait for Controller {
         router: Router<Arc<dyn AppContextTrait>>,
     ) -> Router<Arc<dyn AppContextTrait>> {
         match self {
-            Self::Prefix(p) => p.apply_to(router),
+            Self::NestRouter(p) => p.apply_to(router),
         }
     }
 }

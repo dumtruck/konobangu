@@ -71,5 +71,5 @@ pub async fn create(ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Controller>
             post(graphql_handler).layer(from_fn_with_state(ctx, auth_middleware)),
         )
         .route("/introspection", introspection_handler);
-    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
+    Ok(Controller::from_nest_router(CONTROLLER_PREFIX, router))
 }

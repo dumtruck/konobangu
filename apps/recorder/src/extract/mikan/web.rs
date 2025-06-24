@@ -801,11 +801,6 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             .write(storage_path.clone(), poster_data)
             .await?;
 
-        tracing::warn!(
-            poster_str = poster_str.to_string(),
-            "mikan poster meta extracted"
-        );
-
         MikanBangumiPosterMeta {
             origin_poster_src: origin_poster_src_url,
             poster_src: Some(poster_str.to_string()),

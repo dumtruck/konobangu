@@ -4,7 +4,7 @@ set dotenv-load := true
 prepare-dev:
     cargo install cargo-binstall
     cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest
-    # <package-manager> install watchexec just zellij nasm libjxl
+    # <package-manager> install watchexec just zellij nasm libjxl netcat
 
 prepare-dev-testcontainers:
     docker pull linuxserver/qbittorrent:latest
@@ -17,12 +17,20 @@ dev-optimize-images:
 dev-webui:
     pnpm run --filter=webui dev
 
+prod-webui:
+    pnpm run --filter=webui build
+    mkdir -p apps/recorder/webui
+    cp -r apps/webui/dist/* apps/recorder/webui/
+
 dev-proxy:
     npx --yes kill-port --port 8899,5005
     pnpm run --parallel --filter=proxy dev
 
 dev-recorder:
     watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin  recorder_cli -- --environment=development --graceful-shutdown=false
+
+prod-recorder: prod-webui
+    cargo run --release -p recorder --bin recorder_cli -- --environment=production --working-dir=apps/recorder --graceful-shutdown=false
 
 dev-recorder-migrate-down:
     cargo run -p recorder --bin migrate_down -- --environment development

@@ -5,4 +5,4 @@ pub mod metadata;
 pub mod oidc;
 pub mod r#static;
 
-pub use core::{Controller, ControllerTrait, PrefixController};
+pub use core::{Controller, ControllerTrait, NestRouterController};

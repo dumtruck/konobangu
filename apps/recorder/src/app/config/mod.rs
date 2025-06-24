@@ -55,8 +55,8 @@ impl AppConfig {
             format!(".{}.local", environment.full_name()),
             format!(".{}.local", environment.short_name()),
             String::from(".local"),
-            environment.full_name().to_string(),
-            environment.short_name().to_string(),
+            format!(".{}", environment.full_name()),
+            format!(".{}", environment.short_name()),
             String::from(""),
         ]
     }
@@ -88,13 +88,12 @@ impl AppConfig {
 
     pub async fn load_dotenv(
         environment: &Environment,
-        working_dir: &str,
         dotenv_file: Option<&str>,
     ) -> RecorderResult<()> {
         let try_dotenv_file_or_dirs = if dotenv_file.is_some() {
             vec![dotenv_file]
         } else {
-            vec![Some(working_dir)]
+            vec![Some(".")]
         };
 
         let priority_suffix = &AppConfig::priority_suffix(environment);
@@ -111,11 +110,16 @@ impl AppConfig {
                     for f in try_filenames.iter() {
                         let p = try_dotenv_file_or_dir_path.join(f);
                         if p.exists() && p.is_file() {
+                            println!("Loading dotenv file: {}", p.display());
                             dotenvy::from_path(p)?;
                             break;
                         }
                     }
                 } else if try_dotenv_file_or_dir_path.is_file() {
+                    println!(
+                        "Loading dotenv file: {}",
+                        try_dotenv_file_or_dir_path.display()
+                    );
                     dotenvy::from_path(try_dotenv_file_or_dir_path)?;
                     break;
                 }
@@ -127,13 +131,12 @@ impl AppConfig {
 
     pub async fn load_config(
         environment: &Environment,
-        working_dir: &str,
         config_file: Option<&str>,
     ) -> RecorderResult<AppConfig> {
         let try_config_file_or_dirs = if config_file.is_some() {
             vec![config_file]
         } else {
-            vec![Some(working_dir)]
+            vec![Some(".")]
         };
 
         let allowed_extensions = &AppConfig::allowed_extension();
@@ -159,6 +162,7 @@ impl AppConfig {
                         let p = try_config_file_or_dir_path.join(f);
                         if p.exists() && p.is_file() {
                             fig = AppConfig::merge_provider_from_file(fig, &p, ext)?;
+                            println!("Loaded config file: {}", p.display());
                             break;
                         }
                     }
@@ -169,6 +173,10 @@ impl AppConfig {
                 {
                     fig =
                         AppConfig::merge_provider_from_file(fig, try_config_file_or_dir_path, ext)?;
+                    println!(
+                        "Loaded config file: {}",
+                        try_config_file_or_dir_path.display()
+                    );
                     break;
                 }
             }

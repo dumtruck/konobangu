@@ -99,5 +99,5 @@ pub async fn create(ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Controller>
         )
         .route("/public/{*path}", get(serve_public_static));
 
-    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
+    Ok(Controller::from_nest_router(CONTROLLER_PREFIX, router))
 }

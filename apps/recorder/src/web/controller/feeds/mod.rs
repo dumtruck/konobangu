@@ -38,5 +38,5 @@ async fn rss_handler(
 pub async fn create(_ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Controller> {
     let router = Router::<Arc<dyn AppContextTrait>>::new().route("/rss/{token}", get(rss_handler));
 
-    Ok(Controller::from_prefix(CONTROLLER_PREFIX, router))
+    Ok(Controller::from_nest_router(CONTROLLER_PREFIX, router))
 }

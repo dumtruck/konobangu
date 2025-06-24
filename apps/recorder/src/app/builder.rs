@@ -72,6 +72,11 @@ impl AppBuilder {
     }
 
     pub async fn build(self) -> RecorderResult<App> {
+        if self.working_dir != "." {
+            std::env::set_current_dir(&self.working_dir)?;
+            println!("set current dir to working dir: {}", self.working_dir);
+        }
+
         self.load_env().await?;
 
         let config = self.load_config().await?;
@@ -86,22 +91,12 @@ impl AppBuilder {
     }
 
     pub async fn load_env(&self) -> RecorderResult<()> {
-        AppConfig::load_dotenv(
-            &self.environment,
-            &self.working_dir,
-            self.dotenv_file.as_deref(),
-        )
-        .await?;
+        AppConfig::load_dotenv(&self.environment, self.dotenv_file.as_deref()).await?;
         Ok(())
     }
 
     pub async fn load_config(&self) -> RecorderResult<AppConfig> {
-        let config = AppConfig::load_config(
-            &self.environment,
-            &self.working_dir,
-            self.config_file.as_deref(),
-        )
-        .await?;
+        let config = AppConfig::load_config(&self.environment, self.config_file.as_deref()).await?;
         Ok(config)
     }
 
@@ -136,7 +131,7 @@ impl AppBuilder {
     }
 
     pub fn working_dir_from_manifest_dir(self) -> Self {
-        let manifest_dir = if cfg!(debug_assertions) || cfg!(test) {
+        let manifest_dir = if cfg!(debug_assertions) || cfg!(test) || cfg!(feature = "playground") {
             env!("CARGO_MANIFEST_DIR")
         } else {
             "./apps/recorder"

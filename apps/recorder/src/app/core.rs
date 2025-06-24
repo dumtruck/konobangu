@@ -1,11 +1,13 @@
 use std::{net::SocketAddr, sync::Arc};
 
-use axum::Router;
+use axum::{Router, middleware::from_fn_with_state};
 use tokio::{net::TcpSocket, signal};
+use tower_http::services::{ServeDir, ServeFile};
 use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
+    auth::webui_auth_middleware,
     errors::{RecorderError, RecorderResult},
     web::{
         controller::{self, core::ControllerTrait},
@@ -58,12 +60,18 @@ impl App {
             controller::oidc::create(context.clone()),
             controller::metadata::create(context.clone()),
             controller::r#static::create(context.clone()),
-            controller::feeds::create(context.clone()),
+            controller::feeds::create(context.clone())
         )?;
 
         for c in [graphql_c, oidc_c, metadata_c, static_c, feeds_c] {
             router = c.apply_to(router);
         }
+
+        router = router
+            .fallback_service(
+                ServeDir::new("webui").not_found_service(ServeFile::new("webui/index.html")),
+            )
+            .layer(from_fn_with_state(context.clone(), webui_auth_middleware));
 
         let middlewares = default_middleware_stack(context.clone());
         for mid in middlewares {
