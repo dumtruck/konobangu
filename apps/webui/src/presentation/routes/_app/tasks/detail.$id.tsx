@@ -33,6 +33,7 @@ import {
 import { format } from 'date-fns';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/detail/$id')({
@@ -182,7 +183,9 @@ function TaskDetailRouteComponent() {
               <div className="space-y-2">
                 <Label className="font-medium text-sm">Task Type</Label>
                 <div className="rounded-md bg-muted p-3">
-                  <Badge variant="secondary">{task.taskType}</Badge>
+                  <Badge variant="secondary" className="capitalize">
+                    {prettyTaskType(task.taskType)}
+                  </Badge>
                 </div>
               </div>
 

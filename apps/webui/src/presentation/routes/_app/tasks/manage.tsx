@@ -42,6 +42,7 @@ import {
 } from '@/infra/errors/apollo';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/manage')({
@@ -202,7 +203,9 @@ function TaskManageRouteComponent() {
                     # {task.id}
                   </div>
                   <div className="flex gap-2">
-                    <Badge variant="outline">{task.taskType}</Badge>
+                    <Badge variant="outline" className="capitalize">
+                      {prettyTaskType(task.taskType)}
+                    </Badge>
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">

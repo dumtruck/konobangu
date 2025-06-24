@@ -3,16 +3,16 @@ import { LogLevel, type OpenIdConfiguration } from 'oidc-client-rx';
 export function buildOidcConfig(): OpenIdConfiguration {
   const origin = window.location.origin;
 
-  const resource = process.env.OIDC_AUDIENCE!;
+  const resource = process.env.AUTH__OIDC_AUDIENCE!;
 
   return {
-    authority: process.env.OIDC_ISSUER!,
+    authority: process.env.AUTH__OIDC_ISSUER!,
     redirectUrl: `${origin}/auth/oidc/callback`,
     postLogoutRedirectUri: `${origin}/`,
-    clientId: process.env.OIDC_CLIENT_ID!,
-    clientSecret: process.env.OIDC_CLIENT_SECRET,
-    scope: process.env.OIDC_EXTRA_SCOPES
-      ? `openid profile email offline_access ${process.env.OIDC_EXTRA_SCOPES}`
+    clientId: process.env.AUTH__OIDC_CLIENT_ID!,
+    clientSecret: process.env.AUTH__OIDC_CLIENT_SECRET,
+    scope: process.env.AUTH__OIDC_EXTRA_SCOPES
+      ? `openid profile email offline_access ${process.env.AUTH__OIDC_EXTRA_SCOPES}`
       : 'openid profile email offline_access',
     triggerAuthorizationResultEvent: true,
     responseType: 'code',

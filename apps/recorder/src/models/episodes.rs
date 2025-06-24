@@ -129,7 +129,7 @@ pub enum RelatedEntity {
 }
 
 impl ActiveModel {
-    #[tracing::instrument(err, skip(ctx), fields(bangumi_id = ?bangumi.id, mikan_episode_id = ?episode.mikan_episode_id))]
+    #[tracing::instrument(err, skip_all, fields(bangumi_id = ?bangumi.id, mikan_episode_id = ?episode.mikan_episode_id))]
     pub fn from_mikan_bangumi_and_episode_meta(
         ctx: &dyn AppContextTrait,
         bangumi: &bangumi::Model,

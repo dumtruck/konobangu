@@ -8,5 +8,5 @@ export const AUTH_METHOD = {
 export type AuthMethodType = ValueOf<typeof AUTH_METHOD>;
 
 export function getAppAuthMethod(): AuthMethodType {
-  return process.env.AUTH_TYPE as AuthMethodType;
+  return process.env.AUTH__AUTH_TYPE as AuthMethodType;
 }

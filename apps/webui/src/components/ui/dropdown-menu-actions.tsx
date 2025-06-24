@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal } from "lucide-react";
+import { Eye, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,7 @@ import { ComponentProps, PropsWithChildren } from "react";
 interface DropdownMenuActionsProps<Id>
   extends ComponentProps<typeof DropdownMenuPrimitive.Root> {
   id: Id;
-  showDetail?: boolean;
+  showDetail?: boolean | "dropdown-menu";
   showEdit?: boolean;
   showDelete?: boolean;
   onDetail?: (id: Id) => void;
@@ -38,34 +38,49 @@ export function DropdownMenuActions<Id>({
   ...rest
 }: PropsWithChildren<DropdownMenuActionsProps<Id>>) {
   return (
-    <DropdownMenu {...rest}>
-      <DropdownMenuTrigger asChild>
+    <div className="flex gap-2 items-center justify-center">
+      {showDetail === true && (
         <Button
           variant="ghost"
           className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          onClick={() => onDetail?.(id)}
         >
-          <MoreHorizontal />
-          <span className="sr-only">Open menu</span>
+          <Eye />
+          <span className="sr-only">Detail</span>
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        {children}
-        {showDetail && (
-          <DropdownMenuItem onClick={() => onDetail?.(id)}>
-            Detail
-          </DropdownMenuItem>
-        )}
-        {showEdit && (
-          <DropdownMenuItem onClick={() => onEdit?.(id)}>Edit</DropdownMenuItem>
-        )}
-        {(showDetail || showEdit) && showDelete && <DropdownMenuSeparator />}
-        {showDelete && (
-          <DropdownMenuItem onClick={() => onDelete?.(id)}>
-            Delete
-            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      )}
+      <DropdownMenu {...rest}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          >
+            <MoreHorizontal />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          {children}
+          {showDetail === "dropdown-menu" && (
+            <DropdownMenuItem onClick={() => onDetail?.(id)}>
+              Detail
+            </DropdownMenuItem>
+          )}
+          {showEdit && (
+            <DropdownMenuItem onClick={() => onEdit?.(id)}>
+              Edit
+            </DropdownMenuItem>
+          )}
+          {(showDetail === "dropdown-menu" || showEdit || children) &&
+            showDelete && <DropdownMenuSeparator />}
+          {showDelete && (
+            <DropdownMenuItem onClick={() => onDelete?.(id)}>
+              Delete
+              <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

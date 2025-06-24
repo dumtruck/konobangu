@@ -2,22 +2,24 @@ use axum::http::{HeaderMap, HeaderValue};
 use reqwest::{NoProxy, Proxy};
 use serde::{Deserialize, Serialize};
 use serde_with::{NoneAsEmptyString, serde_as};
-use util::BooleanLike;
 
 use crate::HttpClientError;
 
 #[serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpClientProxyConfig {
+    #[serde(default)]
     #[serde_as(as = "NoneAsEmptyString")]
     pub server: Option<String>,
+    #[serde(default)]
     #[serde_as(as = "NoneAsEmptyString")]
     pub auth_header: Option<String>,
     #[serde(with = "http_serde::option::header_map")]
     pub headers: Option<HeaderMap>,
+    #[serde(default)]
     #[serde_as(as = "NoneAsEmptyString")]
     pub no_proxy: Option<String>,
-    pub accept_invalid_certs: Option<BooleanLike>,
+    pub accept_invalid_certs: Option<bool>,
 }
 
 impl HttpClientProxyConfig {

@@ -209,7 +209,7 @@ impl StorageService {
         lister.try_collect().await
     }
 
-    #[instrument(skip_all, err, fields(storage_path = %storage_path.as_ref(), range = ?range, accept = ?accept))]
+    #[instrument(skip_all, err, fields(storage_path = %storage_path.as_ref(), range = ?range, accept = accept.to_string()))]
     pub async fn serve_optimized_image(
         &self,
         storage_path: impl AsRef<Path>,

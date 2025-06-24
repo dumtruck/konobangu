@@ -29,6 +29,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: String,
     pub subscriber_id: i32,
+    pub subscription_id: Option<i32>,
     pub job: SubscriberTask,
     pub task_type: SubscriberTaskType,
     pub status: SubscriberTaskStatus,
@@ -52,6 +53,14 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Subscriber,
+    #[sea_orm(
+        belongs_to = "super::subscriptions::Entity",
+        from = "Column::SubscriptionId",
+        to = "super::subscriptions::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Subscription,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -60,10 +69,18 @@ impl Related<super::subscribers::Entity> for Entity {
     }
 }
 
+impl Related<super::subscriptions::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Subscription.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscribers::Entity")]
     Subscriber,
+    #[sea_orm(entity = "super::subscriptions::Entity")]
+    Subscription,
 }
 
 #[async_trait]

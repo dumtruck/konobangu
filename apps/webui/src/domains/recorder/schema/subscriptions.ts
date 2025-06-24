@@ -105,6 +105,13 @@ query GetSubscriptionDetail ($id: Int!) {
            feedSource
         }
       }
+      subscriberTask {
+        nodes {
+            id
+            taskType
+            status
+        }
+      }
       credential3rd {
          id
          username

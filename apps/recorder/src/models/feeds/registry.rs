@@ -1,5 +1,7 @@
 use rss::Channel;
-use sea_orm::{ColumnTrait, EntityTrait, JoinType, QueryFilter, QuerySelect, RelationTrait};
+use sea_orm::{
+    ColumnTrait, EntityTrait, JoinType, Order, QueryFilter, QueryOrder, QuerySelect, RelationTrait,
+};
 use url::Url;
 
 use crate::{
@@ -37,6 +39,7 @@ impl Feed {
                             subscription_episode::Relation::Subscription.def(),
                         )
                         .filter(subscriptions::Column::Id.eq(subscription_id))
+                        .order_by(episodes::Column::EnclosurePubDate, Order::Desc)
                         .all(db)
                         .await?;
                     (subscription, episodes)

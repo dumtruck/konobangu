@@ -10,6 +10,7 @@ pub mod m20250501_021523_credential_3rd;
 pub mod m20250520_021135_subscriber_tasks;
 pub mod m20250622_015618_feeds;
 pub mod m20250622_020819_bangumi_and_episode_type;
+pub mod m20250625_060701_add_subscription_id_to_subscriber_tasks;
 
 pub struct Migrator;
 
@@ -24,6 +25,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250520_021135_subscriber_tasks::Migration),
             Box::new(m20250622_015618_feeds::Migration),
             Box::new(m20250622_020819_bangumi_and_episode_type::Migration),
+            Box::new(m20250625_060701_add_subscription_id_to_subscriber_tasks::Migration),
         ]
     }
 }

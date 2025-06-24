@@ -1,8 +1,13 @@
-use std::{fs, path::Path, str};
+use std::{
+    collections::HashMap,
+    fs,
+    path::Path,
+    str::{self, FromStr},
+};
 
 use figment::{
     Figment, Provider,
-    providers::{Format, Json, Toml, Yaml},
+    providers::{Env, Format, Json, Toml, Yaml},
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -65,6 +70,102 @@ impl AppConfig {
         Toml::string(DEFAULT_CONFIG_MIXIN)
     }
 
+    fn build_enhanced_tera_engine() -> tera::Tera {
+        let mut tera = tera::Tera::default();
+        tera.register_filter(
+            "cast_to",
+            |value: &tera::Value,
+             args: &HashMap<String, tera::Value>|
+             -> tera::Result<tera::Value> {
+                let target_type = args
+                    .get("type")
+                    .and_then(|v| v.as_str())
+                    .ok_or_else(|| tera::Error::msg("invalid target type: should be string"))?;
+
+                let target_type = TeraCastToFilterType::from_str(target_type)
+                    .map_err(|e| tera::Error::msg(format!("invalid target type: {e}")))?;
+
+                let input_str = value.as_str().unwrap_or("");
+
+                match target_type {
+                    TeraCastToFilterType::Boolean => {
+                        let is_true = matches!(input_str.to_lowercase().as_str(), "true" | "1");
+                        let is_false = matches!(input_str.to_lowercase().as_str(), "false" | "0");
+                        if is_true {
+                            Ok(tera::Value::Bool(true))
+                        } else if is_false {
+                            Ok(tera::Value::Bool(false))
+                        } else {
+                            Err(tera::Error::msg(
+                                "target type is bool but value is not a boolean like true, false, \
+                                 1, 0",
+                            ))
+                        }
+                    }
+                    TeraCastToFilterType::Integer => {
+                        let parsed = input_str.parse::<i64>().map_err(|e| {
+                            tera::Error::call_filter("invalid integer".to_string(), e)
+                        })?;
+                        Ok(tera::Value::Number(serde_json::Number::from(parsed)))
+                    }
+                    TeraCastToFilterType::Unsigned => {
+                        let parsed = input_str.parse::<u64>().map_err(|e| {
+                            tera::Error::call_filter("invalid unsigned integer".to_string(), e)
+                        })?;
+                        Ok(tera::Value::Number(serde_json::Number::from(parsed)))
+                    }
+                    TeraCastToFilterType::Float => {
+                        let parsed = input_str.parse::<f64>().map_err(|e| {
+                            tera::Error::call_filter("invalid float".to_string(), e)
+                        })?;
+                        Ok(tera::Value::Number(
+                            serde_json::Number::from_f64(parsed).ok_or_else(|| {
+                                tera::Error::msg("failed to convert f64 to serde_json::Number")
+                            })?,
+                        ))
+                    }
+                    TeraCastToFilterType::String => Ok(tera::Value::String(input_str.to_string())),
+                    TeraCastToFilterType::Null => Ok(tera::Value::Null),
+                }
+            },
+        );
+        tera.register_filter(
+            "try_auto_cast",
+            |value: &tera::Value,
+             _args: &HashMap<String, tera::Value>|
+             -> tera::Result<tera::Value> {
+                let input_str = value.as_str().unwrap_or("");
+
+                if input_str == "null" {
+                    return Ok(tera::Value::Null);
+                }
+
+                if matches!(input_str, "true" | "false") {
+                    return Ok(tera::Value::Bool(input_str == "true"));
+                }
+
+                if let Ok(parsed) = input_str.parse::<i64>() {
+                    return Ok(tera::Value::Number(serde_json::Number::from(parsed)));
+                }
+
+                if let Ok(parsed) = input_str.parse::<u64>() {
+                    return Ok(tera::Value::Number(serde_json::Number::from(parsed)));
+                }
+
+                if let Ok(parsed) = input_str.parse::<f64>() {
+                    return Ok(tera::Value::Number(
+                        serde_json::Number::from_f64(parsed).ok_or_else(|| {
+                            tera::Error::msg("failed to convert f64 to serde_json::Number")
+                        })?,
+                    ));
+                }
+
+                Ok(tera::Value::String(input_str.to_string()))
+            },
+        );
+        tera
+    }
+
     pub fn merge_provider_from_file(
         fig: Figment,
         filepath: impl AsRef<Path>,
@@ -72,11 +173,9 @@ impl AppConfig {
     ) -> RecorderResult<Figment> {
         let content = fs::read_to_string(filepath)?;
 
-        let rendered = tera::Tera::one_off(
-            &content,
-            &tera::Context::from_value(serde_json::json!({}))?,
-            false,
-        )?;
+        let mut tera_engine = AppConfig::build_enhanced_tera_engine();
+        let rendered =
+            tera_engine.render_str(&content, &tera::Context::from_value(serde_json::json!({}))?)?;
 
         Ok(match ext {
             ".toml" => fig.merge(Toml::string(&rendered)),
@@ -182,8 +281,43 @@ impl AppConfig {
             }
         }
 
+        fig = fig.merge(Env::prefixed("").split("__").lowercase(true));
+
         let app_config: AppConfig = fig.extract()?;
 
         Ok(app_config)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum TeraCastToFilterType {
+    #[serde(alias = "str")]
+    String,
+    #[serde(alias = "bool")]
+    Boolean,
+    #[serde(alias = "int")]
+    Integer,
+    #[serde(alias = "uint")]
+    Unsigned,
+    #[serde(alias = "float")]
+    Float,
+    #[serde(alias = "null")]
+    Null,
+}
+
+impl FromStr for TeraCastToFilterType {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "string" | "str" => Ok(TeraCastToFilterType::String),
+            "boolean" | "bool" => Ok(TeraCastToFilterType::Boolean),
+            "integer" | "int" => Ok(TeraCastToFilterType::Integer),
+            "unsigned" | "uint" => Ok(TeraCastToFilterType::Unsigned),
+            "float" => Ok(TeraCastToFilterType::Float),
+            "null" => Ok(TeraCastToFilterType::Null),
+            _ => Err(format!("invalid target type: {s}")),
+        }
     }
 }

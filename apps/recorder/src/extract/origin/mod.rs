@@ -47,8 +47,27 @@ impl<'a> EpisodeComp<'a> {
         Ok((input, f32::round(num) as i32))
     }
 
+    fn parse_ep_special_num(input: &'a str) -> IResult<&'a str, i32> {
+        terminated(
+            alt((
+                value(0, tag_no_case("ova")),
+                value(0, tag_no_case("oad")),
+                value(0, tag_no_case("sp")),
+                value(0, tag_no_case("ex")),
+            )),
+            (space0, opt(parse_int::<i32>)),
+        )
+        .parse(input)
+    }
+
     fn parse_ep_num(input: &'a str) -> IResult<&'a str, i32> {
-        alt((parse_int::<i32>, Self::parse_ep_round_num, ZhNum::parse_int)).parse(input)
+        alt((
+            parse_int::<i32>,
+            Self::parse_ep_round_num,
+            ZhNum::parse_int,
+            Self::parse_ep_special_num,
+        ))
+        .parse(input)
     }
 
     fn parse_ep_nums_core(input: &'a str) -> IResult<&'a str, (i32, Option<i32>)> {
@@ -175,8 +194,13 @@ impl<'a> std::fmt::Debug for MoiveComp<'a> {
 impl<'a> OriginCompTrait<'a> for MoiveComp<'a> {
     #[cfg_attr(debug_assertions, instrument(level = Level::TRACE, ret, err(level=Level::TRACE), "MoiveComp::parse_comp"))]
     fn parse_comp(input: &'a str) -> IResult<&'a str, Self> {
-        let (input, source) =
-            alt((tag("剧场版"), tag("电影"), tag_no_case("movie"))).parse(input)?;
+        let (input, source) = alt((
+            tag("剧场版"),
+            tag("电影"),
+            tag_no_case("movie"),
+            tag_no_case("film"),
+        ))
+        .parse(input)?;
         Ok((
             input,
             Self {

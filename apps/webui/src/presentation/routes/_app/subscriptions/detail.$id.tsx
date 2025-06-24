@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
+import { prettyTaskType } from '../tasks/-pretty-task-type';
 import { SubscriptionSyncDialogContent } from './-sync';
 
 export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
@@ -212,18 +213,6 @@ function SubscriptionDetailRouteComponent() {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <RefreshCcwIcon className="h-4 w-4" />
-                    Sync
-                  </Button>
-                </DialogTrigger>
-                <SubscriptionSyncDialogContent
-                  id={subscription.id}
-                  onCancel={handleReload}
-                />
-              </Dialog>
               <Button
                 variant="outline"
                 size="sm"
@@ -446,6 +435,64 @@ function SubscriptionDetailRouteComponent() {
               </div>
             </div>
 
+            <Separator />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium text-sm">Associated Tasks</Label>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <RefreshCcwIcon className="h-4 w-4" />
+                      Sync
+                    </Button>
+                  </DialogTrigger>
+                  <SubscriptionSyncDialogContent
+                    id={subscription.id}
+                    onCancel={handleReload}
+                  />
+                </Dialog>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {subscription.subscriberTask?.nodes &&
+                subscription.subscriberTask.nodes.length > 0 ? (
+                  subscription.subscriberTask.nodes.map((task) => (
+                    <Card
+                      key={task.id}
+                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
+                      onClick={() =>
+                        navigate({
+                          to: '/tasks/detail/$id',
+                          params: {
+                            id: task.id,
+                          },
+                        })
+                      }
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium text-sm capitalize">
+                            <span>{prettyTaskType(task.taskType)} Task</span>
+                          </Label>
+                        </div>
+
+                        <code className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">
+                          {task.id}
+                        </code>
+
+                        <div className="text-muted-foreground text-xs">
+                          {task.status}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full py-8 text-center text-muted-foreground">
+                    No associated tasks now
+                  </div>
+                )}
+              </div>
+            </div>
+
             {subscription.bangumi?.nodes &&
               subscription.bangumi.nodes.length > 0 && (
                 <>
@@ -465,6 +512,7 @@ function SubscriptionDetailRouteComponent() {
                                     src={`/api/static${bangumi.posterLink}`}
                                     alt="Poster"
                                     className="h-full w-full object-cover"
+                                    loading="lazy"
                                   />
                                 )}
                               </div>

@@ -176,7 +176,7 @@ impl HttpClient {
             let accept_invalid_certs = proxy
                 .accept_invalid_certs
                 .as_ref()
-                .map(|b| b.as_bool())
+                .map(|b| *b)
                 .unwrap_or_default();
             let proxy = proxy.clone().into_proxy()?;
             if let Some(proxy) = proxy {
@@ -307,7 +307,7 @@ impl HttpClient {
             let accept_invalid_certs = proxy
                 .accept_invalid_certs
                 .as_ref()
-                .map(|b| b.as_bool())
+                .map(|b| *b)
                 .unwrap_or_default();
             let proxy = proxy.clone().into_proxy().unwrap_or_default();
             if let Some(proxy) = proxy {

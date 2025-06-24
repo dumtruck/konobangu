@@ -20,15 +20,23 @@ export default defineConfig({
       index: './src/main.tsx',
     },
     define: {
-      'process.env.AUTH_TYPE': JSON.stringify(process.env.AUTH_TYPE),
-      'process.env.OIDC_CLIENT_ID': JSON.stringify(process.env.OIDC_CLIENT_ID),
-      'process.env.OIDC_CLIENT_SECRET': JSON.stringify(
-        process.env.OIDC_CLIENT_SECRET
+      'process.env.AUTH__AUTH_TYPE': JSON.stringify(
+        process.env.AUTH__AUTH_TYPE
       ),
-      'process.env.OIDC_ISSUER': JSON.stringify(process.env.OIDC_ISSUER),
-      'process.env.OIDC_AUDIENCE': JSON.stringify(process.env.OIDC_AUDIENCE),
-      'process.env.OIDC_EXTRA_SCOPES': JSON.stringify(
-        process.env.OIDC_EXTRA_SCOPES
+      'process.env.AUTH__OIDC_CLIENT_ID': JSON.stringify(
+        process.env.AUTH__OIDC_CLIENT_ID
+      ),
+      'process.env.AUTH__OIDC_CLIENT_SECRET': JSON.stringify(
+        process.env.AUTH__OIDC_CLIENT_SECRET
+      ),
+      'process.env.AUTH__OIDC_ISSUER': JSON.stringify(
+        process.env.AUTH__OIDC_ISSUER
+      ),
+      'process.env.AUTH__OIDC_AUDIENCE': JSON.stringify(
+        process.env.AUTH__OIDC_AUDIENCE
+      ),
+      'process.env.AUTH__OIDC_EXTRA_SCOPES': JSON.stringify(
+        process.env.AUTH__OIDC_EXTRA_SCOPES
       ),
     },
   },
@@ -39,7 +47,7 @@ export default defineConfig({
     setupMiddlewares: [
       (middlewares) => {
         middlewares.unshift((req, res, next) => {
-          if (process.env.AUTH_TYPE === 'basic') {
+          if (process.env.AUTH__AUTH_TYPE === 'basic') {
             res.setHeader('WWW-Authenticate', 'Basic realm="konobangu"');
 
             const authorization =
@@ -49,8 +57,8 @@ export default defineConfig({
               .split(':');
 
             if (
-              user !== process.env.BASIC_USER ||
-              password !== process.env.BASIC_PASSWORD
+              user !== process.env.AUTH__BASIC_USER ||
+              password !== process.env.AUTH__BASIC_PASSWORD
             ) {
               res.statusCode = 401;
               res.write('Unauthorized');
