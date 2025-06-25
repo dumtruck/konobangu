@@ -44,9 +44,7 @@ impl Feed {
                         .await?;
                     (subscription, episodes)
                 } else {
-                    return Err(RecorderError::ModelEntityNotFound {
-                        entity: "Subscription".into(),
-                    });
+                    return Err(RecorderError::from_model_not_found("Subscription"));
                 };
 
                 Ok(Feed::SubscritpionEpisodes(

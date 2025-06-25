@@ -130,10 +130,9 @@ impl Model {
     pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RecorderResult<Self> {
         let db = ctx.db();
 
-        let subscriber = Entity::find_by_id(id)
-            .one(db)
-            .await?
-            .ok_or_else(|| RecorderError::from_db_record_not_found("subscribers::find_by_id"))?;
+        let subscriber = Entity::find_by_id(id).one(db).await?.ok_or_else(|| {
+            RecorderError::from_model_not_found_detail("subscribers", format!("id {id} not found"))
+        })?;
         Ok(subscriber)
     }
 

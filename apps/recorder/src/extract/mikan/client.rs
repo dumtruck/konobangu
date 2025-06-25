@@ -4,7 +4,7 @@ use fetch::{HttpClient, HttpClientTrait};
 use maplit::hashmap;
 use scraper::{Html, Selector};
 use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DbErr, EntityTrait, QueryFilter, TryIntoModel,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter, TryIntoModel,
 };
 use url::Url;
 use util::OptDynErr;
@@ -227,8 +227,9 @@ impl MikanClient {
             self.fork_with_userpass_credential(userpass_credential)
                 .await
         } else {
-            Err(RecorderError::from_db_record_not_found(
-                DbErr::RecordNotFound(format!("credential={credential_id} not found")),
+            Err(RecorderError::from_model_not_found_detail(
+                "credential",
+                format!("credential id {credential_id} not found"),
             ))
         }
     }

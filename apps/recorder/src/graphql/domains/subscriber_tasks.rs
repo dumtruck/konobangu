@@ -93,9 +93,7 @@ pub fn register_subscriber_tasks_entity_mutations(
                             .into_tuple::<String>()
                             .one(db)
                             .await?
-                            .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                                entity: "SubscriberTask".into(),
-                            })?;
+                            .ok_or_else(|| RecorderError::from_model_not_found("SubscriberTask"))?;
 
                         let task = app_ctx.task();
                         task.retry_subscriber_task(job_id.clone()).await?;
@@ -104,9 +102,7 @@ pub fn register_subscriber_tasks_entity_mutations(
                             .filter(subscriber_tasks::Column::Id.eq(&job_id))
                             .one(db)
                             .await?
-                            .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                                entity: "SubscriberTask".into(),
-                            })?;
+                            .ok_or_else(|| RecorderError::from_model_not_found("SubscriberTask"))?;
 
                         Ok::<_, RecorderError>(Some(FieldValue::owned_any(task_model)))
                     })

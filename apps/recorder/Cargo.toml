@@ -164,6 +164,7 @@ quick-xml = { version = "0.37.5", features = [
     "serde-types",
     "serde",
 ] }
+croner = "2.2.0"
 
 [dev-dependencies]
 inquire = { workspace = true }

@@ -21,7 +21,6 @@ use openidconnect::{
     OAuth2TokenResponse, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, TokenResponse,
     core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
 };
-use sea_orm::DbErr;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use snafu::ResultExt;
@@ -338,9 +337,9 @@ impl AuthServiceTrait for OidcAuthService {
             }
         }
         let subscriber_auth = match crate::models::auth::Model::find_by_pid(ctx, sub).await {
-            Err(RecorderError::DbError {
-                source: DbErr::RecordNotFound(..),
-            }) => crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await,
+            Err(RecorderError::ModelEntityNotFound { .. }) => {
+                crate::models::auth::Model::create_from_oidc(ctx, sub.to_string()).await
+            }
             r => r,
         }
         .map_err(|e| {

@@ -1,16 +1,18 @@
-use std::{ops::Deref, str::FromStr, sync::Arc};
+use std::{future::Future, ops::Deref, str::FromStr, sync::Arc};
 
 use apalis::prelude::*;
 use apalis_sql::{
     Config,
     context::SqlContext,
-    postgres::{PgListen, PostgresStorage},
+    postgres::{PgListen as ApalisPgListen, PostgresStorage as ApalisPostgresStorage},
 };
+use sea_orm::sqlx::postgres::PgListener;
 use tokio::sync::RwLock;
 
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
+    models::cron::{self, CRON_DUE_EVENT},
     task::{
         SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, SubscriberTask, TaskConfig,
         config::{default_subscriber_task_workers, default_system_task_workers},
@@ -21,8 +23,9 @@ use crate::{
 pub struct TaskService {
     pub config: TaskConfig,
     ctx: Arc<dyn AppContextTrait>,
-    subscriber_task_storage: Arc<RwLock<PostgresStorage<SubscriberTask>>>,
-    system_task_storage: Arc<RwLock<PostgresStorage<SystemTask>>>,
+    subscriber_task_storage: Arc<RwLock<ApalisPostgresStorage<SubscriberTask>>>,
+    system_task_storage: Arc<RwLock<ApalisPostgresStorage<SystemTask>>>,
+    cron_worker_id: String,
 }
 
 impl TaskService {
@@ -43,12 +46,13 @@ impl TaskService {
         let system_task_storage_config =
             Config::new(SYSTEM_TASK_APALIS_NAME).set_keep_alive(config.system_task_timeout);
         let subscriber_task_storage =
-            PostgresStorage::new_with_config(pool.clone(), subscriber_task_storage_config);
+            ApalisPostgresStorage::new_with_config(pool.clone(), subscriber_task_storage_config);
         let system_task_storage =
-            PostgresStorage::new_with_config(pool, system_task_storage_config);
+            ApalisPostgresStorage::new_with_config(pool, system_task_storage_config);
 
         Ok(Self {
             config,
+            cron_worker_id: nanoid::nanoid!(),
             ctx,
             subscriber_task_storage: Arc::new(RwLock::new(subscriber_task_storage)),
             system_task_storage: Arc::new(RwLock::new(system_task_storage)),
@@ -132,8 +136,73 @@ impl TaskService {
         Ok(task_id)
     }
 
-    pub async fn setup_monitor(&self) -> RecorderResult<Monitor> {
-        let mut monitor = Monitor::new();
+    pub async fn run<F, Fut>(&self, shutdown_signal: Option<F>) -> RecorderResult<()>
+    where
+        F: Fn() -> Fut + Send + 'static,
+        Fut: Future<Output = ()> + Send,
+    {
+        tokio::try_join!(
+            async {
+                let monitor = self.setup_apalis_monitor().await?;
+                if let Some(shutdown_signal) = shutdown_signal {
+                    monitor
+                        .run_with_signal(async move {
+                            shutdown_signal().await;
+                            tracing::info!("apalis shutting down...");
+                            Ok(())
+                        })
+                        .await?;
+                } else {
+                    monitor.run().await?;
+                }
+                Ok::<_, RecorderError>(())
+            },
+            async {
+                let listener = self.setup_apalis_listener().await?;
+                tokio::task::spawn(async move {
+                    if let Err(e) = listener.listen().await {
+                        tracing::error!("Error listening to apalis: {e}");
+                    }
+                });
+                Ok::<_, RecorderError>(())
+            },
+            async {
+                let listener = self.setup_cron_due_listening().await?;
+                let ctx = self.ctx.clone();
+                let cron_worker_id = self.cron_worker_id.clone();
+
+                tokio::task::spawn(async move {
+                    if let Err(e) = Self::listen_cron_due(listener, ctx, &cron_worker_id).await {
+                        tracing::error!("Error listening to cron due: {e}");
+                    }
+                });
+
+                Ok::<_, RecorderError>(())
+            },
+            async {
+                let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
+                let ctx = self.ctx.clone();
+                tokio::task::spawn(async move {
+                    loop {
+                        interval.tick().await;
+                        if let Err(e) = cron::Model::cleanup_expired_locks(ctx.as_ref()).await {
+                            tracing::error!("Error cleaning up expired locks: {e}");
+                        }
+                        if let Err(e) = cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
+                        {
+                            tracing::error!("Error checking and triggering due crons: {e}");
+                        }
+                    }
+                });
+
+                Ok::<_, RecorderError>(())
+            }
+        )?;
+        Ok(())
+    }
+
+    async fn setup_apalis_monitor(&self) -> RecorderResult<Monitor> {
+        let mut apalis_monitor = Monitor::new();
 
         {
             let subscriber_task_worker = WorkerBuilder::new(SUBSCRIBER_TASK_APALIS_NAME)
@@ -155,28 +224,51 @@ impl TaskService {
                 .backend(self.system_task_storage.read().await.clone())
                 .build_fn(Self::run_system_task);
 
-            monitor = monitor
+            apalis_monitor = apalis_monitor
                 .register(subscriber_task_worker)
                 .register(system_task_worker);
         }
 
-        Ok(monitor)
+        Ok(apalis_monitor)
     }
 
-    pub async fn setup_listener(&self) -> RecorderResult<PgListen> {
+    async fn setup_apalis_listener(&self) -> RecorderResult<ApalisPgListen> {
         let pool = self.ctx.db().get_postgres_connection_pool().clone();
-        let mut task_listener = PgListen::new(pool).await?;
+        let mut apalis_pg_listener = ApalisPgListen::new(pool).await?;
 
         {
             let mut subscriber_task_storage = self.subscriber_task_storage.write().await;
-            task_listener.subscribe_with(&mut subscriber_task_storage);
+            apalis_pg_listener.subscribe_with(&mut subscriber_task_storage);
         }
 
         {
             let mut system_task_storage = self.system_task_storage.write().await;
-            task_listener.subscribe_with(&mut system_task_storage);
+            apalis_pg_listener.subscribe_with(&mut system_task_storage);
         }
 
-        Ok(task_listener)
+        Ok(apalis_pg_listener)
+    }
+
+    async fn setup_cron_due_listening(&self) -> RecorderResult<PgListener> {
+        let pool = self.ctx.db().get_postgres_connection_pool().clone();
+        let listener = PgListener::connect_with(&pool).await?;
+
+        Ok(listener)
+    }
+
+    async fn listen_cron_due(
+        mut listener: PgListener,
+        ctx: Arc<dyn AppContextTrait>,
+        worker_id: &str,
+    ) -> RecorderResult<()> {
+        listener.listen(CRON_DUE_EVENT).await?;
+        loop {
+            let notification = listener.recv().await?;
+            if let Err(e) =
+                cron::Model::handle_cron_notification(ctx.as_ref(), notification, worker_id).await
+            {
+                tracing::error!("Error handling cron notification: {e}");
+            }
+        }
     }
 }

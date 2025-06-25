@@ -63,9 +63,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(filters_condition)
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "Subscription".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("Subscription"))?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -85,9 +83,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "SubscriberTask".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("SubscriberTask"))?;
 
                     Ok(Some(FieldValue::owned_any(task_model)))
                 })
@@ -121,9 +117,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(filters_condition)
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "Subscription".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("Subscription"))?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -141,9 +135,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "SubscriberTask".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("SubscriberTask"))?;
 
                     Ok(Some(FieldValue::owned_any(task_model)))
                 })
@@ -178,9 +170,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(filters_condition)
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "Subscription".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("Subscription"))?;
 
                     let subscription =
                         subscriptions::Subscription::try_from_model(&subscription_model)?;
@@ -198,9 +188,7 @@ pub fn register_subscriptions_to_schema_builder(
                         .filter(subscriber_tasks::Column::Id.eq(task_id.to_string()))
                         .one(db)
                         .await?
-                        .ok_or_else(|| RecorderError::ModelEntityNotFound {
-                            entity: "SubscriberTask".into(),
-                        })?;
+                        .ok_or_else(|| RecorderError::from_model_not_found("SubscriberTask"))?;
 
                     Ok(Some(FieldValue::owned_any(task_model)))
                 })

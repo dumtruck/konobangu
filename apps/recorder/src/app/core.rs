@@ -107,26 +107,12 @@ impl App {
                 Ok::<(), RecorderError>(())
             },
             async {
-                {
-                    let monitor = task.setup_monitor().await?;
-                    if graceful_shutdown {
-                        monitor
-                            .run_with_signal(async move {
-                                Self::shutdown_signal().await;
-                                tracing::info!("apalis shutting down...");
-                                Ok(())
-                            })
-                            .await?;
-                    } else {
-                        monitor.run().await?;
-                    }
-                }
-
-                Ok::<(), RecorderError>(())
-            },
-            async {
-                let listener = task.setup_listener().await?;
-                listener.listen().await?;
+                task.run(if graceful_shutdown {
+                    Some(Self::shutdown_signal)
+                } else {
+                    None
+                })
+                .await?;
 
                 Ok::<(), RecorderError>(())
             }

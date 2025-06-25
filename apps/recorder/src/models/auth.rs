@@ -63,7 +63,9 @@ impl Model {
             .filter(Column::Pid.eq(pid))
             .one(db)
             .await?
-            .ok_or_else(|| RecorderError::from_db_record_not_found("auth::find_by_pid"))?;
+            .ok_or_else(|| {
+                RecorderError::from_model_not_found_detail("auth", format!("pid {pid} not found"))
+            })?;
         Ok(subscriber_auth)
     }
 

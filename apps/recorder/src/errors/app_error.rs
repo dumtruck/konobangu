@@ -18,6 +18,8 @@ use crate::{
 #[derive(Snafu, Debug)]
 #[snafu(visibility(pub(crate)))]
 pub enum RecorderError {
+    #[snafu(transparent)]
+    CronError { source: croner::errors::CronError },
     #[snafu(display(
         "HTTP {status} {reason}, source = {source:?}",
         status = status,
@@ -120,8 +122,13 @@ pub enum RecorderError {
         #[snafu(source(from(Box<dyn std::error::Error + Send + Sync>, OptDynErr::some)))]
         source: OptDynErr,
     },
-    #[snafu(display("Model Entity {entity} not found or not belong to subscriber"))]
-    ModelEntityNotFound { entity: Cow<'static, str> },
+    #[snafu(display("Model Entity {entity} not found or not belong to subscriber{}", (
+        detail.as_ref().map(|detail| format!(" : {detail}"))).unwrap_or_default()
+    ))]
+    ModelEntityNotFound {
+        entity: Cow<'static, str>,
+        detail: Option<String>,
+    },
     #[snafu(transparent)]
     FetchError { source: FetchError },
     #[snafu(display("Credential3rdError: {message}, source = {source}"))]
@@ -185,9 +192,20 @@ impl RecorderError {
         }
     }
 
-    pub fn from_db_record_not_found<T: ToString>(detail: T) -> Self {
-        Self::DbError {
-            source: sea_orm::DbErr::RecordNotFound(detail.to_string()),
+    pub fn from_model_not_found_detail<C: Into<Cow<'static, str>>, T: ToString>(
+        model: C,
+        detail: T,
+    ) -> Self {
+        Self::ModelEntityNotFound {
+            entity: model.into(),
+            detail: Some(detail.to_string()),
+        }
+    }
+
+    pub fn from_model_not_found<C: Into<Cow<'static, str>>>(model: C) -> Self {
+        Self::ModelEntityNotFound {
+            entity: model.into(),
+            detail: None,
         }
     }
 }
@@ -252,9 +270,9 @@ impl IntoResponse for RecorderError {
                 )
                     .into_response()
             }
-            Self::ModelEntityNotFound { entity } => (
+            merr @ Self::ModelEntityNotFound { .. } => (
                 StatusCode::NOT_FOUND,
-                Json::<StandardErrorResponse>(StandardErrorResponse::from(entity.to_string())),
+                Json::<StandardErrorResponse>(StandardErrorResponse::from(merr.to_string())),
             )
                 .into_response(),
             err => (
