@@ -212,20 +212,6 @@ function SubscriptionDetailRouteComponent() {
                 View subscription detail
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  navigate({
-                    to: '/tasks/manage',
-                  })
-                }
-              >
-                <ListIcon className="h-4 w-4" />
-                Tasks
-              </Button>
-            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -439,18 +425,32 @@ function SubscriptionDetailRouteComponent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="font-medium text-sm">Associated Tasks</Label>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <RefreshCcwIcon className="h-4 w-4" />
-                      Sync
-                    </Button>
-                  </DialogTrigger>
-                  <SubscriptionSyncDialogContent
-                    id={subscription.id}
-                    onCancel={handleReload}
-                  />
-                </Dialog>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      navigate({
+                        to: '/tasks/manage',
+                      })
+                    }
+                  >
+                    <ListIcon className="h-4 w-4" />
+                    Tasks
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <RefreshCcwIcon className="h-4 w-4" />
+                        Sync
+                      </Button>
+                    </DialogTrigger>
+                    <SubscriptionSyncDialogContent
+                      id={subscription.id}
+                      onCancel={handleReload}
+                    />
+                  </Dialog>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {subscription.subscriberTask?.nodes &&

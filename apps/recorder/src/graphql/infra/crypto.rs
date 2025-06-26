@@ -4,10 +4,7 @@ use async_graphql::dynamic::{ResolverContext, ValueAccessor};
 use sea_orm::{EntityTrait, Value as SeaValue};
 use seaography::{BuilderContext, SeaResult};
 
-use crate::{
-    app::AppContextTrait,
-    graphql::infra::name::{get_column_name, get_entity_name},
-};
+use crate::{app::AppContextTrait, graphql::infra::name::get_entity_and_column_name};
 
 pub fn register_crypto_column_input_conversion_to_schema_context<T>(
     context: &mut BuilderContext,
@@ -17,13 +14,8 @@ pub fn register_crypto_column_input_conversion_to_schema_context<T>(
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_name::<T>(context);
-    let column_name = get_column_name::<T>(context, column);
-    let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
-    let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
-
     context.types.input_conversions.insert(
-        format!("{entity_name}.{column_name}"),
+        get_entity_and_column_name::<T>(context, column),
         Box::new(
             move |_resolve_context: &ResolverContext<'_>,
                   value: &ValueAccessor|
@@ -44,13 +36,8 @@ pub fn register_crypto_column_output_conversion_to_schema_context<T>(
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_name::<T>(context);
-    let column_name = get_column_name::<T>(context, column);
-    let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
-    let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
-
     context.types.output_conversions.insert(
-        format!("{entity_name}.{column_name}"),
+        get_entity_and_column_name::<T>(context, column),
         Box::new(
             move |value: &sea_orm::Value| -> SeaResult<async_graphql::Value> {
                 if let SeaValue::String(s) = value {

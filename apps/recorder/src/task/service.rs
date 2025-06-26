@@ -6,13 +6,13 @@ use apalis_sql::{
     context::SqlContext,
     postgres::{PgListen as ApalisPgListen, PostgresStorage as ApalisPostgresStorage},
 };
-use sea_orm::{ActiveModelTrait, sqlx::postgres::PgListener};
+use sea_orm::sqlx::postgres::PgListener;
 use tokio::sync::RwLock;
 
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
-    models::cron::{self, CRON_DUE_EVENT, CronCreateOptions},
+    models::cron::{self, CRON_DUE_EVENT},
     task::{
         AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, SubscriberTask,
         TaskConfig,
@@ -42,10 +42,10 @@ impl TaskService {
         };
 
         let pool = ctx.db().get_postgres_connection_pool().clone();
-        let subscriber_task_storage_config =
-            Config::new(SUBSCRIBER_TASK_APALIS_NAME).set_keep_alive(config.subscriber_task_timeout);
-        let system_task_storage_config =
-            Config::new(SYSTEM_TASK_APALIS_NAME).set_keep_alive(config.system_task_timeout);
+        let subscriber_task_storage_config = Config::new(SUBSCRIBER_TASK_APALIS_NAME)
+            .set_reenqueue_orphaned_after(config.subscriber_task_reenqueue_orphaned_after);
+        let system_task_storage_config = Config::new(SYSTEM_TASK_APALIS_NAME)
+            .set_reenqueue_orphaned_after(config.system_task_reenqueue_orphaned_after);
         let subscriber_task_storage =
             ApalisPostgresStorage::new_with_config(pool.clone(), subscriber_task_storage_config);
         let system_task_storage =
@@ -121,18 +121,6 @@ impl TaskService {
         Ok(task_id)
     }
 
-    pub async fn add_subscriber_task_cron(
-        &self,
-        subscriber_task: SubscriberTask,
-        cron_options: CronCreateOptions,
-    ) -> RecorderResult<cron::Model> {
-        let c = cron::ActiveModel::from_subscriber_task(subscriber_task, cron_options)?;
-
-        let c = c.insert(self.ctx.db()).await?;
-
-        Ok(c)
-    }
-
     pub async fn add_system_task(&self, system_task: SystemTask) -> RecorderResult<TaskId> {
         let task_id = {
             let mut storage = self.system_task_storage.write().await;
@@ -182,9 +170,14 @@ impl TaskService {
                 let listener = self.setup_cron_due_listening().await?;
                 let ctx = self.ctx.clone();
                 let cron_worker_id = self.cron_worker_id.clone();
+                let retry_duration = chrono::Duration::milliseconds(
+                    self.config.cron_retry_duration.as_millis() as i64,
+                );
 
                 tokio::task::spawn(async move {
-                    if let Err(e) = Self::listen_cron_due(listener, ctx, &cron_worker_id).await {
+                    if let Err(e) =
+                        Self::listen_cron_due(listener, ctx, &cron_worker_id, retry_duration).await
+                    {
                         tracing::error!("Error listening to cron due: {e}");
                     }
                 });
@@ -192,13 +185,23 @@ impl TaskService {
                 Ok::<_, RecorderError>(())
             },
             async {
-                let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
                 let ctx = self.ctx.clone();
+                let retry_duration = chrono::Duration::milliseconds(
+                    self.config.cron_retry_duration.as_millis() as i64,
+                );
                 tokio::task::spawn(async move {
+                    let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
                     loop {
                         interval.tick().await;
-                        if let Err(e) = cron::Model::cleanup_expired_locks(ctx.as_ref()).await {
-                            tracing::error!("Error cleaning up expired locks: {e}");
+                        if let Err(e) = cron::Model::check_and_cleanup_expired_cron_locks(
+                            ctx.as_ref(),
+                            retry_duration,
+                        )
+                        .await
+                        {
+                            tracing::error!(
+                                "Error checking and cleaning up expired cron locks: {e}"
+                            );
                         }
                         if let Err(e) = cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
                         {
@@ -272,12 +275,19 @@ impl TaskService {
         mut listener: PgListener,
         ctx: Arc<dyn AppContextTrait>,
         worker_id: &str,
+        retry_duration: chrono::Duration,
     ) -> RecorderResult<()> {
         listener.listen(CRON_DUE_EVENT).await?;
+
         loop {
             let notification = listener.recv().await?;
-            if let Err(e) =
-                cron::Model::handle_cron_notification(ctx.as_ref(), notification, worker_id).await
+            if let Err(e) = cron::Model::handle_cron_notification(
+                ctx.as_ref(),
+                notification,
+                worker_id,
+                retry_duration,
+            )
+            .await
             {
                 tracing::error!("Error handling cron notification: {e}");
             }
