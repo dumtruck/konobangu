@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use sea_orm::ActiveEnum;
 use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
@@ -6,7 +7,6 @@ use crate::{
         Cron, CustomSchemaManagerExt, GeneralIds, Subscribers, Subscriptions, table_auto_z,
     },
     models::cron::{
-        CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME,
         CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT, CronSource, CronSourceEnum,
         CronStatus, CronStatusEnum, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
         NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
@@ -143,47 +143,18 @@ impl MigrationTrait for Migration {
             locked_at = &Cron::LockedAt.to_string(),
             timeout_ms = &Cron::TimeoutMs.to_string(),
             status = &Cron::Status.to_string(),
-            pending = &CronStatus::Pending.to_string(),
+            pending = &CronStatus::Pending.to_value(),
             attempts = &Cron::Attempts.to_string(),
             max_attempts = &Cron::MaxAttempts.to_string(),
         ))
         .await?;
 
         db.execute_unprepared(&format!(
-            r#"CREATE TRIGGER {NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME}
+            r#"CREATE OR REPLACE TRIGGER {NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME}
                 AFTER INSERT OR UPDATE ON {table}
                 FOR EACH ROW
                 EXECUTE FUNCTION {NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME}();"#,
             table = &Cron::Table.to_string(),
-        ))
-        .await?;
-
-        db.execute_unprepared(&format!(
-            r#"CREATE OR REPLACE FUNCTION {CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME}() RETURNS INTEGER AS $$
-            DECLARE
-                affected_count INTEGER;
-            BEGIN
-                UPDATE {table}
-                SET
-                    {locked_by} = NULL,
-                    {locked_at} = NULL,
-                    {status} = '{pending}'
-                WHERE
-                    {locked_by} IS NOT NULL
-                    AND {timeout_ms} IS NOT NULL
-                    AND {locked_at} + {timeout_ms} * INTERVAL '1 millisecond' <= CURRENT_TIMESTAMP
-                    AND {status} = '{running}';
-                GET DIAGNOSTICS affected_count = ROW_COUNT;
-                RETURN affected_count;
-            END;
-            $$ LANGUAGE plpgsql;"#,
-            table = &Cron::Table.to_string(),
-            locked_by = &Cron::LockedBy.to_string(),
-            locked_at = &Cron::LockedAt.to_string(),
-            status = &Cron::Status.to_string(),
-            running = &CronStatus::Running.to_string(),
-            pending = &CronStatus::Pending.to_string(),
-            timeout_ms = &Cron::TimeoutMs.to_string(),
         ))
         .await?;
 
@@ -220,7 +191,7 @@ impl MigrationTrait for Migration {
             next_run = &Cron::NextRun.to_string(),
             enabled = &Cron::Enabled.to_string(),
             status = &Cron::Status.to_string(),
-            pending = &CronStatus::Pending.to_string(),
+            pending = &CronStatus::Pending.to_value(),
             locked_at = &Cron::LockedAt.to_string(),
             timeout_ms = &Cron::TimeoutMs.to_string(),
             priority = &Cron::Priority.to_string(),
@@ -243,11 +214,6 @@ impl MigrationTrait for Migration {
 
         db.execute_unprepared(&format!(
             r#"DROP FUNCTION IF EXISTS {NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME}();"#,
-        ))
-        .await?;
-
-        db.execute_unprepared(&format!(
-            r#"DROP FUNCTION IF EXISTS {CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME}();"#,
         ))
         .await?;
 

@@ -2,9 +2,8 @@ mod core;
 mod registry;
 
 pub use core::{
-    CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME, CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME,
-    CRON_DUE_EVENT, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
-    NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
+    CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT,
+    NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME, NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
 };
 
 use async_trait::async_trait;
@@ -268,19 +267,6 @@ impl Model {
         .await?;
 
         Ok(())
-    }
-
-    pub async fn cleanup_expired_locks(ctx: &dyn AppContextTrait) -> RecorderResult<i32> {
-        let db = ctx.db();
-
-        let result = db
-            .execute(Statement::from_string(
-                db.get_database_backend(),
-                format!("SELECT {CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME}()"),
-            ))
-            .await?;
-
-        Ok(result.rows_affected() as i32)
     }
 
     pub async fn check_and_trigger_due_crons(ctx: &dyn AppContextTrait) -> RecorderResult<()> {

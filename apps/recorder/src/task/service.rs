@@ -185,9 +185,6 @@ impl TaskService {
                 tokio::task::spawn(async move {
                     loop {
                         interval.tick().await;
-                        if let Err(e) = cron::Model::cleanup_expired_locks(ctx.as_ref()).await {
-                            tracing::error!("Error cleaning up expired locks: {e}");
-                        }
                         if let Err(e) = cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
                         {
                             tracing::error!("Error checking and triggering due crons: {e}");

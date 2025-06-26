@@ -1,7 +1,5 @@
 pub const CRON_DUE_EVENT: &str = "cron_due";
 
-pub const CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME: &str =
-    "check_and_cleanup_expired_cron_locks";
 pub const CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME: &str = "check_and_trigger_due_crons";
 
 pub const NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME: &str = "notify_due_cron_when_mutating";
