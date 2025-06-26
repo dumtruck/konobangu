@@ -3,8 +3,9 @@ mod registry;
 
 pub use core::{
     CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME, CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME,
-    CRON_DUE_EVENT, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
-    NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
+    CRON_DUE_EVENT, CronCreateOptions, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
+    NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME,
+    SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
 };
 
 use async_trait::async_trait;
@@ -17,21 +18,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    app::AppContextTrait,
-    errors::{RecorderError, RecorderResult},
-    models::subscriptions::{self},
-};
-
-#[derive(
-    Debug, Clone, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay, Serialize, Deserialize,
-)]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "cron_source")]
-#[serde(rename_all = "snake_case")]
-pub enum CronSource {
-    #[sea_orm(string_value = "subscription")]
-    Subscription,
-}
+use crate::{app::AppContextTrait, errors::RecorderResult, models::subscriber_tasks};
 
 #[derive(
     Debug, Clone, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay, Serialize, Deserialize,
@@ -58,7 +45,6 @@ pub struct Model {
     pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub cron_source: CronSource,
     pub subscriber_id: Option<i32>,
     pub subscription_id: Option<i32>,
     pub cron_expr: String,
@@ -67,6 +53,7 @@ pub struct Model {
     pub last_error: Option<String>,
     pub locked_by: Option<String>,
     pub locked_at: Option<DateTimeUtc>,
+    #[sea_orm(default_expr = "5000")]
     pub timeout_ms: i32,
     #[sea_orm(default_expr = "0")]
     pub attempts: i32,
@@ -77,6 +64,7 @@ pub struct Model {
     pub status: CronStatus,
     #[sea_orm(default_expr = "true")]
     pub enabled: bool,
+    pub subscriber_task: Option<subscriber_tasks::SubscriberTask>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -117,6 +105,38 @@ pub enum RelatedEntity {
     Subscriber,
     #[sea_orm(entity = "super::subscriptions::Entity")]
     Subscription,
+}
+
+impl ActiveModel {
+    pub fn from_subscriber_task(
+        subscriber_task: subscriber_tasks::SubscriberTask,
+        cron_options: CronCreateOptions,
+    ) -> RecorderResult<Self> {
+        let mut active_model = Self {
+            next_run: Set(Some(Model::calculate_next_run(&cron_options.cron_expr)?)),
+            cron_expr: Set(cron_options.cron_expr),
+            subscriber_task: Set(Some(subscriber_task)),
+            ..Default::default()
+        };
+
+        if let Some(priority) = cron_options.priority {
+            active_model.priority = Set(priority);
+        }
+
+        if let Some(timeout_ms) = cron_options.timeout_ms {
+            active_model.timeout_ms = Set(timeout_ms);
+        }
+
+        if let Some(max_attempts) = cron_options.max_attempts {
+            active_model.max_attempts = Set(max_attempts);
+        }
+
+        if let Some(enabled) = cron_options.enabled {
+            active_model.enabled = Set(enabled);
+        }
+
+        Ok(active_model)
+    }
 }
 
 #[async_trait]
@@ -196,19 +216,13 @@ impl Model {
     }
 
     async fn exec_cron(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
-        match self.cron_source {
-            CronSource::Subscription => {
-                let subscription_id = self.subscription_id.unwrap_or_else(|| {
-                    unreachable!("Subscription cron must have a subscription id")
-                });
-
-                let subscription = subscriptions::Entity::find_by_id(subscription_id)
-                    .one(ctx.db())
-                    .await?
-                    .ok_or_else(|| RecorderError::from_model_not_found("Subscription"))?;
-
-                subscription.exec_cron(ctx).await?;
-            }
+        if let Some(subscriber_task) = self.subscriber_task.as_ref() {
+            let task_service = ctx.task();
+            task_service
+                .add_subscriber_task(subscriber_task.clone())
+                .await?;
+        } else {
+            unimplemented!("Cron without subscriber task is not supported now");
         }
 
         Ok(())
@@ -217,7 +231,7 @@ impl Model {
     async fn mark_cron_completed(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
         let db = ctx.db();
 
-        let next_run = self.calculate_next_run(&self.cron_expr)?;
+        let next_run = Self::calculate_next_run(&self.cron_expr)?;
 
         ActiveModel {
             id: Set(self.id),
@@ -250,7 +264,7 @@ impl Model {
         let next_run = if should_retry {
             Some(Utc::now() + chrono::Duration::seconds(5))
         } else {
-            Some(self.calculate_next_run(&self.cron_expr)?)
+            Some(Self::calculate_next_run(&self.cron_expr)?)
         };
 
         ActiveModel {
@@ -295,7 +309,7 @@ impl Model {
         Ok(())
     }
 
-    fn calculate_next_run(&self, cron_expr: &str) -> RecorderResult<DateTime<Utc>> {
+    pub fn calculate_next_run(cron_expr: &str) -> RecorderResult<DateTime<Utc>> {
         let cron_expr = Cron::new(cron_expr).parse()?;
 
         let next = cron_expr.find_next_occurrence(&Utc::now(), false)?;

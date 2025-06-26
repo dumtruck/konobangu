@@ -6,7 +6,7 @@ use seaography::{BuilderContext, SeaResult};
 
 use crate::{
     app::AppContextTrait,
-    graphql::infra::util::{get_column_key, get_entity_key},
+    graphql::infra::name::{get_column_name, get_entity_name},
 };
 
 pub fn register_crypto_column_input_conversion_to_schema_context<T>(
@@ -17,8 +17,8 @@ pub fn register_crypto_column_input_conversion_to_schema_context<T>(
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_key::<T>(context);
-    let column_name = get_column_key::<T>(context, column);
+    let entity_key = get_entity_name::<T>(context);
+    let column_name = get_column_name::<T>(context, column);
     let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
     let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
 
@@ -44,8 +44,8 @@ pub fn register_crypto_column_output_conversion_to_schema_context<T>(
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_key::<T>(context);
-    let column_name = get_column_key::<T>(context, column);
+    let entity_key = get_entity_name::<T>(context);
+    let column_name = get_column_name::<T>(context, column);
     let entity_name = context.entity_object.type_name.as_ref()(&entity_key);
     let column_name = context.entity_object.column_name.as_ref()(&entity_key, &column_name);
 

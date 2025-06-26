@@ -7,9 +7,9 @@ use crate::{
     },
     models::cron::{
         CHECK_AND_CLEANUP_EXPIRED_CRON_LOCKS_FUNCTION_NAME,
-        CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT, CronSource, CronSourceEnum,
-        CronStatus, CronStatusEnum, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
-        NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
+        CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT, CronStatus, CronStatusEnum,
+        NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME, NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
+        SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
     },
 };
 
@@ -19,9 +19,6 @@ pub struct Migration;
 #[async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        create_postgres_enum_for_active_enum!(manager, CronSourceEnum, CronSource::Subscription)
-            .await?;
-
         create_postgres_enum_for_active_enum!(
             manager,
             CronStatusEnum,
@@ -37,11 +34,6 @@ impl MigrationTrait for Migration {
                 table_auto_z(Cron::Table)
                     .col(pk_auto(Cron::Id))
                     .col(string(Cron::CronExpr))
-                    .col(enumeration(
-                        Cron::CronSource,
-                        CronSourceEnum,
-                        CronSource::iden_values(),
-                    ))
                     .col(integer_null(Cron::SubscriberId))
                     .col(integer_null(Cron::SubscriptionId))
                     .col(timestamp_with_time_zone_null(Cron::NextRun))
@@ -59,13 +51,14 @@ impl MigrationTrait for Migration {
                         CronStatusEnum,
                         CronStatus::iden_values(),
                     ))
+                    .col(json_binary_null(Cron::SubscriberTask))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_cron_subscriber_id")
                             .from(Cron::Table, Cron::SubscriberId)
                             .to(Subscribers::Table, Subscribers::Id)
                             .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
+                            .on_update(ForeignKeyAction::Restrict),
                     )
                     .foreign_key(
                         ForeignKey::create()
@@ -73,7 +66,7 @@ impl MigrationTrait for Migration {
                             .from(Cron::Table, Cron::SubscriptionId)
                             .to(Subscriptions::Table, Subscriptions::Id)
                             .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
+                            .on_update(ForeignKeyAction::Restrict),
                     )
                     .to_owned(),
             )
@@ -81,17 +74,6 @@ impl MigrationTrait for Migration {
 
         manager
             .create_postgres_auto_update_ts_trigger_for_col(Cron::Table, GeneralIds::UpdatedAt)
-            .await?;
-
-        manager
-            .create_index(
-                IndexCreateStatement::new()
-                    .if_not_exists()
-                    .name("idx_cron_cron_source")
-                    .table(Cron::Table)
-                    .col(Cron::CronSource)
-                    .to_owned(),
-            )
             .await?;
 
         manager
@@ -106,6 +88,32 @@ impl MigrationTrait for Migration {
             .await?;
 
         let db = manager.get_connection();
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE FUNCTION {SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            BEGIN
+                IF jsonb_path_exists(NEW.{subscriber_task}, '$.subscriber_id ? (@.type() == "number")') THEN
+                    NEW.{subscriber_id} = (NEW.{subscriber_task} ->> 'subscriber_id')::integer;
+                END IF;
+                IF jsonb_path_exists(NEW.{subscriber_task}, '$.subscription_id ? (@.type() == "number")') THEN
+                    NEW.{subscription_id} = (NEW.{subscriber_task} ->> 'subscription_id')::integer;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;"#,
+            subscriber_task = &Cron::SubscriberTask.to_string(),
+            subscriber_id = &Cron::SubscriberId.to_string(),
+            subscription_id = &Cron::SubscriptionId.to_string(),
+        )).await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE TRIGGER {SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME}
+                BEFORE INSERT OR UPDATE ON {table}
+                FOR EACH ROW
+                EXECUTE FUNCTION {SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}();"#,
+            table = &Cron::Table.to_string(),
+        ))
+        .await?;
 
         db.execute_unprepared(&format!(
             r#"CREATE OR REPLACE FUNCTION {NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME}() RETURNS trigger AS $$
@@ -150,7 +158,7 @@ impl MigrationTrait for Migration {
         .await?;
 
         db.execute_unprepared(&format!(
-            r#"CREATE TRIGGER {NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME}
+            r#"CREATE OR REPLACE TRIGGER {NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME}
                 AFTER INSERT OR UPDATE ON {table}
                 FOR EACH ROW
                 EXECUTE FUNCTION {NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME}();"#,
@@ -263,10 +271,6 @@ impl MigrationTrait for Migration {
                     .table(Cron::Table)
                     .to_owned(),
             )
-            .await?;
-
-        manager
-            .drop_postgres_enum_for_active_enum(CronSourceEnum)
             .await?;
 
         manager

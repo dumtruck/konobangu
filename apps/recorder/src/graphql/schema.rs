@@ -39,7 +39,13 @@ use crate::{
                 register_subscriptions_to_schema_builder, register_subscriptions_to_schema_context,
             },
         },
-        infra::json::register_jsonb_input_filter_to_schema_builder,
+        infra::{
+            json::register_jsonb_input_filter_to_schema_builder,
+            name::{
+                renormalize_data_field_names_to_schema_context,
+                renormalize_filter_field_names_to_schema_context,
+            },
+        },
     },
 };
 
@@ -54,6 +60,9 @@ pub fn build_schema(
 
     let context = CONTEXT.get_or_init(|| {
         let mut context = BuilderContext::default();
+
+        renormalize_filter_field_names_to_schema_context(&mut context);
+        renormalize_data_field_names_to_schema_context(&mut context);
 
         {
             // domains

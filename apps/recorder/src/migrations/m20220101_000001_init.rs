@@ -52,8 +52,7 @@ impl MigrationTrait for Migration {
             subscriptions::SubscriptionCategoryEnum,
             subscriptions::SubscriptionCategory::MikanSubscriber,
             subscriptions::SubscriptionCategory::MikanBangumi,
-            subscriptions::SubscriptionCategory::MikanSeason,
-            subscriptions::SubscriptionCategory::Manual
+            subscriptions::SubscriptionCategory::MikanSeason
         )
         .await?;
 

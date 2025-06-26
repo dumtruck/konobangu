@@ -19,6 +19,8 @@ use crate::{
 #[snafu(visibility(pub(crate)))]
 pub enum RecorderError {
     #[snafu(transparent)]
+    SeaographyError { source: seaography::SeaographyError },
+    #[snafu(transparent)]
     CronError { source: croner::errors::CronError },
     #[snafu(display(
         "HTTP {status} {reason}, source = {source:?}",
@@ -192,20 +194,17 @@ impl RecorderError {
         }
     }
 
-    pub fn from_model_not_found_detail<C: Into<Cow<'static, str>>, T: ToString>(
-        model: C,
-        detail: T,
-    ) -> Self {
+    pub fn from_entity_not_found<E: sea_orm::EntityTrait>() -> Self {
         Self::ModelEntityNotFound {
-            entity: model.into(),
-            detail: Some(detail.to_string()),
+            entity: std::any::type_name::<E::Model>().into(),
+            detail: None,
         }
     }
 
-    pub fn from_model_not_found<C: Into<Cow<'static, str>>>(model: C) -> Self {
+    pub fn from_entity_not_found_detail<E: sea_orm::EntityTrait, T: ToString>(detail: T) -> Self {
         Self::ModelEntityNotFound {
-            entity: model.into(),
-            detail: None,
+            entity: std::any::type_name::<E::Model>().into(),
+            detail: Some(detail.to_string()),
         }
     }
 }

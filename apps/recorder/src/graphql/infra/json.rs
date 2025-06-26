@@ -17,7 +17,7 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value as JsonValue;
 
 use crate::{
-    errors::RecorderResult, graphql::infra::util::get_entity_column_key,
+    errors::RecorderResult, graphql::infra::name::get_entity_and_column_name,
     utils::json::convert_json_keys,
 };
 
@@ -946,9 +946,8 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_column_key = get_entity_column_key::<T>(context, column);
     context.filter_types.overwrites.insert(
-        entity_column_key.clone(),
+        get_entity_and_column_name::<T>(context, column),
         Some(FilterType::Custom(JSONB_FILTER_NAME.to_string())),
     );
 }
@@ -959,20 +958,20 @@ where
     <T as EntityTrait>::Model: Sync,
     S: DeserializeOwned + Serialize,
 {
-    let entity_column_key = get_entity_column_key::<T>(context, column);
+    let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.types.input_conversions.insert(
-        entity_column_key.clone(),
+        entity_column_name.clone(),
         Box::new(move |_resolve_context, accessor| {
             let deserialized = accessor.deserialize::<S>().map_err(|err| {
                 SeaographyError::TypeConversionError(
                     err.message,
-                    format!("Json - {entity_column_key}"),
+                    format!("Json - {entity_column_name}"),
                 )
             })?;
             let json_value = serde_json::to_value(deserialized).map_err(|err| {
                 SeaographyError::TypeConversionError(
                     err.to_string(),
-                    format!("Json - {entity_column_key}"),
+                    format!("Json - {entity_column_name}"),
                 )
             })?;
             Ok(sea_orm::Value::Json(Some(Box::new(json_value))))
@@ -980,26 +979,27 @@ where
     );
 }
 
-pub fn convert_jsonb_output_case_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
-where
+pub fn convert_jsonb_output_case_for_entity<T>(
+    context: &mut BuilderContext,
+    column: &T::Column,
+    case: Case<'static>,
+) where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_column_key = get_entity_column_key::<T>(context, column);
+    let entity_column_key = get_entity_and_column_name::<T>(context, column);
     context.types.output_conversions.insert(
         entity_column_key.clone(),
         Box::new(move |value| {
             if let sea_orm::Value::Json(Some(json)) = value {
-                let result = async_graphql::Value::from_json(convert_json_keys(
-                    json.as_ref().clone(),
-                    Case::Camel,
-                ))
-                .map_err(|err| {
-                    SeaographyError::TypeConversionError(
-                        err.to_string(),
-                        format!("Json - {entity_column_key}"),
-                    )
-                })?;
+                let result =
+                    async_graphql::Value::from_json(convert_json_keys(json.as_ref().clone(), case))
+                        .map_err(|err| {
+                            SeaographyError::TypeConversionError(
+                                err.to_string(),
+                                format!("Json - {entity_column_key}"),
+                            )
+                        })?;
                 Ok(result)
             } else {
                 Err(SeaographyError::TypeConversionError(

@@ -131,7 +131,7 @@ impl Model {
         let db = ctx.db();
 
         let subscriber = Entity::find_by_id(id).one(db).await?.ok_or_else(|| {
-            RecorderError::from_model_not_found_detail("subscribers", format!("id {id} not found"))
+            RecorderError::from_entity_not_found_detail::<Entity, _>(format!("id {id} not found"))
         })?;
         Ok(subscriber)
     }

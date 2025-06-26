@@ -227,10 +227,12 @@ impl MikanClient {
             self.fork_with_userpass_credential(userpass_credential)
                 .await
         } else {
-            Err(RecorderError::from_model_not_found_detail(
-                "credential",
-                format!("credential id {credential_id} not found"),
-            ))
+            Err(RecorderError::from_entity_not_found_detail::<
+                credential_3rd::Entity,
+                _,
+            >(format!(
+                "credential id {credential_id} not found"
+            )))
         }
     }
 

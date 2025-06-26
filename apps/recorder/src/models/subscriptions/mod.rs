@@ -11,10 +11,7 @@ pub use registry::{
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    app::AppContextTrait,
-    errors::{RecorderError, RecorderResult},
-};
+use crate::{app::AppContextTrait, errors::RecorderResult};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "subscriptions")]
@@ -155,50 +152,6 @@ impl ActiveModelBehavior for ActiveModel {}
 impl ActiveModel {}
 
 impl Model {
-    pub async fn toggle_with_ids(
-        ctx: &dyn AppContextTrait,
-        ids: impl Iterator<Item = i32>,
-        enabled: bool,
-    ) -> RecorderResult<()> {
-        let db = ctx.db();
-        Entity::update_many()
-            .col_expr(Column::Enabled, Expr::value(enabled))
-            .filter(Column::Id.is_in(ids))
-            .exec(db)
-            .await?;
-        Ok(())
-    }
-
-    pub async fn delete_with_ids(
-        ctx: &dyn AppContextTrait,
-        ids: impl Iterator<Item = i32>,
-    ) -> RecorderResult<()> {
-        let db = ctx.db();
-        Entity::delete_many()
-            .filter(Column::Id.is_in(ids))
-            .exec(db)
-            .await?;
-        Ok(())
-    }
-
-    pub async fn find_by_id_and_subscriber_id(
-        ctx: &dyn AppContextTrait,
-        subscriber_id: i32,
-        subscription_id: i32,
-    ) -> RecorderResult<Self> {
-        let db = ctx.db();
-        let subscription_model = Entity::find_by_id(subscription_id)
-            .one(db)
-            .await?
-            .ok_or_else(|| RecorderError::from_model_not_found("Subscription"))?;
-
-        if subscription_model.subscriber_id != subscriber_id {
-            Err(RecorderError::from_model_not_found("Subscription"))?;
-        }
-
-        Ok(subscription_model)
-    }
-
     pub async fn exec_cron(&self, _ctx: &dyn AppContextTrait) -> RecorderResult<()> {
         todo!()
     }

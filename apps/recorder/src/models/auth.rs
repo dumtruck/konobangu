@@ -64,7 +64,9 @@ impl Model {
             .one(db)
             .await?
             .ok_or_else(|| {
-                RecorderError::from_model_not_found_detail("auth", format!("pid {pid} not found"))
+                RecorderError::from_entity_not_found_detail::<Entity, _>(format!(
+                    "pid {pid} not found"
+                ))
             })?;
         Ok(subscriber_auth)
     }

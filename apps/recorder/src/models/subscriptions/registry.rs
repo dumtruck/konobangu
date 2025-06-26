@@ -1,129 +1,147 @@
 use std::{fmt::Debug, sync::Arc};
 
-use async_trait::async_trait;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::AppContextTrait,
-    errors::{RecorderError, RecorderResult},
+    errors::RecorderResult,
     extract::mikan::{
         MikanBangumiSubscription, MikanSeasonSubscription, MikanSubscriberSubscription,
     },
     models::subscriptions::{self, SubscriptionTrait},
 };
 
-#[derive(
-    Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize, DeriveDisplay,
-)]
-#[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "subscription_category"
-)]
-#[serde(rename_all = "snake_case")]
-pub enum SubscriptionCategory {
-    #[sea_orm(string_value = "mikan_subscriber")]
-    MikanSubscriber,
-    #[sea_orm(string_value = "mikan_season")]
-    MikanSeason,
-    #[sea_orm(string_value = "mikan_bangumi")]
-    MikanBangumi,
-    #[sea_orm(string_value = "manual")]
-    Manual,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "category")]
-pub enum Subscription {
-    #[serde(rename = "mikan_subscriber")]
-    MikanSubscriber(MikanSubscriberSubscription),
-    #[serde(rename = "mikan_season")]
-    MikanSeason(MikanSeasonSubscription),
-    #[serde(rename = "mikan_bangumi")]
-    MikanBangumi(MikanBangumiSubscription),
-    #[serde(rename = "manual")]
-    Manual,
-}
-
-impl Subscription {
-    pub fn category(&self) -> SubscriptionCategory {
-        match self {
-            Self::MikanSubscriber(_) => SubscriptionCategory::MikanSubscriber,
-            Self::MikanSeason(_) => SubscriptionCategory::MikanSeason,
-            Self::MikanBangumi(_) => SubscriptionCategory::MikanBangumi,
-            Self::Manual => SubscriptionCategory::Manual,
-        }
-    }
-}
-
-#[async_trait]
-impl SubscriptionTrait for Subscription {
-    fn get_subscriber_id(&self) -> i32 {
-        match self {
-            Self::MikanSubscriber(subscription) => subscription.get_subscriber_id(),
-            Self::MikanSeason(subscription) => subscription.get_subscriber_id(),
-            Self::MikanBangumi(subscription) => subscription.get_subscriber_id(),
-            Self::Manual => unreachable!(),
-        }
-    }
-
-    fn get_subscription_id(&self) -> i32 {
-        match self {
-            Self::MikanSubscriber(subscription) => subscription.get_subscription_id(),
-            Self::MikanSeason(subscription) => subscription.get_subscription_id(),
-            Self::MikanBangumi(subscription) => subscription.get_subscription_id(),
-            Self::Manual => unreachable!(),
-        }
-    }
-
-    async fn sync_feeds_incremental(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        match self {
-            Self::MikanSubscriber(subscription) => subscription.sync_feeds_incremental(ctx).await,
-            Self::MikanSeason(subscription) => subscription.sync_feeds_incremental(ctx).await,
-            Self::MikanBangumi(subscription) => subscription.sync_feeds_incremental(ctx).await,
-            Self::Manual => Ok(()),
-        }
-    }
-
-    async fn sync_feeds_full(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        match self {
-            Self::MikanSubscriber(subscription) => subscription.sync_feeds_full(ctx).await,
-            Self::MikanSeason(subscription) => subscription.sync_feeds_full(ctx).await,
-            Self::MikanBangumi(subscription) => subscription.sync_feeds_full(ctx).await,
-            Self::Manual => Ok(()),
-        }
-    }
-
-    async fn sync_sources(&self, ctx: Arc<dyn AppContextTrait>) -> RecorderResult<()> {
-        match self {
-            Self::MikanSubscriber(subscription) => subscription.sync_sources(ctx).await,
-            Self::MikanSeason(subscription) => subscription.sync_sources(ctx).await,
-            Self::MikanBangumi(subscription) => subscription.sync_sources(ctx).await,
-            Self::Manual => Ok(()),
-        }
-    }
-
-    fn try_from_model(model: &subscriptions::Model) -> RecorderResult<Self> {
-        match model.category {
-            SubscriptionCategory::MikanSubscriber => {
-                MikanSubscriberSubscription::try_from_model(model).map(Self::MikanSubscriber)
+macro_rules! register_subscription_type {
+    (
+        subscription_category_enum: {
+            $(#[$subscription_category_enum_meta:meta])*
+            pub enum $type_enum_name:ident {
+                $(
+                    $(#[$variant_meta:meta])*
+                    $variant:ident => $string_value:literal
+                ),* $(,)?
             }
-            SubscriptionCategory::MikanSeason => {
-                MikanSeasonSubscription::try_from_model(model).map(Self::MikanSeason)
+        }$(,)?
+        subscription_enum: {
+            $(#[$subscription_enum_meta:meta])*
+            pub enum $subscription_enum_name:ident {
+                $(
+                    $subscription_variant:ident($subscription_type:ty)
+                ),* $(,)?
             }
-            SubscriptionCategory::MikanBangumi => {
-                MikanBangumiSubscription::try_from_model(model).map(Self::MikanBangumi)
-            }
-            SubscriptionCategory::Manual => Ok(Self::Manual),
         }
-    }
+    ) => {
+        $(#[$subscription_category_enum_meta])*
+        #[sea_orm(
+            rs_type = "String",
+            db_type = "Enum",
+            enum_name = "subscription_category"
+        )]
+        pub enum $type_enum_name {
+            $(
+                $(#[$variant_meta])*
+                #[serde(rename = $string_value)]
+                #[sea_orm(string_value = $string_value)]
+                $variant,
+            )*
+        }
+
+
+        $(#[$subscription_enum_meta])*
+        #[serde(tag = "category")]
+        pub enum $subscription_enum_name {
+            $(
+                #[serde(rename = $string_value)]
+                $subscription_variant($subscription_type),
+            )*
+        }
+
+        impl $subscription_enum_name {
+            pub fn category(&self) -> $type_enum_name {
+                match self {
+                    $(Self::$subscription_variant(_) => $type_enum_name::$variant,)*
+                }
+            }
+        }
+
+        #[async_trait::async_trait]
+        impl $crate::models::subscriptions::SubscriptionTrait for $subscription_enum_name {
+            fn get_subscriber_id(&self) -> i32 {
+                match self {
+                    $(Self::$subscription_variant(subscription) => subscription.get_subscriber_id(),)*
+                }
+            }
+
+            fn get_subscription_id(&self) -> i32 {
+                match self {
+                    $(Self::$subscription_variant(subscription) => subscription.get_subscription_id(),)*
+                }
+            }
+
+            async fn sync_feeds_incremental(&self, ctx: Arc<dyn $crate::app::AppContextTrait>) -> $crate::errors::RecorderResult<()> {
+                match self {
+                    $(Self::$subscription_variant(subscription) => subscription.sync_feeds_incremental(ctx).await,)*
+                }
+            }
+
+            async fn sync_feeds_full(&self, ctx: Arc<dyn $crate::app::AppContextTrait>) -> $crate::errors::RecorderResult<()> {
+                match self {
+                    $(Self::$subscription_variant(subscription) => subscription.sync_feeds_full(ctx).await,)*
+                }
+            }
+
+            async fn sync_sources(&self, ctx: Arc<dyn $crate::app::AppContextTrait>) -> $crate::errors::RecorderResult<()> {
+                match self {
+                    $(Self::$subscription_variant(subscription) => subscription.sync_sources(ctx).await,)*
+                }
+            }
+
+            fn try_from_model(model: &subscriptions::Model) -> RecorderResult<Self> {
+
+                match model.category {
+                    $($type_enum_name::$variant => {
+                        <$subscription_type as $crate::models::subscriptions::SubscriptionTrait>::try_from_model(model).map(Self::$subscription_variant)
+                    })*
+                }
+            }
+        }
+
+        impl TryFrom<&$crate::models::subscriptions::Model> for $subscription_enum_name {
+            type Error = $crate::errors::RecorderError;
+
+            fn try_from(model: &$crate::models::subscriptions::Model) -> Result<Self, Self::Error> {
+                Self::try_from_model(model)
+            }
+        }
+    };
 }
 
-impl TryFrom<&subscriptions::Model> for Subscription {
-    type Error = RecorderError;
-
-    fn try_from(model: &subscriptions::Model) -> Result<Self, Self::Error> {
-        Self::try_from_model(model)
+register_subscription_type! {
+    subscription_category_enum: {
+        #[derive(
+            Clone,
+            Debug,
+            Serialize,
+            Deserialize,
+            PartialEq,
+            Eq,
+            Copy,
+            DeriveActiveEnum,
+            DeriveDisplay,
+            EnumIter,
+        )]
+        pub enum SubscriptionCategory {
+            MikanSubscriber => "mikan_subscriber",
+            MikanSeason => "mikan_season",
+            MikanBangumi => "mikan_bangumi",
+        }
+    }
+    subscription_enum: {
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+        pub enum Subscription {
+            MikanSubscriber(MikanSubscriberSubscription),
+            MikanSeason(MikanSeasonSubscription),
+            MikanBangumi(MikanBangumiSubscription)
+        }
     }
 }

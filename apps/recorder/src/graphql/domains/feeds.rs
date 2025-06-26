@@ -7,7 +7,10 @@ use seaography::{Builder as SeaographyBuilder, BuilderContext, SeaResult};
 use crate::{
     graphql::{
         domains::subscribers::restrict_subscriber_for_entity,
-        infra::util::{get_entity_column_key, get_entity_key},
+        infra::name::{
+            get_entity_and_column_name, get_entity_create_batch_mutation_field_name,
+            get_entity_create_one_mutation_field_name,
+        },
     },
     models::feeds,
 };
@@ -15,22 +18,14 @@ use crate::{
 pub fn register_feeds_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<feeds::Entity>(context, &feeds::Column::SubscriberId);
     {
-        let entity_column_key =
-            get_entity_column_key::<feeds::Entity>(context, &feeds::Column::Token);
-        let entity_key = get_entity_key::<feeds::Entity>(context);
-        let entity_name = context.entity_query_field.type_name.as_ref()(&entity_key);
-        let entity_create_one_mutation_field_name = Arc::new(format!(
-            "{}{}",
-            entity_name, context.entity_create_one_mutation.mutation_suffix
-        ));
-        let entity_create_batch_mutation_field_name = Arc::new(format!(
-            "{}{}",
-            entity_name,
-            context.entity_create_batch_mutation.mutation_suffix.clone()
-        ));
+        let entity_create_one_mutation_field_name = Arc::new(
+            get_entity_create_one_mutation_field_name::<feeds::Entity>(context),
+        );
+        let entity_create_batch_mutation_field_name =
+            Arc::new(get_entity_create_batch_mutation_field_name::<feeds::Entity>(context));
 
         context.types.input_none_conversions.insert(
-            entity_column_key,
+            get_entity_and_column_name::<feeds::Entity>(context, &feeds::Column::Token),
             Box::new(
                 move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
                     let field_name = context.field().name();

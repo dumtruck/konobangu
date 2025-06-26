@@ -12,7 +12,6 @@
 )]
 #![allow(clippy::enum_variant_names)]
 pub use downloader;
-
 pub mod app;
 pub mod auth;
 pub mod cache;

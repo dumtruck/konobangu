@@ -1,49 +1,27 @@
 use std::sync::Arc;
 
-use async_graphql::dynamic::{
-    Field, FieldFuture, FieldValue, InputObject, InputValue, Object, TypeRef,
-};
-use seaography::{Builder as SeaographyBuilder, BuilderContext};
+use async_graphql::dynamic::{Field, FieldFuture, FieldValue, Object, TypeRef};
+use sea_orm::{EntityTrait, QueryFilter};
+use seaography::{Builder as SeaographyBuilder, BuilderContext, get_filter_conditions};
 use serde::{Deserialize, Serialize};
 use util_derive::DynamicGraphql;
 
 use crate::{
     app::AppContextTrait,
-    auth::AuthUserInfo,
     errors::RecorderError,
     graphql::{
         domains::subscribers::restrict_subscriber_for_entity,
-        infra::crypto::{
-            register_crypto_column_input_conversion_to_schema_context,
-            register_crypto_column_output_conversion_to_schema_context,
+        infra::{
+            crypto::{
+                register_crypto_column_input_conversion_to_schema_context,
+                register_crypto_column_output_conversion_to_schema_context,
+            },
+            custom::generate_entity_filtered_mutation_field,
+            name::get_entity_custom_mutation_field_name,
         },
     },
     models::credential_3rd,
 };
-
-#[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
-struct Credential3rdCheckAvailableInput {
-    pub id: i32,
-}
-
-impl Credential3rdCheckAvailableInput {
-    fn input_type_name() -> &'static str {
-        "Credential3rdCheckAvailableInput"
-    }
-
-    fn arg_name() -> &'static str {
-        "filter"
-    }
-
-    fn generate_input_object() -> InputObject {
-        InputObject::new(Self::input_type_name())
-            .description("The input of the credential3rdCheckAvailable query")
-            .field(InputValue::new(
-                Credential3rdCheckAvailableInputFieldEnum::Id.as_str(),
-                TypeRef::named_nn(TypeRef::INT),
-            ))
-    }
-}
 
 #[derive(DynamicGraphql, Serialize, Deserialize, Clone, Debug)]
 pub struct Credential3rdCheckAvailableInfo {
@@ -121,48 +99,45 @@ pub fn register_credential3rd_to_schema_builder(
 
     builder.schema = builder
         .schema
-        .register(Credential3rdCheckAvailableInput::generate_input_object());
-    builder.schema = builder
-        .schema
         .register(Credential3rdCheckAvailableInfo::generate_output_object());
 
-    builder.queries.push(
-        Field::new(
-            "credential3rdCheckAvailable",
-            TypeRef::named_nn(Credential3rdCheckAvailableInfo::object_type_name()),
-            move |ctx| {
-                FieldFuture::new(async move {
-                    let auth_user_info = ctx.data::<AuthUserInfo>()?;
-                    let input: Credential3rdCheckAvailableInput = ctx
-                        .args
-                        .get(Credential3rdCheckAvailableInput::arg_name())
-                        .unwrap()
-                        .deserialize()?;
-                    let app_ctx = ctx.data::<Arc<dyn AppContextTrait>>()?;
+    let builder_context = builder.context;
+    {
+        let check_available_mutation_name = get_entity_custom_mutation_field_name::<
+            credential_3rd::Entity,
+        >(builder_context, "CheckAvailable");
+        let check_available_mutation =
+            generate_entity_filtered_mutation_field::<credential_3rd::Entity, _, _>(
+                builder_context,
+                check_available_mutation_name,
+                TypeRef::named_nn(Credential3rdCheckAvailableInfo::object_type_name()),
+                Arc::new(|resolver_ctx, app_ctx, filters| {
+                    let filters_condition = get_filter_conditions::<credential_3rd::Entity>(
+                        resolver_ctx,
+                        builder_context,
+                        filters,
+                    );
 
-                    let credential_model = credential_3rd::Model::find_by_id_and_subscriber_id(
-                        app_ctx.as_ref(),
-                        input.id,
-                        auth_user_info.subscriber_auth.subscriber_id,
-                    )
-                    .await?
-                    .ok_or_else(|| RecorderError::Credential3rdError {
-                        message: format!("credential = {} not found", input.id),
-                        source: None.into(),
-                    })?;
+                    Box::pin(async move {
+                        let db = app_ctx.db();
 
-                    let available = credential_model.check_available(app_ctx.as_ref()).await?;
-                    Ok(Some(FieldValue::owned_any(
-                        Credential3rdCheckAvailableInfo { available },
-                    )))
-                })
-            },
-        )
-        .argument(InputValue::new(
-            Credential3rdCheckAvailableInput::arg_name(),
-            TypeRef::named_nn(Credential3rdCheckAvailableInput::input_type_name()),
-        )),
-    );
+                        let credential_model = credential_3rd::Entity::find()
+                            .filter(filters_condition)
+                            .one(db)
+                            .await?
+                            .ok_or_else(|| {
+                                RecorderError::from_entity_not_found::<credential_3rd::Entity>()
+                            })?;
+
+                        let available = credential_model.check_available(app_ctx.as_ref()).await?;
+                        Ok(Some(FieldValue::owned_any(
+                            Credential3rdCheckAvailableInfo { available },
+                        )))
+                    })
+                }),
+            );
+        builder.mutations.push(check_available_mutation);
+    }
 
     builder
 }

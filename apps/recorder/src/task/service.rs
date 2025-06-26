@@ -6,15 +6,16 @@ use apalis_sql::{
     context::SqlContext,
     postgres::{PgListen as ApalisPgListen, PostgresStorage as ApalisPostgresStorage},
 };
-use sea_orm::sqlx::postgres::PgListener;
+use sea_orm::{ActiveModelTrait, sqlx::postgres::PgListener};
 use tokio::sync::RwLock;
 
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
-    models::cron::{self, CRON_DUE_EVENT},
+    models::cron::{self, CRON_DUE_EVENT, CronCreateOptions},
     task::{
-        SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, SubscriberTask, TaskConfig,
+        AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, SubscriberTask,
+        TaskConfig,
         config::{default_subscriber_task_workers, default_system_task_workers},
         registry::SystemTask,
     },
@@ -65,7 +66,7 @@ impl TaskService {
     ) -> RecorderResult<()> {
         let ctx = data.deref().clone();
 
-        job.run(ctx).await
+        job.run_async(ctx).await
     }
 
     async fn run_system_task(
@@ -73,7 +74,7 @@ impl TaskService {
         data: Data<Arc<dyn AppContextTrait>>,
     ) -> RecorderResult<()> {
         let ctx = data.deref().clone();
-        job.run(ctx).await
+        job.run_async(ctx).await
     }
 
     pub async fn retry_subscriber_task(&self, job_id: String) -> RecorderResult<()> {
@@ -104,7 +105,6 @@ impl TaskService {
 
     pub async fn add_subscriber_task(
         &self,
-        _subscriber_id: i32,
         subscriber_task: SubscriberTask,
     ) -> RecorderResult<TaskId> {
         let task_id = {
@@ -119,6 +119,18 @@ impl TaskService {
         };
 
         Ok(task_id)
+    }
+
+    pub async fn add_subscriber_task_cron(
+        &self,
+        subscriber_task: SubscriberTask,
+        cron_options: CronCreateOptions,
+    ) -> RecorderResult<cron::Model> {
+        let c = cron::ActiveModel::from_subscriber_task(subscriber_task, cron_options)?;
+
+        let c = c.insert(self.ctx.db()).await?;
+
+        Ok(c)
     }
 
     pub async fn add_system_task(&self, system_task: SystemTask) -> RecorderResult<TaskId> {

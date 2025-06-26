@@ -6,6 +6,7 @@ mod service;
 
 pub use core::{
     AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, StreamTaskTrait,
+    SubscriberTaskBase, SubscriberTaskTrait, SystemTaskTrait,
 };
 
 pub use config::TaskConfig;

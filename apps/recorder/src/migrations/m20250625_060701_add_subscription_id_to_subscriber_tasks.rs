@@ -17,8 +17,8 @@ SELECT
     job,
     job_type,
     status,
-    (job ->> 'subscriber_id'::text)::integer AS subscriber_id,
-    job ->> 'task_type'::text                AS task_type,
+    (job ->> 'subscriber_id')::integer AS subscriber_id,
+    job ->> 'task_type'                AS task_type,
     id,
     attempts,
     max_attempts,
@@ -28,7 +28,7 @@ SELECT
     lock_by,
     done_at,
     priority,
-    (job ->> 'subscription_id'::text)::integer AS subscription_id
+    (job ->> 'subscription_id')::integer AS subscription_id
 FROM apalis.jobs
 WHERE job_type = '{SUBSCRIBER_TASK_APALIS_NAME}'
 AND jsonb_path_exists(job, '$.subscriber_id ? (@.type() == "number")')

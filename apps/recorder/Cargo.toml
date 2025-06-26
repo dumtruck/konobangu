@@ -165,6 +165,7 @@ quick-xml = { version = "0.37.5", features = [
     "serde",
 ] }
 croner = "2.2.0"
+ts-rs = "11.0.1"
 
 [dev-dependencies]
 inquire = { workspace = true }

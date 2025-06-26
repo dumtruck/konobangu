@@ -12,7 +12,14 @@ use seaography::{
 
 use crate::{
     auth::{AuthError, AuthUserInfo},
-    graphql::infra::util::{get_column_key, get_entity_column_key, get_entity_key},
+    graphql::infra::name::{
+        get_column_name, get_entity_and_column_name,
+        get_entity_create_batch_mutation_data_field_name,
+        get_entity_create_batch_mutation_field_name,
+        get_entity_create_one_mutation_data_field_name, get_entity_create_one_mutation_field_name,
+        get_entity_name, get_entity_update_mutation_data_field_name,
+        get_entity_update_mutation_field_name,
+    },
     models::subscribers,
 };
 
@@ -82,32 +89,19 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_key::<T>(context);
-    let entity_name = context.entity_query_field.type_name.as_ref()(&entity_key);
-    let column_key = get_column_key::<T>(context, column);
-    let column_name = Arc::new(context.entity_object.column_name.as_ref()(
-        &entity_key,
-        &column_key,
-    ));
-    let entity_create_one_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name, context.entity_create_one_mutation.mutation_suffix
-    ));
+    let column_name = Arc::new(get_column_name::<T>(context, column));
+    let entity_create_one_mutation_field_name =
+        Arc::new(get_entity_create_one_mutation_field_name::<T>(context));
     let entity_create_one_mutation_data_field_name =
-        Arc::new(context.entity_create_one_mutation.data_field.clone());
-    let entity_create_batch_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name,
-        context.entity_create_batch_mutation.mutation_suffix.clone()
-    ));
+        Arc::new(get_entity_create_one_mutation_data_field_name(context).to_string());
+    let entity_create_batch_mutation_field_name =
+        Arc::new(get_entity_create_batch_mutation_field_name::<T>(context));
     let entity_create_batch_mutation_data_field_name =
-        Arc::new(context.entity_create_batch_mutation.data_field.clone());
-    let entity_update_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name, context.entity_update_mutation.mutation_suffix
-    ));
+        Arc::new(get_entity_create_batch_mutation_data_field_name(context).to_string());
+    let entity_update_mutation_field_name =
+        Arc::new(get_entity_update_mutation_field_name::<T>(context));
     let entity_update_mutation_data_field_name =
-        Arc::new(context.entity_update_mutation.data_field.clone());
+        Arc::new(get_entity_update_mutation_data_field_name(context).to_string());
 
     Box::new(move |context: &ResolverContext| -> GuardAction {
         match context.ctx.data::<AuthUserInfo>() {
@@ -253,17 +247,10 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_key::<T>(context);
-    let entity_name = context.entity_query_field.type_name.as_ref()(&entity_key);
-    let entity_create_one_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name, context.entity_create_one_mutation.mutation_suffix
-    ));
-    let entity_create_batch_mutation_field_name = Arc::new(format!(
-        "{}{}",
-        entity_name,
-        context.entity_create_batch_mutation.mutation_suffix.clone()
-    ));
+    let entity_create_one_mutation_field_name =
+        Arc::new(get_entity_create_one_mutation_field_name::<T>(context));
+    let entity_create_batch_mutation_field_name =
+        Arc::new(get_entity_create_batch_mutation_field_name::<T>(context));
     Box::new(
         move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
             let field_name = context.field().name();
@@ -289,40 +276,39 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_key = get_entity_key::<T>(context);
-    let entity_column_key = get_entity_column_key::<T>(context, column);
+    let entity_and_column = get_entity_and_column_name::<T>(context, column);
 
     context.guards.entity_guards.insert(
-        entity_key.clone(),
+        get_entity_name::<T>(context),
         guard_entity_with_subscriber_id::<T>(context, column),
     );
     context.guards.field_guards.insert(
-        entity_column_key.clone(),
+        get_entity_and_column_name::<T>(context, column),
         guard_field_with_subscriber_id::<T>(context, column),
     );
     context.filter_types.overwrites.insert(
-        entity_column_key.clone(),
+        get_entity_and_column_name::<T>(context, column),
         Some(FilterType::Custom(
             SUBSCRIBER_ID_FILTER_INFO.type_name.clone(),
         )),
     );
     context.filter_types.condition_functions.insert(
-        entity_column_key.clone(),
+        entity_and_column.clone(),
         generate_subscriber_id_filter_condition::<T>(context, column),
     );
     context.types.input_none_conversions.insert(
-        entity_column_key.clone(),
+        entity_and_column.clone(),
         generate_default_subscriber_id_input_conversion::<T>(context, column),
     );
 
-    context.entity_input.update_skips.push(entity_column_key);
+    context.entity_input.update_skips.push(entity_and_column);
 }
 
 pub fn register_subscribers_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<subscribers::Entity>(context, &subscribers::Column::Id);
     for column in subscribers::Column::iter() {
         if !matches!(column, subscribers::Column::Id) {
-            let key = get_entity_column_key::<subscribers::Entity>(context, &column);
+            let key = get_entity_and_column_name::<subscribers::Entity>(context, &column);
             context.filter_types.overwrites.insert(key, None);
         }
     }

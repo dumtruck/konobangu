@@ -175,7 +175,6 @@ pub enum Feeds {
 pub enum Cron {
     Table,
     Id,
-    CronSource,
     SubscriberId,
     SubscriptionId,
     CronExpr,
@@ -190,6 +189,7 @@ pub enum Cron {
     MaxAttempts,
     Priority,
     Status,
+    SubscriberTask,
 }
 
 macro_rules! create_postgres_enum_for_active_enum {

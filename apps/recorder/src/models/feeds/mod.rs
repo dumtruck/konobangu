@@ -122,7 +122,7 @@ impl Model {
             .filter(Column::FeedType.eq(FeedType::Rss))
             .one(db)
             .await?
-            .ok_or(RecorderError::from_model_not_found("Feed"))?;
+            .ok_or(RecorderError::from_entity_not_found::<Entity>())?;
 
         let feed = Feed::from_model(ctx, feed_model).await?;
 
