@@ -12,6 +12,8 @@ pub struct TaskConfig {
     pub subscriber_task_timeout: Duration,
     #[serde(default = "default_system_task_timeout")]
     pub system_task_timeout: Duration,
+    #[serde(default = "default_cron_retry_duration")]
+    pub cron_retry_duration: Duration,
 }
 
 impl Default for TaskConfig {
@@ -21,6 +23,7 @@ impl Default for TaskConfig {
             system_task_concurrency: default_system_task_workers(),
             subscriber_task_timeout: default_subscriber_task_timeout(),
             system_task_timeout: default_system_task_timeout(),
+            cron_retry_duration: default_cron_retry_duration(),
         }
     }
 }
@@ -47,4 +50,8 @@ pub fn default_subscriber_task_timeout() -> Duration {
 
 pub fn default_system_task_timeout() -> Duration {
     Duration::from_secs(3600)
+}
+
+pub fn default_cron_retry_duration() -> Duration {
+    Duration::from_secs(5)
 }

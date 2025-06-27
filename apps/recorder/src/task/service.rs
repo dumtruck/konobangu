@@ -170,9 +170,14 @@ impl TaskService {
                 let listener = self.setup_cron_due_listening().await?;
                 let ctx = self.ctx.clone();
                 let cron_worker_id = self.cron_worker_id.clone();
+                let retry_duration = chrono::Duration::milliseconds(
+                    self.config.cron_retry_duration.as_millis() as i64,
+                );
 
                 tokio::task::spawn(async move {
-                    if let Err(e) = Self::listen_cron_due(listener, ctx, &cron_worker_id).await {
+                    if let Err(e) =
+                        Self::listen_cron_due(listener, ctx, &cron_worker_id, retry_duration).await
+                    {
                         tracing::error!("Error listening to cron due: {e}");
                     }
                 });
@@ -180,11 +185,24 @@ impl TaskService {
                 Ok::<_, RecorderError>(())
             },
             async {
-                let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
                 let ctx = self.ctx.clone();
+                let retry_duration = chrono::Duration::milliseconds(
+                    self.config.cron_retry_duration.as_millis() as i64,
+                );
                 tokio::task::spawn(async move {
+                    let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
                     loop {
                         interval.tick().await;
+                        if let Err(e) = cron::Model::check_and_cleanup_expired_cron_locks(
+                            ctx.as_ref(),
+                            retry_duration,
+                        )
+                        .await
+                        {
+                            tracing::error!(
+                                "Error checking and cleaning up expired cron locks: {e}"
+                            );
+                        }
                         if let Err(e) = cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
                         {
                             tracing::error!("Error checking and triggering due crons: {e}");
@@ -257,12 +275,19 @@ impl TaskService {
         mut listener: PgListener,
         ctx: Arc<dyn AppContextTrait>,
         worker_id: &str,
+        retry_duration: chrono::Duration,
     ) -> RecorderResult<()> {
         listener.listen(CRON_DUE_EVENT).await?;
+
         loop {
             let notification = listener.recv().await?;
-            if let Err(e) =
-                cron::Model::handle_cron_notification(ctx.as_ref(), notification, worker_id).await
+            if let Err(e) = cron::Model::handle_cron_notification(
+                ctx.as_ref(),
+                notification,
+                worker_id,
+                retry_duration,
+            )
+            .await
             {
                 tracing::error!("Error handling cron notification: {e}");
             }

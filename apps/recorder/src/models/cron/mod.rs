@@ -10,8 +10,11 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use croner::Cron;
 use sea_orm::{
-    ActiveValue::Set, DeriveActiveEnum, DeriveDisplay, DeriveEntityModel, EnumIter, QuerySelect,
-    Statement, TransactionTrait, entity::prelude::*, sea_query::LockType,
+    ActiveValue::Set,
+    Condition, DeriveActiveEnum, DeriveDisplay, DeriveEntityModel, EnumIter, QuerySelect,
+    Statement, TransactionTrait,
+    entity::prelude::*,
+    sea_query::{ExprTrait, LockBehavior, LockType},
     sqlx::postgres::PgNotification,
 };
 use serde::{Deserialize, Serialize};
@@ -126,6 +129,7 @@ impl Model {
         ctx: &dyn AppContextTrait,
         notification: PgNotification,
         worker_id: &str,
+        retry_duration: chrono::Duration,
     ) -> RecorderResult<()> {
         let payload: Self = serde_json::from_str(notification.payload())?;
         let cron_id = payload.id;
@@ -140,7 +144,8 @@ impl Model {
                 }
                 Err(e) => {
                     tracing::error!("Error executing cron {cron_id}: {e}");
-                    cron.mark_cron_failed(ctx, &e.to_string()).await?;
+                    cron.mark_cron_failed(ctx, &e.to_string(), retry_duration)
+                        .await?;
                 }
             },
             None => {
@@ -162,7 +167,7 @@ impl Model {
         let txn = db.begin().await?;
 
         let cron = Entity::find_by_id(cron_id)
-            .lock(LockType::Update)
+            .lock_with_behavior(LockType::Update, LockBehavior::SkipLocked)
             .one(&txn)
             .await?;
 
@@ -235,7 +240,12 @@ impl Model {
         Ok(())
     }
 
-    async fn mark_cron_failed(&self, ctx: &dyn AppContextTrait, error: &str) -> RecorderResult<()> {
+    async fn mark_cron_failed(
+        &self,
+        ctx: &dyn AppContextTrait,
+        error: &str,
+        retry_duration: chrono::Duration,
+    ) -> RecorderResult<()> {
         let db = ctx.db();
 
         let should_retry = self.attempts < self.max_attempts;
@@ -247,7 +257,7 @@ impl Model {
         };
 
         let next_run = if should_retry {
-            Some(Utc::now() + chrono::Duration::seconds(5))
+            Some(Utc::now() + retry_duration)
         } else {
             Some(self.calculate_next_run(&self.cron_expr)?)
         };
@@ -278,6 +288,55 @@ impl Model {
         ))
         .await?;
 
+        Ok(())
+    }
+
+    pub async fn check_and_cleanup_expired_cron_locks(
+        ctx: &dyn AppContextTrait,
+        retry_duration: chrono::Duration,
+    ) -> RecorderResult<()> {
+        let db = ctx.db();
+
+        let condition = Condition::all()
+            .add(Column::Status.eq(CronStatus::Running))
+            .add(Column::LastRun.is_not_null())
+            .add(Column::TimeoutMs.is_not_null())
+            .add(
+                Expr::col(Column::LastRun)
+                    .add(Expr::col(Column::TimeoutMs).mul(Expr::cust("INTERVAL '1 millisecond'")))
+                    .lte(Expr::current_timestamp()),
+            );
+
+        let cron_ids = Entity::find()
+            .select_only()
+            .column(Column::Id)
+            .filter(condition.clone())
+            .lock_with_behavior(LockType::Update, LockBehavior::SkipLocked)
+            .into_tuple::<i32>()
+            .all(db)
+            .await?;
+
+        for cron_id in cron_ids {
+            let txn = db.begin().await?;
+            let locked_cron = Entity::find_by_id(cron_id)
+                .filter(condition.clone())
+                .lock_with_behavior(LockType::Update, LockBehavior::SkipLocked)
+                .one(&txn)
+                .await?;
+
+            if let Some(locked_cron) = locked_cron {
+                locked_cron
+                    .mark_cron_failed(
+                        ctx,
+                        format!("Cron timeout of {}ms", locked_cron.timeout_ms).as_str(),
+                        retry_duration,
+                    )
+                    .await?;
+                txn.commit().await?;
+            } else {
+                txn.rollback().await?;
+            }
+        }
         Ok(())
     }
 
