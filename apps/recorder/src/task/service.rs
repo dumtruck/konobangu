@@ -41,10 +41,10 @@ impl TaskService {
         };
 
         let pool = ctx.db().get_postgres_connection_pool().clone();
-        let subscriber_task_storage_config =
-            Config::new(SUBSCRIBER_TASK_APALIS_NAME).set_keep_alive(config.subscriber_task_timeout);
-        let system_task_storage_config =
-            Config::new(SYSTEM_TASK_APALIS_NAME).set_keep_alive(config.system_task_timeout);
+        let subscriber_task_storage_config = Config::new(SUBSCRIBER_TASK_APALIS_NAME)
+            .set_reenqueue_orphaned_after(config.subscriber_task_reenqueue_orphaned_after);
+        let system_task_storage_config = Config::new(SYSTEM_TASK_APALIS_NAME)
+            .set_reenqueue_orphaned_after(config.system_task_reenqueue_orphaned_after);
         let subscriber_task_storage =
             ApalisPostgresStorage::new_with_config(pool.clone(), subscriber_task_storage_config);
         let system_task_storage =
