@@ -1,14 +1,6 @@
 import type { ProLinkProps } from '@/components/ui/pro-link';
 import { type } from 'arktype';
-import {
-  BookOpen,
-  Folders,
-  KeyRound,
-  type LucideIcon,
-  Settings2,
-  SquareTerminal,
-  Telescope,
-} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface NavMainItem {
   link?: ProLinkProps;

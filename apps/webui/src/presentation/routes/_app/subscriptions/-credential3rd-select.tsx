@@ -29,7 +29,7 @@ export function Credential3rdSelectContent({
     GetCredential3rdQueryVariables
   >(GET_CREDENTIAL_3RD, {
     variables: {
-      filters: {
+      filter: {
         credentialType: {
           eq: credentialType,
         },

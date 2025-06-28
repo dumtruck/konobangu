@@ -109,7 +109,7 @@ function FormView({
       updateCredential({
         variables: {
           data: value,
-          filters: {
+          filter: {
             id: {
               eq: credential.id,
             },

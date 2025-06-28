@@ -14,10 +14,10 @@ import {
 } from './mikan';
 
 export const GET_SUBSCRIPTIONS = gql`
-  query GetSubscriptions($filters: SubscriptionsFilterInput!, $orderBy: SubscriptionsOrderInput!, $pagination: PaginationInput!) {
+  query GetSubscriptions($filter: SubscriptionsFilterInput!, $orderBy: SubscriptionsOrderInput!, $pagination: PaginationInput!) {
     subscriptions(
       pagination: $pagination
-      filters: $filters
+      filter: $filter
       orderBy: $orderBy
     ) {
       nodes {
@@ -59,11 +59,11 @@ export type SubscriptionDto =
 export const UPDATE_SUBSCRIPTIONS = gql`
     mutation UpdateSubscriptions(
     $data: SubscriptionsUpdateInput!,
-    $filters: SubscriptionsFilterInput!,
+    $filter: SubscriptionsFilterInput!,
     ) {
     subscriptionsUpdate (
         data: $data
-        filter: $filters
+        filter: $filter
     ) {
         id
         createdAt
@@ -77,14 +77,14 @@ export const UPDATE_SUBSCRIPTIONS = gql`
 `;
 
 export const DELETE_SUBSCRIPTIONS = gql`
-    mutation DeleteSubscriptions($filters: SubscriptionsFilterInput) {
-        subscriptionsDelete(filter: $filters)
+    mutation DeleteSubscriptions($filter: SubscriptionsFilterInput) {
+        subscriptionsDelete(filter: $filter)
     }
 `;
 
 export const GET_SUBSCRIPTION_DETAIL = gql`
 query GetSubscriptionDetail ($id: Int!) {
-  subscriptions(filters: { id: {
+  subscriptions(filter: { id: {
     eq: $id
   } }) {
     nodes {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_graphql::dynamic::{Field, FieldFuture, FieldValue, Object, TypeRef};
 use sea_orm::{EntityTrait, QueryFilter};
-use seaography::{Builder as SeaographyBuilder, BuilderContext, get_filter_conditions};
+use seaography::{Builder as SeaographyBuilder, BuilderContext};
 use serde::{Deserialize, Serialize};
 use util_derive::DynamicGraphql;
 
@@ -16,7 +16,7 @@ use crate::{
                 register_crypto_column_input_conversion_to_schema_context,
                 register_crypto_column_output_conversion_to_schema_context,
             },
-            custom::generate_entity_filtered_mutation_field,
+            custom::{generate_entity_filtered_mutation_field, register_entity_default_writable},
             name::get_entity_custom_mutation_field_name,
         },
     },
@@ -95,7 +95,7 @@ pub fn register_credential3rd_to_schema_builder(
     mut builder: SeaographyBuilder,
 ) -> SeaographyBuilder {
     builder.register_enumeration::<credential_3rd::Credential3rdType>();
-    seaography::register_entity!(builder, credential_3rd);
+    builder = register_entity_default_writable!(builder, credential_3rd, false);
 
     builder.schema = builder
         .schema
@@ -111,18 +111,12 @@ pub fn register_credential3rd_to_schema_builder(
                 builder_context,
                 check_available_mutation_name,
                 TypeRef::named_nn(Credential3rdCheckAvailableInfo::object_type_name()),
-                Arc::new(|resolver_ctx, app_ctx, filters| {
-                    let filters_condition = get_filter_conditions::<credential_3rd::Entity>(
-                        resolver_ctx,
-                        builder_context,
-                        filters,
-                    );
-
+                Arc::new(|_resolver_ctx, app_ctx, filters| {
                     Box::pin(async move {
                         let db = app_ctx.db();
 
                         let credential_model = credential_3rd::Entity::find()
-                            .filter(filters_condition)
+                            .filter(filters)
                             .one(db)
                             .await?
                             .ok_or_else(|| {

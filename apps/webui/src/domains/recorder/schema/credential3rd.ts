@@ -7,8 +7,8 @@ import { gql } from '@apollo/client';
 import { type } from 'arktype';
 
 export const GET_CREDENTIAL_3RD = gql`
-  query GetCredential3rd($filters: Credential3rdFilterInput!, $orderBy: Credential3rdOrderInput, $pagination: PaginationInput) {
-    credential3rd(filters: $filters, orderBy: $orderBy, pagination: $pagination) {
+  query GetCredential3rd($filter: Credential3rdFilterInput!, $orderBy: Credential3rdOrderInput, $pagination: PaginationInput) {
+    credential3rd(filter: $filter, orderBy: $orderBy, pagination: $pagination) {
       nodes {
         id
         cookies
@@ -43,8 +43,8 @@ export const INSERT_CREDENTIAL_3RD = gql`
 `;
 
 export const UPDATE_CREDENTIAL_3RD = gql`
-  mutation UpdateCredential3rd($data: Credential3rdUpdateInput!, $filters: Credential3rdFilterInput!) {
-    credential3rdUpdate(data: $data, filter: $filters) {
+  mutation UpdateCredential3rd($data: Credential3rdUpdateInput!, $filter: Credential3rdFilterInput!) {
+    credential3rdUpdate(data: $data, filter: $filter) {
       id
       cookies
       username
@@ -58,14 +58,14 @@ export const UPDATE_CREDENTIAL_3RD = gql`
 `;
 
 export const DELETE_CREDENTIAL_3RD = gql`
-  mutation DeleteCredential3rd($filters: Credential3rdFilterInput!) {
-    credential3rdDelete(filter: $filters)
+  mutation DeleteCredential3rd($filter: Credential3rdFilterInput!) {
+    credential3rdDelete(filter: $filter)
   }
 `;
 
 export const GET_CREDENTIAL_3RD_DETAIL = gql`
   query GetCredential3rdDetail($id: Int!) {
-    credential3rd(filters: { id: { eq: $id } }) {
+    credential3rd(filter: { id: { eq: $id } }) {
       nodes {
         id
         cookies
@@ -81,8 +81,8 @@ export const GET_CREDENTIAL_3RD_DETAIL = gql`
 `;
 
 export const CHECK_CREDENTIAL_3RD_AVAILABLE = gql`
-  query CheckCredential3rdAvailable($id: Int!) {
-    credential3rdCheckAvailable(filter: { id: $id }) {
+  mutation CheckCredential3rdAvailable($filter: Credential3rdFilterInput!) {
+    credential3rdCheckAvailable(filter: $filter) {
        available
     }
   }

@@ -13,7 +13,7 @@ export const INSERT_FEED = gql`
 `;
 
 export const DELETE_FEED = gql`
-    mutation DeleteFeed($filters: FeedsFilterInput!) {
-        feedsDelete(filter: $filters)
+    mutation DeleteFeed($filter: FeedsFilterInput!) {
+        feedsDelete(filter: $filter)
     }
 `;

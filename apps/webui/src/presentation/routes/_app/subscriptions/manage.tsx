@@ -78,7 +78,7 @@ function SubscriptionManageRouteComponent() {
             limit: pagination.pageSize,
           },
         },
-        filters: {},
+        filter: {},
         orderBy: {
           updatedAt: 'DESC',
         },
@@ -143,7 +143,7 @@ function SubscriptionManageRouteComponent() {
                       data: {
                         enabled,
                       },
-                      filters: {
+                      filter: {
                         id: {
                           eq: row.original.id,
                         },
@@ -227,7 +227,7 @@ function SubscriptionManageRouteComponent() {
             }}
             onDelete={() =>
               deleteSubscription({
-                variables: { filters: { id: { eq: row.original.id } } },
+                variables: { filter: { id: { eq: row.original.id } } },
               })
             }
           >

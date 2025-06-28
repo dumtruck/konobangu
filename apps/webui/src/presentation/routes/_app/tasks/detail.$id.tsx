@@ -64,7 +64,7 @@ function TaskDetailRouteComponent() {
     GetTasksQueryVariables
   >(GET_TASKS, {
     variables: {
-      filters: {
+      filter: {
         id: {
           eq: id,
         },
@@ -159,7 +159,7 @@ function TaskDetailRouteComponent() {
                   size="sm"
                   onClick={() =>
                     retryTasks({
-                      variables: { filters: { id: { eq: task.id } } },
+                      variables: { filter: { id: { eq: task.id } } },
                     })
                   }
                 >

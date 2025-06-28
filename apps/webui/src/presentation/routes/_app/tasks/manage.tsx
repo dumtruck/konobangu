@@ -74,7 +74,7 @@ function TaskManageRouteComponent() {
           limit: pagination.pageSize,
         },
       },
-      filters: {},
+      filter: {},
       orderBy: {
         runAt: 'DESC',
       },
@@ -225,7 +225,7 @@ function TaskManageRouteComponent() {
                       onDelete={() =>
                         deleteTasks({
                           variables: {
-                            filters: {
+                            filter: {
                               id: {
                                 eq: task.id,
                               },
@@ -241,7 +241,7 @@ function TaskManageRouteComponent() {
                           onSelect={() =>
                             retryTasks({
                               variables: {
-                                filters: {
+                                filter: {
                                   id: {
                                     eq: task.id,
                                   },

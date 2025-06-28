@@ -7,10 +7,10 @@ import { type } from 'arktype';
 import { SubscriptionSchema } from './subscriptions';
 
 export const GET_TASKS = gql`
-  query GetTasks($filters: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {
+  query GetTasks($filter: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {
     subscriberTasks(
       pagination: $pagination
-      filters: $filters
+      filter: $filter
       orderBy: $orderBy
     ) {
       nodes {
@@ -36,14 +36,14 @@ export const GET_TASKS = gql`
 `;
 
 export const DELETE_TASKS = gql`
-  mutation DeleteTasks($filters: SubscriberTasksFilterInput!) {
-    subscriberTasksDelete(filter: $filters)
+  mutation DeleteTasks($filter: SubscriberTasksFilterInput!) {
+    subscriberTasksDelete(filter: $filter)
   }
 `;
 
 export const RETRY_TASKS = gql`
-  mutation RetryTasks($filters: SubscriberTasksFilterInput!) {
-    subscriberTasksRetryOne(filter: $filters) {
+  mutation RetryTasks($filter: SubscriberTasksFilterInput!) {
+    subscriberTasksRetryOne(filter: $filter) {
         id,
         job,
         taskType,

@@ -390,7 +390,7 @@ function SubscriptionDetailRouteComponent() {
                               e.stopPropagation();
                               deleteFeed({
                                 variables: {
-                                  filters: {
+                                  filter: {
                                     id: {
                                       eq: feed.id,
                                     },

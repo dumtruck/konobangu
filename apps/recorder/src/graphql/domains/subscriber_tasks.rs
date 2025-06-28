@@ -6,9 +6,7 @@ use sea_orm::{
     ColumnTrait, ConnectionTrait, EntityTrait, Iterable, QueryFilter, QuerySelect, QueryTrait,
     prelude::Expr, sea_query::Query,
 };
-use seaography::{
-    Builder as SeaographyBuilder, BuilderContext, GuardAction, get_filter_conditions,
-};
+use seaography::{Builder as SeaographyBuilder, BuilderContext, GuardAction};
 
 use crate::{
     auth::AuthUserInfo,
@@ -18,8 +16,9 @@ use crate::{
         infra::{
             custom::{
                 generate_entity_create_one_mutation_field,
-                generate_entity_default_insert_input_object,
-                generate_entity_filtered_mutation_field,
+                generate_entity_default_basic_entity_object,
+                generate_entity_default_insert_input_object, generate_entity_delete_mutation_field,
+                generate_entity_filtered_mutation_field, register_entity_default_readonly,
             },
             json::{
                 convert_jsonb_output_case_for_entity, restrict_jsonb_filter_input_for_entity,
@@ -31,7 +30,7 @@ use crate::{
                 get_entity_create_batch_mutation_field_name,
                 get_entity_create_one_mutation_data_field_name,
                 get_entity_create_one_mutation_field_name, get_entity_custom_mutation_field_name,
-                get_entity_delete_mutation_field_name, get_entity_update_mutation_field_name,
+                get_entity_update_mutation_field_name,
             },
         },
     },
@@ -186,79 +185,66 @@ pub fn register_subscriber_tasks_to_schema_context(context: &mut BuilderContext)
 pub fn register_subscriber_tasks_to_schema_builder(
     mut builder: SeaographyBuilder,
 ) -> SeaographyBuilder {
-    builder.register_entity::<subscriber_tasks::Entity>(
-        <subscriber_tasks::RelatedEntity as sea_orm::Iterable>::iter()
-            .map(|rel| seaography::RelationBuilder::get_relation(&rel, builder.context))
-            .collect(),
-    );
-    builder = builder.register_entity_dataloader_one_to_one(subscriber_tasks::Entity, tokio::spawn);
-    builder =
-        builder.register_entity_dataloader_one_to_many(subscriber_tasks::Entity, tokio::spawn);
     builder.register_enumeration::<subscriber_tasks::SubscriberTaskType>();
     builder.register_enumeration::<subscriber_tasks::SubscriberTaskStatus>();
 
-    let context = builder.context;
+    builder = register_entity_default_readonly!(builder, subscriber_tasks);
+
+    let builder_context = builder.context;
     {
-        let delete_mutation =
-            generate_entity_filtered_mutation_field::<subscriber_tasks::Entity, _, _>(
-                context,
-                get_entity_delete_mutation_field_name::<subscriber_tasks::Entity>(context),
-                TypeRef::named_nn(TypeRef::INT),
-                Arc::new(|resolver_ctx, app_ctx, filters| {
-                    let filters_condition = get_filter_conditions::<subscriber_tasks::Entity>(
-                        resolver_ctx,
-                        context,
-                        filters,
-                    );
-                    Box::pin(async move {
-                        let db = app_ctx.db();
+        builder
+            .outputs
+            .push(generate_entity_default_basic_entity_object::<
+                subscriber_tasks::Entity,
+            >(builder_context));
+    }
+    {
+        let delete_mutation = generate_entity_delete_mutation_field::<subscriber_tasks::Entity>(
+            builder_context,
+            Arc::new(|_resolver_ctx, app_ctx, filters| {
+                Box::pin(async move {
+                    let db = app_ctx.db();
 
-                        let select_subquery = subscriber_tasks::Entity::find()
-                            .select_only()
-                            .column(subscriber_tasks::Column::Id)
-                            .filter(filters_condition);
+                    let select_subquery = subscriber_tasks::Entity::find()
+                        .select_only()
+                        .column(subscriber_tasks::Column::Id)
+                        .filter(filters);
 
-                        let delete_query = Query::delete()
-                            .from_table((ApalisSchema::Schema, ApalisJobs::Table))
-                            .and_where(
-                                Expr::col(ApalisJobs::Id).in_subquery(select_subquery.into_query()),
-                            )
-                            .to_owned();
+                    let delete_query = Query::delete()
+                        .from_table((ApalisSchema::Schema, ApalisJobs::Table))
+                        .and_where(
+                            Expr::col(ApalisJobs::Id).in_subquery(select_subquery.into_query()),
+                        )
+                        .to_owned();
 
-                        let db_backend = db.deref().get_database_backend();
-                        let delete_statement = db_backend.build(&delete_query);
+                    let db_backend = db.deref().get_database_backend();
+                    let delete_statement = db_backend.build(&delete_query);
 
-                        let result = db.execute(delete_statement).await?;
+                    let result = db.execute(delete_statement).await?;
 
-                        Ok::<_, RecorderError>(Some(FieldValue::value(
-                            result.rows_affected() as i32
-                        )))
-                    })
-                }),
-            );
+                    Ok::<_, RecorderError>(result.rows_affected())
+                })
+            }),
+        );
         builder.mutations.push(delete_mutation);
     }
     {
-        let entity_retry_one_mutation_name =
-            get_entity_custom_mutation_field_name::<subscriber_tasks::Entity>(context, "RetryOne");
+        let entity_retry_one_mutation_name = get_entity_custom_mutation_field_name::<
+            subscriber_tasks::Entity,
+        >(builder_context, "RetryOne");
         let retry_one_mutation =
             generate_entity_filtered_mutation_field::<subscriber_tasks::Entity, _, _>(
-                context,
+                builder_context,
                 entity_retry_one_mutation_name,
                 TypeRef::named_nn(get_entity_basic_type_name::<subscriber_tasks::Entity>(
-                    context,
+                    builder_context,
                 )),
-                Arc::new(|resolver_ctx, app_ctx, filters| {
-                    let filters_condition = get_filter_conditions::<subscriber_tasks::Entity>(
-                        resolver_ctx,
-                        context,
-                        filters,
-                    );
+                Arc::new(|_resolver_ctx, app_ctx, filters| {
                     Box::pin(async move {
                         let db = app_ctx.db();
 
                         let job_id = subscriber_tasks::Entity::find()
-                            .filter(filters_condition)
+                            .filter(filters)
                             .select_only()
                             .column(subscriber_tasks::Column::Id)
                             .into_tuple::<String>()
@@ -290,14 +276,14 @@ pub fn register_subscriber_tasks_to_schema_builder(
             .inputs
             .push(generate_entity_default_insert_input_object::<
                 subscriber_tasks::Entity,
-            >(context));
+            >(builder_context));
         let create_one_mutation =
             generate_entity_create_one_mutation_field::<subscriber_tasks::Entity, TypeRef>(
-                context,
+                builder_context,
                 None,
                 Arc::new(|_resolver_ctx, app_ctx, input_object| {
                     let job_column_name = get_column_name::<subscriber_tasks::Entity>(
-                        context,
+                        builder_context,
                         &subscriber_tasks::Column::Job,
                     );
                     let task = input_object

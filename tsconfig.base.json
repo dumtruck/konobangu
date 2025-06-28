@@ -4,6 +4,7 @@
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
+    "verbatimModuleSyntax": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,

@@ -1,13 +1,26 @@
 import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
+import { pluginTypeCheck } from '@rsbuild/plugin-type-check';
 import { TanStackRouterRspack } from '@tanstack/router-plugin/rspack';
+
+const TS_NO_CHECK_REGEX =
+  /[\\/]node_modules[\\/]|[\\/]gql[\\/]|[\\/]components[\\/]ui[\\/]/;
 
 export default defineConfig({
   html: {
     title: 'Konobangu',
     favicon: './public/assets/favicon.ico',
   },
-  plugins: [pluginReact()],
+  plugins: [
+    pluginReact(),
+    pluginTypeCheck({
+      tsCheckerOptions: {
+        issue: {
+          exclude: [({ file = '' }) => TS_NO_CHECK_REGEX.test(file)],
+        },
+      },
+    }),
+  ],
   tools: {
     rspack: {
       plugins: [

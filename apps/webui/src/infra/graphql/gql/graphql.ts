@@ -46,21 +46,21 @@ export type Bangumi = {
 
 
 export type BangumiEpisodeArgs = {
-  filters?: InputMaybe<EpisodesFilterInput>;
+  filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type BangumiSubscriptionArgs = {
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type BangumiSubscriptionBangumiArgs = {
-  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  filter?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -228,7 +228,7 @@ export type Credential3rd = {
 
 
 export type Credential3rdSubscriptionArgs = {
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -250,11 +250,6 @@ export type Credential3rdBasic = {
 export type Credential3rdCheckAvailableInfo = {
   __typename?: 'Credential3rdCheckAvailableInfo';
   available: Scalars['Boolean']['output'];
-};
-
-/** The input of the credential3rdCheckAvailable query */
-export type Credential3rdCheckAvailableInput = {
-  id: Scalars['Int']['input'];
 };
 
 export type Credential3rdConnection = {
@@ -336,6 +331,148 @@ export type Credential3rdUpdateInput = {
   updatedAt?: InputMaybe<Scalars['String']['input']>;
   userAgent?: InputMaybe<Scalars['String']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Cron = {
+  __typename?: 'Cron';
+  attempts: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  cronExpr: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['Int']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lastRun?: Maybe<Scalars['String']['output']>;
+  lockedAt?: Maybe<Scalars['String']['output']>;
+  lockedBy?: Maybe<Scalars['String']['output']>;
+  maxAttempts: Scalars['Int']['output'];
+  nextRun?: Maybe<Scalars['String']['output']>;
+  priority: Scalars['Int']['output'];
+  status: CronStatusEnum;
+  subscriber?: Maybe<Subscribers>;
+  subscriberId?: Maybe<Scalars['Int']['output']>;
+  subscriberTask?: Maybe<Scalars['Json']['output']>;
+  subscription?: Maybe<Subscriptions>;
+  subscriptionId?: Maybe<Scalars['Int']['output']>;
+  timeoutMs: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type CronBasic = {
+  __typename?: 'CronBasic';
+  attempts: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  cronExpr: Scalars['String']['output'];
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['Int']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lastRun?: Maybe<Scalars['String']['output']>;
+  lockedAt?: Maybe<Scalars['String']['output']>;
+  lockedBy?: Maybe<Scalars['String']['output']>;
+  maxAttempts: Scalars['Int']['output'];
+  nextRun?: Maybe<Scalars['String']['output']>;
+  priority: Scalars['Int']['output'];
+  status: CronStatusEnum;
+  subscriberId?: Maybe<Scalars['Int']['output']>;
+  subscriberTask?: Maybe<Scalars['Json']['output']>;
+  subscriptionId?: Maybe<Scalars['Int']['output']>;
+  timeoutMs: Scalars['Int']['output'];
+  updatedAt: Scalars['String']['output'];
+};
+
+export type CronConnection = {
+  __typename?: 'CronConnection';
+  edges: Array<CronEdge>;
+  nodes: Array<Cron>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type CronEdge = {
+  __typename?: 'CronEdge';
+  cursor: Scalars['String']['output'];
+  node: Cron;
+};
+
+export type CronFilterInput = {
+  and?: InputMaybe<Array<CronFilterInput>>;
+  attempts?: InputMaybe<IntegerFilterInput>;
+  createdAt?: InputMaybe<TextFilterInput>;
+  cronExpr?: InputMaybe<StringFilterInput>;
+  enabled?: InputMaybe<BooleanFilterInput>;
+  id?: InputMaybe<IntegerFilterInput>;
+  lastError?: InputMaybe<StringFilterInput>;
+  lastRun?: InputMaybe<TextFilterInput>;
+  lockedAt?: InputMaybe<TextFilterInput>;
+  lockedBy?: InputMaybe<StringFilterInput>;
+  maxAttempts?: InputMaybe<IntegerFilterInput>;
+  nextRun?: InputMaybe<TextFilterInput>;
+  or?: InputMaybe<Array<CronFilterInput>>;
+  priority?: InputMaybe<IntegerFilterInput>;
+  status?: InputMaybe<CronStatusEnumFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  subscriberTask?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
+  subscriptionId?: InputMaybe<IntegerFilterInput>;
+  timeoutMs?: InputMaybe<IntegerFilterInput>;
+  updatedAt?: InputMaybe<TextFilterInput>;
+};
+
+export type CronInsertInput = {
+  cronExpr: Scalars['String']['input'];
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
+  maxAttempts?: InputMaybe<Scalars['Int']['input']>;
+  subscriberTask?: InputMaybe<Scalars['Json']['input']>;
+  timeoutMs?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CronOrderInput = {
+  attempts?: InputMaybe<OrderByEnum>;
+  createdAt?: InputMaybe<OrderByEnum>;
+  cronExpr?: InputMaybe<OrderByEnum>;
+  enabled?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  lastError?: InputMaybe<OrderByEnum>;
+  lastRun?: InputMaybe<OrderByEnum>;
+  lockedAt?: InputMaybe<OrderByEnum>;
+  lockedBy?: InputMaybe<OrderByEnum>;
+  maxAttempts?: InputMaybe<OrderByEnum>;
+  nextRun?: InputMaybe<OrderByEnum>;
+  priority?: InputMaybe<OrderByEnum>;
+  status?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  subscriberTask?: InputMaybe<OrderByEnum>;
+  subscriptionId?: InputMaybe<OrderByEnum>;
+  timeoutMs?: InputMaybe<OrderByEnum>;
+  updatedAt?: InputMaybe<OrderByEnum>;
+};
+
+export const CronStatusEnum = {
+  Completed: 'completed',
+  Failed: 'failed',
+  Pending: 'pending',
+  Running: 'running'
+} as const;
+
+export type CronStatusEnum = typeof CronStatusEnum[keyof typeof CronStatusEnum];
+export type CronStatusEnumFilterInput = {
+  eq?: InputMaybe<CronStatusEnum>;
+  gt?: InputMaybe<CronStatusEnum>;
+  gte?: InputMaybe<CronStatusEnum>;
+  is_in?: InputMaybe<Array<CronStatusEnum>>;
+  is_not_in?: InputMaybe<Array<CronStatusEnum>>;
+  is_not_null?: InputMaybe<CronStatusEnum>;
+  is_null?: InputMaybe<CronStatusEnum>;
+  lt?: InputMaybe<CronStatusEnum>;
+  lte?: InputMaybe<CronStatusEnum>;
+  ne?: InputMaybe<CronStatusEnum>;
+};
+
+export type CronUpdateInput = {
+  cronExpr?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  maxAttempts?: InputMaybe<Scalars['Int']['input']>;
+  priority?: InputMaybe<Scalars['Int']['input']>;
+  timeoutMs?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CursorInput = {
@@ -421,7 +558,7 @@ export type Downloaders = {
 
 
 export type DownloadersDownloadArgs = {
-  filters?: InputMaybe<DownloadsFilterInput>;
+  filter?: InputMaybe<DownloadsFilterInput>;
   orderBy?: InputMaybe<DownloadsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -682,21 +819,21 @@ export type Episodes = {
 
 
 export type EpisodesDownloadArgs = {
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type EpisodesSubscriptionArgs = {
-  filters?: InputMaybe<DownloadsFilterInput>;
+  filter?: InputMaybe<DownloadsFilterInput>;
   orderBy?: InputMaybe<DownloadsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type EpisodesSubscriptionEpisodeArgs = {
-  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
   orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -990,10 +1127,15 @@ export type Mutation = {
   bangumiCreateOne: BangumiBasic;
   bangumiDelete: Scalars['Int']['output'];
   bangumiUpdate: Array<BangumiBasic>;
+  credential3rdCheckAvailable: Credential3rdCheckAvailableInfo;
   credential3rdCreateBatch: Array<Credential3rdBasic>;
   credential3rdCreateOne: Credential3rdBasic;
   credential3rdDelete: Scalars['Int']['output'];
   credential3rdUpdate: Array<Credential3rdBasic>;
+  cronCreateBatch: Array<CronBasic>;
+  cronCreateOne: CronBasic;
+  cronDelete: Scalars['Int']['output'];
+  cronUpdate: Array<CronBasic>;
   downloadersCreateBatch: Array<DownloadersBasic>;
   downloadersCreateOne: DownloadersBasic;
   downloadersDelete: Scalars['Int']['output'];
@@ -1010,8 +1152,9 @@ export type Mutation = {
   feedsCreateOne: FeedsBasic;
   feedsDelete: Scalars['Int']['output'];
   feedsUpdate: Array<FeedsBasic>;
+  subscriberTasksCreateOne: SubscriberTasksBasic;
   subscriberTasksDelete: Scalars['Int']['output'];
-  subscriberTasksRetryOne: SubscriberTasks;
+  subscriberTasksRetryOne: SubscriberTasksBasic;
   subscriptionBangumiCreateBatch: Array<SubscriptionBangumiBasic>;
   subscriptionBangumiCreateOne: SubscriptionBangumiBasic;
   subscriptionBangumiDelete: Scalars['Int']['output'];
@@ -1023,9 +1166,9 @@ export type Mutation = {
   subscriptionsCreateBatch: Array<SubscriptionsBasic>;
   subscriptionsCreateOne: SubscriptionsBasic;
   subscriptionsDelete: Scalars['Int']['output'];
-  subscriptionsSyncOneFeedsFull: SubscriberTasks;
-  subscriptionsSyncOneFeedsIncremental: SubscriberTasks;
-  subscriptionsSyncOneSources: SubscriberTasks;
+  subscriptionsSyncOneFeedsFull: SubscriberTasksBasic;
+  subscriptionsSyncOneFeedsIncremental: SubscriberTasksBasic;
+  subscriptionsSyncOneSources: SubscriberTasksBasic;
   subscriptionsUpdate: Array<SubscriptionsBasic>;
 };
 
@@ -1051,6 +1194,11 @@ export type MutationBangumiUpdateArgs = {
 };
 
 
+export type MutationCredential3rdCheckAvailableArgs = {
+  filter?: InputMaybe<Credential3rdFilterInput>;
+};
+
+
 export type MutationCredential3rdCreateBatchArgs = {
   data: Array<Credential3rdInsertInput>;
 };
@@ -1069,6 +1217,27 @@ export type MutationCredential3rdDeleteArgs = {
 export type MutationCredential3rdUpdateArgs = {
   data: Credential3rdUpdateInput;
   filter?: InputMaybe<Credential3rdFilterInput>;
+};
+
+
+export type MutationCronCreateBatchArgs = {
+  data: Array<CronInsertInput>;
+};
+
+
+export type MutationCronCreateOneArgs = {
+  data: CronInsertInput;
+};
+
+
+export type MutationCronDeleteArgs = {
+  filter?: InputMaybe<CronFilterInput>;
+};
+
+
+export type MutationCronUpdateArgs = {
+  data: CronUpdateInput;
+  filter?: InputMaybe<CronFilterInput>;
 };
 
 
@@ -1153,6 +1322,11 @@ export type MutationFeedsDeleteArgs = {
 export type MutationFeedsUpdateArgs = {
   data: FeedsUpdateInput;
   filter?: InputMaybe<FeedsFilterInput>;
+};
+
+
+export type MutationSubscriberTasksCreateOneArgs = {
+  data: SubscriberTasksInsertInput;
 };
 
 
@@ -1286,7 +1460,7 @@ export type Query = {
   _sea_orm_entity_metadata?: Maybe<Scalars['String']['output']>;
   bangumi: BangumiConnection;
   credential3rd: Credential3rdConnection;
-  credential3rdCheckAvailable: Credential3rdCheckAvailableInfo;
+  cron: CronConnection;
   downloaders: DownloadersConnection;
   downloads: DownloadsConnection;
   episodes: EpisodesConnection;
@@ -1305,82 +1479,84 @@ export type Query_Sea_Orm_Entity_MetadataArgs = {
 
 
 export type QueryBangumiArgs = {
-  filters?: InputMaybe<BangumiFilterInput>;
+  filter?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryCredential3rdArgs = {
-  filters?: InputMaybe<Credential3rdFilterInput>;
+  filter?: InputMaybe<Credential3rdFilterInput>;
   orderBy?: InputMaybe<Credential3rdOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
-export type QueryCredential3rdCheckAvailableArgs = {
-  filter: Credential3rdCheckAvailableInput;
+export type QueryCronArgs = {
+  filter?: InputMaybe<CronFilterInput>;
+  orderBy?: InputMaybe<CronOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryDownloadersArgs = {
-  filters?: InputMaybe<DownloadersFilterInput>;
+  filter?: InputMaybe<DownloadersFilterInput>;
   orderBy?: InputMaybe<DownloadersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryDownloadsArgs = {
-  filters?: InputMaybe<DownloadsFilterInput>;
+  filter?: InputMaybe<DownloadsFilterInput>;
   orderBy?: InputMaybe<DownloadsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryEpisodesArgs = {
-  filters?: InputMaybe<EpisodesFilterInput>;
+  filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QueryFeedsArgs = {
-  filters?: InputMaybe<FeedsFilterInput>;
+  filter?: InputMaybe<FeedsFilterInput>;
   orderBy?: InputMaybe<FeedsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QuerySubscriberTasksArgs = {
-  filters?: InputMaybe<SubscriberTasksFilterInput>;
+  filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QuerySubscribersArgs = {
-  filters?: InputMaybe<SubscribersFilterInput>;
+  filter?: InputMaybe<SubscribersFilterInput>;
   orderBy?: InputMaybe<SubscribersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QuerySubscriptionBangumiArgs = {
-  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  filter?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QuerySubscriptionEpisodeArgs = {
-  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
   orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type QuerySubscriptionsArgs = {
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -1446,6 +1622,24 @@ export type SubscriberTasks = {
   taskType: SubscriberTaskTypeEnum;
 };
 
+export type SubscriberTasksBasic = {
+  __typename?: 'SubscriberTasksBasic';
+  attempts: Scalars['Int']['output'];
+  doneAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  job: Scalars['Json']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lockAt?: Maybe<Scalars['String']['output']>;
+  lockBy?: Maybe<Scalars['String']['output']>;
+  maxAttempts: Scalars['Int']['output'];
+  priority: Scalars['Int']['output'];
+  runAt: Scalars['String']['output'];
+  status: SubscriberTaskStatusEnum;
+  subscriberId: Scalars['Int']['output'];
+  subscriptionId?: Maybe<Scalars['Int']['output']>;
+  taskType: SubscriberTaskTypeEnum;
+};
+
 export type SubscriberTasksConnection = {
   __typename?: 'SubscriberTasksConnection';
   edges: Array<SubscriberTasksEdge>;
@@ -1477,6 +1671,14 @@ export type SubscriberTasksFilterInput = {
   subscriberId?: InputMaybe<SubscriberIdFilterInput>;
   subscriptionId?: InputMaybe<IntegerFilterInput>;
   taskType?: InputMaybe<StringFilterInput>;
+};
+
+export type SubscriberTasksInsertInput = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  job: Scalars['Json']['input'];
+  maxAttempts: Scalars['Int']['input'];
+  priority: Scalars['Int']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type SubscriberTasksOrderInput = {
@@ -1514,49 +1716,49 @@ export type Subscribers = {
 
 
 export type SubscribersBangumiArgs = {
-  filters?: InputMaybe<BangumiFilterInput>;
+  filter?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersCredential3rdArgs = {
-  filters?: InputMaybe<Credential3rdFilterInput>;
+  filter?: InputMaybe<Credential3rdFilterInput>;
   orderBy?: InputMaybe<Credential3rdOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersDownloaderArgs = {
-  filters?: InputMaybe<DownloadersFilterInput>;
+  filter?: InputMaybe<DownloadersFilterInput>;
   orderBy?: InputMaybe<DownloadersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersEpisodeArgs = {
-  filters?: InputMaybe<EpisodesFilterInput>;
+  filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersFeedArgs = {
-  filters?: InputMaybe<FeedsFilterInput>;
+  filter?: InputMaybe<FeedsFilterInput>;
   orderBy?: InputMaybe<FeedsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersSubscriberTaskArgs = {
-  filters?: InputMaybe<SubscriberTasksFilterInput>;
+  filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscribersSubscriptionArgs = {
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -1652,7 +1854,6 @@ export type SubscriptionBangumiUpdateInput = {
 };
 
 export const SubscriptionCategoryEnum = {
-  Manual: 'manual',
   MikanBangumi: 'mikan_bangumi',
   MikanSeason: 'mikan_season',
   MikanSubscriber: 'mikan_subscriber'
@@ -1757,42 +1958,42 @@ export type Subscriptions = {
 
 
 export type SubscriptionsBangumiArgs = {
-  filters?: InputMaybe<BangumiFilterInput>;
+  filter?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscriptionsEpisodeArgs = {
-  filters?: InputMaybe<EpisodesFilterInput>;
+  filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscriptionsFeedArgs = {
-  filters?: InputMaybe<FeedsFilterInput>;
+  filter?: InputMaybe<FeedsFilterInput>;
   orderBy?: InputMaybe<FeedsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscriptionsSubscriberTaskArgs = {
-  filters?: InputMaybe<SubscriberTasksFilterInput>;
+  filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscriptionsSubscriptionBangumiArgs = {
-  filters?: InputMaybe<SubscriptionBangumiFilterInput>;
+  filter?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
 
 export type SubscriptionsSubscriptionEpisodeArgs = {
-  filters?: InputMaybe<SubscriptionEpisodeFilterInput>;
+  filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
   orderBy?: InputMaybe<SubscriptionEpisodeOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
@@ -1889,7 +2090,7 @@ export type TextFilterInput = {
 };
 
 export type GetCredential3rdQueryVariables = Exact<{
-  filters: Credential3rdFilterInput;
+  filter: Credential3rdFilterInput;
   orderBy?: InputMaybe<Credential3rdOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 }>;
@@ -1906,14 +2107,14 @@ export type InsertCredential3rdMutation = { __typename?: 'Mutation', credential3
 
 export type UpdateCredential3rdMutationVariables = Exact<{
   data: Credential3rdUpdateInput;
-  filters: Credential3rdFilterInput;
+  filter: Credential3rdFilterInput;
 }>;
 
 
 export type UpdateCredential3rdMutation = { __typename?: 'Mutation', credential3rdUpdate: Array<{ __typename?: 'Credential3rdBasic', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }> };
 
 export type DeleteCredential3rdMutationVariables = Exact<{
-  filters: Credential3rdFilterInput;
+  filter: Credential3rdFilterInput;
 }>;
 
 
@@ -1926,12 +2127,12 @@ export type GetCredential3rdDetailQueryVariables = Exact<{
 
 export type GetCredential3rdDetailQuery = { __typename?: 'Query', credential3rd: { __typename?: 'Credential3rdConnection', nodes: Array<{ __typename?: 'Credential3rd', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }> } };
 
-export type CheckCredential3rdAvailableQueryVariables = Exact<{
-  id: Scalars['Int']['input'];
+export type CheckCredential3rdAvailableMutationVariables = Exact<{
+  filter: Credential3rdFilterInput;
 }>;
 
 
-export type CheckCredential3rdAvailableQuery = { __typename?: 'Query', credential3rdCheckAvailable: { __typename?: 'Credential3rdCheckAvailableInfo', available: boolean } };
+export type CheckCredential3rdAvailableMutation = { __typename?: 'Mutation', credential3rdCheckAvailable: { __typename?: 'Credential3rdCheckAvailableInfo', available: boolean } };
 
 export type InsertFeedMutationVariables = Exact<{
   data: FeedsInsertInput;
@@ -1941,14 +2142,14 @@ export type InsertFeedMutationVariables = Exact<{
 export type InsertFeedMutation = { __typename?: 'Mutation', feedsCreateOne: { __typename?: 'FeedsBasic', id: number, createdAt: string, updatedAt: string, feedType: FeedTypeEnum, token: string } };
 
 export type DeleteFeedMutationVariables = Exact<{
-  filters: FeedsFilterInput;
+  filter: FeedsFilterInput;
 }>;
 
 
 export type DeleteFeedMutation = { __typename?: 'Mutation', feedsDelete: number };
 
 export type GetSubscriptionsQueryVariables = Exact<{
-  filters: SubscriptionsFilterInput;
+  filter: SubscriptionsFilterInput;
   orderBy: SubscriptionsOrderInput;
   pagination: PaginationInput;
 }>;
@@ -1965,14 +2166,14 @@ export type InsertSubscriptionMutation = { __typename?: 'Mutation', subscription
 
 export type UpdateSubscriptionsMutationVariables = Exact<{
   data: SubscriptionsUpdateInput;
-  filters: SubscriptionsFilterInput;
+  filter: SubscriptionsFilterInput;
 }>;
 
 
 export type UpdateSubscriptionsMutation = { __typename?: 'Mutation', subscriptionsUpdate: Array<{ __typename?: 'SubscriptionsBasic', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean }> };
 
 export type DeleteSubscriptionsMutationVariables = Exact<{
-  filters?: InputMaybe<SubscriptionsFilterInput>;
+  filter?: InputMaybe<SubscriptionsFilterInput>;
 }>;
 
 
@@ -1990,24 +2191,24 @@ export type SyncSubscriptionFeedsIncrementalMutationVariables = Exact<{
 }>;
 
 
-export type SyncSubscriptionFeedsIncrementalMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsIncremental: { __typename?: 'SubscriberTasks', id: string } };
+export type SyncSubscriptionFeedsIncrementalMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsIncremental: { __typename?: 'SubscriberTasksBasic', id: string } };
 
 export type SyncSubscriptionFeedsFullMutationVariables = Exact<{
   filter: SubscriptionsFilterInput;
 }>;
 
 
-export type SyncSubscriptionFeedsFullMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsFull: { __typename?: 'SubscriberTasks', id: string } };
+export type SyncSubscriptionFeedsFullMutation = { __typename?: 'Mutation', subscriptionsSyncOneFeedsFull: { __typename?: 'SubscriberTasksBasic', id: string } };
 
 export type SyncSubscriptionSourcesMutationVariables = Exact<{
   filter: SubscriptionsFilterInput;
 }>;
 
 
-export type SyncSubscriptionSourcesMutation = { __typename?: 'Mutation', subscriptionsSyncOneSources: { __typename?: 'SubscriberTasks', id: string } };
+export type SyncSubscriptionSourcesMutation = { __typename?: 'Mutation', subscriptionsSyncOneSources: { __typename?: 'SubscriberTasksBasic', id: string } };
 
 export type GetTasksQueryVariables = Exact<{
-  filters: SubscriberTasksFilterInput;
+  filter: SubscriberTasksFilterInput;
   orderBy: SubscriberTasksOrderInput;
   pagination: PaginationInput;
 }>;
@@ -2016,36 +2217,36 @@ export type GetTasksQueryVariables = Exact<{
 export type GetTasksQuery = { __typename?: 'Query', subscriberTasks: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
 
 export type DeleteTasksMutationVariables = Exact<{
-  filters: SubscriberTasksFilterInput;
+  filter: SubscriberTasksFilterInput;
 }>;
 
 
 export type DeleteTasksMutation = { __typename?: 'Mutation', subscriberTasksDelete: number };
 
 export type RetryTasksMutationVariables = Exact<{
-  filters: SubscriberTasksFilterInput;
+  filter: SubscriberTasksFilterInput;
 }>;
 
 
-export type RetryTasksMutation = { __typename?: 'Mutation', subscriberTasksRetryOne: { __typename?: 'SubscriberTasks', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number } };
+export type RetryTasksMutation = { __typename?: 'Mutation', subscriberTasksRetryOne: { __typename?: 'SubscriberTasksBasic', id: string, job: any, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number } };
 
 
-export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdOrderInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdQuery, GetCredential3rdQueryVariables>;
+export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdOrderInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdQuery, GetCredential3rdQueryVariables>;
 export const InsertCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<InsertCredential3rdMutation, InsertCredential3rdMutationVariables>;
-export const UpdateCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<UpdateCredential3rdMutation, UpdateCredential3rdMutationVariables>;
-export const DeleteCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteCredential3rdMutation, DeleteCredential3rdMutationVariables>;
-export const GetCredential3rdDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rdDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdDetailQuery, GetCredential3rdDetailQueryVariables>;
-export const CheckCredential3rdAvailableDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"CheckCredential3rdAvailable"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCheckAvailable"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"available"}}]}}]}}]} as unknown as DocumentNode<CheckCredential3rdAvailableQuery, CheckCredential3rdAvailableQueryVariables>;
+export const UpdateCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<UpdateCredential3rdMutation, UpdateCredential3rdMutationVariables>;
+export const DeleteCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteCredential3rdMutation, DeleteCredential3rdMutationVariables>;
+export const GetCredential3rdDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rdDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdDetailQuery, GetCredential3rdDetailQueryVariables>;
+export const CheckCredential3rdAvailableDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CheckCredential3rdAvailable"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCheckAvailable"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"available"}}]}}]}}]} as unknown as DocumentNode<CheckCredential3rdAvailableMutation, CheckCredential3rdAvailableMutationVariables>;
 export const InsertFeedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertFeed"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FeedsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feedsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"feedType"}},{"kind":"Field","name":{"kind":"Name","value":"token"}}]}}]}}]} as unknown as DocumentNode<InsertFeedMutation, InsertFeedMutationVariables>;
-export const DeleteFeedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteFeed"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FeedsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feedsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteFeedMutation, DeleteFeedMutationVariables>;
-export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>;
+export const DeleteFeedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteFeed"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FeedsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feedsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteFeedMutation, DeleteFeedMutationVariables>;
+export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>;
 export const InsertSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}}]}}]} as unknown as DocumentNode<InsertSubscriptionMutation, InsertSubscriptionMutationVariables>;
-export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
-export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
-export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"feed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"feedType"}},{"kind":"Field","name":{"kind":"Name","value":"feedSource"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTask"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
+export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
+export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
+export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"feed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"feedType"}},{"kind":"Field","name":{"kind":"Name","value":"feedSource"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTask"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
 export const SyncSubscriptionFeedsIncrementalDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsIncremental"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsIncremental"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsIncrementalMutation, SyncSubscriptionFeedsIncrementalMutationVariables>;
 export const SyncSubscriptionFeedsFullDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionFeedsFull"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneFeedsFull"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionFeedsFullMutation, SyncSubscriptionFeedsFullMutationVariables>;
 export const SyncSubscriptionSourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncSubscriptionSources"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsSyncOneSources"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<SyncSubscriptionSourcesMutation, SyncSubscriptionSourcesMutationVariables>;
-export const GetTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filters"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
-export const DeleteTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}]}]}}]} as unknown as DocumentNode<DeleteTasksMutation, DeleteTasksMutationVariables>;
-export const RetryTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RetryTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filters"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksRetryOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filters"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}}]}}]} as unknown as DocumentNode<RetryTasksMutation, RetryTasksMutationVariables>;
+export const GetTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
+export const DeleteTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteTasksMutation, DeleteTasksMutationVariables>;
+export const RetryTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RetryTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksRetryOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}}]}}]} as unknown as DocumentNode<RetryTasksMutation, RetryTasksMutationVariables>;

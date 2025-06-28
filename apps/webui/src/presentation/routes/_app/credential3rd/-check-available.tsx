@@ -6,14 +6,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CHECK_CREDENTIAL_3RD_AVAILABLE } from '@/domains/recorder/schema/credential3rd';
-import {
-  apolloErrorToMessage,
-  getApolloQueryError,
-} from '@/infra/errors/apollo';
-import type { CheckCredential3rdAvailableQuery } from '@/infra/graphql/gql/graphql';
-import { useLazyQuery } from '@apollo/client';
+import { apolloErrorToMessage } from '@/infra/errors/apollo';
+import type {
+  CheckCredential3rdAvailableMutation,
+  CheckCredential3rdAvailableMutationVariables,
+} from '@/infra/graphql/gql/graphql';
+import { useMutation } from '@apollo/client';
 import { CheckIcon, Loader2, XIcon } from 'lucide-react';
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
 import { toast } from 'sonner';
 
 export interface Credential3rdCheckAvailableViewProps {
@@ -22,30 +22,23 @@ export interface Credential3rdCheckAvailableViewProps {
 
 export const Credential3rdCheckAvailableView = memo(
   ({ id }: Credential3rdCheckAvailableViewProps) => {
-    const [checkAvailable, { data, error, loading }] =
-      useLazyQuery<CheckCredential3rdAvailableQuery>(
-        CHECK_CREDENTIAL_3RD_AVAILABLE,
-        {
-          variables: { id },
+    const [checkAvailable, { data, error, loading }] = useMutation<
+      CheckCredential3rdAvailableMutation,
+      CheckCredential3rdAvailableMutationVariables
+    >(CHECK_CREDENTIAL_3RD_AVAILABLE, {
+      onCompleted: (data) => {
+        if (data.credential3rdCheckAvailable.available) {
+          toast.success('Credential is available');
+        } else {
+          toast.error('Credential is not available');
         }
-      );
-
-    const handleCheckAvailable = useCallback(async () => {
-      const checkResult = await checkAvailable();
-      const error = getApolloQueryError(checkResult);
-      console.error('error', error);
-      if (error) {
+      },
+      onError: (error) => {
         toast.error('Failed to check available', {
           description: apolloErrorToMessage(error),
         });
-        return;
-      }
-      if (checkResult.data?.credential3rdCheckAvailable.available) {
-        toast.success('Credential is available');
-      } else {
-        toast.error('Credential is not available');
-      }
-    }, [checkAvailable]);
+      },
+    });
 
     const available = data?.credential3rdCheckAvailable?.available;
 
@@ -54,7 +47,11 @@ export const Credential3rdCheckAvailableView = memo(
         <Button
           variant="outline"
           size="lg"
-          onClick={handleCheckAvailable}
+          onClick={() =>
+            checkAvailable({
+              variables: { filter: { id: { eq: id } } },
+            })
+          }
           disabled={loading}
         >
           <span> Check Available </span>

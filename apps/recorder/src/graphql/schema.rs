@@ -12,6 +12,7 @@ use crate::{
             credential_3rd::{
                 register_credential3rd_to_schema_builder, register_credential3rd_to_schema_context,
             },
+            cron::{register_cron_to_schema_builder, register_cron_to_schema_context},
             downloaders::{
                 register_downloaders_to_schema_builder, register_downloaders_to_schema_context,
             },
@@ -77,6 +78,7 @@ pub fn build_schema(
             register_subscription_bangumi_to_schema_context(&mut context);
             register_subscription_episode_to_schema_context(&mut context);
             register_bangumi_to_schema_context(&mut context);
+            register_cron_to_schema_context(&mut context);
         }
         context
     });
@@ -100,6 +102,7 @@ pub fn build_schema(
         builder = register_credential3rd_to_schema_builder(builder);
         builder = register_subscriber_tasks_to_schema_builder(builder);
         builder = register_bangumi_to_schema_builder(builder);
+        builder = register_cron_to_schema_builder(builder);
     }
 
     let schema = builder.schema_builder();

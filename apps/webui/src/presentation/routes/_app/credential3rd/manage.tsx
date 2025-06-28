@@ -76,7 +76,7 @@ function CredentialManageRouteComponent() {
     GET_CREDENTIAL_3RD,
     {
       variables: {
-        filters: {},
+        filter: {},
         orderBy: {
           createdAt: 'DESC',
         },
@@ -116,7 +116,7 @@ function CredentialManageRouteComponent() {
     (row: Row<Credential3rdQueryDto>) => async () => {
       await deleteCredential({
         variables: {
-          filters: {
+          filter: {
             id: { eq: row.original.id },
           },
         },

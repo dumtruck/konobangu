@@ -7,9 +7,12 @@ use seaography::{Builder as SeaographyBuilder, BuilderContext, SeaResult};
 use crate::{
     graphql::{
         domains::subscribers::restrict_subscriber_for_entity,
-        infra::name::{
-            get_entity_and_column_name, get_entity_create_batch_mutation_field_name,
-            get_entity_create_one_mutation_field_name,
+        infra::{
+            custom::register_entity_default_writable,
+            name::{
+                get_entity_and_column_name, get_entity_create_batch_mutation_field_name,
+                get_entity_create_one_mutation_field_name,
+            },
         },
     },
     models::feeds,
@@ -45,7 +48,8 @@ pub fn register_feeds_to_schema_context(context: &mut BuilderContext) {
 pub fn register_feeds_to_schema_builder(mut builder: SeaographyBuilder) -> SeaographyBuilder {
     builder.register_enumeration::<feeds::FeedType>();
     builder.register_enumeration::<feeds::FeedSource>();
-    seaography::register_entity!(builder, feeds);
+
+    builder = register_entity_default_writable!(builder, feeds, false);
 
     builder
 }

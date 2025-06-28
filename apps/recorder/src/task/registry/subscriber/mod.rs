@@ -23,6 +23,7 @@ macro_rules! register_subscriber_task_types {
             $(#[$task_enum_meta:meta])*
             pub enum $task_enum_name:ident {
                 $(
+                    $(#[$task_variant_meta:meta])*
                     $task_variant:ident($task_type:ty)
                 ),* $(,)?
             }
@@ -44,6 +45,8 @@ macro_rules! register_subscriber_task_types {
         #[serde(tag = "task_type")]
         pub enum $task_enum_name {
             $(
+                $(#[$task_variant_meta])*
+                #[serde(rename = $string_value)]
                 $task_variant($task_type),
             )*
         }

@@ -12,13 +12,16 @@ use seaography::{
 
 use crate::{
     auth::{AuthError, AuthUserInfo},
-    graphql::infra::name::{
-        get_column_name, get_entity_and_column_name,
-        get_entity_create_batch_mutation_data_field_name,
-        get_entity_create_batch_mutation_field_name,
-        get_entity_create_one_mutation_data_field_name, get_entity_create_one_mutation_field_name,
-        get_entity_name, get_entity_update_mutation_data_field_name,
-        get_entity_update_mutation_field_name,
+    graphql::infra::{
+        custom::register_entity_default_readonly,
+        name::{
+            get_column_name, get_entity_and_column_name,
+            get_entity_create_batch_mutation_data_field_name,
+            get_entity_create_batch_mutation_field_name,
+            get_entity_create_one_mutation_data_field_name,
+            get_entity_create_one_mutation_field_name, get_entity_name,
+            get_entity_update_mutation_data_field_name, get_entity_update_mutation_field_name,
+        },
     },
     models::subscribers,
 };
@@ -325,15 +328,7 @@ pub fn register_subscribers_to_schema_builder(mut builder: SeaographyBuilder) ->
             .register(filter_types_map_helper.generate_filter_input(&SUBSCRIBER_ID_FILTER_INFO));
     }
 
-    {
-        builder.register_entity::<subscribers::Entity>(
-            <subscribers::RelatedEntity as sea_orm::Iterable>::iter()
-                .map(|rel| seaography::RelationBuilder::get_relation(&rel, builder.context))
-                .collect(),
-        );
-        builder = builder.register_entity_dataloader_one_to_one(subscribers::Entity, tokio::spawn);
-        builder = builder.register_entity_dataloader_one_to_many(subscribers::Entity, tokio::spawn);
-    }
+    builder = register_entity_default_readonly!(builder, subscribers);
 
     builder
 }

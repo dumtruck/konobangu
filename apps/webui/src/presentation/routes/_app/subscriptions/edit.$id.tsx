@@ -137,7 +137,7 @@ function FormView({
       await updateSubscription({
         variables: {
           data: input,
-          filters: {
+          filter: {
             id: {
               eq: subscription.id,
             },
