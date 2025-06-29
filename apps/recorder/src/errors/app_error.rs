@@ -313,4 +313,10 @@ impl From<http::method::InvalidMethod> for RecorderError {
     }
 }
 
+impl From<async_graphql::Error> for RecorderError {
+    fn from(error: async_graphql::Error) -> Self {
+        seaography::SeaographyError::AsyncGraphQLError(error).into()
+    }
+}
+
 pub type RecorderResult<T> = Result<T, RecorderError>;

@@ -11,13 +11,14 @@ import {
   SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL,
   SYNC_SUBSCRIPTION_SOURCES,
 } from '@/domains/recorder/schema/subscriptions';
-import type {
-  SyncSubscriptionFeedsFullMutation,
-  SyncSubscriptionFeedsFullMutationVariables,
-  SyncSubscriptionFeedsIncrementalMutation,
-  SyncSubscriptionFeedsIncrementalMutationVariables,
-  SyncSubscriptionSourcesMutation,
-  SyncSubscriptionSourcesMutationVariables,
+import {
+  SubscriberTaskTypeEnum,
+  type SyncSubscriptionFeedsFullMutation,
+  type SyncSubscriptionFeedsFullMutationVariables,
+  type SyncSubscriptionFeedsIncrementalMutation,
+  type SyncSubscriptionFeedsIncrementalMutationVariables,
+  type SyncSubscriptionSourcesMutation,
+  type SyncSubscriptionSourcesMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import { useMutation } from '@apollo/client';
 import { useNavigate } from '@tanstack/react-router';
@@ -43,7 +44,7 @@ export const SubscriptionSyncView = memo(
       >(SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL, {
         onCompleted: (data) => {
           toast.success('Sync completed');
-          onComplete(data.subscriptionsSyncOneFeedsIncremental);
+          onComplete(data.subscriberTasksCreateOne);
         },
         onError: (error) => {
           toast.error('Failed to sync subscription', {
@@ -103,7 +104,15 @@ export const SubscriptionSyncView = memo(
           variant="outline"
           onClick={() =>
             syncSubscriptionFeedsIncremental({
-              variables: { filter: { id: { eq: id } } },
+              variables: {
+                data: {
+                  job: {
+                    subscriberId: id,
+                    taskType:
+                      SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsIncremental,
+                  },
+                },
+              },
             })
           }
         >

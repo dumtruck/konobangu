@@ -8,7 +8,7 @@ use sea_orm::{
     ActiveModelTrait, Condition, EntityTrait, IntoActiveModel, QueryFilter, TransactionTrait,
 };
 use seaography::{
-    Builder as SeaographyBuilder, BuilderContext, GuardAction, RelationBuilder, SeaographyError,
+    Builder as SeaographyBuilder, BuilderContext, GuardAction, RelationBuilder,
     get_filter_conditions, prepare_active_model,
 };
 
@@ -274,8 +274,7 @@ where
             &entity_object_builder,
             &input_object,
             resolve_context,
-        )
-        .map_err(SeaographyError::AsyncGraphQLError);
+        );
 
         Box::pin(async move {
             if active_model_hooks {
@@ -442,8 +441,7 @@ where
                     resolve_context,
                 )
             })
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(SeaographyError::AsyncGraphQLError);
+            .collect::<Result<Vec<_>, _>>();
 
         Box::pin(async move {
             if active_model_hooks {
@@ -620,8 +618,7 @@ where
                 &entity_object_builder,
                 &input_object,
                 resolve_context,
-            )
-            .map_err(SeaographyError::AsyncGraphQLError);
+            );
 
             Box::pin(async move {
                 if active_model_hooks {

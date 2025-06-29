@@ -5,6 +5,7 @@ use async_graphql::{
 };
 use convert_case::Case;
 use itertools::Itertools;
+use jsonschema::Validator;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
     Condition, EntityTrait,
@@ -911,18 +912,15 @@ where
     Box::new(
         move |_resolve_context: &ResolverContext<'_>, condition, filter| {
             if let Some(filter) = filter {
-                let filter_value = to_value(filter.as_index_map()).map_err(|e| {
-                    SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e))
-                })?;
+                let filter_value =
+                    to_value(filter.as_index_map()).map_err(GraphqlError::new_with_source)?;
 
-                let filter_json: JsonValue = filter_value.into_json().map_err(|e| {
-                    SeaographyError::AsyncGraphQLError(GraphqlError::new(format!("{e:?}")))
-                })?;
+                let filter_json: JsonValue = filter_value
+                    .into_json()
+                    .map_err(GraphqlError::new_with_source)?;
 
                 let cond_where = prepare_jsonb_filter_input(&Expr::col(column), filter_json)
-                    .map_err(|e| {
-                        SeaographyError::AsyncGraphQLError(GraphqlError::new_with_source(e))
-                    })?;
+                    .map_err(GraphqlError::new_with_source)?;
 
                 let condition = condition.add(cond_where);
                 Ok(condition)
@@ -952,8 +950,12 @@ where
     );
 }
 
-pub fn validate_jsonb_input_for_entity<T, S>(context: &mut BuilderContext, column: &T::Column)
-where
+pub fn try_convert_jsonb_input_for_entity<T, S>(
+    context: &mut BuilderContext,
+    column: &T::Column,
+    validator: &'static Validator,
+    case: Option<Case<'static>>,
+) where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
     S: DeserializeOwned + Serialize,
@@ -962,27 +964,33 @@ where
     context.types.input_conversions.insert(
         entity_column_name.clone(),
         Box::new(move |_resolve_context, accessor| {
-            let deserialized = accessor.deserialize::<S>().map_err(|err| {
-                SeaographyError::TypeConversionError(
-                    err.message,
-                    format!("Json - {entity_column_name}"),
-                )
-            })?;
-            let json_value = serde_json::to_value(deserialized).map_err(|err| {
+            let mut json_value = accessor.as_value().clone().into_json().map_err(|err| {
                 SeaographyError::TypeConversionError(
                     err.to_string(),
                     format!("Json - {entity_column_name}"),
                 )
             })?;
+
+            if let Some(case) = case {
+                json_value = convert_json_keys(json_value, case);
+            }
+
+            validator.validate(&json_value).map_err(|err| {
+                SeaographyError::TypeConversionError(
+                    err.to_string(),
+                    format!("Json - {entity_column_name}"),
+                )
+            })?;
+
             Ok(sea_orm::Value::Json(Some(Box::new(json_value))))
         }),
     );
 }
 
-pub fn convert_jsonb_output_case_for_entity<T>(
+pub fn convert_jsonb_output_for_entity<T>(
     context: &mut BuilderContext,
     column: &T::Column,
-    case: Case<'static>,
+    case: Option<Case<'static>>,
 ) where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
@@ -992,14 +1000,16 @@ pub fn convert_jsonb_output_case_for_entity<T>(
         entity_column_key.clone(),
         Box::new(move |value| {
             if let sea_orm::Value::Json(Some(json)) = value {
-                let result =
-                    async_graphql::Value::from_json(convert_json_keys(json.as_ref().clone(), case))
-                        .map_err(|err| {
-                            SeaographyError::TypeConversionError(
-                                err.to_string(),
-                                format!("Json - {entity_column_key}"),
-                            )
-                        })?;
+                let mut json_value = json.as_ref().clone();
+                if let Some(case) = case {
+                    json_value = convert_json_keys(json_value, case);
+                }
+                let result = async_graphql::Value::from_json(json_value).map_err(|err| {
+                    SeaographyError::TypeConversionError(
+                        err.to_string(),
+                        format!("Json - {entity_column_key}"),
+                    )
+                })?;
                 Ok(result)
             } else {
                 Err(SeaographyError::TypeConversionError(

@@ -7,7 +7,7 @@ use sea_orm::{ColumnTrait, Condition, EntityTrait, Iterable, Value as SeaValue};
 use seaography::{
     Builder as SeaographyBuilder, BuilderContext, FilterInfo,
     FilterOperation as SeaographqlFilterOperation, FilterType, FilterTypesMapHelper,
-    FnFilterCondition, FnGuard, FnInputTypeNoneConversion, GuardAction, SeaResult, SeaographyError,
+    FnFilterCondition, FnGuard, FnInputTypeNoneConversion, GuardAction, SeaResult,
 };
 
 use crate::{
@@ -219,11 +219,10 @@ where
                                     if let Some(value) = filter.get("eq") {
                                         let value: i32 = value.i64()?.try_into()?;
                                         if value != subscriber_id {
-                                            return Err(SeaographyError::AsyncGraphQLError(
-                                                async_graphql::Error::new(
-                                                    "subscriber_id and auth_info does not match",
-                                                ),
-                                            ));
+                                            return Err(async_graphql::Error::new(
+                                                "subscriber_id and auth_info does not match",
+                                            )
+                                            .into());
                                         }
                                     }
                                 }

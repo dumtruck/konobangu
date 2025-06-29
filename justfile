@@ -27,7 +27,7 @@ dev-proxy:
     pnpm run --parallel --filter=proxy dev
 
 dev-recorder:
-    watchexec -r -e rs,toml,yaml,json,env -- cargo run -p recorder --bin  recorder_cli -- --environment=development --graceful-shutdown=false
+    watchexec -r -e rs,toml,yaml,json -- cargo run -p recorder --bin  recorder_cli -- --environment=development --graceful-shutdown=false
 
 prod-recorder: prod-webui
     cargo run --release -p recorder --bin recorder_cli -- --environment=production --working-dir=apps/recorder --graceful-shutdown=false

@@ -1,12 +1,15 @@
 use std::{ops::Deref, sync::Arc};
 
-use async_graphql::dynamic::{FieldValue, TypeRef, ValueAccessor};
+use async_graphql::dynamic::{FieldValue, TypeRef};
 use convert_case::Case;
 use sea_orm::{
     ColumnTrait, ConnectionTrait, EntityTrait, Iterable, QueryFilter, QuerySelect, QueryTrait,
     prelude::Expr, sea_query::Query,
 };
-use seaography::{Builder as SeaographyBuilder, BuilderContext, GuardAction};
+use seaography::{
+    Builder as SeaographyBuilder, BuilderContext, EntityInputBuilder, EntityObjectBuilder,
+    SeaographyError, prepare_active_model,
+};
 
 use crate::{
     auth::AuthUserInfo,
@@ -20,59 +23,23 @@ use crate::{
                 generate_entity_default_insert_input_object, generate_entity_delete_mutation_field,
                 generate_entity_filtered_mutation_field, register_entity_default_readonly,
             },
-            json::{
-                convert_jsonb_output_case_for_entity, restrict_jsonb_filter_input_for_entity,
-                validate_jsonb_input_for_entity,
-            },
+            json::{convert_jsonb_output_for_entity, restrict_jsonb_filter_input_for_entity},
             name::{
-                get_column_name, get_entity_and_column_name, get_entity_basic_type_name,
-                get_entity_create_batch_mutation_data_field_name,
-                get_entity_create_batch_mutation_field_name,
-                get_entity_create_one_mutation_data_field_name,
-                get_entity_create_one_mutation_field_name, get_entity_custom_mutation_field_name,
-                get_entity_update_mutation_field_name,
+                get_entity_and_column_name, get_entity_basic_type_name,
+                get_entity_custom_mutation_field_name,
             },
         },
     },
     models::subscriber_tasks,
-    task::{ApalisJobs, ApalisSchema},
+    task::{ApalisJobs, ApalisSchema, SubscriberTaskTrait},
+    utils::json::convert_json_keys,
 };
-
-pub fn check_entity_and_task_subscriber_id_matches(
-    value_accessor: &ValueAccessor<'_>,
-    subscriber_id: i32,
-    subscriber_id_column_name: &str,
-    subscriber_task_column_name: &str,
-) -> bool {
-    value_accessor.object().is_ok_and(|input_object| {
-        input_object
-            .get(subscriber_task_column_name)
-            .and_then(|subscriber_task_value| subscriber_task_value.object().ok())
-            .and_then(|subscriber_task_object| {
-                subscriber_task_object
-                    .get("subscriber_id")
-                    .and_then(|job_subscriber_id| job_subscriber_id.i64().ok())
-            })
-            .is_some_and(|subscriber_task_subscriber_id| {
-                subscriber_task_subscriber_id as i32
-                    == input_object
-                        .get(subscriber_id_column_name)
-                        .and_then(|subscriber_id_object| subscriber_id_object.i64().ok())
-                        .map(|subscriber_id| subscriber_id as i32)
-                        .unwrap_or(subscriber_id)
-            })
-    })
-}
 
 fn skip_columns_for_entity_input(context: &mut BuilderContext) {
     for column in subscriber_tasks::Column::iter() {
         if matches!(
             column,
-            subscriber_tasks::Column::Job
-                | subscriber_tasks::Column::Id
-                | subscriber_tasks::Column::SubscriberId
-                | subscriber_tasks::Column::Priority
-                | subscriber_tasks::Column::MaxAttempts
+            subscriber_tasks::Column::Job | subscriber_tasks::Column::SubscriberId
         ) {
             continue;
         }
@@ -82,104 +49,66 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
     }
 }
 
+pub fn restrict_subscriber_tasks_for_entity<T>(
+    context: &mut BuilderContext,
+    column: &T::Column,
+    case: Option<Case<'static>>,
+) where
+    T: EntityTrait,
+    <T as EntityTrait>::Model: Sync,
+{
+    let entity_and_column = get_entity_and_column_name::<T>(context, column);
+
+    restrict_jsonb_filter_input_for_entity::<T>(context, column);
+    convert_jsonb_output_for_entity::<T>(context, column, Some(Case::Camel));
+    let entity_column_name = get_entity_and_column_name::<T>(context, column);
+    context.types.input_conversions.insert(
+        entity_column_name.clone(),
+        Box::new(move |resolve_context, accessor| {
+            let mut json_value = accessor.as_value().clone().into_json().map_err(|err| {
+                SeaographyError::TypeConversionError(
+                    err.to_string(),
+                    format!("Json - {entity_column_name}"),
+                )
+            })?;
+
+            if let Some(case) = case {
+                json_value = convert_json_keys(json_value, case);
+            }
+
+            let subscriber_id = resolve_context
+                .data::<AuthUserInfo>()?
+                .subscriber_auth
+                .subscriber_id;
+
+            if let Some(obj) = json_value.as_object_mut() {
+                obj.entry("subscriber_id")
+                    .or_insert_with(|| serde_json::Value::from(subscriber_id));
+            }
+
+            subscriber_tasks::subscriber_task_schema()
+                .validate(&json_value)
+                .map_err(|err| {
+                    SeaographyError::TypeConversionError(
+                        err.to_string(),
+                        format!("Json - {entity_column_name}"),
+                    )
+                })?;
+
+            Ok(sea_orm::Value::Json(Some(Box::new(json_value))))
+        }),
+    );
+
+    context.entity_input.update_skips.push(entity_and_column);
+}
+
 pub fn register_subscriber_tasks_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<subscriber_tasks::Entity>(
         context,
         &subscriber_tasks::Column::SubscriberId,
     );
-    restrict_jsonb_filter_input_for_entity::<subscriber_tasks::Entity>(
-        context,
-        &subscriber_tasks::Column::Job,
-    );
-    convert_jsonb_output_case_for_entity::<subscriber_tasks::Entity>(
-        context,
-        &subscriber_tasks::Column::Job,
-        Case::Camel,
-    );
-    validate_jsonb_input_for_entity::<subscriber_tasks::Entity, subscriber_tasks::SubscriberTask>(
-        context,
-        &subscriber_tasks::Column::Job,
-    );
+
     skip_columns_for_entity_input(context);
-
-    context.guards.field_guards.insert(
-        get_entity_and_column_name::<subscriber_tasks::Entity>(
-            context,
-            &subscriber_tasks::Column::Job,
-        ),
-        {
-            let create_one_mutation_field_name =
-                Arc::new(get_entity_create_one_mutation_field_name::<
-                    subscriber_tasks::Entity,
-                >(context));
-            let create_one_mutation_data_field_name =
-                Arc::new(get_entity_create_one_mutation_data_field_name(context).to_string());
-            let create_batch_mutation_field_name =
-                Arc::new(get_entity_create_batch_mutation_field_name::<
-                    subscriber_tasks::Entity,
-                >(context));
-            let create_batch_mutation_data_field_name =
-                Arc::new(get_entity_create_batch_mutation_data_field_name(context).to_string());
-            let update_mutation_field_name = Arc::new(get_entity_update_mutation_field_name::<
-                subscriber_tasks::Entity,
-            >(context));
-            let job_column_name = Arc::new(get_column_name::<subscriber_tasks::Entity>(
-                context,
-                &subscriber_tasks::Column::Job,
-            ));
-            let subscriber_id_column_name = Arc::new(get_column_name::<subscriber_tasks::Entity>(
-                context,
-                &subscriber_tasks::Column::SubscriberId,
-            ));
-
-            Box::new(move |resolve_context| {
-                let field_name = resolve_context.field().name();
-                let subscriber_id = resolve_context
-                    .data_opt::<AuthUserInfo>()
-                    .unwrap()
-                    .subscriber_auth
-                    .subscriber_id;
-                let matched_subscriber_id = match field_name {
-                    field if field == create_one_mutation_field_name.as_str() => resolve_context
-                        .args
-                        .get(create_one_mutation_data_field_name.as_str())
-                        .is_some_and(|value_accessor| {
-                            check_entity_and_task_subscriber_id_matches(
-                                &value_accessor,
-                                subscriber_id,
-                                subscriber_id_column_name.as_str(),
-                                job_column_name.as_str(),
-                            )
-                        }),
-                    field if field == create_batch_mutation_field_name.as_str() => resolve_context
-                        .args
-                        .get(create_batch_mutation_data_field_name.as_str())
-                        .and_then(|value| value.list().ok())
-                        .is_some_and(|list| {
-                            list.iter().all(|value| {
-                                check_entity_and_task_subscriber_id_matches(
-                                    &value,
-                                    subscriber_id,
-                                    subscriber_id_column_name.as_str(),
-                                    job_column_name.as_str(),
-                                )
-                            })
-                        }),
-                    field if field == update_mutation_field_name.as_str() => {
-                        unreachable!("subscriberTask entity do not support update job")
-                    }
-                    _ => true,
-                };
-                if matched_subscriber_id {
-                    GuardAction::Allow
-                } else {
-                    GuardAction::Block(Some(
-                        "subscriber_id mismatch between entity and job".to_string(),
-                    ))
-                }
-            })
-        },
-    );
 }
 
 pub fn register_subscriber_tasks_to_schema_builder(
@@ -282,18 +211,34 @@ pub fn register_subscriber_tasks_to_schema_builder(
                 builder_context,
                 None,
                 Arc::new(|_resolver_ctx, app_ctx, input_object| {
-                    let job_column_name = get_column_name::<subscriber_tasks::Entity>(
-                        builder_context,
-                        &subscriber_tasks::Column::Job,
-                    );
-                    let task = input_object
-                        .get(job_column_name.as_str())
-                        .unwrap()
-                        .deserialize::<subscriber_tasks::SubscriberTask>()
-                        .unwrap();
+                    let entity_input_builder = EntityInputBuilder {
+                        context: builder_context,
+                    };
+                    let entity_object_builder = EntityObjectBuilder {
+                        context: builder_context,
+                    };
+
+                    let active_model: Result<subscriber_tasks::ActiveModel, _> =
+                        prepare_active_model(
+                            &entity_input_builder,
+                            &entity_object_builder,
+                            &input_object,
+                            _resolver_ctx,
+                        );
 
                     Box::pin(async move {
                         let task_service = app_ctx.task();
+
+                        let active_model = active_model?;
+
+                        let task = active_model.job.unwrap();
+                        let subscriber_id = active_model.subscriber_id.unwrap();
+
+                        if task.get_subscriber_id() != subscriber_id {
+                            Err(async_graphql::Error::new(
+                                "subscriber_id does not match with job.subscriber_id",
+                            ))?;
+                        }
 
                         let task_id = task_service.add_subscriber_task(task).await?.to_string();
 

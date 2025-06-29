@@ -89,6 +89,7 @@ query GetSubscriptionDetail ($id: Int!) {
   } }) {
     nodes {
       id
+      subscriberId
       displayName
       createdAt
       updatedAt
@@ -138,8 +139,8 @@ query GetSubscriptionDetail ($id: Int!) {
 `;
 
 export const SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL = gql`
-  mutation SyncSubscriptionFeedsIncremental($filter: SubscriptionsFilterInput!) {
-    subscriptionsSyncOneFeedsIncremental(filter: $filter) {
+  mutation SyncSubscriptionFeedsIncremental($data: SubscriberTasksInsertInput!) {
+    subscriberTasksCreateOne(data: $data) {
       id
     }
   }

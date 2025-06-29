@@ -1,6 +1,9 @@
 mod base;
 mod subscription;
 
+use jsonschema::Validator;
+use once_cell::sync::OnceCell;
+use schemars::JsonSchema;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
 use serde::{Deserialize, Serialize};
 pub use subscription::{
@@ -133,7 +136,7 @@ register_subscriber_task_types!(
         }
     },
     task_enum: {
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult)]
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult, JsonSchema)]
         pub enum SubscriberTask {
             SyncOneSubscriptionFeedsIncremental(SyncOneSubscriptionFeedsIncrementalTask),
             SyncOneSubscriptionFeedsFull(SyncOneSubscriptionFeedsFullTask),
@@ -141,3 +144,15 @@ register_subscriber_task_types!(
         }
     }
 );
+
+static SUBSCRIBER_TASK_SCHEMA: OnceCell<Validator> = OnceCell::new();
+
+pub fn subscriber_task_schema() -> &'static Validator {
+    SUBSCRIBER_TASK_SCHEMA.get_or_init(|| {
+        let schema = schemars::schema_for!(SubscriberTask);
+        jsonschema::options()
+            .with_draft(jsonschema::Draft::Draft7)
+            .build(&serde_json::to_value(&schema).unwrap())
+            .unwrap()
+    })
+}

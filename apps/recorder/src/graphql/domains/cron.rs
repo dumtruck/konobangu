@@ -8,8 +8,8 @@ use crate::{
         infra::{
             custom::register_entity_default_writable,
             json::{
-                convert_jsonb_output_case_for_entity, restrict_jsonb_filter_input_for_entity,
-                validate_jsonb_input_for_entity,
+                convert_jsonb_output_for_entity, restrict_jsonb_filter_input_for_entity,
+                try_convert_jsonb_input_for_entity,
             },
             name::get_entity_and_column_name,
         },
@@ -50,14 +50,16 @@ pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<cron::Entity>(context, &cron::Column::SubscriberId);
 
     restrict_jsonb_filter_input_for_entity::<cron::Entity>(context, &cron::Column::SubscriberTask);
-    convert_jsonb_output_case_for_entity::<cron::Entity>(
+    convert_jsonb_output_for_entity::<cron::Entity>(
         context,
         &cron::Column::SubscriberTask,
-        Case::Camel,
+        Some(Case::Camel),
     );
-    validate_jsonb_input_for_entity::<cron::Entity, Option<subscriber_tasks::SubscriberTask>>(
+    try_convert_jsonb_input_for_entity::<cron::Entity, Option<subscriber_tasks::SubscriberTask>>(
         context,
         &cron::Column::SubscriberTask,
+        subscriber_tasks::subscriber_task_schema(),
+        Some(Case::Snake),
     );
     skip_columns_for_entity_input(context);
 }
