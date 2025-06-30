@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_graphql::{
     Error as GraphqlError,
     dynamic::{ResolverContext, Scalar, SchemaError},
@@ -963,7 +965,7 @@ pub fn try_convert_jsonb_input_for_entity<T, S>(
     let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.types.input_conversions.insert(
         entity_column_name.clone(),
-        Box::new(move |_resolve_context, accessor| {
+        Arc::new(move |_resolve_context, accessor| {
             let mut json_value = accessor.as_value().clone().into_json().map_err(|err| {
                 SeaographyError::TypeConversionError(
                     err.to_string(),
@@ -998,7 +1000,7 @@ pub fn convert_jsonb_output_for_entity<T>(
     let entity_column_key = get_entity_and_column_name::<T>(context, column);
     context.types.output_conversions.insert(
         entity_column_key.clone(),
-        Box::new(move |value| {
+        Arc::new(move |value| {
             if let sea_orm::Value::Json(Some(json)) = value {
                 let mut json_value = json.as_ref().clone();
                 if let Some(case) = case {

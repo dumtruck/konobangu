@@ -79,7 +79,7 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    Box::new(move |context: &ResolverContext| -> GuardAction {
+    Arc::new(move |context: &ResolverContext| -> GuardAction {
         match context.ctx.data::<AuthUserInfo>() {
             Ok(_) => GuardAction::Allow,
             Err(err) => GuardAction::Block(Some(err.message)),
@@ -106,7 +106,7 @@ where
     let entity_update_mutation_data_field_name =
         Arc::new(get_entity_update_mutation_data_field_name(context).to_string());
 
-    Box::new(move |context: &ResolverContext| -> GuardAction {
+    Arc::new(move |context: &ResolverContext| -> GuardAction {
         match context.ctx.data::<AuthUserInfo>() {
             Ok(user_info) => {
                 let subscriber_id = user_info.subscriber_auth.subscriber_id;
@@ -253,7 +253,7 @@ where
         Arc::new(get_entity_create_one_mutation_field_name::<T>(context));
     let entity_create_batch_mutation_field_name =
         Arc::new(get_entity_create_batch_mutation_field_name::<T>(context));
-    Box::new(
+    Arc::new(
         move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
             let field_name = context.field().name();
             if field_name == entity_create_one_mutation_field_name.as_str()
@@ -318,13 +318,11 @@ pub fn register_subscribers_to_schema_context(context: &mut BuilderContext) {
 
 pub fn register_subscribers_to_schema_builder(mut builder: SeaographyBuilder) -> SeaographyBuilder {
     {
-        let filter_types_map_helper = FilterTypesMapHelper {
-            context: builder.context,
-        };
-
         builder.schema = builder
             .schema
-            .register(filter_types_map_helper.generate_filter_input(&SUBSCRIBER_ID_FILTER_INFO));
+            .register(FilterTypesMapHelper::generate_filter_input(
+                &SUBSCRIBER_ID_FILTER_INFO,
+            ));
     }
 
     builder = register_entity_default_readonly!(builder, subscribers);

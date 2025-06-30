@@ -11,6 +11,7 @@
     "codegen-watch": "graphql-codegen --config graphql-codegen.ts --watch"
   },
   "dependencies": {
+    "recorder": "workspace:*",
     "@abraham/reflection": "^0.13.0",
     "@apollo/client": "^3.13.8",
     "@codemirror/language": "6.11.1",

@@ -67,6 +67,8 @@ importers:
         specifier: ^2.9.99
         version: 2.9.99
 
+  apps/recorder: {}
+
   apps/webui:
     dependencies:
       '@abraham/reflection':
@@ -249,6 +251,9 @@ importers:
       recharts:
         specifier: ^2.15.3
         version: 2.15.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      recorder:
+        specifier: workspace:*
+        version: link:../recorder
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2

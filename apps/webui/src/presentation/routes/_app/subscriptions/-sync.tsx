@@ -6,19 +6,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
+import { INSERT_SUBSCRIBER_TASK } from '@/domains/recorder/schema/tasks';
 import {
-  SYNC_SUBSCRIPTION_FEEDS_FULL,
-  SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL,
-  SYNC_SUBSCRIPTION_SOURCES,
-} from '@/domains/recorder/schema/subscriptions';
-import {
+  type InsertSubscriberTaskMutation,
+  type InsertSubscriberTaskMutationVariables,
   SubscriberTaskTypeEnum,
-  type SyncSubscriptionFeedsFullMutation,
-  type SyncSubscriptionFeedsFullMutationVariables,
-  type SyncSubscriptionFeedsIncrementalMutation,
-  type SyncSubscriptionFeedsIncrementalMutationVariables,
-  type SyncSubscriptionSourcesMutation,
-  type SyncSubscriptionSourcesMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import { useMutation } from '@apollo/client';
 import { useNavigate } from '@tanstack/react-router';
@@ -37,29 +29,13 @@ export interface SubscriptionSyncViewProps {
 
 export const SubscriptionSyncView = memo(
   ({ id, onComplete }: SubscriptionSyncViewProps) => {
-    const [syncSubscriptionFeedsIncremental, { loading: loadingIncremental }] =
-      useMutation<
-        SyncSubscriptionFeedsIncrementalMutation,
-        SyncSubscriptionFeedsIncrementalMutationVariables
-      >(SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL, {
-        onCompleted: (data) => {
-          toast.success('Sync completed');
-          onComplete(data.subscriberTasksCreateOne);
-        },
-        onError: (error) => {
-          toast.error('Failed to sync subscription', {
-            description: error.message,
-          });
-        },
-      });
-
-    const [syncSubscriptionFeedsFull, { loading: loadingFull }] = useMutation<
-      SyncSubscriptionFeedsFullMutation,
-      SyncSubscriptionFeedsFullMutationVariables
-    >(SYNC_SUBSCRIPTION_FEEDS_FULL, {
+    const [insertSubscriberTask, { loading: loadingInsert }] = useMutation<
+      InsertSubscriberTaskMutation,
+      InsertSubscriberTaskMutationVariables
+    >(INSERT_SUBSCRIBER_TASK, {
       onCompleted: (data) => {
         toast.success('Sync completed');
-        onComplete(data.subscriptionsSyncOneFeedsFull);
+        onComplete(data.subscriberTasksCreateOne);
       },
       onError: (error) => {
         toast.error('Failed to sync subscription', {
@@ -68,22 +44,7 @@ export const SubscriptionSyncView = memo(
       },
     });
 
-    const [syncSubscriptionSources, { loading: loadingSources }] = useMutation<
-      SyncSubscriptionSourcesMutation,
-      SyncSubscriptionSourcesMutationVariables
-    >(SYNC_SUBSCRIPTION_SOURCES, {
-      onCompleted: (data) => {
-        toast.success('Sync completed');
-        onComplete(data.subscriptionsSyncOneSources);
-      },
-      onError: (error) => {
-        toast.error('Failed to sync subscription', {
-          description: error.message,
-        });
-      },
-    });
-
-    const loading = loadingIncremental || loadingFull || loadingSources;
+    const loading = loadingInsert;
 
     return (
       <div className="flex flex-col gap-2">
@@ -91,8 +52,15 @@ export const SubscriptionSyncView = memo(
           size="lg"
           variant="outline"
           onClick={() =>
-            syncSubscriptionSources({
-              variables: { filter: { id: { eq: id } } },
+            insertSubscriberTask({
+              variables: {
+                data: {
+                  job: {
+                    subscriptionId: id,
+                    taskType: SubscriberTaskTypeEnum.SyncOneSubscriptionSources,
+                  },
+                },
+              },
             })
           }
         >
@@ -103,11 +71,11 @@ export const SubscriptionSyncView = memo(
           size="lg"
           variant="outline"
           onClick={() =>
-            syncSubscriptionFeedsIncremental({
+            insertSubscriberTask({
               variables: {
                 data: {
                   job: {
-                    subscriberId: id,
+                    subscriptionId: id,
                     taskType:
                       SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsIncremental,
                   },
@@ -123,8 +91,16 @@ export const SubscriptionSyncView = memo(
           size="lg"
           variant="outline"
           onClick={() =>
-            syncSubscriptionFeedsFull({
-              variables: { filter: { id: { eq: id } } },
+            insertSubscriberTask({
+              variables: {
+                data: {
+                  job: {
+                    subscriptionId: id,
+                    taskType:
+                      SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsFull,
+                  },
+                },
+              },
             })
           }
         >

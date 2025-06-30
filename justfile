@@ -11,8 +11,8 @@ prepare-dev-testcontainers:
     docker pull ghcr.io/dumtruck/konobangu-testing-torrents:latest
     docker pull postgres:17-alpine
 
-dev-optimize-images:
-    npx -y zx apps/recorder/examples/optimize_image.mjs
+export-recorder-ts-bindings:
+    cargo test export_bindings -p recorder
 
 dev-webui:
     pnpm run --filter=webui dev

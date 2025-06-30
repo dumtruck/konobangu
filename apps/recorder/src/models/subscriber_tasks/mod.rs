@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use sea_orm::entity::prelude::*;
+use sea_orm::{ActiveValue, entity::prelude::*};
 
+use crate::task::SubscriberTaskTrait;
 pub use crate::task::{
     SubscriberTask, SubscriberTaskType, SubscriberTaskTypeEnum, SubscriberTaskTypeVariant,
     SubscriberTaskTypeVariantIter, subscriber_task_schema,
@@ -84,4 +85,19 @@ pub enum RelatedEntity {
 }
 
 #[async_trait]
-impl ActiveModelBehavior for ActiveModel {}
+impl ActiveModelBehavior for ActiveModel {
+    async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
+    where
+        C: ConnectionTrait,
+    {
+        if let ActiveValue::Set(subscriber_id) = self.subscriber_id
+            && let ActiveValue::Set(ref job) = self.job
+            && job.get_subscriber_id() != subscriber_id
+        {
+            return Err(DbErr::Custom(
+                "SubscriberTask subscriber_id does not match job.subscriber_id".to_string(),
+            ));
+        }
+        Ok(self)
+    }
+}

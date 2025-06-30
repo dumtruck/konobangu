@@ -128,19 +128,13 @@ impl ActiveModelBehavior for ActiveModel {
                 Model::calculate_next_run(cron_expr).map_err(|e| DbErr::Custom(e.to_string()))?;
             self.next_run = Set(Some(next_run));
         }
-        if let ActiveValue::Set(Some(subscriber_id)) = self.subscriber_id {
-            if let ActiveValue::Set(Some(ref subscriber_task)) = self.subscriber_task {
-                if subscriber_task.get_subscriber_id() != subscriber_id {
-                    return Err(DbErr::Custom(
-                        "Subscriber task subscriber_id does not match cron subscriber_id"
-                            .to_string(),
-                    ));
-                }
-            } else {
-                return Err(DbErr::Custom(
-                    "Cron subscriber_id is set but subscriber_task is not set".to_string(),
-                ));
-            }
+        if let ActiveValue::Set(Some(subscriber_id)) = self.subscriber_id
+            && let ActiveValue::Set(Some(ref subscriber_task)) = self.subscriber_task
+            && subscriber_task.get_subscriber_id() != subscriber_id
+        {
+            return Err(DbErr::Custom(
+                "Cron subscriber_id does not match subscriber_task.subscriber_id".to_string(),
+            ));
         }
 
         Ok(self)

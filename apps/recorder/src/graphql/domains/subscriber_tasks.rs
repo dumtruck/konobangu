@@ -3,15 +3,15 @@ use std::{ops::Deref, sync::Arc};
 use async_graphql::dynamic::{FieldValue, TypeRef};
 use convert_case::Case;
 use sea_orm::{
-    ColumnTrait, ConnectionTrait, EntityTrait, Iterable, QueryFilter, QuerySelect, QueryTrait,
-    prelude::Expr, sea_query::Query,
+    ActiveModelBehavior, ColumnTrait, ConnectionTrait, EntityTrait, Iterable, QueryFilter,
+    QuerySelect, QueryTrait, prelude::Expr, sea_query::Query,
 };
 use seaography::{
-    Builder as SeaographyBuilder, BuilderContext, EntityInputBuilder, EntityObjectBuilder,
-    SeaographyError, prepare_active_model,
+    Builder as SeaographyBuilder, BuilderContext, SeaographyError, prepare_active_model,
 };
 
 use crate::{
+    app::AppContextTrait,
     auth::AuthUserInfo,
     errors::RecorderError,
     graphql::{
@@ -64,13 +64,17 @@ pub fn restrict_subscriber_tasks_for_entity<T>(
     let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.types.input_conversions.insert(
         entity_column_name.clone(),
-        Box::new(move |resolve_context, accessor| {
-            let mut json_value = accessor.as_value().clone().into_json().map_err(|err| {
-                SeaographyError::TypeConversionError(
-                    err.to_string(),
-                    format!("Json - {entity_column_name}"),
-                )
-            })?;
+        Arc::new(move |resolve_context, value_accessor| {
+            let mut json_value = value_accessor
+                .as_value()
+                .clone()
+                .into_json()
+                .map_err(|err| {
+                    SeaographyError::TypeConversionError(
+                        err.to_string(),
+                        format!("Json - {entity_column_name}"),
+                    )
+                })?;
 
             if let Some(case) = case {
                 json_value = convert_json_keys(json_value, case);
@@ -107,6 +111,11 @@ pub fn register_subscriber_tasks_to_schema_context(context: &mut BuilderContext)
         context,
         &subscriber_tasks::Column::SubscriberId,
     );
+    restrict_subscriber_tasks_for_entity::<subscriber_tasks::Entity>(
+        context,
+        &subscriber_tasks::Column::Job,
+        Some(Case::Snake),
+    );
 
     skip_columns_for_entity_input(context);
 }
@@ -118,18 +127,18 @@ pub fn register_subscriber_tasks_to_schema_builder(
     builder.register_enumeration::<subscriber_tasks::SubscriberTaskStatus>();
 
     builder = register_entity_default_readonly!(builder, subscriber_tasks);
+    let builder_context = builder.context.clone();
 
-    let builder_context = builder.context;
     {
         builder
             .outputs
             .push(generate_entity_default_basic_entity_object::<
                 subscriber_tasks::Entity,
-            >(builder_context));
+            >(builder_context.clone()));
     }
     {
         let delete_mutation = generate_entity_delete_mutation_field::<subscriber_tasks::Entity>(
-            builder_context,
+            builder_context.clone(),
             Arc::new(|_resolver_ctx, app_ctx, filters| {
                 Box::pin(async move {
                     let db = app_ctx.db();
@@ -160,13 +169,13 @@ pub fn register_subscriber_tasks_to_schema_builder(
     {
         let entity_retry_one_mutation_name = get_entity_custom_mutation_field_name::<
             subscriber_tasks::Entity,
-        >(builder_context, "RetryOne");
+        >(&builder_context, "RetryOne");
         let retry_one_mutation =
             generate_entity_filtered_mutation_field::<subscriber_tasks::Entity, _, _>(
-                builder_context,
+                builder_context.clone(),
                 entity_retry_one_mutation_name,
                 TypeRef::named_nn(get_entity_basic_type_name::<subscriber_tasks::Entity>(
-                    builder_context,
+                    &builder_context,
                 )),
                 Arc::new(|_resolver_ctx, app_ctx, filters| {
                     Box::pin(async move {
@@ -205,31 +214,22 @@ pub fn register_subscriber_tasks_to_schema_builder(
             .inputs
             .push(generate_entity_default_insert_input_object::<
                 subscriber_tasks::Entity,
-            >(builder_context));
+            >(&builder.context));
         let create_one_mutation =
-            generate_entity_create_one_mutation_field::<subscriber_tasks::Entity, TypeRef>(
-                builder_context,
-                None,
-                Arc::new(|_resolver_ctx, app_ctx, input_object| {
-                    let entity_input_builder = EntityInputBuilder {
-                        context: builder_context,
-                    };
-                    let entity_object_builder = EntityObjectBuilder {
-                        context: builder_context,
-                    };
-
+            generate_entity_create_one_mutation_field::<subscriber_tasks::Entity>(
+                builder.context.clone(),
+                Arc::new(move |resolver_ctx, app_ctx, input_object| {
                     let active_model: Result<subscriber_tasks::ActiveModel, _> =
-                        prepare_active_model(
-                            &entity_input_builder,
-                            &entity_object_builder,
-                            &input_object,
-                            _resolver_ctx,
-                        );
+                        prepare_active_model(&builder_context.clone(), &input_object, resolver_ctx);
 
                     Box::pin(async move {
                         let task_service = app_ctx.task();
 
                         let active_model = active_model?;
+
+                        let db = app_ctx.db();
+
+                        let active_model = active_model.before_save(db, true).await?;
 
                         let task = active_model.job.unwrap();
                         let subscriber_id = active_model.subscriber_id.unwrap();

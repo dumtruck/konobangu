@@ -4,17 +4,13 @@ use seaography::{Builder as SeaographyBuilder, BuilderContext};
 
 use crate::{
     graphql::{
-        domains::subscribers::restrict_subscriber_for_entity,
-        infra::{
-            custom::register_entity_default_writable,
-            json::{
-                convert_jsonb_output_for_entity, restrict_jsonb_filter_input_for_entity,
-                try_convert_jsonb_input_for_entity,
-            },
-            name::get_entity_and_column_name,
+        domains::{
+            subscriber_tasks::restrict_subscriber_tasks_for_entity,
+            subscribers::restrict_subscriber_for_entity,
         },
+        infra::{custom::register_entity_default_writable, name::get_entity_and_column_name},
     },
-    models::{cron, subscriber_tasks},
+    models::cron,
 };
 
 fn skip_columns_for_entity_input(context: &mut BuilderContext) {
@@ -22,7 +18,6 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
         if matches!(
             column,
             cron::Column::SubscriberTask
-                | cron::Column::Id
                 | cron::Column::CronExpr
                 | cron::Column::Enabled
                 | cron::Column::TimeoutMs
@@ -49,16 +44,9 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
 pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<cron::Entity>(context, &cron::Column::SubscriberId);
 
-    restrict_jsonb_filter_input_for_entity::<cron::Entity>(context, &cron::Column::SubscriberTask);
-    convert_jsonb_output_for_entity::<cron::Entity>(
+    restrict_subscriber_tasks_for_entity::<cron::Entity>(
         context,
         &cron::Column::SubscriberTask,
-        Some(Case::Camel),
-    );
-    try_convert_jsonb_input_for_entity::<cron::Entity, Option<subscriber_tasks::SubscriberTask>>(
-        context,
-        &cron::Column::SubscriberTask,
-        subscriber_tasks::subscriber_task_schema(),
         Some(Case::Snake),
     );
     skip_columns_for_entity_input(context);

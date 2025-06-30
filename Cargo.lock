@@ -7791,16 +7791,15 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 [[package]]
 name = "seaography"
 version = "1.1.4"
-source = "git+https://github.com/dumtruck/seaography.git?rev=a787c3a#a787c3ab83cf1f8275894e1bc1ca3c766b54674b"
 dependencies = [
  "async-graphql",
  "fnv",
- "heck 0.4.1",
- "itertools 0.12.1",
+ "heck 0.5.0",
+ "itertools 0.14.0",
  "lazy_static",
  "sea-orm",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

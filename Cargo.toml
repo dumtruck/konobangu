@@ -15,7 +15,7 @@ resolver = "2"
 [profile.dev]
 debug = 0
 # https://github.com/rust-lang/rust/issues/141540
-incremental = false
+incremental = true # Then only change rust-analyzer incremental
 # [simd not supported by cranelift](https://github.com/rust-lang/rustc_codegen_cranelift/issues/171)
 # codegen-backend = "cranelift"
 
@@ -87,4 +87,6 @@ nanoid = "0.4.0"
 webp = "0.3.0"
 
 [patch.crates-io]
-seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "a787c3a" }
+# seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "395d50f" }
+
+seaography = { path = "../seaography" }

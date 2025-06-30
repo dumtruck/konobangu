@@ -78,7 +78,7 @@ where
     context.filter_input.type_name.as_ref()(&entity_name)
 }
 
-pub fn get_entity_insert_data_input_type_name<T>(context: &BuilderContext) -> String
+pub fn get_entity_insert_input_type_name<T>(context: &BuilderContext) -> String
 where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
@@ -87,7 +87,7 @@ where
     format!("{entity_name}{}", context.entity_input.insert_suffix)
 }
 
-pub fn get_entity_update_data_input_type_name<T>(context: &BuilderContext) -> String
+pub fn get_entity_update_input_type_name<T>(context: &BuilderContext) -> String
 where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,

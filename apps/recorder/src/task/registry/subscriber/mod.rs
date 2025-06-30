@@ -10,6 +10,7 @@ pub use subscription::{
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
     SyncOneSubscriptionSourcesTask,
 };
+use ts_rs::TS;
 
 macro_rules! register_subscriber_task_types {
     (
@@ -46,6 +47,7 @@ macro_rules! register_subscriber_task_types {
 
         $(#[$task_enum_meta])*
         #[serde(tag = "task_type")]
+        #[ts(export, rename_all = "camelCase", tag = "taskType")]
         pub enum $task_enum_name {
             $(
                 $(#[$task_variant_meta])*
@@ -136,7 +138,7 @@ register_subscriber_task_types!(
         }
     },
     task_enum: {
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult, JsonSchema)]
+        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult, JsonSchema, TS)]
         pub enum SubscriberTask {
             SyncOneSubscriptionFeedsIncremental(SyncOneSubscriptionFeedsIncrementalTask),
             SyncOneSubscriptionFeedsFull(SyncOneSubscriptionFeedsFullTask),

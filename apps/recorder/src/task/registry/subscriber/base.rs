@@ -6,7 +6,8 @@ macro_rules! register_subscriber_task_type {
         }
     ) => {
         $(#[$type_meta])*
-        #[derive(typed_builder::TypedBuilder, schemars::JsonSchema)]
+        #[derive(typed_builder::TypedBuilder, schemars::JsonSchema, ts_rs::TS)]
+        #[ts(export, rename_all = "camelCase")]
         $task_vis struct $task_name {
             $($(#[$field_meta])* pub $field_name: $field_type,)*
             pub subscriber_id: i32,

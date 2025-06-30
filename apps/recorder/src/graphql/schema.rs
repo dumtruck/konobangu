@@ -59,27 +59,24 @@ pub fn build_schema(
 ) -> Result<Schema, SchemaError> {
     let database = app_ctx.db().as_ref().clone();
 
-    let context = CONTEXT.get_or_init(|| {
+    let context = Arc::new({
         let mut context = BuilderContext::default();
-
+        // basic
         renormalize_filter_field_names_to_schema_context(&mut context);
         renormalize_data_field_names_to_schema_context(&mut context);
-
-        {
-            // domains
-            register_feeds_to_schema_context(&mut context);
-            register_subscribers_to_schema_context(&mut context);
-            register_subscriptions_to_schema_context(&mut context);
-            register_subscriber_tasks_to_schema_context(&mut context);
-            register_credential3rd_to_schema_context(&mut context, app_ctx.clone());
-            register_downloaders_to_schema_context(&mut context);
-            register_downloads_to_schema_context(&mut context);
-            register_episodes_to_schema_context(&mut context);
-            register_subscription_bangumi_to_schema_context(&mut context);
-            register_subscription_episode_to_schema_context(&mut context);
-            register_bangumi_to_schema_context(&mut context);
-            register_cron_to_schema_context(&mut context);
-        }
+        // domains
+        register_feeds_to_schema_context(&mut context);
+        register_subscribers_to_schema_context(&mut context);
+        register_subscriptions_to_schema_context(&mut context);
+        register_subscriber_tasks_to_schema_context(&mut context);
+        register_credential3rd_to_schema_context(&mut context, app_ctx.clone());
+        register_downloaders_to_schema_context(&mut context);
+        register_downloads_to_schema_context(&mut context);
+        register_episodes_to_schema_context(&mut context);
+        register_subscription_bangumi_to_schema_context(&mut context);
+        register_subscription_episode_to_schema_context(&mut context);
+        register_bangumi_to_schema_context(&mut context);
+        register_cron_to_schema_context(&mut context);
         context
     });
 

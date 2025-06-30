@@ -138,30 +138,6 @@ query GetSubscriptionDetail ($id: Int!) {
 }
 `;
 
-export const SYNC_SUBSCRIPTION_FEEDS_INCREMENTAL = gql`
-  mutation SyncSubscriptionFeedsIncremental($data: SubscriberTasksInsertInput!) {
-    subscriberTasksCreateOne(data: $data) {
-      id
-    }
-  }
-`;
-
-export const SYNC_SUBSCRIPTION_FEEDS_FULL = gql`
-  mutation SyncSubscriptionFeedsFull($filter: SubscriptionsFilterInput!) {
-    subscriptionsSyncOneFeedsFull(filter: $filter) {
-      id
-    }
-  }
-`;
-
-export const SYNC_SUBSCRIPTION_SOURCES = gql`
-  mutation SyncSubscriptionSources($filter: SubscriptionsFilterInput!) {
-    subscriptionsSyncOneSources(filter: $filter) {
-      id
-    }
-  }
-`;
-
 export const SubscriptionFormTypedMikanSeasonSchema =
   MikanSubscriptionSeasonSourceUrlSchema.and(
     type({
