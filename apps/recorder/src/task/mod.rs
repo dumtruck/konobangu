@@ -12,10 +12,10 @@ pub use core::{
 pub use config::TaskConfig;
 pub use r#extern::{ApalisJobs, ApalisSchema};
 pub use registry::{
-    OptimizeImageTask, SubscriberTask, SubscriberTaskType, SubscriberTaskTypeEnum,
-    SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter, SyncOneSubscriptionFeedsFullTask,
-    SyncOneSubscriptionFeedsIncrementalTask, SyncOneSubscriptionSourcesTask, SystemTask,
-    SystemTaskType, SystemTaskTypeEnum, SystemTaskTypeVariant, SystemTaskTypeVariantIter,
-    subscriber_task_schema,
+    OptimizeImageTask, SubscriberTask, SubscriberTaskInput, SubscriberTaskType,
+    SubscriberTaskTypeEnum, SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter,
+    SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
+    SyncOneSubscriptionSourcesTask, SystemTask, SystemTaskType, SystemTaskTypeEnum,
+    SystemTaskTypeVariant, SystemTaskTypeVariantIter,
 };
 pub use service::TaskService;

@@ -125,6 +125,7 @@ seaography = { version = "1.1", features = [
     "with-bigdecimal",
     "with-postgres-array",
     "with-json-as-scalar",
+    "with-custom-as-json",
 ] }
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6", features = [
@@ -167,8 +168,7 @@ quick-xml = { version = "0.37.5", features = [
 croner = "2.2.0"
 ts-rs = "11.0.1"
 secrecy = { version = "0.10.3", features = ["serde"] }
-schemars = "1.0.3"
-jsonschema = "0.30.0"
+paste = "1.0.15"
 
 [dev-dependencies]
 inquire = { workspace = true }

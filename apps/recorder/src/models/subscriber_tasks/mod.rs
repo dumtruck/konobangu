@@ -3,8 +3,8 @@ use sea_orm::{ActiveValue, entity::prelude::*};
 
 use crate::task::SubscriberTaskTrait;
 pub use crate::task::{
-    SubscriberTask, SubscriberTaskType, SubscriberTaskTypeEnum, SubscriberTaskTypeVariant,
-    SubscriberTaskTypeVariantIter, subscriber_task_schema,
+    SubscriberTask, SubscriberTaskInput, SubscriberTaskType, SubscriberTaskTypeEnum,
+    SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay)]

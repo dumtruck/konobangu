@@ -32,6 +32,7 @@ import {
 } from '@tanstack/react-router';
 import { format } from 'date-fns';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
@@ -103,6 +104,16 @@ function TaskDetailRouteComponent() {
       });
     },
   });
+
+  const job = useMemo(() => {
+    if (!task) {
+      return null;
+    }
+    return {
+      ...task.job,
+      subscription: task.subscription,
+    };
+  }, [task]);
 
   if (loading) {
     return <DetailCardSkeleton />;
@@ -247,14 +258,14 @@ function TaskDetailRouteComponent() {
             </div>
 
             {/* Job Details */}
-            {task.job && (
+            {job && (
               <>
                 <Separator />
                 <div className="space-y-2">
                   <Label className="font-medium text-sm">Job Details</Label>
                   <div className="rounded-md bg-muted p-3">
                     <pre className="overflow-x-auto whitespace-pre-wrap text-sm">
-                      <code>{JSON.stringify(task.job, null, 2)}</code>
+                      <code>{JSON.stringify(job, null, 2)}</code>
                     </pre>
                   </div>
                 </div>

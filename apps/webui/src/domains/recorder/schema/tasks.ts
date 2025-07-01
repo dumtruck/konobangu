@@ -1,6 +1,5 @@
 import type { GetTasksQuery } from '@/infra/graphql/gql/graphql';
 import { gql } from '@apollo/client';
-import type { SubscriberTask } from 'recorder/bindings/SubscriberTask';
 
 export const GET_TASKS = gql`
   query GetTasks($filter: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {
@@ -21,7 +20,11 @@ export const GET_TASKS = gql`
         lockAt,
         lockBy,
         doneAt,
-        priority
+        priority,
+        subscription {
+          displayName
+          sourceUrl
+        }
       }
       paginationInfo {
         total
@@ -64,11 +67,4 @@ export const RETRY_TASKS = gql`
   }
 `;
 
-export type SubscriberTaskInsertDto = Omit<SubscriberTask, 'subscriberId'>;
-
-export type TaskDto = Omit<
-  GetTasksQuery['subscriberTasks']['nodes'][number],
-  'job'
-> & {
-  job: SubscriberTask;
-};
+export type TaskDto = GetTasksQuery['subscriberTasks']['nodes'][number];

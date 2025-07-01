@@ -105,10 +105,10 @@ pub fn register_credential3rd_to_schema_builder(
     {
         let check_available_mutation_name = get_entity_custom_mutation_field_name::<
             credential_3rd::Entity,
-        >(&builder_context, "CheckAvailable");
+        >(builder_context, "CheckAvailable");
         let check_available_mutation =
             generate_entity_filtered_mutation_field::<credential_3rd::Entity, _, _>(
-                builder_context.clone(),
+                builder_context,
                 check_available_mutation_name,
                 TypeRef::named_nn(Credential3rdCheckAvailableInfo::object_type_name()),
                 Arc::new(|_resolver_ctx, app_ctx, filters| {

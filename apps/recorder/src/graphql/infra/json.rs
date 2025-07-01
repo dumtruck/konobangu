@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_graphql::{
     Error as GraphqlError,
     dynamic::{ResolverContext, Scalar, SchemaError},
@@ -7,7 +5,6 @@ use async_graphql::{
 };
 use convert_case::Case;
 use itertools::Itertools;
-use jsonschema::Validator;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use sea_orm::{
     Condition, EntityTrait,
@@ -946,16 +943,20 @@ where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
+    let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.filter_types.overwrites.insert(
         get_entity_and_column_name::<T>(context, column),
         Some(FilterType::Custom(JSONB_FILTER_NAME.to_string())),
+    );
+    context.filter_types.condition_functions.insert(
+        entity_column_name.clone(),
+        generate_jsonb_filter_condition_function::<T>(context, column),
     );
 }
 
 pub fn try_convert_jsonb_input_for_entity<T, S>(
     context: &mut BuilderContext,
     column: &T::Column,
-    validator: &'static Validator,
     case: Option<Case<'static>>,
 ) where
     T: EntityTrait,
@@ -965,19 +966,14 @@ pub fn try_convert_jsonb_input_for_entity<T, S>(
     let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.types.input_conversions.insert(
         entity_column_name.clone(),
-        Arc::new(move |_resolve_context, accessor| {
-            let mut json_value = accessor.as_value().clone().into_json().map_err(|err| {
-                SeaographyError::TypeConversionError(
-                    err.to_string(),
-                    format!("Json - {entity_column_name}"),
-                )
-            })?;
+        Box::new(move |_resolve_context, accessor| {
+            let mut json_value: serde_json::Value = accessor.deserialize()?;
 
             if let Some(case) = case {
                 json_value = convert_json_keys(json_value, case);
             }
 
-            validator.validate(&json_value).map_err(|err| {
+            serde_json::from_value::<S>(json_value.clone()).map_err(|err| {
                 SeaographyError::TypeConversionError(
                     err.to_string(),
                     format!("Json - {entity_column_name}"),
@@ -997,10 +993,10 @@ pub fn convert_jsonb_output_for_entity<T>(
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
 {
-    let entity_column_key = get_entity_and_column_name::<T>(context, column);
+    let entity_column_name = get_entity_and_column_name::<T>(context, column);
     context.types.output_conversions.insert(
-        entity_column_key.clone(),
-        Arc::new(move |value| {
+        entity_column_name.clone(),
+        Box::new(move |value| {
             if let sea_orm::Value::Json(Some(json)) = value {
                 let mut json_value = json.as_ref().clone();
                 if let Some(case) = case {
@@ -1009,14 +1005,14 @@ pub fn convert_jsonb_output_for_entity<T>(
                 let result = async_graphql::Value::from_json(json_value).map_err(|err| {
                     SeaographyError::TypeConversionError(
                         err.to_string(),
-                        format!("Json - {entity_column_key}"),
+                        format!("Json - {entity_column_name}"),
                     )
                 })?;
                 Ok(result)
             } else {
                 Err(SeaographyError::TypeConversionError(
                     "value should be json".to_string(),
-                    format!("Json - {entity_column_key}"),
+                    format!("Json - {entity_column_name}"),
                 ))
             }
         }),

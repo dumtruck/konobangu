@@ -1,4 +1,3 @@
-use convert_case::Case;
 use sea_orm::Iterable;
 use seaography::{Builder as SeaographyBuilder, BuilderContext};
 
@@ -44,11 +43,7 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
 pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<cron::Entity>(context, &cron::Column::SubscriberId);
 
-    restrict_subscriber_tasks_for_entity::<cron::Entity>(
-        context,
-        &cron::Column::SubscriberTask,
-        Some(Case::Snake),
-    );
+    restrict_subscriber_tasks_for_entity::<cron::Entity>(context, &cron::Column::SubscriberTask);
     skip_columns_for_entity_input(context);
 }
 

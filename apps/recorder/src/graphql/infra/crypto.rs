@@ -16,7 +16,7 @@ pub fn register_crypto_column_input_conversion_to_schema_context<T>(
 {
     context.types.input_conversions.insert(
         get_entity_and_column_name::<T>(context, column),
-        Arc::new(
+        Box::new(
             move |_resolve_context: &ResolverContext<'_>,
                   value: &ValueAccessor|
                   -> SeaResult<sea_orm::Value> {
@@ -38,7 +38,7 @@ pub fn register_crypto_column_output_conversion_to_schema_context<T>(
 {
     context.types.output_conversions.insert(
         get_entity_and_column_name::<T>(context, column),
-        Arc::new(
+        Box::new(
             move |value: &sea_orm::Value| -> SeaResult<async_graphql::Value> {
                 if let SeaValue::String(s) = value {
                     if let Some(s) = s {

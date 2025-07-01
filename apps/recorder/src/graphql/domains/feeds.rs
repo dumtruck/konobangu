@@ -29,7 +29,7 @@ pub fn register_feeds_to_schema_context(context: &mut BuilderContext) {
 
         context.types.input_none_conversions.insert(
             get_entity_and_column_name::<feeds::Entity>(context, &feeds::Column::Token),
-            Arc::new(
+            Box::new(
                 move |context: &ResolverContext| -> SeaResult<Option<SeaValue>> {
                     let field_name = context.field().name();
                     if field_name == entity_create_one_mutation_field_name.as_str()

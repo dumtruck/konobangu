@@ -87,6 +87,4 @@ nanoid = "0.4.0"
 webp = "0.3.0"
 
 [patch.crates-io]
-# seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "395d50f" }
-
-seaography = { path = "../seaography" }
+seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "9f7fc7c" }

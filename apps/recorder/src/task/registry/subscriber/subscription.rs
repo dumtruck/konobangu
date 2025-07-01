@@ -1,5 +1,4 @@
 use sea_orm::prelude::*;
-use serde::{Deserialize, Serialize};
 
 use super::base::register_subscriber_task_type;
 use crate::{errors::RecorderResult, models::subscriptions::SubscriptionTrait};
@@ -40,7 +39,7 @@ macro_rules! register_subscription_task_type {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct SyncOneSubscriptionFeedsIncrementalTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_feeds_incremental(ctx).await?;
@@ -49,7 +48,7 @@ register_subscription_task_type! {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct SyncOneSubscriptionFeedsFullTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_feeds_full(ctx).await?;
@@ -58,7 +57,7 @@ register_subscription_task_type! {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq, Eq)]
     pub struct SyncOneSubscriptionSourcesTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_sources(ctx).await?;

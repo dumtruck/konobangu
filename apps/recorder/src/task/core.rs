@@ -42,9 +42,13 @@ where
 }
 
 pub trait SubscriberTaskTrait: AsyncTaskTrait {
+    type InputType: Serialize + DeserializeOwned + Sized + Send;
+
     fn get_subscriber_id(&self) -> i32;
 
     fn get_cron_id(&self) -> Option<i32>;
+
+    fn from_input(input: Self::InputType, subscriber_id: i32) -> Self;
 }
 
 pub trait SystemTaskTrait: AsyncTaskTrait {}

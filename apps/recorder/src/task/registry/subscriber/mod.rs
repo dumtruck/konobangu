@@ -1,22 +1,17 @@
 mod base;
 mod subscription;
 
-use jsonschema::Validator;
-use once_cell::sync::OnceCell;
-use schemars::JsonSchema;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
-use serde::{Deserialize, Serialize};
 pub use subscription::{
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
     SyncOneSubscriptionSourcesTask,
 };
-use ts_rs::TS;
 
 macro_rules! register_subscriber_task_types {
     (
         task_type_enum: {
             $(#[$type_enum_meta:meta])*
-            pub enum $type_enum_name:ident {
+            $type_vis:vis enum $type_enum_name:ident {
                 $(
                     $(#[$variant_meta:meta])*
                     $variant:ident => $string_value:literal
@@ -25,7 +20,7 @@ macro_rules! register_subscriber_task_types {
         },
         task_enum: {
             $(#[$task_enum_meta:meta])*
-            pub enum $task_enum_name:ident {
+            $task_vis:vis enum $task_enum_name:ident {
                 $(
                     $(#[$task_variant_meta:meta])*
                     $task_variant:ident($task_type:ty)
@@ -34,8 +29,9 @@ macro_rules! register_subscriber_task_types {
         }
     ) => {
         $(#[$type_enum_meta])*
+        #[derive(serde::Serialize, serde::Deserialize)]
         #[sea_orm(rs_type = "String", db_type = "Text")]
-        pub enum $type_enum_name {
+        $type_vis enum $type_enum_name {
             $(
                 $(#[$variant_meta])*
                 #[serde(rename = $string_value)]
@@ -46,14 +42,29 @@ macro_rules! register_subscriber_task_types {
 
 
         $(#[$task_enum_meta])*
+        #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize)]
         #[serde(tag = "task_type")]
-        #[ts(export, rename_all = "camelCase", tag = "taskType")]
-        pub enum $task_enum_name {
+        #[ts(export,rename = "SubscriberTaskType", rename_all = "camelCase", tag = "taskType")]
+        $task_vis enum $task_enum_name {
             $(
                 $(#[$task_variant_meta])*
                 #[serde(rename = $string_value)]
                 $task_variant($task_type),
             )*
+        }
+
+        paste::paste! {
+            $(#[$task_enum_meta])*
+            #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize)]
+            #[serde(tag = "taskType", rename_all = "camelCase")]
+            #[ts(export,rename_all = "camelCase", tag = "taskType")]
+            $task_vis enum [<$task_enum_name Input>] {
+                $(
+                    $(#[$task_variant_meta])*
+                    #[serde(rename = $string_value)]
+                    $task_variant(<$task_type as $crate::task::SubscriberTaskTrait>::InputType),
+                )*
+            }
         }
 
         impl TryFrom<$task_enum_name> for serde_json::Value {
@@ -92,6 +103,10 @@ macro_rules! register_subscriber_task_types {
         }
 
         impl $crate::task::SubscriberTaskTrait for $task_enum_name {
+            paste::paste! {
+                type InputType = [<$task_enum_name Input>];
+            }
+
             fn get_subscriber_id(&self) -> i32 {
                 match self {
                     $(Self::$task_variant(t) =>
@@ -104,6 +119,14 @@ macro_rules! register_subscriber_task_types {
                     $(Self::$task_variant(t) =>
                         <$task_type as $crate::task::SubscriberTaskTrait>::get_cron_id(t),)*
                 }
+            }
+
+            fn from_input(input: Self::InputType, subscriber_id: i32) -> Self {
+                match input {
+                    $(Self::InputType::$task_variant(t) =>
+                        Self::$task_variant(<$task_type as $crate::task::SubscriberTaskTrait>::from_input(t, subscriber_id)),)*
+                }
+
             }
         }
 
@@ -122,8 +145,6 @@ register_subscriber_task_types!(
         #[derive(
             Clone,
             Debug,
-            Serialize,
-            Deserialize,
             PartialEq,
             Eq,
             Copy,
@@ -138,7 +159,7 @@ register_subscriber_task_types!(
         }
     },
     task_enum: {
-        #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, FromJsonQueryResult, JsonSchema, TS)]
+        #[derive(Clone, Debug, PartialEq, Eq, FromJsonQueryResult)]
         pub enum SubscriberTask {
             SyncOneSubscriptionFeedsIncremental(SyncOneSubscriptionFeedsIncrementalTask),
             SyncOneSubscriptionFeedsFull(SyncOneSubscriptionFeedsFullTask),
@@ -146,15 +167,3 @@ register_subscriber_task_types!(
         }
     }
 );
-
-static SUBSCRIBER_TASK_SCHEMA: OnceCell<Validator> = OnceCell::new();
-
-pub fn subscriber_task_schema() -> &'static Validator {
-    SUBSCRIBER_TASK_SCHEMA.get_or_init(|| {
-        let schema = schemars::schema_for!(SubscriberTask);
-        jsonschema::options()
-            .with_draft(jsonschema::Draft::Draft7)
-            .build(&serde_json::to_value(&schema).unwrap())
-            .unwrap()
-    })
-}
