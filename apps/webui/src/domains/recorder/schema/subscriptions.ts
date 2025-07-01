@@ -83,10 +83,8 @@ export const DELETE_SUBSCRIPTIONS = gql`
 `;
 
 export const GET_SUBSCRIPTION_DETAIL = gql`
-query GetSubscriptionDetail ($id: Int!) {
-  subscriptions(filter: { id: {
-    eq: $id
-  } }) {
+query GetSubscriptionDetail ($filter: SubscriptionsFilterInput!) {
+  subscriptions(filter: $filter) {
     nodes {
       id
       subscriberId
@@ -106,7 +104,15 @@ query GetSubscriptionDetail ($id: Int!) {
            feedSource
         }
       }
-      subscriberTask {
+      subscriberTask(pagination: {
+            page: {
+                page: 0,
+                limit: 3,
+            }
+        },
+        orderBy: {
+          runAt: DESC,
+        }) {
         nodes {
             id
             taskType
@@ -117,7 +123,15 @@ query GetSubscriptionDetail ($id: Int!) {
          id
          username
       }
-      cron {
+      cron (pagination: {
+        page: {
+          page: 0,
+          limit: 3,
+        }
+      },
+      orderBy: {
+          createdAt: DESC,
+        }) {
         nodes {
             id
             cronExpr

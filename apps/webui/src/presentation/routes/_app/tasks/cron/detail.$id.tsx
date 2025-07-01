@@ -1,6 +1,5 @@
 import { useQuery } from '@apollo/client';
 import { createFileRoute } from '@tanstack/react-router';
-import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -153,7 +152,7 @@ function CronDetailRouteComponent() {
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
                       {cron.nextRun
-                        ? format(new Date(cron.nextRun), 'yyyy-MM-dd HH:mm:ss')
+                        ? intlService.formatDatetimeWithTz(cron.nextRun)
                         : '-'}
                     </span>
                   </div>
@@ -164,7 +163,7 @@ function CronDetailRouteComponent() {
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
                       {cron.lastRun
-                        ? format(new Date(cron.lastRun), 'yyyy-MM-dd HH:mm:ss')
+                        ? intlService.formatDatetimeWithTz(cron.lastRun)
                         : '-'}
                     </span>
                   </div>
@@ -175,7 +174,7 @@ function CronDetailRouteComponent() {
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
                       {cron.lockedAt
-                        ? format(new Date(cron.lockedAt), 'yyyy-MM-dd HH:mm:ss')
+                        ? intlService.formatDatetimeWithTz(cron.lockedAt)
                         : '-'}
                     </span>
                   </div>
@@ -201,10 +200,7 @@ function CronDetailRouteComponent() {
                   <Label className="font-medium text-sm">Created at</Label>
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
-                      {intlService.formatTimestamp(
-                        cron.createdAt,
-                        'yyyy-MM-dd HH:mm:ss'
-                      )}
+                      {intlService.formatDatetimeWithTz(cron.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -213,30 +209,11 @@ function CronDetailRouteComponent() {
                   <Label className="font-medium text-sm">Updated at</Label>
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
-                      {format(new Date(cron.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+                      {intlService.formatDatetimeWithTz(cron.updatedAt)}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Cron Expression Display */}
-              {cron.cronExpr && (
-                <>
-                  <Separator />
-                  <div className="space-y-2">
-                    <Label className="font-medium text-sm">
-                      Cron expression
-                    </Label>
-                    <CronDisplay
-                      expression={cron.cronExpr}
-                      timezone="UTC"
-                      showDescription={true}
-                      showNextRuns={true}
-                      withCard={false}
-                    />
-                  </div>
-                </>
-              )}
 
               {/* Subscriber Task Details */}
               {subscriberTaskCron && (
@@ -253,6 +230,25 @@ function CronDetailRouteComponent() {
                         </code>
                       </pre>
                     </div>
+                  </div>
+                </>
+              )}
+
+              {/* Cron Expression Display */}
+              {cron.cronExpr && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">
+                      Cron expression
+                    </Label>
+                    <CronDisplay
+                      expression={cron.cronExpr}
+                      timezone="UTC"
+                      showDescription={true}
+                      showNextRuns={true}
+                      withCard={false}
+                    />
                   </div>
                 </>
               )}
@@ -277,11 +273,11 @@ function CronDetailRouteComponent() {
                               <Badge variant="outline">{task.status}</Badge>
                             </div>
                             <div className="mt-2 text-muted-foreground text-sm">
-                              Priority: {task.priority} | Retry: {task.attempts}
-                              /{task.maxAttempts}
+                              Priority: {task.priority} | Attempts:{' '}
+                              {task.attempts}/{task.maxAttempts}
                             </div>
                             {task.subscription && (
-                              <div className="mt-1 text-sm">
+                              <div className="mt-2 text-sm">
                                 <span className="font-medium">
                                   Subscription:
                                 </span>{' '}

@@ -1,3 +1,18 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
+} from '@tanstack/react-table';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ContainerHeader } from '@/components/ui/container-header';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
@@ -22,31 +37,19 @@ import {
   type SubscriptionDto,
   UPDATE_SUBSCRIPTIONS,
 } from '@/domains/recorder/schema/subscriptions';
+import { useInject } from '@/infra/di/inject';
 import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from '@/infra/errors/apollo';
-import type { GetSubscriptionsQuery } from '@/infra/graphql/gql/graphql';
+import type {
+  GetSubscriptionsQuery,
+  GetSubscriptionsQueryVariables,
+} from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { cn } from '@/presentation/utils';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { useNavigate } from '@tanstack/react-router';
-import {
-  type ColumnDef,
-  type PaginationState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { SubscriptionTaskCreationDialogContent } from './-task-creation';
 
 export const Route = createFileRoute('/_app/subscriptions/manage')({
@@ -58,6 +61,7 @@ export const Route = createFileRoute('/_app/subscriptions/manage')({
 
 function SubscriptionManageRouteComponent() {
   const navigate = useNavigate();
+  const intlService = useInject(IntlService);
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     createdAt: false,
@@ -69,7 +73,12 @@ function SubscriptionManageRouteComponent() {
     pageSize: 10,
   });
 
-  const { loading, error, data, refetch } = useQuery<GetSubscriptionsQuery>(
+  const {
+    loading,
+    error: subscriptionsError,
+    data,
+    refetch,
+  } = useQuery<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>(
     GET_SUBSCRIPTIONS,
     {
       variables: {
@@ -138,11 +147,11 @@ function SubscriptionManageRouteComponent() {
             <div className="px-1">
               <Switch
                 checked={enabled}
-                onCheckedChange={(enabled) =>
+                onCheckedChange={(checked) =>
                   updateSubscription({
                     variables: {
                       data: {
-                        enabled,
+                        enabled: checked,
                       },
                       filter: {
                         id: {
@@ -189,7 +198,7 @@ function SubscriptionManageRouteComponent() {
           const createdAt = row.original.createdAt;
           return (
             <div className="text-sm">
-              {format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+              {intlService.formatDatetimeWithTz(createdAt)}
             </div>
           );
         },
@@ -201,7 +210,7 @@ function SubscriptionManageRouteComponent() {
           const updatedAt = row.original.updatedAt;
           return (
             <div className="text-sm">
-              {format(new Date(updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+              {intlService.formatDatetimeWithTz(updatedAt)}
             </div>
           );
         },
@@ -247,7 +256,12 @@ function SubscriptionManageRouteComponent() {
       },
     ];
     return cs;
-  }, [updateSubscription, deleteSubscription, navigate]);
+  }, [
+    updateSubscription,
+    deleteSubscription,
+    navigate,
+    intlService.formatDatetimeWithTz,
+  ]);
 
   const table = useReactTable({
     data: useMemo(() => subscriptions?.nodes ?? [], [subscriptions]),
@@ -274,8 +288,10 @@ function SubscriptionManageRouteComponent() {
     },
   });
 
-  if (error) {
-    return <QueryErrorView message={error.message} onRetry={refetch} />;
+  if (subscriptionsError) {
+    return (
+      <QueryErrorView message={subscriptionsError.message} onRetry={refetch} />
+    );
   }
 
   return (

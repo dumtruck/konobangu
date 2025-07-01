@@ -1,6 +1,6 @@
-import type { ProLinkProps } from '@/components/ui/pro-link';
 import { type } from 'arktype';
 import type { LucideIcon } from 'lucide-react';
+import type { ProLinkProps } from '@/components/ui/pro-link';
 
 export interface NavMainItem {
   link?: ProLinkProps;

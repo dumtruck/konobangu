@@ -12,7 +12,10 @@ export class IntlService {
     return this.Intl.DateTimeFormat().resolvedOptions().timeZone;
   }
 
-  formatTimestamp(timestamp: number, options?: Intl.DateTimeFormatOptions) {
+  formatDatetimeWithTz(
+    timestamp: number | string | Date,
+    options?: Intl.DateTimeFormatOptions
+  ) {
     const defaultOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',
       month: '2-digit',

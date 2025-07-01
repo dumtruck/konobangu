@@ -1,3 +1,7 @@
+import { useQuery } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { CheckIcon, Edit, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,13 +19,10 @@ import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
 import { GET_CREDENTIAL_3RD_DETAIL } from '@/domains/recorder/schema/credential3rd';
+import { useInject } from '@/infra/di/inject';
 import type { GetCredential3rdDetailQuery } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { format } from 'date-fns/format';
-import { CheckIcon, Edit, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 import { Credential3rdCheckAvailableViewDialogContent } from './-check-available';
 
 export const Route = createFileRoute('/_app/credential3rd/detail/$id')({
@@ -34,6 +35,7 @@ export const Route = createFileRoute('/_app/credential3rd/detail/$id')({
 function Credential3rdDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const intlService = useInject(IntlService);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,7 +43,7 @@ function Credential3rdDetailRouteComponent() {
     GET_CREDENTIAL_3RD_DETAIL,
     {
       variables: {
-        id: Number.parseInt(id),
+        id: Number.parseInt(id, 10),
       },
     }
   );
@@ -177,10 +179,7 @@ function Credential3rdDetailRouteComponent() {
                 <Label className="font-medium text-sm">Created at</Label>
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
-                    {format(
-                      new Date(credential.createdAt),
-                      'yyyy-MM-dd HH:mm:ss'
-                    )}
+                    {intlService.formatDatetimeWithTz(credential.createdAt)}
                   </span>
                 </div>
               </div>
@@ -189,10 +188,7 @@ function Credential3rdDetailRouteComponent() {
                 <Label className="font-medium text-sm">Updated at</Label>
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
-                    {format(
-                      new Date(credential.updatedAt),
-                      'yyyy-MM-dd HH:mm:ss'
-                    )}
+                    {intlService.formatDatetimeWithTz(credential.updatedAt)}
                   </span>
                 </div>
               </div>

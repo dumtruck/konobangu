@@ -1,3 +1,20 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { Dialog } from '@radix-ui/react-dialog';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
+  type Row,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
+} from '@tanstack/react-table';
+import { Eye, EyeOff, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ContainerHeader } from '@/components/ui/container-header';
@@ -21,33 +38,17 @@ import {
   DELETE_CREDENTIAL_3RD,
   GET_CREDENTIAL_3RD,
 } from '@/domains/recorder/schema/credential3rd';
+import { useInject } from '@/infra/di/inject';
 import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from '@/infra/errors/apollo';
 import type { GetCredential3rdQuery } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { useEvent } from '@/presentation/hooks/use-event';
 import { cn } from '@/presentation/utils';
-import { useMutation, useQuery } from '@apollo/client';
-import { Dialog } from '@radix-ui/react-dialog';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import {
-  type ColumnDef,
-  type PaginationState,
-  type Row,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Eye, EyeOff, Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { Credential3rdCheckAvailableViewDialogContent } from './-check-available';
 
 export const Route = createFileRoute('/_app/credential3rd/manage')({
@@ -59,6 +60,7 @@ export const Route = createFileRoute('/_app/credential3rd/manage')({
 
 function CredentialManageRouteComponent() {
   const navigate = useNavigate();
+  const intlService = useInject(IntlService);
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     createdAt: false,
@@ -94,18 +96,18 @@ function CredentialManageRouteComponent() {
   const [deleteCredential] = useMutation(DELETE_CREDENTIAL_3RD, {
     onCompleted: async () => {
       const refetchResult = await refetch();
-      const error = getApolloQueryError(refetchResult);
-      if (error) {
+      const e = getApolloQueryError(refetchResult);
+      if (e) {
         toast.error('Failed to delete credential', {
-          description: apolloErrorToMessage(error),
+          description: apolloErrorToMessage(e),
         });
         return;
       }
       toast.success('Credential deleted');
     },
-    onError: (error) => {
+    onError: (e) => {
       toast.error('Failed to delete credential', {
-        description: error.message,
+        description: e.message,
       });
     },
   });
@@ -212,7 +214,7 @@ function CredentialManageRouteComponent() {
           const createdAt = row.original.createdAt;
           return (
             <div className="text-sm">
-              {format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+              {intlService.formatDatetimeWithTz(createdAt)}
             </div>
           );
         },
@@ -224,7 +226,7 @@ function CredentialManageRouteComponent() {
           const updatedAt = row.original.updatedAt;
           return (
             <div className="text-sm">
-              {format(new Date(updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+              {intlService.formatDatetimeWithTz(updatedAt)}
             </div>
           );
         },
@@ -266,7 +268,13 @@ function CredentialManageRouteComponent() {
       },
     ];
     return cs;
-  }, [handleDeleteRecord, navigate, showPasswords, togglePasswordVisibility]);
+  }, [
+    handleDeleteRecord,
+    navigate,
+    showPasswords,
+    togglePasswordVisibility,
+    intlService.formatDatetimeWithTz,
+  ]);
 
   const table = useReactTable({
     data: useMemo(() => credentials?.nodes ?? [], [credentials]),

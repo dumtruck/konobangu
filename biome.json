@@ -31,6 +31,9 @@
       "a11y": {
         "noSvgWithoutTitle": "off"
       },
+      "performance": {
+        "noNamespaceImport": "off"
+      },
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "warn",

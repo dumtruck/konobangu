@@ -1,4 +1,3 @@
-import type { NavMainGroup } from '@/infra/routes/nav';
 import {
   BookOpen,
   Folders,
@@ -9,6 +8,7 @@ import {
   Telescope,
   Tv,
 } from 'lucide-react';
+import type { NavMainGroup } from '@/infra/routes/nav';
 
 export const AppNavMainData: NavMainGroup[] = [
   {
@@ -49,13 +49,13 @@ export const AppNavMainData: NavMainGroup[] = [
           {
             title: 'Manage',
             link: {
-              to: '/bangumi/recorder',
+              to: '/bangumi',
             },
           },
           {
             title: 'Feed',
             link: {
-              to: '/bangumi/feed',
+              to: '/bangumi',
             },
           },
         ],

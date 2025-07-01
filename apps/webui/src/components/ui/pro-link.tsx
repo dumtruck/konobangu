@@ -1,20 +1,32 @@
-import { type LinkComponent, createLink } from "@tanstack/react-router";
-import type { AnchorHTMLAttributes, ComponentProps } from "react";
+import { createLink, type LinkComponentProps } from "@tanstack/react-router";
+import type { AnchorHTMLAttributes } from "react";
 
 export interface BasicLinkProps
-  extends AnchorHTMLAttributes<HTMLAnchorElement> {}
+  extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
+  href: string;
+  to?: undefined;
+}
 
-const BasicLinkComponent = (props: ComponentProps<"a">) => {
+const BasicLinkComponent = (props: BasicLinkProps) => {
   return <a {...props} />;
 };
 
 const CreatedLinkComponent = createLink(BasicLinkComponent);
 
-export const ProLink: LinkComponent<typeof BasicLinkComponent> = (props) => {
+export const ProLink = (
+  props: LinkComponentProps<typeof BasicLinkComponent> | BasicLinkProps
+) => {
   if (props.href) {
     return <BasicLinkComponent {...(props as any)} />;
   }
-  return <CreatedLinkComponent preload={"intent"} {...props} />;
+  return (
+    <CreatedLinkComponent
+      preload={"intent"}
+      {...(props as LinkComponentProps<typeof BasicLinkComponent>)}
+    />
+  );
 };
 
-export type ProLinkProps = ComponentProps<typeof ProLink>;
+export type ProLinkProps =
+  | LinkComponentProps<typeof BasicLinkComponent>
+  | BasicLinkProps;

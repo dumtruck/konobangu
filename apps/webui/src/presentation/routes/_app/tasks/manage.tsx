@@ -1,7 +1,23 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
+} from '@tanstack/react-table';
+import { RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +27,11 @@ import {
   RETRY_TASKS,
   type TaskDto,
 } from '@/domains/recorder/schema/tasks';
+import { useInject } from '@/infra/di/inject';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import {
   type DeleteTasksMutation,
   type DeleteTasksMutationVariables,
@@ -20,30 +41,9 @@ import {
   type RetryTasksMutationVariables,
   SubscriberTaskStatusEnum,
 } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import {
-  type ColumnDef,
-  type PaginationState,
-  type SortingState,
-  type VisibilityState,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
-
-import { ContainerHeader } from '@/components/ui/container-header';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import {
-  apolloErrorToMessage,
-  getApolloQueryError,
-} from '@/infra/errors/apollo';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
 
@@ -64,10 +64,14 @@ function TaskManageRouteComponent() {
     pageSize: 10,
   });
 
-  const { loading, error, data, refetch } = useQuery<
-    GetTasksQuery,
-    GetTasksQueryVariables
-  >(GET_TASKS, {
+  const intlService = useInject(IntlService);
+
+  const {
+    loading,
+    error: tasksError,
+    data,
+    refetch,
+  } = useQuery<GetTasksQuery, GetTasksQueryVariables>(GET_TASKS, {
     variables: {
       pagination: {
         page: {
@@ -168,8 +172,8 @@ function TaskManageRouteComponent() {
     },
   });
 
-  if (error) {
-    return <QueryErrorView message={error.message} onRetry={refetch} />;
+  if (tasksError) {
+    return <QueryErrorView message={tasksError.message} onRetry={refetch} />;
   }
 
   return (
@@ -262,14 +266,14 @@ function TaskManageRouteComponent() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-muted-foreground">Run at: </span>
-                    <span>{format(new Date(task.runAt), 'MM/dd HH:mm')}</span>
+                    <span>{intlService.formatDatetimeWithTz(task.runAt)}</span>
                   </div>
 
                   <div>
                     <span className="text-muted-foreground">Done: </span>
                     <span>
                       {task.doneAt
-                        ? format(new Date(task.doneAt), 'MM/dd HH:mm')
+                        ? intlService.formatDatetimeWithTz(task.doneAt)
                         : '-'}
                     </span>
                   </div>
@@ -287,7 +291,7 @@ function TaskManageRouteComponent() {
                     <span className="text-muted-foreground">Lock at: </span>
                     <span>
                       {task.lockAt
-                        ? format(new Date(task.lockAt), 'MM/dd HH:mm')
+                        ? intlService.formatDatetimeWithTz(task.lockAt)
                         : '-'}
                     </span>
                   </div>

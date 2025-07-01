@@ -9,7 +9,6 @@ import {
   useReactTable,
   type VisibilityState,
 } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,6 +25,7 @@ import {
   DELETE_CRONS,
   GET_CRONS,
 } from '@/domains/recorder/schema/cron';
+import { useInject } from '@/infra/di/inject';
 import {
   apolloErrorToMessage,
   getApolloQueryError,
@@ -37,6 +37,7 @@ import {
   type GetCronsQuery,
   type GetCronsQueryVariables,
 } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
 import { getStatusBadge } from './-status-badge';
@@ -50,6 +51,7 @@ export const Route = createFileRoute('/_app/tasks/cron/manage')({
 
 function TaskCronManageRouteComponent() {
   const navigate = useNavigate();
+  const intlService = useInject(IntlService);
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -224,7 +226,7 @@ function TaskCronManageRouteComponent() {
                     <span className="text-muted-foreground">Next run: </span>
                     <span>
                       {cron.nextRun
-                        ? format(new Date(cron.nextRun), 'MM/dd HH:mm')
+                        ? intlService.formatDatetimeWithTz(cron.nextRun)
                         : '-'}
                     </span>
                   </div>
@@ -233,7 +235,7 @@ function TaskCronManageRouteComponent() {
                     <span className="text-muted-foreground">Last run: </span>
                     <span>
                       {cron.lastRun
-                        ? format(new Date(cron.lastRun), 'MM/dd HH:mm')
+                        ? intlService.formatDatetimeWithTz(cron.lastRun)
                         : '-'}
                     </span>
                   </div>
@@ -251,7 +253,7 @@ function TaskCronManageRouteComponent() {
                     <span className="text-muted-foreground">Lock at: </span>
                     <span>
                       {cron.lockedAt
-                        ? format(new Date(cron.lockedAt), 'MM/dd HH:mm')
+                        ? intlService.formatDatetimeWithTz(cron.lockedAt)
                         : '-'}
                     </span>
                   </div>

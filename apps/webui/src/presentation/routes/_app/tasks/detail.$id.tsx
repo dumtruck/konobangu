@@ -1,3 +1,8 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute } from '@tanstack/react-router';
+import { RefreshCw } from 'lucide-react';
+import { useMemo } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,8 +19,11 @@ import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
 import { GET_TASKS, RETRY_TASKS } from '@/domains/recorder/schema/tasks';
-import { getApolloQueryError } from '@/infra/errors/apollo';
-import { apolloErrorToMessage } from '@/infra/errors/apollo';
+import { useInject } from '@/infra/di/inject';
+import {
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
 import {
   type GetTasksQuery,
   type GetTasksQueryVariables,
@@ -23,13 +31,8 @@ import {
   type RetryTasksMutationVariables,
   SubscriberTaskStatusEnum,
 } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { format } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
-import { useMemo } from 'react';
-import { toast } from 'sonner';
 import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
 
@@ -43,10 +46,14 @@ export const Route = createFileRoute('/_app/tasks/detail/$id')({
 function TaskDetailRouteComponent() {
   const { id } = Route.useParams();
 
-  const { data, loading, error, refetch } = useQuery<
-    GetTasksQuery,
-    GetTasksQueryVariables
-  >(GET_TASKS, {
+  const intlService = useInject(IntlService);
+
+  const {
+    data,
+    loading,
+    error: taskError,
+    refetch,
+  } = useQuery<GetTasksQuery, GetTasksQueryVariables>(GET_TASKS, {
     variables: {
       filter: {
         id: {
@@ -102,8 +109,8 @@ function TaskDetailRouteComponent() {
     return <DetailCardSkeleton />;
   }
 
-  if (error) {
-    return <QueryErrorView message={error.message} onRetry={refetch} />;
+  if (taskError) {
+    return <QueryErrorView message={taskError.message} onRetry={refetch} />;
   }
 
   if (!task) {
@@ -195,7 +202,7 @@ function TaskDetailRouteComponent() {
                 </Label>
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
-                    {format(new Date(task.runAt), 'yyyy-MM-dd HH:mm:ss')}
+                    {intlService.formatDatetimeWithTz(task.runAt)}
                   </span>
                 </div>
               </div>
@@ -205,7 +212,7 @@ function TaskDetailRouteComponent() {
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
                     {task.doneAt
-                      ? format(new Date(task.doneAt), 'yyyy-MM-dd HH:mm:ss')
+                      ? intlService.formatDatetimeWithTz(task.doneAt)
                       : '-'}
                   </span>
                 </div>
@@ -216,7 +223,7 @@ function TaskDetailRouteComponent() {
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
                     {task.lockAt
-                      ? format(new Date(task.lockAt), 'yyyy-MM-dd HH:mm:ss')
+                      ? intlService.formatDatetimeWithTz(task.lockAt)
                       : '-'}
                   </span>
                 </div>

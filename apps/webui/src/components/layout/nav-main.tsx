@@ -1,7 +1,7 @@
 'use client';
 
+import { useMatches } from '@tanstack/react-router';
 import { ChevronRight } from 'lucide-react';
-
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,13 +27,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import type { NavMainGroup, NavMainItem } from '@/infra/routes/nav';
-import { useMatches } from '@tanstack/react-router';
 
-export function NavMain({
-  groups,
-}: {
-  groups: NavMainGroup[];
-}) {
+export function NavMain({ groups }: { groups: NavMainGroup[] }) {
   const matches = useMatches();
   const { state } = useSidebar();
 

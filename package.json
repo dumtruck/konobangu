@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "description": "Kono bangumi?",
   "license": "MIT",
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "type": "module",
   "repository": {
     "type": "git",
@@ -20,6 +23,7 @@
     "node": ">=24"
   },
   "dependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20250712.1",
     "es-toolkit": "^1.39.6"
   },
   "devDependencies": {

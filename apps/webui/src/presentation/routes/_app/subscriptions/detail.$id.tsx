@@ -1,3 +1,17 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  Edit,
+  ExternalLink,
+  ListIcon,
+  Pause,
+  Play,
+  PlusIcon,
+  RefreshCcwIcon,
+  Trash2,
+} from 'lucide-react';
+import { useMemo } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +27,7 @@ import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Img } from '@/components/ui/img';
 import { Label } from '@/components/ui/label';
+import { ProLink } from '@/components/ui/pro-link';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
 import { UPDATE_CRONS } from '@/domains/recorder/schema/cron';
@@ -33,27 +48,14 @@ import {
   FeedSourceEnum,
   FeedTypeEnum,
   type GetSubscriptionDetailQuery,
+  type GetSubscriptionDetailQueryVariables,
   type InsertFeedMutation,
   type InsertFeedMutationVariables,
   SubscriptionCategoryEnum,
   type UpdateCronsMutation,
   type UpdateCronsMutationVariables,
 } from '@/infra/graphql/gql/graphql';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { format } from 'date-fns';
-import {
-  Edit,
-  ExternalLink,
-  ListIcon,
-  Pause,
-  Play,
-  PlusIcon,
-  RefreshCcwIcon,
-  Trash2,
-} from 'lucide-react';
-import { useMemo } from 'react';
-import { toast } from 'sonner';
+import { IntlService } from '@/infra/intl/intl.service';
 import { prettyTaskType } from '../tasks/-pretty-task-type';
 import { SubscriptionCronCreationDialogContent } from './-cron-creation';
 import { SubscriptionTaskCreationDialogContent } from './-task-creation';
@@ -66,6 +68,7 @@ function SubscriptionDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const subscriptionService = useInject(SubscriptionService);
+  const intlService = useInject(IntlService);
 
   const handleReload = async () => {
     const result = await refetch();
@@ -77,12 +80,23 @@ function SubscriptionDetailRouteComponent() {
     }
   };
 
-  const { data, loading, error, refetch } =
-    useQuery<GetSubscriptionDetailQuery>(GET_SUBSCRIPTION_DETAIL, {
+  const {
+    data,
+    loading,
+    error: subscriptionError,
+    refetch,
+  } = useQuery<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>(
+    GET_SUBSCRIPTION_DETAIL,
+    {
       variables: {
-        id: Number.parseInt(id),
+        filter: {
+          id: {
+            eq: Number.parseInt(id, 10),
+          },
+        },
       },
-    });
+    }
+  );
 
   const handleEnterEditMode = () => {
     navigate({
@@ -203,8 +217,8 @@ function SubscriptionDetailRouteComponent() {
     return <DetailCardSkeleton />;
   }
 
-  if (error) {
-    return <QueryErrorView message={error.message} />;
+  if (subscriptionError) {
+    return <QueryErrorView message={subscriptionError.message} />;
   }
 
   if (!subscription) {
@@ -342,10 +356,7 @@ function SubscriptionDetailRouteComponent() {
                 <Label className="font-medium text-sm">Created at</Label>
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
-                    {format(
-                      new Date(subscription.createdAt),
-                      'yyyy-MM-dd HH:mm:ss'
-                    )}
+                    {intlService.formatDatetimeWithTz(subscription.createdAt)}
                   </span>
                 </div>
               </div>
@@ -354,10 +365,7 @@ function SubscriptionDetailRouteComponent() {
                 <Label className="font-medium text-sm">Updated at</Label>
                 <div className="rounded-md bg-muted p-3">
                   <span className="text-sm">
-                    {format(
-                      new Date(subscription.updatedAt),
-                      'yyyy-MM-dd HH:mm:ss'
-                    )}
+                    {intlService.formatDatetimeWithTz(subscription.updatedAt)}
                   </span>
                 </div>
               </div>
@@ -374,7 +382,7 @@ function SubscriptionDetailRouteComponent() {
                     insertFeed({
                       variables: {
                         data: {
-                          subscriptionId: Number.parseInt(id),
+                          subscriptionId: Number.parseInt(id, 10),
                           feedType: FeedTypeEnum.Rss,
                           feedSource: FeedSourceEnum.SubscriptionEpisode,
                         },
@@ -429,7 +437,7 @@ function SubscriptionDetailRouteComponent() {
                         </code>
 
                         <div className="text-muted-foreground text-xs">
-                          {format(new Date(feed.createdAt), 'MM-dd HH:mm')}
+                          {intlService.formatDatetimeWithTz(feed.createdAt)}
                         </div>
                       </div>
                     </Card>
@@ -684,24 +692,22 @@ function SubscriptionDetailRouteComponent() {
                                 Updated At
                               </Label>
                               <div className="font-mono text-sm">
-                                {format(
-                                  new Date(bangumi.updatedAt),
-                                  'yyyy-MM-dd'
+                                {intlService.formatDatetimeWithTz(
+                                  bangumi.updatedAt
                                 )}
                               </div>
                             </div>
                           </div>
                           {bangumi.homepage && (
                             <div className="mt-3 border-t pt-3">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  window.open(bangumi.homepage!, '_blank')
-                                }
-                              >
-                                <ExternalLink className="mr-2 h-3 w-3" />
-                                Homepage
+                              <Button variant="outline" size="sm" asChild>
+                                <ProLink
+                                  href={bangumi.homepage}
+                                  target="_blank"
+                                >
+                                  <ExternalLink className="mr-2 h-3 w-3" />
+                                  Homepage
+                                </ProLink>
                               </Button>
                             </div>
                           )}
