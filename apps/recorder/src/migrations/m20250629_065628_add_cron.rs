@@ -4,12 +4,17 @@ use sea_orm_migration::{prelude::*, schema::*};
 
 use crate::{
     migrations::defs::{
-        Cron, CustomSchemaManagerExt, GeneralIds, Subscribers, Subscriptions, table_auto_z,
+        ApalisJobs, ApalisSchema, Cron, CustomSchemaManagerExt, GeneralIds, Subscribers,
+        Subscriptions, table_auto_z,
     },
     models::cron::{
         CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT, CronStatus, CronStatusEnum,
         NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME, NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
         SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
+    },
+    task::{
+        SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SUBSCRIBER_TASK_APALIS_NAME,
+        SYSTEM_TASK_APALIS_NAME,
     },
 };
 
@@ -52,6 +57,7 @@ impl MigrationTrait for Migration {
                         CronStatus::iden_values(),
                     ))
                     .col(json_binary_null(Cron::SubscriberTask))
+                    .col(json_binary_null(Cron::SystemTask))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_cron_subscriber_id")
@@ -91,12 +97,22 @@ impl MigrationTrait for Migration {
 
         db.execute_unprepared(&format!(
             r#"CREATE OR REPLACE FUNCTION {SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            DECLARE
+                new_subscriber_task_subscriber_id integer;
+                new_subscriber_task_subscription_id integer;
+                new_system_task_subscriber_id integer;
             BEGIN
-                IF jsonb_path_exists(NEW.{subscriber_task}, '$.subscriber_id ? (@.type() == "number")') THEN
-                    NEW.{subscriber_id} = (NEW.{subscriber_task} ->> 'subscriber_id')::integer;
+                new_subscriber_task_subscriber_id = (NEW.{subscriber_task} ->> 'subscriber_id')::integer;
+                new_subscriber_task_subscription_id = (NEW.{subscriber_task} ->> 'subscription_id')::integer;
+                new_system_task_subscriber_id = (NEW.{system_task} ->> 'subscriber_id')::integer;
+                IF new_subscriber_task_subscriber_id != (OLD.{subscriber_task} ->> 'subscriber_id')::integer AND new_subscriber_task_subscriber_id != NEW.{subscriber_id} THEN
+                    NEW.{subscriber_id} = new_subscriber_task_subscriber_id;
                 END IF;
-                IF jsonb_path_exists(NEW.{subscriber_task}, '$.subscription_id ? (@.type() == "number")') THEN
-                    NEW.{subscription_id} = (NEW.{subscriber_task} ->> 'subscription_id')::integer;
+                IF new_subscriber_task_subscription_id != (OLD.{subscriber_task} ->> 'subscription_id')::integer AND new_subscriber_task_subscription_id != NEW.{subscription_id} THEN
+                    NEW.{subscription_id} = new_subscriber_task_subscription_id;
+                END IF;
+                IF new_system_task_subscriber_id != (OLD.{system_task} ->> 'subscriber_id')::integer AND new_system_task_subscriber_id != NEW.{subscriber_id} THEN
+                    NEW.{subscriber_id} = new_system_task_subscriber_id;
                 END IF;
                 RETURN NEW;
             END;
@@ -104,6 +120,7 @@ impl MigrationTrait for Migration {
             subscriber_task = &Cron::SubscriberTask.to_string(),
             subscriber_id = &Cron::SubscriberId.to_string(),
             subscription_id = &Cron::SubscriptionId.to_string(),
+            system_task = &Cron::SystemTask.to_string(),
         )).await?;
 
         db.execute_unprepared(&format!(
@@ -208,11 +225,279 @@ impl MigrationTrait for Migration {
         ))
         .await?;
 
+        manager
+            .alter_table(
+                TableAlterStatement::new()
+                    .table((ApalisSchema::Schema, ApalisJobs::Table))
+                    .add_column_if_not_exists(integer_null(ApalisJobs::CronId))
+                    .add_foreign_key(
+                        TableForeignKey::new()
+                            .name("fk_apalis_jobs_cron_id")
+                            .from_tbl((ApalisSchema::Schema, ApalisJobs::Table))
+                            .from_col(ApalisJobs::CronId)
+                            .to_tbl(Cron::Table)
+                            .to_col(Cron::Id)
+                            .on_delete(ForeignKeyAction::NoAction)
+                            .on_update(ForeignKeyAction::NoAction),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE VIEW subscriber_tasks AS
+                    SELECT
+                        {job},
+                        {job_type},
+                        {status},
+                        {subscriber_id},
+                        {task_type},
+                        {id},
+                        {attempts},
+                        {max_attempts},
+                        {run_at},
+                        {last_error},
+                        {lock_at},
+                        {lock_by},
+                        {done_at},
+                        {priority},
+                        {subscription_id},
+                        {cron_id}
+                    FROM {apalis_schema}.{apalis_table}
+                    WHERE {job_type} = '{SUBSCRIBER_TASK_APALIS_NAME}'
+                    AND jsonb_path_exists({job}, '$.{subscriber_id} ? (@.type() == "number")')
+                    AND jsonb_path_exists({job}, '$.{task_type} ? (@.type() == "string")')"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
+            apalis_table = ApalisJobs::Table.to_string(),
+            job = ApalisJobs::Job.to_string(),
+            job_type = ApalisJobs::JobType.to_string(),
+            status = ApalisJobs::Status.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+            id = ApalisJobs::Id.to_string(),
+            attempts = ApalisJobs::Attempts.to_string(),
+            max_attempts = ApalisJobs::MaxAttempts.to_string(),
+            run_at = ApalisJobs::RunAt.to_string(),
+            last_error = ApalisJobs::LastError.to_string(),
+            lock_at = ApalisJobs::LockAt.to_string(),
+            lock_by = ApalisJobs::LockBy.to_string(),
+            done_at = ApalisJobs::DoneAt.to_string(),
+            priority = ApalisJobs::Priority.to_string(),
+            subscription_id = ApalisJobs::SubscriptionId.to_string(),
+            cron_id = ApalisJobs::CronId.to_string(),
+        ))
+        .await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE VIEW system_tasks AS
+                    SELECT
+                        {job},
+                        {job_type},
+                        {status},
+                        {subscriber_id},
+                        {task_type},
+                        {id},
+                        {attempts},
+                        {max_attempts},
+                        {run_at},
+                        {last_error},
+                        {lock_at},
+                        {lock_by},
+                        {done_at},
+                        {priority},
+                        {cron_id}
+                    FROM {apalis_schema}.{apalis_table}
+                    WHERE {job_type} = '{SYSTEM_TASK_APALIS_NAME}'
+                    AND jsonb_path_exists({job}, '$.{task_type} ? (@.type() == "string")')"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
+            apalis_table = ApalisJobs::Table.to_string(),
+            job = ApalisJobs::Job.to_string(),
+            job_type = ApalisJobs::JobType.to_string(),
+            status = ApalisJobs::Status.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+            id = ApalisJobs::Id.to_string(),
+            attempts = ApalisJobs::Attempts.to_string(),
+            max_attempts = ApalisJobs::MaxAttempts.to_string(),
+            run_at = ApalisJobs::RunAt.to_string(),
+            last_error = ApalisJobs::LastError.to_string(),
+            lock_at = ApalisJobs::LockAt.to_string(),
+            lock_by = ApalisJobs::LockBy.to_string(),
+            done_at = ApalisJobs::DoneAt.to_string(),
+            priority = ApalisJobs::Priority.to_string(),
+            cron_id = ApalisJobs::CronId.to_string(),
+        ))
+        .await?;
+
+        db.execute_unprepared(&format!(
+            r#"
+          UPDATE {apalis_schema}.{apalis_table} SET {cron_id} = ({job} ->> '{cron_id}')::integer
+        "#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
+            apalis_table = ApalisJobs::Table.to_string(),
+            job = ApalisJobs::Job.to_string(),
+            cron_id = ApalisJobs::CronId.to_string(),
+        ))
+        .await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            DECLARE
+                new_job_subscriber_id integer;
+                new_job_subscription_id integer;
+                new_job_cron_id integer;
+                new_job_task_type text;
+            BEGIN
+                new_job_subscriber_id = (NEW.{job} ->> '{subscriber_id}')::integer;
+                new_job_subscription_id = (NEW.{job} ->> '{subscription_id}')::integer;
+                new_job_cron_id = (NEW.{job} ->> '{cron_id}')::integer;
+                new_job_task_type = (NEW.{job} ->> '{task_type}')::text;
+                IF new_job_subscriber_id != (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id != NEW.{subscriber_id} THEN
+                    NEW.{subscriber_id} = new_job_subscriber_id;
+                END IF;
+                IF new_job_subscription_id != (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id != NEW.{subscription_id} THEN
+                    NEW.{subscription_id} = new_job_subscription_id;
+                END IF;
+                IF new_job_cron_id != (OLD.{job} ->> '{cron_id}')::integer AND new_job_cron_id != NEW.{cron_id} THEN
+                    NEW.{cron_id} = new_job_cron_id;
+                END IF;
+                IF new_job_task_type != (OLD.{job} ->> '{task_type}')::text AND new_job_task_type != NEW.{task_type} THEN
+                    NEW.{task_type} = new_job_task_type;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;"#,
+            job = ApalisJobs::Job.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            subscription_id = ApalisJobs::SubscriptionId.to_string(),
+            cron_id = ApalisJobs::CronId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+        )).await?;
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         let db = manager.get_connection();
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            DECLARE
+                new_job_subscriber_id integer;
+                new_job_subscription_id integer;
+                new_job_task_type text;
+            BEGIN
+                new_job_subscriber_id = (NEW.{job} ->> '{subscriber_id}')::integer;
+                new_job_subscription_id = (NEW.{job} ->> '{subscription_id}')::integer;
+                new_job_task_type = (NEW.{job} ->> '{task_type}')::text;
+                IF new_job_subscriber_id != (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id != NEW.{subscriber_id} THEN
+                    NEW.{subscriber_id} = new_job_subscriber_id;
+                END IF;
+                IF new_job_subscription_id != (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id != NEW.{subscription_id} THEN
+                    NEW.{subscription_id} = new_job_subscription_id;
+                END IF;
+                IF new_job_task_type != (OLD.{job} ->> '{task_type}')::text AND new_job_task_type != NEW.{task_type} THEN
+                    NEW.{task_type} = new_job_task_type;
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;"#,
+            job = ApalisJobs::Job.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            subscription_id = ApalisJobs::SubscriptionId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+        )).await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE VIEW subscriber_tasks AS
+                SELECT
+                    {job},
+                    {job_type},
+                    {status},
+                    {subscriber_id},
+                    {task_type},
+                    {id},
+                    {attempts},
+                    {max_attempts},
+                    {run_at},
+                    {last_error},
+                    {lock_at},
+                    {lock_by},
+                    {done_at},
+                    {priority},
+                    {subscription_id}
+                FROM {apalis_schema}.{apalis_table}
+                WHERE {job_type} = '{SUBSCRIBER_TASK_APALIS_NAME}'
+                AND jsonb_path_exists({job}, '$.{subscriber_id} ? (@.type() == "number")')
+                AND jsonb_path_exists({job}, '$.{task_type} ? (@.type() == "string")')"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
+            apalis_table = ApalisJobs::Table.to_string(),
+            job = ApalisJobs::Job.to_string(),
+            job_type = ApalisJobs::JobType.to_string(),
+            status = ApalisJobs::Status.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+            id = ApalisJobs::Id.to_string(),
+            attempts = ApalisJobs::Attempts.to_string(),
+            max_attempts = ApalisJobs::MaxAttempts.to_string(),
+            run_at = ApalisJobs::RunAt.to_string(),
+            last_error = ApalisJobs::LastError.to_string(),
+            lock_at = ApalisJobs::LockAt.to_string(),
+            lock_by = ApalisJobs::LockBy.to_string(),
+            done_at = ApalisJobs::DoneAt.to_string(),
+            priority = ApalisJobs::Priority.to_string(),
+            subscription_id = ApalisJobs::SubscriptionId.to_string(),
+        ))
+        .await?;
+
+        db.execute_unprepared(&format!(
+            r#"CREATE OR REPLACE VIEW system_tasks AS
+                SELECT
+                    {job},
+                    {job_type},
+                    {status},
+                    {subscriber_id},
+                    {task_type},
+                    {id},
+                    {attempts},
+                    {max_attempts},
+                    {run_at},
+                    {last_error},
+                    {lock_at},
+                    {lock_by},
+                    {done_at},
+                    {priority}
+                FROM {apalis_schema}.{apalis_table}
+                WHERE {job_type} = '{SYSTEM_TASK_APALIS_NAME}'
+                AND jsonb_path_exists({job}, '$.{task_type} ? (@.type() == "string")')"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
+            apalis_table = ApalisJobs::Table.to_string(),
+            job = ApalisJobs::Job.to_string(),
+            job_type = ApalisJobs::JobType.to_string(),
+            status = ApalisJobs::Status.to_string(),
+            subscriber_id = ApalisJobs::SubscriberId.to_string(),
+            task_type = ApalisJobs::TaskType.to_string(),
+            id = ApalisJobs::Id.to_string(),
+            attempts = ApalisJobs::Attempts.to_string(),
+            max_attempts = ApalisJobs::MaxAttempts.to_string(),
+            run_at = ApalisJobs::RunAt.to_string(),
+            last_error = ApalisJobs::LastError.to_string(),
+            lock_at = ApalisJobs::LockAt.to_string(),
+            lock_by = ApalisJobs::LockBy.to_string(),
+            done_at = ApalisJobs::DoneAt.to_string(),
+            priority = ApalisJobs::Priority.to_string(),
+        ))
+        .await?;
+
+        manager
+            .alter_table(
+                TableAlterStatement::new()
+                    .table((ApalisSchema::Schema, ApalisJobs::Table))
+                    .drop_column(ApalisJobs::CronId)
+                    .drop_foreign_key("fk_apalis_jobs_cron_id")
+                    .to_owned(),
+            )
+            .await?;
 
         db.execute_unprepared(&format!(
             r#"DROP TRIGGER IF EXISTS {NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME} ON {table};"#,

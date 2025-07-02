@@ -1,18 +1,22 @@
 use std::sync::Arc;
 
 use quirks_path::Path;
-use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use crate::{
-    app::AppContextTrait, errors::RecorderResult, media::EncodeImageOptions, task::AsyncTaskTrait,
+    app::AppContextTrait,
+    errors::RecorderResult,
+    media::EncodeImageOptions,
+    task::{AsyncTaskTrait, register_system_task_type},
 };
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct OptimizeImageTask {
-    pub source_path: String,
-    pub target_path: String,
-    pub format_options: EncodeImageOptions,
+register_system_task_type! {
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct OptimizeImageTask {
+        pub source_path: String,
+        pub target_path: String,
+        pub format_options: EncodeImageOptions,
+    }
 }
 
 #[async_trait::async_trait]

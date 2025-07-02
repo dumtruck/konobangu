@@ -27,6 +27,8 @@ pub mod migrations;
 pub mod models;
 pub mod storage;
 pub mod task;
-pub mod test_utils;
 pub mod utils;
 pub mod web;
+
+#[cfg(any(test, feature = "test-utils"))]
+pub mod test_utils;

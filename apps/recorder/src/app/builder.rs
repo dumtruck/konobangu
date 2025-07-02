@@ -131,11 +131,12 @@ impl AppBuilder {
     }
 
     pub fn working_dir_from_manifest_dir(self) -> Self {
-        let manifest_dir = if cfg!(debug_assertions) || cfg!(test) || cfg!(feature = "playground") {
-            env!("CARGO_MANIFEST_DIR")
-        } else {
-            "./apps/recorder"
-        };
+        #[cfg(any(test, debug_assertions, feature = "test-utils"))]
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+
+        #[cfg(not(any(test, debug_assertions, feature = "test-utils")))]
+        let manifest_dir = "./apps/recorder";
+
         self.working_dir(manifest_dir.to_string())
     }
 }

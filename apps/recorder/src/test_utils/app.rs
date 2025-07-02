@@ -5,11 +5,12 @@ use typed_builder::TypedBuilder;
 
 use crate::{
     app::AppContextTrait,
+    errors::RecorderResult,
     test_utils::{
         crypto::build_testing_crypto_service,
         database::{TestingDatabaseServiceConfig, build_testing_database_service},
         media::build_testing_media_service,
-        mikan::build_testing_mikan_client,
+        mikan::{MikanMockServer, build_testing_mikan_client},
         storage::build_testing_storage_service,
         task::build_testing_task_service,
     },
@@ -42,10 +43,8 @@ impl TestingAppContext {
         self.task.get_or_init(|| task);
     }
 
-    pub async fn from_preset(
-        preset: TestingAppContextPreset,
-    ) -> crate::errors::RecorderResult<Arc<Self>> {
-        let mikan_client = build_testing_mikan_client(preset.mikan_base_url.clone()).await?;
+    pub async fn from_preset(preset: TestingAppContextPreset) -> RecorderResult<Arc<Self>> {
+        let mikan_client = build_testing_mikan_client(preset.mikan_base_url).await?;
         let db_service =
             build_testing_database_service(preset.database_config.unwrap_or_default()).await?;
         let crypto_service = build_testing_crypto_service().await?;
@@ -136,4 +135,29 @@ impl AppContextTrait for TestingAppContext {
 pub struct TestingAppContextPreset {
     pub mikan_base_url: String,
     pub database_config: Option<TestingDatabaseServiceConfig>,
+}
+
+#[derive(TypedBuilder)]
+pub struct TestingPreset {
+    pub mikan_server: MikanMockServer,
+    pub app_ctx: Arc<dyn AppContextTrait>,
+}
+
+impl TestingPreset {
+    pub async fn default() -> RecorderResult<Self> {
+        let mikan_server = MikanMockServer::new().await?;
+        let database_config = TestingDatabaseServiceConfig::default();
+
+        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
+            mikan_base_url: mikan_server.base_url().to_string(),
+            database_config: Some(database_config),
+        })
+        .await?;
+
+        let preset = Self::builder()
+            .mikan_server(mikan_server)
+            .app_ctx(app_ctx)
+            .build();
+        Ok(preset)
+    }
 }

@@ -190,6 +190,37 @@ pub enum Cron {
     Priority,
     Status,
     SubscriberTask,
+    SystemTask,
+}
+
+#[derive(sea_query::Iden)]
+
+pub enum ApalisSchema {
+    #[iden = "apalis"]
+    Schema,
+}
+
+#[derive(DeriveIden)]
+
+pub enum ApalisJobs {
+    #[sea_orm(iden = "jobs")]
+    Table,
+    SubscriberId,
+    SubscriptionId,
+    Job,
+    JobType,
+    Status,
+    TaskType,
+    Id,
+    Attempts,
+    MaxAttempts,
+    RunAt,
+    LastError,
+    LockAt,
+    LockBy,
+    DoneAt,
+    Priority,
+    CronId,
 }
 
 macro_rules! create_postgres_enum_for_active_enum {

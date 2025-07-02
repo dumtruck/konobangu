@@ -31,25 +31,25 @@ use crate::{
         },
     },
     migrations::defs::{ApalisJobs, ApalisSchema},
-    models::subscriber_tasks,
-    task::SubscriberTaskTrait,
+    models::system_tasks,
+    task::SystemTaskTrait,
 };
 
 fn skip_columns_for_entity_input(context: &mut BuilderContext) {
-    for column in subscriber_tasks::Column::iter() {
+    for column in system_tasks::Column::iter() {
         if matches!(
             column,
-            subscriber_tasks::Column::Job | subscriber_tasks::Column::SubscriberId
+            system_tasks::Column::Job | system_tasks::Column::SubscriberId
         ) {
             continue;
         }
         let entity_column_key =
-            get_entity_and_column_name::<subscriber_tasks::Entity>(context, &column);
+            get_entity_and_column_name::<system_tasks::Entity>(context, &column);
         context.entity_input.insert_skips.push(entity_column_key);
     }
 }
 
-pub fn restrict_subscriber_tasks_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
+pub fn restrict_system_tasks_for_entity<T>(context: &mut BuilderContext, column: &T::Column)
 where
     T: EntityTrait,
     <T as EntityTrait>::Model: Sync,
@@ -62,23 +62,23 @@ where
 
     context.types.input_type_overwrites.insert(
         entity_column_name.clone(),
-        TypeRef::Named(subscriber_tasks::SubscriberTask::ident().into()),
+        TypeRef::Named(system_tasks::SystemTask::ident().into()),
     );
     context.types.output_type_overwrites.insert(
         entity_column_name.clone(),
-        TypeRef::Named(subscriber_tasks::SubscriberTask::ident().into()),
+        TypeRef::Named(system_tasks::SystemTask::ident().into()),
     );
     context.types.input_conversions.insert(
         entity_column_name.clone(),
         Box::new(move |resolve_context, value_accessor| {
-            let task: subscriber_tasks::SubscriberTaskInput = value_accessor.deserialize()?;
+            let task: system_tasks::SystemTaskInput = value_accessor.deserialize()?;
 
             let subscriber_id = resolve_context
                 .data::<AuthUserInfo>()?
                 .subscriber_auth
                 .subscriber_id;
 
-            let task = subscriber_tasks::SubscriberTask::from_input(task, subscriber_id);
+            let task = system_tasks::SystemTask::from_input(task, Some(subscriber_id));
 
             let json_value = serde_json::to_value(task).map_err(|err| {
                 SeaographyError::TypeConversionError(
@@ -94,49 +94,45 @@ where
     context.entity_input.update_skips.push(entity_and_column);
 }
 
-pub fn register_subscriber_tasks_to_schema_context(context: &mut BuilderContext) {
-    restrict_subscriber_for_entity::<subscriber_tasks::Entity>(
+pub fn register_system_tasks_to_schema_context(context: &mut BuilderContext) {
+    restrict_subscriber_for_entity::<system_tasks::Entity>(
         context,
-        &subscriber_tasks::Column::SubscriberId,
+        &system_tasks::Column::SubscriberId,
     );
-    restrict_subscriber_tasks_for_entity::<subscriber_tasks::Entity>(
-        context,
-        &subscriber_tasks::Column::Job,
-    );
+    restrict_system_tasks_for_entity::<system_tasks::Entity>(context, &system_tasks::Column::Job);
 
     skip_columns_for_entity_input(context);
 }
 
-pub fn register_subscriber_tasks_to_schema_builder(
+pub fn register_system_tasks_to_schema_builder(
     mut builder: SeaographyBuilder,
 ) -> SeaographyBuilder {
     builder.schema = builder.schema.register(
-        Scalar::new(subscriber_tasks::SubscriberTask::ident())
-            .description(subscriber_tasks::SubscriberTask::decl()),
+        Scalar::new(system_tasks::SystemTask::ident())
+            .description(system_tasks::SystemTask::decl()),
     );
-    builder.register_enumeration::<subscriber_tasks::SubscriberTaskType>();
-    builder.register_enumeration::<subscriber_tasks::SubscriberTaskStatus>();
+    builder.register_enumeration::<system_tasks::SystemTaskType>();
 
-    builder = register_entity_default_readonly!(builder, subscriber_tasks);
+    builder = register_entity_default_readonly!(builder, system_tasks);
     let builder_context = builder.context;
 
     {
         builder
             .outputs
             .push(generate_entity_default_basic_entity_object::<
-                subscriber_tasks::Entity,
+                system_tasks::Entity,
             >(builder_context));
     }
     {
-        let delete_mutation = generate_entity_delete_mutation_field::<subscriber_tasks::Entity>(
+        let delete_mutation = generate_entity_delete_mutation_field::<system_tasks::Entity>(
             builder_context,
             Arc::new(|_resolver_ctx, app_ctx, filters| {
                 Box::pin(async move {
                     let db = app_ctx.db();
 
-                    let select_subquery = subscriber_tasks::Entity::find()
+                    let select_subquery = system_tasks::Entity::find()
                         .select_only()
-                        .column(subscriber_tasks::Column::Id)
+                        .column(system_tasks::Column::Id)
                         .filter(filters);
 
                     let delete_query = Query::delete()
@@ -159,39 +155,39 @@ pub fn register_subscriber_tasks_to_schema_builder(
     }
     {
         let entity_retry_one_mutation_name = get_entity_custom_mutation_field_name::<
-            subscriber_tasks::Entity,
+            system_tasks::Entity,
         >(builder_context, "RetryOne");
         let retry_one_mutation =
-            generate_entity_filtered_mutation_field::<subscriber_tasks::Entity, _, _>(
+            generate_entity_filtered_mutation_field::<system_tasks::Entity, _, _>(
                 builder_context,
                 entity_retry_one_mutation_name,
-                TypeRef::named_nn(get_entity_basic_type_name::<subscriber_tasks::Entity>(
+                TypeRef::named_nn(get_entity_basic_type_name::<system_tasks::Entity>(
                     builder_context,
                 )),
                 Arc::new(|_resolver_ctx, app_ctx, filters| {
                     Box::pin(async move {
                         let db = app_ctx.db();
 
-                        let job_id = subscriber_tasks::Entity::find()
+                        let job_id = system_tasks::Entity::find()
                             .filter(filters)
                             .select_only()
-                            .column(subscriber_tasks::Column::Id)
+                            .column(system_tasks::Column::Id)
                             .into_tuple::<String>()
                             .one(db)
                             .await?
                             .ok_or_else(|| {
-                                RecorderError::from_entity_not_found::<subscriber_tasks::Entity>()
+                                RecorderError::from_entity_not_found::<system_tasks::Entity>()
                             })?;
 
                         let task = app_ctx.task();
                         task.retry_subscriber_task(job_id.clone()).await?;
 
-                        let task_model = subscriber_tasks::Entity::find()
-                            .filter(subscriber_tasks::Column::Id.eq(&job_id))
+                        let task_model = system_tasks::Entity::find()
+                            .filter(system_tasks::Column::Id.eq(&job_id))
                             .one(db)
                             .await?
                             .ok_or_else(|| {
-                                RecorderError::from_entity_not_found::<subscriber_tasks::Entity>()
+                                RecorderError::from_entity_not_found::<system_tasks::Entity>()
                             })?;
 
                         Ok::<_, RecorderError>(Some(FieldValue::owned_any(task_model)))
@@ -204,49 +200,48 @@ pub fn register_subscriber_tasks_to_schema_builder(
         builder
             .inputs
             .push(generate_entity_default_insert_input_object::<
-                subscriber_tasks::Entity,
+                system_tasks::Entity,
             >(builder_context));
-        let create_one_mutation =
-            generate_entity_create_one_mutation_field::<subscriber_tasks::Entity>(
-                builder_context,
-                Arc::new(move |resolver_ctx, app_ctx, input_object| {
-                    Box::pin(async move {
-                        let active_model: Result<subscriber_tasks::ActiveModel, _> =
-                            prepare_active_model(builder_context, &input_object, resolver_ctx);
+        let create_one_mutation = generate_entity_create_one_mutation_field::<system_tasks::Entity>(
+            builder_context,
+            Arc::new(move |resolver_ctx, app_ctx, input_object| {
+                Box::pin(async move {
+                    let active_model: Result<system_tasks::ActiveModel, _> =
+                        prepare_active_model(builder_context, &input_object, resolver_ctx);
 
-                        let task_service = app_ctx.task();
+                    let task_service = app_ctx.task();
 
-                        let active_model = active_model?;
+                    let active_model = active_model?;
 
-                        let db = app_ctx.db();
+                    let db = app_ctx.db();
 
-                        let active_model = active_model.before_save(db, true).await?;
+                    let active_model = active_model.before_save(db, true).await?;
 
-                        let task = active_model.job.unwrap();
-                        let subscriber_id = active_model.subscriber_id.unwrap();
+                    let task = active_model.job.unwrap();
+                    let subscriber_id = active_model.subscriber_id.unwrap();
 
-                        if task.get_subscriber_id() != subscriber_id {
-                            Err(async_graphql::Error::new(
-                                "subscriber_id does not match with job.subscriber_id",
-                            ))?;
-                        }
+                    if task.get_subscriber_id() != subscriber_id {
+                        Err(async_graphql::Error::new(
+                            "subscriber_id does not match with job.subscriber_id",
+                        ))?;
+                    }
 
-                        let task_id = task_service.add_subscriber_task(task).await?.to_string();
+                    let task_id = task_service.add_system_task(task).await?.to_string();
 
-                        let db = app_ctx.db();
+                    let db = app_ctx.db();
 
-                        let task = subscriber_tasks::Entity::find()
-                            .filter(subscriber_tasks::Column::Id.eq(&task_id))
-                            .one(db)
-                            .await?
-                            .ok_or_else(|| {
-                                RecorderError::from_entity_not_found::<subscriber_tasks::Entity>()
-                            })?;
+                    let task = system_tasks::Entity::find()
+                        .filter(system_tasks::Column::Id.eq(&task_id))
+                        .one(db)
+                        .await?
+                        .ok_or_else(|| {
+                            RecorderError::from_entity_not_found::<system_tasks::Entity>()
+                        })?;
 
-                        Ok::<_, RecorderError>(task)
-                    })
-                }),
-            );
+                    Ok::<_, RecorderError>(task)
+                })
+            }),
+        );
         builder.mutations.push(create_one_mutation);
     }
     builder

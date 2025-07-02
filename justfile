@@ -1,6 +1,10 @@
 set windows-shell := ["pwsh.exe", "-c"]
 set dotenv-load := true
 
+clean-cargo-incremental:
+    # https://github.com/rust-lang/rust/issues/141540
+    rm -r target/debug/incremental
+
 prepare-dev:
     cargo install cargo-binstall
     cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest

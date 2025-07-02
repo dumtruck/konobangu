@@ -1,14 +1,15 @@
+mod base;
 mod media;
 
+pub(crate) use base::register_system_task_type;
 pub use media::OptimizeImageTask;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
-use serde::{Deserialize, Serialize};
 
 macro_rules! register_system_task_types {
     (
         task_type_enum: {
             $(#[$type_enum_meta:meta])*
-            pub enum $type_enum_name:ident {
+            $type_vis:vis enum $type_enum_name:ident {
                 $(
                     $(#[$variant_meta:meta])*
                     $variant:ident => $string_value:literal
@@ -17,16 +18,18 @@ macro_rules! register_system_task_types {
         },
         task_enum: {
             $(#[$task_enum_meta:meta])*
-            pub enum $task_enum_name:ident {
+            $task_vis:vis enum $task_enum_name:ident {
                 $(
+                    $(#[$task_variant_meta:meta])*
                     $task_variant:ident($task_type:ty)
                 ),* $(,)?
             }
         }
     ) => {
         $(#[$type_enum_meta])*
+        #[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq)]
         #[sea_orm(rs_type = "String", db_type = "Text")]
-        pub enum $type_enum_name {
+        $type_vis enum $type_enum_name {
             $(
                 $(#[$variant_meta])*
                 #[serde(rename = $string_value)]
@@ -37,28 +40,15 @@ macro_rules! register_system_task_types {
 
 
         $(#[$task_enum_meta])*
+        #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize, PartialEq)]
         #[serde(tag = "task_type")]
-        pub enum $task_enum_name {
+        #[ts(export, rename = "SystemTaskType", rename_all = "camelCase", tag = "taskType")]
+        $task_vis enum $task_enum_name {
             $(
+                $(#[$task_variant_meta])*
+                #[serde(rename = $string_value)]
                 $task_variant($task_type),
             )*
-        }
-
-        impl TryFrom<$task_enum_name> for serde_json::Value {
-            type Error = $crate::errors::RecorderError;
-
-            fn try_from(value: $task_enum_name) -> Result<Self, Self::Error> {
-                let json_value = serde_json::to_value(value)?;
-                Ok(match json_value {
-                    serde_json::Value::Object(mut map) => {
-                        map.remove("task_type");
-                        serde_json::Value::Object(map)
-                    }
-                    _ => {
-                        unreachable!("subscriber task must be an json object");
-                    }
-                })
-            }
         }
 
         impl $task_enum_name {
@@ -69,6 +59,21 @@ macro_rules! register_system_task_types {
             }
         }
 
+        paste::paste! {
+            $(#[$task_enum_meta])*
+            #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize, PartialEq)]
+            #[serde(tag = "taskType", rename_all = "camelCase")]
+            #[ts(export, rename_all = "camelCase", tag = "taskType")]
+            $task_vis enum [<$task_enum_name Input>] {
+                $(
+                    $(#[$task_variant_meta])*
+                    #[serde(rename = $string_value)]
+                    $task_variant(<$task_type as $crate::task::SystemTaskTrait>::InputType),
+                )*
+            }
+        }
+
+
         #[async_trait::async_trait]
         impl $crate::task::AsyncTaskTrait for $task_enum_name {
             async fn run_async(self, ctx: std::sync::Arc<dyn $crate::app::AppContextTrait>) -> $crate::errors::RecorderResult<()> {
@@ -78,18 +83,60 @@ macro_rules! register_system_task_types {
                 }
             }
         }
+
+        impl $crate::task::SystemTaskTrait for $task_enum_name {
+            paste::paste! {
+                type InputType = [<$task_enum_name Input>];
+            }
+
+            fn get_subscriber_id(&self) -> Option<i32> {
+                match self {
+                    $(Self::$task_variant(t) => t.get_subscriber_id(),)*
+                }
+            }
+
+            fn get_cron_id(&self) -> Option<i32> {
+                match self {
+                    $(Self::$task_variant(t) => t.get_cron_id(),)*
+                }
+            }
+
+            fn set_subscriber_id(&mut self, subscriber_id: Option<i32>) {
+                match self {
+                    $(Self::$task_variant(t) => t.set_subscriber_id(subscriber_id),)*
+                }
+            }
+
+            fn set_cron_id(&mut self, cron_id: Option<i32>) {
+                match self {
+                    $(Self::$task_variant(t) => t.set_cron_id(cron_id),)*
+                }
+            }
+
+            fn from_input(input: Self::InputType, subscriber_id: Option<i32>) -> Self {
+                match input {
+                    $(Self::InputType::$task_variant(t) =>
+                        Self::$task_variant(<$task_type as $crate::task::SystemTaskTrait>::from_input(t, subscriber_id)),)*
+                }
+            }
+        }
+
+        $(
+            impl From<$task_type> for $task_enum_name {
+                fn from(task: $task_type) -> Self {
+                    Self::$task_variant(task)
+                }
+            }
+        )*
     };
 }
 
+#[cfg(not(any(test, feature = "test-utils")))]
 register_system_task_types! {
     task_type_enum: {
         #[derive(
             Clone,
             Debug,
-            Serialize,
-            Deserialize,
-            PartialEq,
-            Eq,
             Copy,
             DeriveActiveEnum,
             DeriveDisplay,
@@ -100,9 +147,34 @@ register_system_task_types! {
         }
     },
     task_enum: {
-        #[derive(Clone, Debug, Serialize, Deserialize,  FromJsonQueryResult)]
+        #[derive(Clone, Debug, FromJsonQueryResult)]
+        pub enum SystemTask {
+            OptimizeImage(OptimizeImageTask)
+        }
+    }
+}
+
+#[cfg(any(test, feature = "test-utils"))]
+register_system_task_types! {
+    task_type_enum: {
+        #[derive(
+            Clone,
+            Debug,
+            Copy,
+            DeriveActiveEnum,
+            DeriveDisplay,
+            EnumIter
+        )]
+        pub enum SystemTaskType {
+            OptimizeImage => "optimize_image",
+            Test => "test",
+        }
+    },
+    task_enum: {
+        #[derive(Clone, Debug, FromJsonQueryResult)]
         pub enum SystemTask {
             OptimizeImage(OptimizeImageTask),
+            Test(crate::test_utils::task::TestSystemTask),
         }
     }
 }

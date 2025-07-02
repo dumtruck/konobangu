@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(rename_all = "camelCase")]
 pub enum AutoOptimizeImageFormat {
     #[serde(rename = "image/webp")]
     Webp,
@@ -10,25 +12,29 @@ pub enum AutoOptimizeImageFormat {
     Jxl,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, TS, PartialEq)]
+#[ts(rename_all = "camelCase")]
 pub struct EncodeWebpOptions {
     pub quality: Option<f32>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, TS, PartialEq)]
+#[ts(rename_all = "camelCase")]
 pub struct EncodeAvifOptions {
     pub quality: Option<u8>,
     pub speed: Option<u8>,
     pub threads: Option<u8>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default, TS, PartialEq)]
+#[ts(rename_all = "camelCase")]
 pub struct EncodeJxlOptions {
     pub quality: Option<f32>,
     pub speed: Option<u8>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS, PartialEq)]
+#[ts(tag = "mimeType")]
 #[serde(tag = "mime_type")]
 pub enum EncodeImageOptions {
     #[serde(rename = "image/webp")]

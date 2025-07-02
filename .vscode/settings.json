@@ -40,9 +40,5 @@
         }
     ],
     "rust-analyzer.cargo.features": "all",
-    "rust-analyzer.testExplorer": true,
-    // https://github.com/rust-lang/rust/issues/141540
-    "rust-analyzer.runnables.extraEnv": {
-        "CARGO_INCREMENTAL": "0",
-    }
+    "rust-analyzer.testExplorer": true
 }

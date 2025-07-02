@@ -35,7 +35,7 @@ use crate::{
         EncodeWebpOptions,
     },
     storage::StorageContentCategory,
-    task::{OptimizeImageTask, SystemTask},
+    task::OptimizeImageTask,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -818,11 +818,14 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             let webp_storage_path = storage_path.with_extension("webp");
             if storage_service.exists(&webp_storage_path).await?.is_none() {
                 task_service
-                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
-                        source_path: storage_path.clone().to_string(),
-                        target_path: webp_storage_path.to_string(),
-                        format_options: EncodeImageOptions::Webp(EncodeWebpOptions::default()),
-                    }))
+                    .add_system_task(
+                        OptimizeImageTask::builder()
+                            .source_path(storage_path.clone().to_string())
+                            .target_path(webp_storage_path.to_string())
+                            .format_options(EncodeImageOptions::Webp(EncodeWebpOptions::default()))
+                            .build()
+                            .into(),
+                    )
                     .await?;
             }
         }
@@ -830,11 +833,14 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             let avif_storage_path = storage_path.with_extension("avif");
             if storage_service.exists(&avif_storage_path).await?.is_none() {
                 task_service
-                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
-                        source_path: storage_path.clone().to_string(),
-                        target_path: avif_storage_path.to_string(),
-                        format_options: EncodeImageOptions::Avif(EncodeAvifOptions::default()),
-                    }))
+                    .add_system_task(
+                        OptimizeImageTask::builder()
+                            .source_path(storage_path.clone().to_string())
+                            .target_path(avif_storage_path.to_string())
+                            .format_options(EncodeImageOptions::Avif(EncodeAvifOptions::default()))
+                            .build()
+                            .into(),
+                    )
                     .await?;
             }
         }
@@ -842,11 +848,14 @@ pub async fn scrape_mikan_poster_meta_from_image_url(
             let jxl_storage_path = storage_path.with_extension("jxl");
             if storage_service.exists(&jxl_storage_path).await?.is_none() {
                 task_service
-                    .add_system_task(SystemTask::OptimizeImage(OptimizeImageTask {
-                        source_path: storage_path.clone().to_string(),
-                        target_path: jxl_storage_path.to_string(),
-                        format_options: EncodeImageOptions::Jxl(EncodeJxlOptions::default()),
-                    }))
+                    .add_system_task(
+                        OptimizeImageTask::builder()
+                            .source_path(storage_path.clone().to_string())
+                            .target_path(jxl_storage_path.to_string())
+                            .format_options(EncodeImageOptions::Jxl(EncodeJxlOptions::default()))
+                            .build()
+                            .into(),
+                    )
                     .await?;
             }
         }
@@ -1089,7 +1098,7 @@ mod test {
 
     use super::*;
     use crate::test_utils::{
-        app::{TestingAppContext, TestingAppContextPreset},
+        app::{TestingAppContext, TestingPreset},
         crypto::build_testing_crypto_service,
         database::build_testing_database_service,
         mikan::{
@@ -1137,17 +1146,13 @@ mod test {
     #[rstest]
     #[tokio::test]
     async fn test_scrape_mikan_poster_meta_from_image_url(before_each: ()) -> RecorderResult<()> {
-        let mut mikan_server = MikanMockServer::new().await?;
+        let mut preset = TestingPreset::default().await?;
 
-        let mikan_base_url = mikan_server.base_url().clone();
+        let app_ctx = preset.app_ctx.clone();
 
-        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
-            mikan_base_url: mikan_base_url.to_string(),
-            database_config: None,
-        })
-        .await?;
+        let mikan_base_url = preset.mikan_server.base_url().clone();
 
-        let resources_mock = mikan_server.mock_resources_with_doppel();
+        let resources_mock = preset.mikan_server.mock_resources_with_doppel();
 
         let bangumi_poster_url = mikan_base_url.join("/images/Bangumi/202309/5ce9fed1.jpg")?;
 

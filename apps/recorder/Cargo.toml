@@ -6,7 +6,7 @@ edition = "2024"
 
 [features]
 default = ["jxl"]
-playground = ["dep:inquire", "dep:color-eyre", "dep:polars"]
+playground = ["dep:inquire", "dep:color-eyre", "dep:polars", "test-utils"]
 testcontainers = [
     "dep:testcontainers",
     "dep:testcontainers-modules",
@@ -15,6 +15,7 @@ testcontainers = [
     "testcontainers-modules/postgres",
 ]
 jxl = ["dep:jpegxl-rs", "dep:jpegxl-sys"]
+test-utils = []
 
 [lib]
 name = "recorder"

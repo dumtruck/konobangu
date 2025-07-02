@@ -1,6 +1,7 @@
 mod base;
 mod subscription;
 
+pub(crate) use base::register_subscriber_task_type;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
 pub use subscription::{
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
@@ -44,7 +45,7 @@ macro_rules! register_subscriber_task_types {
         $(#[$task_enum_meta])*
         #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize)]
         #[serde(tag = "task_type")]
-        #[ts(export,rename = "SubscriberTaskType", rename_all = "camelCase", tag = "taskType")]
+        #[ts(export, rename = "SubscriberTaskType", rename_all = "camelCase", tag = "taskType")]
         $task_vis enum $task_enum_name {
             $(
                 $(#[$task_variant_meta])*
@@ -57,30 +58,13 @@ macro_rules! register_subscriber_task_types {
             $(#[$task_enum_meta])*
             #[derive(ts_rs::TS, serde::Serialize, serde::Deserialize)]
             #[serde(tag = "taskType", rename_all = "camelCase")]
-            #[ts(export,rename_all = "camelCase", tag = "taskType")]
+            #[ts(export, rename_all = "camelCase", tag = "taskType")]
             $task_vis enum [<$task_enum_name Input>] {
                 $(
                     $(#[$task_variant_meta])*
                     #[serde(rename = $string_value)]
                     $task_variant(<$task_type as $crate::task::SubscriberTaskTrait>::InputType),
                 )*
-            }
-        }
-
-        impl TryFrom<$task_enum_name> for serde_json::Value {
-            type Error = $crate::errors::RecorderError;
-
-            fn try_from(value: $task_enum_name) -> Result<Self, Self::Error> {
-                let json_value = serde_json::to_value(value)?;
-                Ok(match json_value {
-                    serde_json::Value::Object(mut map) => {
-                        map.remove("task_type");
-                        serde_json::Value::Object(map)
-                    }
-                    _ => {
-                        unreachable!("subscriber task must be an json object");
-                    }
-                })
             }
         }
 
@@ -118,6 +102,18 @@ macro_rules! register_subscriber_task_types {
                 match self {
                     $(Self::$task_variant(t) =>
                         <$task_type as $crate::task::SubscriberTaskTrait>::get_cron_id(t),)*
+                }
+            }
+
+            fn set_subscriber_id(&mut self, subscriber_id: i32) {
+                match self {
+                    $(Self::$task_variant(t) => t.set_subscriber_id(subscriber_id),)*
+                }
+            }
+
+            fn set_cron_id(&mut self, cron_id: Option<i32>) {
+                match self {
+                    $(Self::$task_variant(t) => t.set_cron_id(cron_id),)*
                 }
             }
 
@@ -159,7 +155,7 @@ register_subscriber_task_types!(
         }
     },
     task_enum: {
-        #[derive(Clone, Debug, PartialEq, Eq, FromJsonQueryResult)]
+        #[derive(Clone, Debug, PartialEq, FromJsonQueryResult)]
         pub enum SubscriberTask {
             SyncOneSubscriptionFeedsIncremental(SyncOneSubscriptionFeedsIncrementalTask),
             SyncOneSubscriptionFeedsFull(SyncOneSubscriptionFeedsFullTask),

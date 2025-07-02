@@ -3,6 +3,7 @@ use crate::{
     errors::RecorderResult,
 };
 
+#[derive(Clone, Debug)]
 pub struct TestingDatabaseServiceConfig {
     pub auto_migrate: bool,
 }

@@ -45,6 +45,8 @@ pub enum Relation {
     Feed,
     #[sea_orm(has_many = "super::subscriber_tasks::Entity")]
     SubscriberTask,
+    #[sea_orm(has_many = "super::system_tasks::Entity")]
+    SystemTask,
 }
 
 impl Related<super::subscriptions::Entity> for Entity {
@@ -95,6 +97,12 @@ impl Related<super::subscriber_tasks::Entity> for Entity {
     }
 }
 
+impl Related<super::system_tasks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SystemTask.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscriptions::Entity")]
@@ -111,6 +119,8 @@ pub enum RelatedEntity {
     Feed,
     #[sea_orm(entity = "super::subscriber_tasks::Entity")]
     SubscriberTask,
+    #[sea_orm(entity = "super::system_tasks::Entity")]
+    SystemTask,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -21,8 +21,10 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::AppContextTrait, errors::RecorderResult, models::subscriber_tasks,
-    task::SubscriberTaskTrait,
+    app::AppContextTrait,
+    errors::RecorderResult,
+    models::{subscriber_tasks, system_tasks},
+    task::{SubscriberTaskTrait, SystemTaskTrait},
 };
 
 #[derive(
@@ -41,7 +43,7 @@ pub enum CronStatus {
     Failed,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Debug, Clone, DeriveEntityModel, PartialEq, Serialize, Deserialize)]
 #[sea_orm(table_name = "cron")]
 pub struct Model {
     #[sea_orm(default_expr = "Expr::current_timestamp()")]
@@ -70,6 +72,7 @@ pub struct Model {
     #[sea_orm(default_expr = "true")]
     pub enabled: bool,
     pub subscriber_task: Option<subscriber_tasks::SubscriberTask>,
+    pub system_task: Option<system_tasks::SystemTask>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -79,7 +82,7 @@ pub enum Relation {
         from = "Column::SubscriberId",
         to = "super::subscribers::Column::Id",
         on_update = "Cascade",
-        on_delete = "Cascade"
+        on_delete = "Restrict"
     )]
     Subscriber,
     #[sea_orm(
@@ -87,9 +90,13 @@ pub enum Relation {
         from = "Column::SubscriptionId",
         to = "super::subscriptions::Column::Id",
         on_update = "Cascade",
-        on_delete = "Cascade"
+        on_delete = "Restrict"
     )]
     Subscription,
+    #[sea_orm(has_many = "super::subscriber_tasks::Entity")]
+    SubscriberTask,
+    #[sea_orm(has_many = "super::system_tasks::Entity")]
+    SystemTask,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -104,12 +111,28 @@ impl Related<super::subscriptions::Entity> for Entity {
     }
 }
 
+impl Related<super::subscriber_tasks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SubscriberTask.def()
+    }
+}
+
+impl Related<super::system_tasks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SystemTask.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscribers::Entity")]
     Subscriber,
     #[sea_orm(entity = "super::subscriptions::Entity")]
     Subscription,
+    #[sea_orm(entity = "super::subscriber_tasks::Entity")]
+    SubscriberTask,
+    #[sea_orm(entity = "super::system_tasks::Entity")]
+    SystemTask,
 }
 
 #[async_trait]
@@ -134,6 +157,14 @@ impl ActiveModelBehavior for ActiveModel {
         {
             return Err(DbErr::Custom(
                 "Cron subscriber_id does not match subscriber_task.subscriber_id".to_string(),
+            ));
+        }
+        if let ActiveValue::Set(Some(subscriber_id)) = self.subscriber_id
+            && let ActiveValue::Set(Some(ref system_task)) = self.system_task
+            && system_task.get_subscriber_id() != Some(subscriber_id)
+        {
+            return Err(DbErr::Custom(
+                "Cron subscriber_id does not match system_task.subscriber_id".to_string(),
             ));
         }
 
@@ -219,11 +250,18 @@ impl Model {
     async fn exec_cron(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
         if let Some(subscriber_task) = self.subscriber_task.as_ref() {
             let task_service = ctx.task();
+            let mut new_subscriber_task = subscriber_task.clone();
+            new_subscriber_task.set_cron_id(Some(self.id));
             task_service
-                .add_subscriber_task(subscriber_task.clone())
+                .add_subscriber_task(new_subscriber_task)
                 .await?;
+        } else if let Some(system_task) = self.system_task.as_ref() {
+            let task_service = ctx.task();
+            let mut new_system_task = system_task.clone();
+            new_system_task.set_cron_id(Some(self.id));
+            task_service.add_system_task(new_system_task).await?;
         } else {
-            unimplemented!("Cron without subscriber task is not supported now");
+            unimplemented!("Cron without unknown task is not supported now");
         }
 
         Ok(())

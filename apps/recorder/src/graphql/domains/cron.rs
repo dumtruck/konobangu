@@ -6,6 +6,7 @@ use crate::{
         domains::{
             subscriber_tasks::restrict_subscriber_tasks_for_entity,
             subscribers::restrict_subscriber_for_entity,
+            system_tasks::restrict_system_tasks_for_entity,
         },
         infra::{custom::register_entity_default_writable, name::get_entity_and_column_name},
     },
@@ -17,6 +18,7 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
         if matches!(
             column,
             cron::Column::SubscriberTask
+                | cron::Column::SystemTask
                 | cron::Column::CronExpr
                 | cron::Column::Enabled
                 | cron::Column::TimeoutMs
@@ -44,6 +46,7 @@ pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<cron::Entity>(context, &cron::Column::SubscriberId);
 
     restrict_subscriber_tasks_for_entity::<cron::Entity>(context, &cron::Column::SubscriberTask);
+    restrict_system_tasks_for_entity::<cron::Entity>(context, &cron::Column::SystemTask);
     skip_columns_for_entity_input(context);
 }
 

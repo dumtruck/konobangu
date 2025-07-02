@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod bangumi;
 pub mod credential_3rd;
+pub mod cron;
 pub mod downloaders;
 pub mod downloads;
 pub mod episodes;
@@ -11,4 +12,4 @@ pub mod subscribers;
 pub mod subscription_bangumi;
 pub mod subscription_episode;
 pub mod subscriptions;
-pub mod cron;
+pub mod system_tasks;

@@ -1,4 +1,4 @@
-macro_rules! register_subscriber_task_type {
+macro_rules! register_system_task_type {
     (
         $(#[$type_meta:meta])*
         $task_vis:vis struct $task_name:ident {
@@ -10,9 +10,11 @@ macro_rules! register_subscriber_task_type {
         #[ts(rename_all = "camelCase")]
         $task_vis struct $task_name {
             $($(#[$field_meta])* pub $field_name: $field_type,)*
-            pub subscriber_id: i32,
-            #[builder(default = None)]
             #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[builder(default = None)]
+            pub subscriber_id: Option<i32>,
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            #[builder(default = None)]
             pub cron_id: Option<i32>,
         }
 
@@ -30,13 +32,12 @@ macro_rules! register_subscriber_task_type {
             }
         }
 
-
-        impl $crate::task::SubscriberTaskTrait for $task_name {
+        impl $crate::task::SystemTaskTrait for $task_name {
             paste::paste! {
                 type InputType = [<$task_name Input>];
             }
 
-            fn get_subscriber_id(&self) -> i32 {
+            fn get_subscriber_id(&self) -> Option<i32> {
                 self.subscriber_id
             }
 
@@ -44,7 +45,7 @@ macro_rules! register_subscriber_task_type {
                 self.cron_id
             }
 
-            fn set_subscriber_id(&mut self, subscriber_id: i32) {
+            fn set_subscriber_id(&mut self, subscriber_id: Option<i32>) {
                 self.subscriber_id = subscriber_id;
             }
 
@@ -52,15 +53,15 @@ macro_rules! register_subscriber_task_type {
                 self.cron_id = cron_id;
             }
 
-            fn from_input(input: Self::InputType, subscriber_id: i32) -> Self {
+            fn from_input(input: Self::InputType, subscriber_id: Option<i32>) -> Self {
                 Self {
                     $($field_name: input.$field_name,)*
+                    subscriber_id: input.subscriber_id.or(subscriber_id),
                     cron_id: input.cron_id,
-                    subscriber_id: input.subscriber_id.unwrap_or(subscriber_id),
                 }
             }
         }
     }
 }
 
-pub(crate) use register_subscriber_task_type;
+pub(crate) use register_system_task_type;

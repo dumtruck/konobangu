@@ -1,15 +1,14 @@
 use async_trait::async_trait;
 use sea_orm::{ActiveValue, entity::prelude::*};
 
-use crate::task::SubscriberTaskTrait;
 pub use crate::task::{
-    SubscriberTask, SubscriberTaskInput, SubscriberTaskType, SubscriberTaskTypeEnum,
-    SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter,
+    SystemTask, SystemTaskInput, SystemTaskType, SystemTaskTypeEnum, SystemTaskTypeVariant,
+    SystemTaskTypeVariantIter,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay)]
 #[sea_orm(rs_type = "String", db_type = "Text")]
-pub enum SubscriberTaskStatus {
+pub enum SystemTaskStatus {
     #[sea_orm(string_value = "Pending")]
     Pending,
     #[sea_orm(string_value = "Scheduled")]
@@ -25,16 +24,15 @@ pub enum SubscriberTaskStatus {
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "subscriber_tasks")]
+#[sea_orm(table_name = "system_tasks")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: String,
-    pub subscriber_id: i32,
-    pub subscription_id: Option<i32>,
+    pub subscriber_id: Option<i32>,
     pub cron_id: Option<i32>,
-    pub job: SubscriberTask,
-    pub task_type: SubscriberTaskType,
-    pub status: SubscriberTaskStatus,
+    pub job: SystemTask,
+    pub task_type: SystemTaskType,
+    pub status: SystemTaskStatus,
     pub attempts: i32,
     pub max_attempts: i32,
     pub run_at: DateTimeUtc,
@@ -52,17 +50,9 @@ pub enum Relation {
         from = "Column::SubscriberId",
         to = "super::subscribers::Column::Id",
         on_update = "Cascade",
-        on_delete = "NoAction"
+        on_delete = "Restrict"
     )]
     Subscriber,
-    #[sea_orm(
-        belongs_to = "super::subscriptions::Entity",
-        from = "Column::SubscriptionId",
-        to = "super::subscriptions::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
-    )]
-    Subscription,
     #[sea_orm(
         belongs_to = "super::cron::Entity",
         from = "Column::CronId",
@@ -79,12 +69,6 @@ impl Related<super::subscribers::Entity> for Entity {
     }
 }
 
-impl Related<super::subscriptions::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::Subscription.def()
-    }
-}
-
 impl Related<super::cron::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Cron.def()
@@ -95,8 +79,6 @@ impl Related<super::cron::Entity> for Entity {
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscribers::Entity")]
     Subscriber,
-    #[sea_orm(entity = "super::subscriptions::Entity")]
-    Subscription,
     #[sea_orm(entity = "super::cron::Entity")]
     Cron,
 }
@@ -107,12 +89,9 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait,
     {
-        if let ActiveValue::Set(subscriber_id) = self.subscriber_id
-            && let ActiveValue::Set(ref job) = self.job
-            && job.get_subscriber_id() != subscriber_id
-        {
+        if let ActiveValue::Set(Some(..)) = self.subscriber_id {
             return Err(DbErr::Custom(
-                "SubscriberTask subscriber_id does not match job.subscriber_id".to_string(),
+                "SystemTask can not be created by subscribers now".to_string(),
             ));
         }
         Ok(self)

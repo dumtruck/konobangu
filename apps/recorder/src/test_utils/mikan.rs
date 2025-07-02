@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt::Debug,
     ops::{Deref, DerefMut},
     path::{self, PathBuf},
 };
@@ -148,13 +149,15 @@ impl AsRef<path::Path> for MikanDoppelPath {
     }
 }
 
+#[cfg(any(test, debug_assertions, feature = "test-utils"))]
 lazy_static! {
     static ref TEST_RESOURCES_DIR: String =
-        if cfg!(any(test, debug_assertions, feature = "playground")) {
-            format!("{}/tests/resources", env!("CARGO_MANIFEST_DIR"))
-        } else {
-            "tests/resources".to_string()
-        };
+        format!("{}/tests/resources", env!("CARGO_MANIFEST_DIR"));
+}
+
+#[cfg(not(any(test, debug_assertions, feature = "test-utils")))]
+lazy_static! {
+    static ref TEST_RESOURCES_DIR: String = "tests/resources".to_string();
 }
 
 impl From<Url> for MikanDoppelPath {
@@ -225,6 +228,14 @@ impl DerefMut for MikanMockServerInner {
 pub struct MikanMockServer {
     pub server: MikanMockServerInner,
     base_url: Url,
+}
+
+impl Debug for MikanMockServer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MikanMockServer")
+            .field("base_url", &self.base_url)
+            .finish()
+    }
 }
 
 impl MikanMockServer {

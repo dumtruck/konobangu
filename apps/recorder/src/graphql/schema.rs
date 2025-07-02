@@ -39,6 +39,9 @@ use crate::{
             subscriptions::{
                 register_subscriptions_to_schema_builder, register_subscriptions_to_schema_context,
             },
+            system_tasks::{
+                register_system_tasks_to_schema_builder, register_system_tasks_to_schema_context,
+            },
         },
         infra::{
             json::register_jsonb_input_filter_to_schema_builder,
@@ -79,6 +82,7 @@ pub fn build_schema(
             register_subscription_episode_to_schema_context(&mut context);
             register_bangumi_to_schema_context(&mut context);
             register_cron_to_schema_context(&mut context);
+            register_system_tasks_to_schema_context(&mut context);
         }
         context
     });
@@ -103,6 +107,7 @@ pub fn build_schema(
         builder = register_subscriber_tasks_to_schema_builder(builder);
         builder = register_bangumi_to_schema_builder(builder);
         builder = register_cron_to_schema_builder(builder);
+        builder = register_system_tasks_to_schema_builder(builder);
     }
 
     let schema = builder.schema_builder();

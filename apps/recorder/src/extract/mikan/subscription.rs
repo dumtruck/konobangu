@@ -546,14 +546,12 @@ impl MikanBangumiSubscription {
 #[cfg(test)]
 #[allow(unused_variables)]
 mod tests {
-    use std::sync::Arc;
 
     use rstest::{fixture, rstest};
     use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
     use tracing::Level;
 
     use crate::{
-        app::AppContextTrait,
         errors::RecorderResult,
         extract::mikan::{
             MikanBangumiHash, MikanSeasonFlowUrlMeta, MikanSeasonStr,
@@ -564,33 +562,10 @@ mod tests {
             subscriptions::{self, SubscriptionTrait},
         },
         test_utils::{
-            app::{TestingAppContext, TestingAppContextPreset},
-            mikan::{MikanMockServer, build_testing_mikan_credential_form},
+            app::TestingPreset, mikan::build_testing_mikan_credential_form,
             tracing::try_init_testing_tracing,
         },
     };
-
-    struct TestingResources {
-        pub app_ctx: Arc<dyn AppContextTrait>,
-        pub mikan_server: MikanMockServer,
-    }
-
-    async fn build_testing_app_context() -> RecorderResult<TestingResources> {
-        let mikan_server = MikanMockServer::new().await?;
-
-        let mikan_base_url = mikan_server.base_url().clone();
-
-        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
-            mikan_base_url: mikan_base_url.to_string(),
-            database_config: None,
-        })
-        .await?;
-
-        Ok(TestingResources {
-            app_ctx,
-            mikan_server,
-        })
-    }
 
     #[fixture]
     fn before_each() {
@@ -600,10 +575,10 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_mikan_season_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
-        let TestingResources {
-            app_ctx,
-            mut mikan_server,
-        } = build_testing_app_context().await?;
+        let mut preset = TestingPreset::default().await?;
+        let app_ctx = preset.app_ctx.clone();
+
+        let mikan_server = &mut preset.mikan_server;
 
         let _resources_mock = mikan_server.mock_resources_with_doppel();
 
@@ -662,10 +637,11 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_mikan_subscriber_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
-        let TestingResources {
-            app_ctx,
-            mut mikan_server,
-        } = build_testing_app_context().await?;
+        let mut preset = TestingPreset::default().await?;
+
+        let app_ctx = preset.app_ctx.clone();
+
+        let mikan_server = &mut preset.mikan_server;
 
         let _resources_mock = mikan_server.mock_resources_with_doppel();
 
@@ -729,10 +705,11 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_mikan_bangumi_subscription_sync_feeds(before_each: ()) -> RecorderResult<()> {
-        let TestingResources {
-            app_ctx,
-            mut mikan_server,
-        } = build_testing_app_context().await?;
+        let mut preset = TestingPreset::default().await?;
+
+        let app_ctx = preset.app_ctx.clone();
+
+        let mikan_server = &mut preset.mikan_server;
 
         let _resources_mock = mikan_server.mock_resources_with_doppel();
 

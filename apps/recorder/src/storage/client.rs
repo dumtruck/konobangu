@@ -89,6 +89,13 @@ impl StorageService {
         p
     }
 
+    #[cfg(any(test, feature = "test-utils"))]
+    pub fn build_test_path(&self, path: impl AsRef<Path>) -> PathBuf {
+        let mut p = PathBuf::from("/test");
+        p.push(path);
+        p
+    }
+
     pub fn build_public_path(&self, path: impl AsRef<Path>) -> PathBuf {
         let mut p = PathBuf::from("/public");
         p.push(path);

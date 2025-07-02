@@ -1,21 +1,22 @@
 mod config;
 mod core;
-mod r#extern;
 mod registry;
 mod service;
 
 pub use core::{
-    AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, StreamTaskTrait,
-    SubscriberTaskBase, SubscriberTaskTrait, SystemTaskTrait,
+    AsyncTaskTrait, SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME,
+    SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_TRIGGER_NAME, SUBSCRIBER_TASK_APALIS_NAME,
+    SYSTEM_TASK_APALIS_NAME, StreamTaskTrait, SubscriberTaskTrait, SystemTaskTrait,
 };
 
 pub use config::TaskConfig;
-pub use r#extern::{ApalisJobs, ApalisSchema};
 pub use registry::{
     OptimizeImageTask, SubscriberTask, SubscriberTaskInput, SubscriberTaskType,
     SubscriberTaskTypeEnum, SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter,
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
-    SyncOneSubscriptionSourcesTask, SystemTask, SystemTaskType, SystemTaskTypeEnum,
-    SystemTaskTypeVariant, SystemTaskTypeVariantIter,
+    SyncOneSubscriptionSourcesTask, SystemTask, SystemTaskInput, SystemTaskType,
+    SystemTaskTypeEnum, SystemTaskTypeVariant, SystemTaskTypeVariantIter,
 };
+#[allow(unused_imports)]
+pub(crate) use registry::{register_subscriber_task_type, register_system_task_type};
 pub use service::TaskService;

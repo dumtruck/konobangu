@@ -2,12 +2,16 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::{Stream, StreamExt, pin_mut};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned};
 
 use crate::{app::AppContextTrait, errors::RecorderResult};
 
 pub const SYSTEM_TASK_APALIS_NAME: &str = "system_task";
 pub const SUBSCRIBER_TASK_APALIS_NAME: &str = "subscriber_task";
+pub const SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME: &str =
+    "setup_apalis_jobs_extra_foreign_keys";
+pub const SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_TRIGGER_NAME: &str =
+    "setup_apalis_jobs_extra_foreign_keys_trigger";
 
 #[async_trait]
 pub trait AsyncTaskTrait: Serialize + DeserializeOwned + Sized {
@@ -41,20 +45,30 @@ where
     }
 }
 
+pub trait SystemTaskTrait: AsyncTaskTrait {
+    type InputType: Serialize + DeserializeOwned + Sized + Send;
+
+    fn get_subscriber_id(&self) -> Option<i32>;
+
+    fn set_subscriber_id(&mut self, subscriber_id: Option<i32>);
+
+    fn get_cron_id(&self) -> Option<i32>;
+
+    fn set_cron_id(&mut self, cron_id: Option<i32>);
+
+    fn from_input(input: Self::InputType, subscriber_id: Option<i32>) -> Self;
+}
+
 pub trait SubscriberTaskTrait: AsyncTaskTrait {
     type InputType: Serialize + DeserializeOwned + Sized + Send;
 
     fn get_subscriber_id(&self) -> i32;
 
+    fn set_subscriber_id(&mut self, subscriber_id: i32);
+
     fn get_cron_id(&self) -> Option<i32>;
 
+    fn set_cron_id(&mut self, cron_id: Option<i32>);
+
     fn from_input(input: Self::InputType, subscriber_id: i32) -> Self;
-}
-
-pub trait SystemTaskTrait: AsyncTaskTrait {}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
-pub struct SubscriberTaskBase {
-    pub subscriber_id: i32,
-    pub cron_id: Option<i32>,
 }

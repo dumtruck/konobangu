@@ -39,7 +39,7 @@ macro_rules! register_subscription_task_type {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq)]
     pub struct SyncOneSubscriptionFeedsIncrementalTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_feeds_incremental(ctx).await?;
@@ -48,7 +48,7 @@ register_subscription_task_type! {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq)]
     pub struct SyncOneSubscriptionFeedsFullTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_feeds_full(ctx).await?;
@@ -57,7 +57,7 @@ register_subscription_task_type! {
 }
 
 register_subscription_task_type! {
-    #[derive(Clone, Debug, PartialEq, Eq)]
+    #[derive(Clone, Debug, PartialEq)]
     pub struct SyncOneSubscriptionSourcesTask {
     } => async |subscription, ctx| -> RecorderResult<()> {
         subscription.sync_sources(ctx).await?;
