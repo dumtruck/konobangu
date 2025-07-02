@@ -7,6 +7,7 @@ query GetCrons($filter: CronFilterInput!, $orderBy: CronOrderInput!, $pagination
         nodes {
             id
             cronExpr
+            cronTimezone
             nextRun
             lastRun
             lastError

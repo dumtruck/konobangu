@@ -54,9 +54,6 @@ export default defineConfig({
     },
   },
   dev: {
-    client: {
-      path: '/rsbuild-hmr',
-    },
     setupMiddlewares: [
       (middlewares) => {
         middlewares.unshift((req, res, next) => {

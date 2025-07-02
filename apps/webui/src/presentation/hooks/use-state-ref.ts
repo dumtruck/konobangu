@@ -8,10 +8,10 @@ import {
 } from 'react';
 
 export function useStateRef<T>(
-  initialValue: T
+  initialValue: T | (() => T)
 ): [T, Dispatch<SetStateAction<T>>, RefObject<T>] {
   const [state, _setState] = useState(initialValue);
-  const ref = useRef(initialValue);
+  const ref = useRef(state);
 
   const setState = useCallback((value: T | ((prev: T) => T)) => {
     let nextValue: T;

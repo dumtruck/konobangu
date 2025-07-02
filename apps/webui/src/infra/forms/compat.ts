@@ -1,11 +1,11 @@
 type AllKeys<T> = T extends any ? keyof T : never;
 
-type ToDefaultable<T> = Exclude<
-  T extends string | undefined
+type ToFormDefaultableValue<T> = Exclude<
+  Exclude<T, undefined | null> extends string
     ? T | ''
-    : T extends number | undefined
+    : Exclude<T, undefined | null> extends number
       ? T | number
-      : T extends undefined
+      : undefined extends T
         ? T | null
         : T,
   undefined
@@ -17,7 +17,13 @@ type PickFieldFormUnion<T, K extends keyof T> = T extends any
 
 // compact more types;
 export type FormDefaultValues<T> = {
-  -readonly [K in AllKeys<T>]-?: ToDefaultable<PickFieldFormUnion<T, K>>;
+  -readonly [K in AllKeys<T>]-?: ToFormDefaultableValue<
+    PickFieldFormUnion<T, K>
+  >;
+};
+
+export type NonNull<T, K extends AllKeys<T>> = {
+  [key in AllKeys<T>]: key extends K ? Exclude<T[key], null> : T[key];
 };
 
 /**
@@ -26,5 +32,9 @@ export type FormDefaultValues<T> = {
 export function compatFormDefaultValues<T, K extends AllKeys<T> = AllKeys<T>>(
   d: FormDefaultValues<Pick<T, K>>
 ): T {
+  return d as unknown as T;
+}
+
+export function assertNonNull<T, K extends AllKeys<T>>(d: NonNull<T, K>): T {
   return d as unknown as T;
 }

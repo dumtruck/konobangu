@@ -1,6 +1,6 @@
+import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CronStatusEnum } from '@/infra/graphql/gql/graphql';
-import { AlertCircle, CheckCircle, Clock, Loader2 } from 'lucide-react';
 
 export function getStatusBadge(status: CronStatusEnum) {
   switch (status) {
@@ -27,7 +27,7 @@ export function getStatusBadge(status: CronStatusEnum) {
       );
     case CronStatusEnum.Pending:
       return (
-        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
           <Clock className="mr-1 h-3 w-3 capitalize" />
           {status}
         </Badge>

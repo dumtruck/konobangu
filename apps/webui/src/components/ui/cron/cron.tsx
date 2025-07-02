@@ -5,7 +5,9 @@ import {
   Check,
   Code2,
   Copy,
+  Expand,
   Settings,
+  Shrink,
   Type,
 } from "lucide-react";
 import { type FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -40,7 +42,7 @@ const Cron: FC<CronProps> = ({
   onActiveModeChange,
   onValidate,
   className,
-  mode = "both",
+  mode = CronMode.BothExpandable,
   disabled = false,
   placeholder = PLACEHOLDER,
   showPreview = true,
@@ -54,13 +56,16 @@ const Cron: FC<CronProps> = ({
   presets,
   showPresets,
   withCard = true,
-  isFirstSibling = false,
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: false
+  titleClassName,
+  defaultExpanded = true,
 }) => {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [internalValue, setInternalValue] = useState(value || "");
   const [internalActiveMode, setInternalActiveMode] =
     useState<CronPrimitiveMode>(
-      mode === CronMode.Both ? activeMode : (mode as CronPrimitiveMode)
+      mode === CronMode.Both || mode === CronMode.BothExpandable
+        ? activeMode
+        : (mode as CronPrimitiveMode)
     );
   const [copied, setCopied] = useState(false);
 
@@ -92,7 +97,7 @@ const Cron: FC<CronProps> = ({
   }, [validationResult.isValid, onValidate]);
 
   useEffect(() => {
-    if (mode === "both") {
+    if (mode === CronMode.Both || mode === CronMode.BothExpandable) {
       setInternalActiveMode(activeMode);
     }
   }, [activeMode, mode]);
@@ -130,7 +135,7 @@ const Cron: FC<CronProps> = ({
   const hasError =
     !!error || !!(!validationResult.isValid && internalValue.trim());
 
-  if (mode === "input") {
+  if (mode === CronMode.Input) {
     return (
       <div className={cn(withCard && "space-y-4", className)}>
         <CronInput
@@ -140,11 +145,14 @@ const Cron: FC<CronProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           error={error}
+          showHelp={showHelp && expanded}
         />
 
-        {showPreview &&
+        {expanded &&
+          showPreview &&
           (validationResult.isValid || validationResult.isEmpty) && (
             <CronDisplay
+              titleClassName={titleClassName}
               expression={
                 validationResult.isEmpty ? placeholder : internalValue
               }
@@ -161,21 +169,22 @@ const Cron: FC<CronProps> = ({
     );
   }
 
-  if (mode === "builder") {
+  if (mode === CronMode.Builder) {
     return (
       <div className={cn(withCard && "space-y-4", className)}>
         <CronBuilder
           value={internalValue}
           onChange={handleChange}
           disabled={disabled}
-          showPreview={showPreview}
+          showPreview={showPreview && expanded}
           displayPeriods={displayPeriods}
           defaultTab={defaultTab}
           presets={presets}
-          showPresets={showPresets}
-          showGeneratedExpression={true}
+          showPresets={showPresets && expanded}
+          showGeneratedExpression={expanded}
           timezone={timezone}
           withCard={withCard}
+          titleClassName={titleClassName}
         />
 
         {children}
@@ -185,16 +194,16 @@ const Cron: FC<CronProps> = ({
 
   return (
     <div className={cn(withCard && "space-y-6", className)}>
-      <Card
-        className={cn(
-          !withCard && "border-none shadow-none",
-          !withCard && isFirstSibling && "pt-0"
-        )}
-      >
+      <Card className={cn(!withCard && "border-none shadow-none py-0")}>
         <CardHeader className={cn(!withCard && "px-0")}>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle
+                className={cn(
+                  "flex items-center gap-2 text-base",
+                  titleClassName
+                )}
+              >
                 <Bolt className="h-4 w-4" />
                 Cron Expression Builder
               </CardTitle>
@@ -203,31 +212,54 @@ const Cron: FC<CronProps> = ({
                 text input
               </CardDescription>
             </div>
-            {internalValue && (
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    validationResult.isValid ? "secondary" : "destructive"
-                  }
-                  className="font-mono text-sm"
-                >
-                  {internalValue}
-                </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  disabled={!internalValue || hasError}
-                  className="h-8 px-2"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {!!internalValue && (
+                <>
+                  <Badge
+                    variant={
+                      validationResult.isValid ? "secondary" : "destructive"
+                    }
+                    className="font-mono text-sm"
+                  >
+                    {internalValue}
+                  </Badge>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    disabled={!internalValue || hasError}
+                    className="h-8 px-2"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </>
+              )}
+              {mode === CronMode.BothExpandable &&
+                (expanded ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setExpanded(false)}
+                  >
+                    <Shrink className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setExpanded(true)}
+                  >
+                    <Expand className="h-4 w-4" />
+                  </Button>
+                ))}
+            </div>
           </div>
 
           {hasError && (
@@ -270,6 +302,7 @@ const Cron: FC<CronProps> = ({
                 placeholder={placeholder}
                 disabled={disabled}
                 error={error}
+                showHelp={showHelp && expanded}
               />
             </TabsContent>
 
@@ -282,10 +315,11 @@ const Cron: FC<CronProps> = ({
                 displayPeriods={displayPeriods}
                 defaultTab={defaultTab}
                 presets={presets}
-                showPresets={showPresets}
+                showPresets={!!showPresets && expanded}
                 showGeneratedExpression={false}
                 timezone={timezone}
                 withCard={withCard}
+                titleClassName={titleClassName}
               />
             </TabsContent>
           </Tabs>
@@ -293,7 +327,8 @@ const Cron: FC<CronProps> = ({
       </Card>
 
       {/* Preview Section */}
-      {showPreview &&
+      {expanded &&
+        showPreview &&
         (validationResult.isValid || validationResult.isEmpty) && (
           <>
             {!withCard && <Separator />}
@@ -306,17 +341,23 @@ const Cron: FC<CronProps> = ({
               timezone={timezone}
               nextRunsCount={3}
               withCard={withCard}
+              titleClassName={titleClassName}
             />
           </>
         )}
 
       {/* Help Section */}
-      {showHelp && (
+      {expanded && showHelp && (
         <>
           {!withCard && <Separator />}
           <Card className={cn(!withCard && "border-none shadow-none")}>
             <CardHeader className={cn(!withCard && "px-0")}>
-              <CardTitle className="flex items-center gap-2 text-base">
+              <CardTitle
+                className={cn(
+                  "flex items-center gap-2 text-base",
+                  titleClassName
+                )}
+              >
                 <Code2 className="h-4 w-4" />
                 Cron Expression Format
               </CardTitle>

@@ -1,3 +1,7 @@
+import { useMutation } from '@apollo/client';
+import { CheckIcon, Loader2, XIcon } from 'lucide-react';
+import { memo } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   DialogContent,
@@ -11,10 +15,6 @@ import type {
   CheckCredential3rdAvailableMutation,
   CheckCredential3rdAvailableMutationVariables,
 } from '@/infra/graphql/gql/graphql';
-import { useMutation } from '@apollo/client';
-import { CheckIcon, Loader2, XIcon } from 'lucide-react';
-import { memo } from 'react';
-import { toast } from 'sonner';
 
 export interface Credential3rdCheckAvailableViewProps {
   id: number;
@@ -22,12 +22,12 @@ export interface Credential3rdCheckAvailableViewProps {
 
 export const Credential3rdCheckAvailableView = memo(
   ({ id }: Credential3rdCheckAvailableViewProps) => {
-    const [checkAvailable, { data, error, loading }] = useMutation<
+    const [checkAvailable, { data, error: checkError, loading }] = useMutation<
       CheckCredential3rdAvailableMutation,
       CheckCredential3rdAvailableMutationVariables
     >(CHECK_CREDENTIAL_3RD_AVAILABLE, {
-      onCompleted: (data) => {
-        if (data.credential3rdCheckAvailable.available) {
+      onCompleted: (result) => {
+        if (result.credential3rdCheckAvailable.available) {
           toast.success('Credential is available');
         } else {
           toast.error('Credential is not available');
@@ -58,7 +58,7 @@ export const Credential3rdCheckAvailableView = memo(
           {available === true && (
             <CheckIcon className="h-4 w-4 text-green-300" />
           )}
-          {(available === false || !!error) && (
+          {(available === false || !!checkError) && (
             <XIcon className="h-4 w-4 text-red-500" />
           )}
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}

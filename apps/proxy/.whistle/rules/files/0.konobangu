@@ -1,11 +1,21 @@
-```x-forwarded.json
+```https-forwarded.json
 {
   "X-Forwarded-Host": "konobangu.com",
-  "X-Forwarded-Proto": "https"
+  "X-Forwarded-Proto": "https",
+  "Host": "konobangu.com"
+}
+```
+
+```wss-forwarded.json
+{
+  "X-Forwarded-Host": "konobangu.com",
+  "X-Forwarded-Proto": "wss",
+  "Host": "konobangu.com"
 }
 ```
 
 #^https://konobangu.com/api*** statusCode://500
-^https://konobangu.com/api*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5001/api$1 
-^https://konobangu.com/*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5000/$1 excludeFilter://^https://konobangu.com/api***
-^wss://konobangu.com/*** reqHeaders://{x-forwarded.json} ws://127.0.0.1:5000/$1 excludeFilter://^wss://konobangu.com/api
+^https://konobangu.com/api*** reqHeaders://{https-forwarded.json} http://127.0.0.1:5001/api$1 
+^wss://konobangu.com/api*** reqHeaders://{wss-forwarded.json} ws://127.0.0.1:5001/api$1 
+^https://konobangu.com/*** reqHeaders://{https-forwarded.json} http://127.0.0.1:5000/$1 excludeFilter://^https://konobangu.com/api***
+^wss://konobangu.com/*** reqHeaders://{wss-forwarded.json} ws://127.0.0.1:5000/$1 excludeFilter://^wss://konobangu.com/api

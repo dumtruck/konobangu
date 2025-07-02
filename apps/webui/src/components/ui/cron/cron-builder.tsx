@@ -1,4 +1,5 @@
 import { getFutureMatches } from "@datasert/cronjs-matcher";
+import { isEqual } from "es-toolkit";
 import { Calendar, Clock, Info, Settings, Zap } from "lucide-react";
 import {
   type CSSProperties,
@@ -30,6 +31,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useEvent } from "@/presentation/hooks/use-event.js";
+import { useStateRef } from "@/presentation/hooks/use-state-ref.js";
 import { cn } from "@/presentation/utils";
 import {
   type CronBuilderProps,
@@ -277,15 +280,21 @@ const CronBuilder: FC<CronBuilderProps> = ({
   presets = CRON_PRESETS,
   showGeneratedExpression = true,
   withCard = true,
+  titleClassName,
 }) => {
   const [activeTab, setActiveTab] = useState<CronPeriod>(defaultTab);
-  const [cronFields, setCronFields] = useState(() =>
+  const [cronFields, _setCronFields, cronFieldsRef] = useStateRef(() =>
     parseCronExpression(value)
   );
 
   const currentExpression = useMemo(() => {
-    return `${cronFields.seconds} ${cronFields.minutes} ${cronFields.hours} ${cronFields.dayOfMonth} ${cronFields.month} ${cronFields.dayOfWeek}`;
+    return cronFieldsToExpression(cronFields);
   }, [cronFields]);
+
+  const setCronFields = useEvent((v: Record<CronField, string>) => {
+    onChange?.(cronFieldsToExpression(v));
+    _setCronFields(v);
+  });
 
   const nextRuns = useMemo(() => {
     if (!showPreview) {
@@ -307,31 +316,34 @@ const CronBuilder: FC<CronBuilderProps> = ({
   }, [currentExpression, showPreview, timezone]);
 
   useEffect(() => {
-    setCronFields(parseCronExpression(value));
-  }, [value]);
+    const nextCronFields = parseCronExpression(value);
 
-  useEffect(() => {
-    onChange?.(currentExpression);
-  }, [currentExpression, onChange]);
+    if (!isEqual(nextCronFields, cronFieldsRef.current)) {
+      setCronFields(nextCronFields);
+    }
+  }, [value, cronFieldsRef, setCronFields]);
 
-  const handlePresetSelect = useCallback((preset: CronPreset) => {
-    setCronFields(parseCronExpression(preset.value));
-  }, []);
-
-  const handleFieldChange = useCallback(
-    (field: CronField, newValue: string) => {
-      setCronFields((prev) => ({ ...prev, [field]: newValue }));
+  const handlePresetSelect = useCallback(
+    (preset: CronPreset) => {
+      setCronFields(parseCronExpression(preset.value));
     },
-    []
+    [setCronFields]
   );
 
-  const handlePeriodChange = useCallback((period: CronPeriod) => {
-    setActiveTab(period);
-    if (period !== "custom") {
-      const config = PERIOD_CONFIGS[period];
-      setCronFields(parseCronExpression(config.template));
-    }
-  }, []);
+  const handleFieldChange = useEvent((field: CronField, newValue: string) => {
+    setCronFields({ ...cronFieldsRef.current, [field]: newValue });
+  });
+
+  const handlePeriodChange = useCallback(
+    (period: CronPeriod) => {
+      setActiveTab(period);
+      if (period !== "custom") {
+        const config = PERIOD_CONFIGS[period];
+        setCronFields(parseCronExpression(config.template));
+      }
+    },
+    [setCronFields]
+  );
 
   const filteredPresets = useMemo(() => {
     return presets.filter((preset) => {
@@ -381,7 +393,12 @@ const CronBuilder: FC<CronBuilderProps> = ({
           >
             <Card className={cn(!withCard && "border-none shadow-none")}>
               <CardHeader className={cn("pb-1", !withCard && "px-0")}>
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle
+                  className={cn(
+                    "flex items-center gap-2 text-base",
+                    titleClassName
+                  )}
+                >
                   <Settings className="h-4 w-4" />
                   <span className="capitalize">
                     {PERIOD_CONFIGS[period].label} Configuration
@@ -404,7 +421,12 @@ const CronBuilder: FC<CronBuilderProps> = ({
             {showPresets && filteredPresets.length > 0 && (
               <Card className={cn(!withCard && "border-none shadow-none")}>
                 <CardHeader className={cn(!withCard && "px-0")}>
-                  <CardTitle className="flex items-center gap-2 text-base">
+                  <CardTitle
+                    className={cn(
+                      "flex items-center gap-2 text-base",
+                      titleClassName
+                    )}
+                  >
                     <Zap className="h-4 w-4" />
                     Quick Presets
                   </CardTitle>
@@ -421,6 +443,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
                         className="h-auto justify-start p-4 text-left"
                         onClick={() => handlePresetSelect(preset)}
                         disabled={disabled}
+                        type="button"
                       >
                         <div className="w-full space-y-2">
                           <div className="font-medium text-sm">
@@ -449,7 +472,12 @@ const CronBuilder: FC<CronBuilderProps> = ({
       {showGeneratedExpression && (
         <Card className={cn(!withCard && "border-none shadow-none")}>
           <CardHeader className={cn(!withCard && "px-0")}>
-            <CardTitle className="flex items-center gap-2 text-base">
+            <CardTitle
+              className={cn(
+                "flex items-center gap-2 text-base",
+                titleClassName
+              )}
+            >
               <Clock className="h-4 w-4" />
               Generated Expression
             </CardTitle>
@@ -576,7 +604,7 @@ function decodeCronFieldItem(value: string): string {
 
 export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
   ({ field, value, onChange, config, disabled = false }) => {
-    const [innerValue, _setInnerValue] = useState(() =>
+    const [innerValue, _setInnerValue, innerValueRef] = useStateRef(() =>
       decodeCronFieldItem(value)
     );
 
@@ -590,20 +618,17 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
     // biome-ignore lint/correctness/useExhaustiveDependencies: false
     useEffect(() => {
       const nextValue = decodeCronFieldItem(value);
-      if (nextValue !== innerValue) {
+      if (nextValue !== innerValueRef.current) {
         _setInnerValue(nextValue);
       }
-    }, [value]);
+    }, [value, innerValueRef]);
 
-    const handleChange = useCallback(
-      (v: string) => {
-        _setInnerValue(v);
-        onChange(field, encodeCronFieldItem(v));
-      },
-      [field, onChange]
-    );
+    const handleChange = useEvent((v: string) => {
+      _setInnerValue(v);
+      onChange(field, encodeCronFieldItem(v));
+    });
 
-    const setAnyOrSpecificOption = useCallback(
+    const setAnyOrSpecificOption = useEvent(
       (v: CronFieldItemAnyOrSpecificOption) => {
         _setAnyOrSpecificOption(v);
         if (v === CronFieldItemAnyOrSpecificOption.Any) {
@@ -611,8 +636,7 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
         } else if (v === CronFieldItemAnyOrSpecificOption.Specific) {
           handleChange("0");
         }
-      },
-      [handleChange]
+      }
     );
 
     return (
@@ -738,6 +762,10 @@ function parseCronExpression(expression: string): Record<CronField, string> {
     dayOfWeek: parts[5] || "*",
     year: parts[6] || "*",
   };
+}
+
+function cronFieldsToExpression(cronFields: Record<CronField, string>): string {
+  return `${cronFields.seconds} ${cronFields.minutes} ${cronFields.hours} ${cronFields.dayOfMonth} ${cronFields.month} ${cronFields.dayOfWeek}`;
 }
 
 export { CronBuilder };

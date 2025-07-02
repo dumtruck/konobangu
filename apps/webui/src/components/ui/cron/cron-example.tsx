@@ -99,6 +99,7 @@ const CronExample: FC = () => {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {examples.map((example, index) => (
               <Button
+                type="button"
                 key={index}
                 variant="outline"
                 className="h-auto flex-col items-start p-4 text-left"

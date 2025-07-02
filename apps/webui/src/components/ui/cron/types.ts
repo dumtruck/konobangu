@@ -1,5 +1,5 @@
-import type { ClassValue } from 'clsx';
-import type { ReactNode } from 'react';
+import type { ClassValue } from "clsx";
+import type { ReactNode } from "react";
 
 export interface CronExpression {
   seconds?: string;
@@ -19,6 +19,7 @@ export interface CronDisplayProps {
   timezone?: string;
   showDescription?: boolean;
   withCard?: boolean;
+  titleClassName?: ClassValue;
 }
 
 export interface CronInputProps {
@@ -30,6 +31,8 @@ export interface CronInputProps {
   disabled?: boolean;
   readOnly?: boolean;
   error?: string;
+  titleClassName?: ClassValue;
+  showHelp?: boolean;
 }
 
 export interface CronBuilderProps {
@@ -45,20 +48,22 @@ export interface CronBuilderProps {
   showGeneratedExpression?: boolean;
   timezone?: string;
   withCard?: boolean;
+  titleClassName?: ClassValue;
 }
 
 export const CronPrimitiveMode = {
-  Input: 'input',
-  Builder: 'builder',
+  Input: "input",
+  Builder: "builder",
 } as const;
 
 export type CronPrimitiveMode =
   (typeof CronPrimitiveMode)[keyof typeof CronPrimitiveMode];
 
 export const CronMode = {
-  Input: 'input',
-  Builder: 'builder',
-  Both: 'both',
+  Input: "input",
+  Builder: "builder",
+  Both: "both",
+  BothExpandable: "both-expandable",
 } as const;
 
 export type CronMode = (typeof CronMode)[keyof typeof CronMode];
@@ -84,17 +89,18 @@ export interface CronProps {
   showHelp?: boolean;
   showPresets?: boolean;
   withCard?: boolean;
-  isFirstSibling?: boolean;
+  titleClassName?: ClassValue;
+  defaultExpanded?: boolean;
 }
 
 export const CronPeriod = {
-  Minute: 'minute',
-  Hourly: 'hourly',
-  Daily: 'daily',
-  Weekly: 'weekly',
-  Monthly: 'monthly',
-  Yearly: 'yearly',
-  Custom: 'custom',
+  Minute: "minute",
+  Hourly: "hourly",
+  Daily: "daily",
+  Weekly: "weekly",
+  Monthly: "monthly",
+  Yearly: "yearly",
+  Custom: "custom",
 } as const;
 
 export type CronPeriod = (typeof CronPeriod)[keyof typeof CronPeriod];
@@ -143,13 +149,13 @@ export interface PeriodConfig {
 }
 
 export const CronField = {
-  Seconds: 'seconds',
-  Minutes: 'minutes',
-  Hours: 'hours',
-  DayOfMonth: 'dayOfMonth',
-  Month: 'month',
-  DayOfWeek: 'dayOfWeek',
-  Year: 'year',
+  Seconds: "seconds",
+  Minutes: "minutes",
+  Hours: "hours",
+  DayOfMonth: "dayOfMonth",
+  Month: "month",
+  DayOfWeek: "dayOfWeek",
+  Year: "year",
 } as const;
 
 export type CronField = (typeof CronField)[keyof typeof CronField];

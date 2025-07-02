@@ -1,8 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/presentation/utils';
-import { parse } from '@datasert/cronjs-parser';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { parse } from "@datasert/cronjs-parser";
+import { AlertCircle, CheckCircle, Info } from "lucide-react";
 import {
   type ChangeEvent,
   forwardRef,
@@ -10,8 +7,11 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
-import type { CronInputProps, CronValidationResult } from './types.js';
+} from "react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/presentation/utils";
+import type { CronInputProps, CronValidationResult } from "./types.js";
 
 const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
   (
@@ -19,23 +19,25 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
       value,
       onChange,
       onValidate,
-      placeholder = '0 0 * * * *',
+      placeholder = "0 0 * * * *",
       className,
       disabled,
       readOnly,
       error,
+      titleClassName,
+      showHelp = true,
       ...props
     },
     ref
   ) => {
-    const [internalValue, setInternalValue] = useState(value || '');
+    const [internalValue, setInternalValue] = useState(value || "");
     const [isFocused, setIsFocused] = useState(false);
 
     const validationResult = useMemo((): CronValidationResult => {
       if (!internalValue.trim()) {
         return {
           isValid: false,
-          error: 'Expression is required',
+          error: "Expression is required",
           isEmpty: true,
         };
       }
@@ -49,13 +51,13 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
           error:
             parseError instanceof Error
               ? parseError.message
-              : 'Invalid cron expression',
+              : "Invalid cron expression",
         };
       }
     }, [internalValue]);
 
     useEffect(() => {
-      setInternalValue(value || '');
+      setInternalValue(value || "");
     }, [value]);
 
     useEffect(() => {
@@ -96,14 +98,14 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
             onBlur={handleBlur}
             placeholder={placeholder}
             className={cn(
-              'pr-10 font-mono text-sm',
-              hasError && 'border-destructive focus-visible:ring-destructive',
-              showSuccess && 'border-success focus-visible:ring-success',
+              "pr-10 font-mono text-sm",
+              hasError && "border-destructive focus-visible:ring-destructive",
+              showSuccess && "border-success focus-visible:ring-success",
               className
             )}
             disabled={disabled}
             readOnly={readOnly}
-            aria-invalid={hasError ? 'true' : 'false'}
+            aria-invalid={hasError ? "true" : "false"}
             {...props}
           />
 
@@ -123,7 +125,7 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
         )}
 
         {/* Help text when focused */}
-        {isFocused && !hasError && (
+        {isFocused && showHelp && !hasError && (
           <div className="space-y-2 text-muted-foreground text-sm">
             <div className="flex items-center gap-2">
               <Info className="h-4 w-4" />
@@ -185,6 +187,6 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
   }
 );
 
-CronInput.displayName = 'CronInput';
+CronInput.displayName = "CronInput";
 
 export { CronInput };

@@ -1,6 +1,6 @@
+import { Outlet, type RouteOptions } from '@tanstack/react-router';
 import { guardRouteIndexAsNotFound } from '@/components/layout/app-not-found';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { Outlet, type RouteOptions } from '@tanstack/react-router';
 
 export interface BuildVirtualBranchRouteOptions {
   title: string;

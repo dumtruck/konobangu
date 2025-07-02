@@ -189,6 +189,9 @@ function TaskCronManageRouteComponent() {
                     <Badge variant="outline" className="capitalize">
                       {cron.cronExpr}
                     </Badge>
+                    <Badge variant="outline" className="capitalize">
+                      {cron.cronTimezone}
+                    </Badge>
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -201,6 +204,13 @@ function TaskCronManageRouteComponent() {
                       onDetail={() => {
                         navigate({
                           to: '/tasks/cron/detail/$id',
+                          params: { id: cron.id.toString() },
+                        });
+                      }}
+                      showEdit
+                      onEdit={() => {
+                        navigate({
+                          to: '/tasks/cron/edit/$id',
                           params: { id: cron.id.toString() },
                         });
                       }}
@@ -248,14 +258,26 @@ function TaskCronManageRouteComponent() {
                     </span>
                   </div>
 
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Timeout: </span>
+                    <span>
+                      {cron.timeoutMs ? `${cron.timeoutMs}ms` : 'No timeout'}
+                    </span>
+                  </div>
+
                   {/* Lock at */}
                   <div className="text-sm">
-                    <span className="text-muted-foreground">Lock at: </span>
+                    <span className="text-muted-foreground">Locked at: </span>
                     <span>
                       {cron.lockedAt
                         ? intlService.formatDatetimeWithTz(cron.lockedAt)
                         : '-'}
                     </span>
+                  </div>
+
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Locked by: </span>
+                    <span>{cron.lockedBy ?? '-'}</span>
                   </div>
                 </div>
 

@@ -1,8 +1,8 @@
-import { useAuth } from '@/app/auth/hooks';
-import { type Fetcher, createGraphiQLFetcher } from '@graphiql/toolkit';
+import { createGraphiQLFetcher, type Fetcher } from '@graphiql/toolkit';
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { GraphiQL } from 'graphiql';
 import { useCallback } from 'react';
+import { useAuth } from '@/app/auth/hooks';
 import 'graphiql/graphiql.css';
 import { firstValueFrom } from 'rxjs';
 

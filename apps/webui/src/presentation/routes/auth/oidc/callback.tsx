@@ -1,14 +1,14 @@
-import { authContextFromInjector } from '@/app/auth/context';
-import { useAuth } from '@/app/auth/hooks';
-import { ProLink } from '@/components/ui/pro-link';
-import { Spinner } from '@/components/ui/spinner';
-import { AUTH_METHOD } from '@/infra/auth/defs';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useAtomValue } from 'jotai/react';
 import { atomWithObservable } from 'jotai/utils';
 import { EventTypes } from 'oidc-client-rx';
 import { useMemo } from 'react';
 import { filter, map } from 'rxjs';
+import { authContextFromInjector } from '@/app/auth/context';
+import { useAuth } from '@/app/auth/hooks';
+import { ProLink } from '@/components/ui/pro-link';
+import { Spinner } from '@/components/ui/spinner';
+import { AUTH_METHOD } from '@/infra/auth/defs';
 
 export const Route = createFileRoute('/auth/oidc/callback')({
   component: OidcCallbackRouteComponent,
@@ -81,7 +81,7 @@ function OidcCallbackRouteComponent() {
               Failed to handle OIDC callback: {checkAuthResultError}
             </p>
           )}
-          {!isLoading && !checkAuthResultError && (
+          {!(isLoading || checkAuthResultError) && (
             <p className="text-gray-500">
               Succeed to handle OIDC authentication callback.
             </p>
