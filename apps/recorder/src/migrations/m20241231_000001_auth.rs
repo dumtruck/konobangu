@@ -90,6 +90,11 @@ impl MigrationTrait for Migration {
                         SimpleExpr::from(AuthType::Basic).as_enum(AuthTypeEnum),
                         seed_subscriber_id.into(),
                     ])
+                    .on_conflict(
+                        OnConflict::columns([Auth::Pid, Auth::AuthType])
+                            .do_nothing()
+                            .to_owned(),
+                    )
                     .to_owned(),
             )
             .await?;

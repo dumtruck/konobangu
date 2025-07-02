@@ -21,6 +21,8 @@ export type Scalars = {
   JsonbFilterInput: { input: any; output: any; }
   /** type SubscriberTaskType = { "taskType": "sync_one_subscription_feeds_incremental" } & SyncOneSubscriptionFeedsIncrementalTask | { "taskType": "sync_one_subscription_feeds_full" } & SyncOneSubscriptionFeedsFullTask | { "taskType": "sync_one_subscription_sources" } & SyncOneSubscriptionSourcesTask; */
   SubscriberTaskType: { input: SubscriberTaskInput; output: SubscriberTaskType; }
+  /** type SystemTaskType = { "taskType": "optimize_image" } & OptimizeImageTask; */
+  SystemTaskType: { input: any; output: any; }
 };
 
 export type Bangumi = {
@@ -354,11 +356,28 @@ export type Cron = {
   status: CronStatusEnum;
   subscriber?: Maybe<Subscribers>;
   subscriberId?: Maybe<Scalars['Int']['output']>;
-  subscriberTask?: Maybe<Scalars['SubscriberTaskType']['output']>;
+  subscriberTask: SubscriberTasksConnection;
+  subscriberTaskCron?: Maybe<Scalars['SubscriberTaskType']['output']>;
   subscription?: Maybe<Subscriptions>;
   subscriptionId?: Maybe<Scalars['Int']['output']>;
+  systemTask: SystemTasksConnection;
+  systemTaskCron?: Maybe<Scalars['SystemTaskType']['output']>;
   timeoutMs: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+
+export type CronSubscriberTaskArgs = {
+  filter?: InputMaybe<SubscriberTasksFilterInput>;
+  orderBy?: InputMaybe<SubscriberTasksOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type CronSystemTaskArgs = {
+  filter?: InputMaybe<SystemTasksFilterInput>;
+  orderBy?: InputMaybe<SystemTasksOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 export type CronBasic = {
@@ -377,8 +396,9 @@ export type CronBasic = {
   priority: Scalars['Int']['output'];
   status: CronStatusEnum;
   subscriberId?: Maybe<Scalars['Int']['output']>;
-  subscriberTask?: Maybe<Scalars['SubscriberTaskType']['output']>;
+  subscriberTaskCron?: Maybe<Scalars['SubscriberTaskType']['output']>;
   subscriptionId?: Maybe<Scalars['Int']['output']>;
+  systemTaskCron?: Maybe<Scalars['SystemTaskType']['output']>;
   timeoutMs: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
 };
@@ -414,8 +434,9 @@ export type CronFilterInput = {
   priority?: InputMaybe<IntegerFilterInput>;
   status?: InputMaybe<CronStatusEnumFilterInput>;
   subscriberId?: InputMaybe<SubscriberIdFilterInput>;
-  subscriberTask?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
+  subscriberTaskCron?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
   subscriptionId?: InputMaybe<IntegerFilterInput>;
+  systemTaskCron?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
   timeoutMs?: InputMaybe<IntegerFilterInput>;
   updatedAt?: InputMaybe<TextFilterInput>;
 };
@@ -424,7 +445,8 @@ export type CronInsertInput = {
   cronExpr: Scalars['String']['input'];
   enabled?: InputMaybe<Scalars['Boolean']['input']>;
   maxAttempts?: InputMaybe<Scalars['Int']['input']>;
-  subscriberTask?: InputMaybe<Scalars['SubscriberTaskType']['input']>;
+  subscriberTaskCron?: InputMaybe<Scalars['SubscriberTaskType']['input']>;
+  systemTaskCron?: InputMaybe<Scalars['SystemTaskType']['input']>;
   timeoutMs?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -443,8 +465,9 @@ export type CronOrderInput = {
   priority?: InputMaybe<OrderByEnum>;
   status?: InputMaybe<OrderByEnum>;
   subscriberId?: InputMaybe<OrderByEnum>;
-  subscriberTask?: InputMaybe<OrderByEnum>;
+  subscriberTaskCron?: InputMaybe<OrderByEnum>;
   subscriptionId?: InputMaybe<OrderByEnum>;
+  systemTaskCron?: InputMaybe<OrderByEnum>;
   timeoutMs?: InputMaybe<OrderByEnum>;
   updatedAt?: InputMaybe<OrderByEnum>;
 };
@@ -1170,6 +1193,9 @@ export type Mutation = {
   subscriptionsCreateOne: SubscriptionsBasic;
   subscriptionsDelete: Scalars['Int']['output'];
   subscriptionsUpdate: Array<SubscriptionsBasic>;
+  systemTasksCreateOne: SystemTasksBasic;
+  systemTasksDelete: Scalars['Int']['output'];
+  systemTasksRetryOne: SystemTasksBasic;
 };
 
 
@@ -1402,6 +1428,21 @@ export type MutationSubscriptionsUpdateArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
 };
 
+
+export type MutationSystemTasksCreateOneArgs = {
+  data: SystemTasksInsertInput;
+};
+
+
+export type MutationSystemTasksDeleteArgs = {
+  filter?: InputMaybe<SystemTasksFilterInput>;
+};
+
+
+export type MutationSystemTasksRetryOneArgs = {
+  filter?: InputMaybe<SystemTasksFilterInput>;
+};
+
 export type OffsetInput = {
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
@@ -1455,6 +1496,7 @@ export type Query = {
   subscriptionBangumi: SubscriptionBangumiConnection;
   subscriptionEpisode: SubscriptionEpisodeConnection;
   subscriptions: SubscriptionsConnection;
+  systemTasks: SystemTasksConnection;
 };
 
 
@@ -1546,6 +1588,13 @@ export type QuerySubscriptionsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+
+export type QuerySystemTasksArgs = {
+  filter?: InputMaybe<SystemTasksFilterInput>;
+  orderBy?: InputMaybe<SystemTasksOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
 export type StringFilterInput = {
   between?: InputMaybe<Array<Scalars['String']['input']>>;
   contains?: InputMaybe<Scalars['String']['input']>;
@@ -1590,6 +1639,8 @@ export type SubscriberTaskTypeEnum = typeof SubscriberTaskTypeEnum[keyof typeof 
 export type SubscriberTasks = {
   __typename?: 'SubscriberTasks';
   attempts: Scalars['Int']['output'];
+  cron?: Maybe<Cron>;
+  cronId?: Maybe<Scalars['Int']['output']>;
   doneAt?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   job: Scalars['SubscriberTaskType']['output'];
@@ -1610,6 +1661,7 @@ export type SubscriberTasks = {
 export type SubscriberTasksBasic = {
   __typename?: 'SubscriberTasksBasic';
   attempts: Scalars['Int']['output'];
+  cronId?: Maybe<Scalars['Int']['output']>;
   doneAt?: Maybe<Scalars['String']['output']>;
   id: Scalars['String']['output'];
   job: Scalars['SubscriberTaskType']['output'];
@@ -1642,6 +1694,7 @@ export type SubscriberTasksEdge = {
 export type SubscriberTasksFilterInput = {
   and?: InputMaybe<Array<SubscriberTasksFilterInput>>;
   attempts?: InputMaybe<IntegerFilterInput>;
+  cronId?: InputMaybe<IntegerFilterInput>;
   doneAt?: InputMaybe<TextFilterInput>;
   id?: InputMaybe<StringFilterInput>;
   job?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
@@ -1665,6 +1718,7 @@ export type SubscriberTasksInsertInput = {
 
 export type SubscriberTasksOrderInput = {
   attempts?: InputMaybe<OrderByEnum>;
+  cronId?: InputMaybe<OrderByEnum>;
   doneAt?: InputMaybe<OrderByEnum>;
   id?: InputMaybe<OrderByEnum>;
   job?: InputMaybe<OrderByEnum>;
@@ -1693,6 +1747,7 @@ export type Subscribers = {
   id: Scalars['Int']['output'];
   subscriberTask: SubscriberTasksConnection;
   subscription: SubscriptionsConnection;
+  systemTask: SystemTasksConnection;
   updatedAt: Scalars['String']['output'];
 };
 
@@ -1742,6 +1797,13 @@ export type SubscribersSubscriberTaskArgs = {
 export type SubscribersSubscriptionArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type SubscribersSystemTaskArgs = {
+  filter?: InputMaybe<SystemTasksFilterInput>;
+  orderBy?: InputMaybe<SystemTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
@@ -2054,6 +2116,114 @@ export type SubscriptionsUpdateInput = {
   id?: InputMaybe<Scalars['Int']['input']>;
   sourceUrl?: InputMaybe<Scalars['String']['input']>;
   updatedAt?: InputMaybe<Scalars['String']['input']>;
+};
+
+export const SystemTaskStatusEnum = {
+  Done: 'Done',
+  Failed: 'Failed',
+  Killed: 'Killed',
+  Pending: 'Pending',
+  Running: 'Running',
+  Scheduled: 'Scheduled'
+} as const;
+
+export type SystemTaskStatusEnum = typeof SystemTaskStatusEnum[keyof typeof SystemTaskStatusEnum];
+export const SystemTaskTypeEnum = {
+  OptimizeImage: 'optimize_image'
+} as const;
+
+export type SystemTaskTypeEnum = typeof SystemTaskTypeEnum[keyof typeof SystemTaskTypeEnum];
+export type SystemTasks = {
+  __typename?: 'SystemTasks';
+  attempts: Scalars['Int']['output'];
+  cron?: Maybe<Cron>;
+  cronId?: Maybe<Scalars['Int']['output']>;
+  doneAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  job: Scalars['SystemTaskType']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lockAt?: Maybe<Scalars['String']['output']>;
+  lockBy?: Maybe<Scalars['String']['output']>;
+  maxAttempts: Scalars['Int']['output'];
+  priority: Scalars['Int']['output'];
+  runAt: Scalars['String']['output'];
+  status: SystemTaskStatusEnum;
+  subscriber?: Maybe<Subscribers>;
+  subscriberId?: Maybe<Scalars['Int']['output']>;
+  taskType: SystemTaskTypeEnum;
+};
+
+export type SystemTasksBasic = {
+  __typename?: 'SystemTasksBasic';
+  attempts: Scalars['Int']['output'];
+  cronId?: Maybe<Scalars['Int']['output']>;
+  doneAt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  job: Scalars['SystemTaskType']['output'];
+  lastError?: Maybe<Scalars['String']['output']>;
+  lockAt?: Maybe<Scalars['String']['output']>;
+  lockBy?: Maybe<Scalars['String']['output']>;
+  maxAttempts: Scalars['Int']['output'];
+  priority: Scalars['Int']['output'];
+  runAt: Scalars['String']['output'];
+  status: SystemTaskStatusEnum;
+  subscriberId?: Maybe<Scalars['Int']['output']>;
+  taskType: SystemTaskTypeEnum;
+};
+
+export type SystemTasksConnection = {
+  __typename?: 'SystemTasksConnection';
+  edges: Array<SystemTasksEdge>;
+  nodes: Array<SystemTasks>;
+  pageInfo: PageInfo;
+  paginationInfo?: Maybe<PaginationInfo>;
+};
+
+export type SystemTasksEdge = {
+  __typename?: 'SystemTasksEdge';
+  cursor: Scalars['String']['output'];
+  node: SystemTasks;
+};
+
+export type SystemTasksFilterInput = {
+  and?: InputMaybe<Array<SystemTasksFilterInput>>;
+  attempts?: InputMaybe<IntegerFilterInput>;
+  cronId?: InputMaybe<IntegerFilterInput>;
+  doneAt?: InputMaybe<TextFilterInput>;
+  id?: InputMaybe<StringFilterInput>;
+  job?: InputMaybe<Scalars['JsonbFilterInput']['input']>;
+  lastError?: InputMaybe<StringFilterInput>;
+  lockAt?: InputMaybe<TextFilterInput>;
+  lockBy?: InputMaybe<StringFilterInput>;
+  maxAttempts?: InputMaybe<IntegerFilterInput>;
+  or?: InputMaybe<Array<SystemTasksFilterInput>>;
+  priority?: InputMaybe<IntegerFilterInput>;
+  runAt?: InputMaybe<TextFilterInput>;
+  status?: InputMaybe<StringFilterInput>;
+  subscriberId?: InputMaybe<SubscriberIdFilterInput>;
+  taskType?: InputMaybe<StringFilterInput>;
+};
+
+export type SystemTasksInsertInput = {
+  job: Scalars['SystemTaskType']['input'];
+  subscriberId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type SystemTasksOrderInput = {
+  attempts?: InputMaybe<OrderByEnum>;
+  cronId?: InputMaybe<OrderByEnum>;
+  doneAt?: InputMaybe<OrderByEnum>;
+  id?: InputMaybe<OrderByEnum>;
+  job?: InputMaybe<OrderByEnum>;
+  lastError?: InputMaybe<OrderByEnum>;
+  lockAt?: InputMaybe<OrderByEnum>;
+  lockBy?: InputMaybe<OrderByEnum>;
+  maxAttempts?: InputMaybe<OrderByEnum>;
+  priority?: InputMaybe<OrderByEnum>;
+  runAt?: InputMaybe<OrderByEnum>;
+  status?: InputMaybe<OrderByEnum>;
+  subscriberId?: InputMaybe<OrderByEnum>;
+  taskType?: InputMaybe<OrderByEnum>;
 };
 
 export type TextFilterInput = {

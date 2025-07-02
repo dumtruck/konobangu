@@ -13,9 +13,6 @@ members = [
 resolver = "2"
 
 [profile.dev]
-debug = 0
-# https://github.com/rust-lang/rust/issues/141540
-incremental = true # Then only change rust-analyzer incremental
 # [simd not supported by cranelift](https://github.com/rust-lang/rustc_codegen_cranelift/issues/171)
 # codegen-backend = "cranelift"
 

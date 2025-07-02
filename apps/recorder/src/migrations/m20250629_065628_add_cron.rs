@@ -56,8 +56,8 @@ impl MigrationTrait for Migration {
                         CronStatusEnum,
                         CronStatus::iden_values(),
                     ))
-                    .col(json_binary_null(Cron::SubscriberTask))
-                    .col(json_binary_null(Cron::SystemTask))
+                    .col(json_binary_null(Cron::SubscriberTaskCron))
+                    .col(json_binary_null(Cron::SystemTaskCron))
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_cron_subscriber_id")
@@ -102,25 +102,25 @@ impl MigrationTrait for Migration {
                 new_subscriber_task_subscription_id integer;
                 new_system_task_subscriber_id integer;
             BEGIN
-                new_subscriber_task_subscriber_id = (NEW.{subscriber_task} ->> 'subscriber_id')::integer;
-                new_subscriber_task_subscription_id = (NEW.{subscriber_task} ->> 'subscription_id')::integer;
-                new_system_task_subscriber_id = (NEW.{system_task} ->> 'subscriber_id')::integer;
-                IF new_subscriber_task_subscriber_id != (OLD.{subscriber_task} ->> 'subscriber_id')::integer AND new_subscriber_task_subscriber_id != NEW.{subscriber_id} THEN
+                new_subscriber_task_subscriber_id = (NEW.{subscriber_task_cron} ->> 'subscriber_id')::integer;
+                new_subscriber_task_subscription_id = (NEW.{subscriber_task_cron} ->> 'subscription_id')::integer;
+                new_system_task_subscriber_id = (NEW.{system_task_cron} ->> 'subscriber_id')::integer;
+                IF new_subscriber_task_subscriber_id != (OLD.{subscriber_task_cron} ->> 'subscriber_id')::integer AND new_subscriber_task_subscriber_id != NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_subscriber_task_subscriber_id;
                 END IF;
-                IF new_subscriber_task_subscription_id != (OLD.{subscriber_task} ->> 'subscription_id')::integer AND new_subscriber_task_subscription_id != NEW.{subscription_id} THEN
+                IF new_subscriber_task_subscription_id != (OLD.{subscriber_task_cron} ->> 'subscription_id')::integer AND new_subscriber_task_subscription_id != NEW.{subscription_id} THEN
                     NEW.{subscription_id} = new_subscriber_task_subscription_id;
                 END IF;
-                IF new_system_task_subscriber_id != (OLD.{system_task} ->> 'subscriber_id')::integer AND new_system_task_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_system_task_subscriber_id != (OLD.{system_task_cron} ->> 'subscriber_id')::integer AND new_system_task_subscriber_id != NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_system_task_subscriber_id;
                 END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;"#,
-            subscriber_task = &Cron::SubscriberTask.to_string(),
+            subscriber_task_cron = &Cron::SubscriberTaskCron.to_string(),
             subscriber_id = &Cron::SubscriberId.to_string(),
             subscription_id = &Cron::SubscriptionId.to_string(),
-            system_task = &Cron::SystemTask.to_string(),
+            system_task_cron = &Cron::SystemTaskCron.to_string(),
         )).await?;
 
         db.execute_unprepared(&format!(

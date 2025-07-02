@@ -7,7 +7,8 @@ use sea_orm::{
     QuerySelect, QueryTrait, prelude::Expr, sea_query::Query,
 };
 use seaography::{
-    Builder as SeaographyBuilder, BuilderContext, SeaographyError, prepare_active_model,
+    Builder as SeaographyBuilder, BuilderContext, GuardAction, SeaographyError,
+    prepare_active_model,
 };
 use ts_rs::TS;
 
@@ -59,6 +60,14 @@ where
     restrict_jsonb_filter_input_for_entity::<T>(context, column);
     convert_jsonb_output_for_entity::<T>(context, column, Some(Case::Camel));
     let entity_column_name = get_entity_and_column_name::<T>(context, column);
+    context.guards.field_guards.insert(
+        entity_column_name.clone(),
+        Box::new(|_resolver_ctx| {
+            GuardAction::Block(Some(
+                "SystemTask can not be created by subscribers now".to_string(),
+            ))
+        }),
+    );
 
     context.types.input_type_overwrites.insert(
         entity_column_name.clone(),
@@ -112,6 +121,7 @@ pub fn register_system_tasks_to_schema_builder(
             .description(system_tasks::SystemTask::decl()),
     );
     builder.register_enumeration::<system_tasks::SystemTaskType>();
+    builder.register_enumeration::<system_tasks::SystemTaskStatus>();
 
     builder = register_entity_default_readonly!(builder, system_tasks);
     let builder_context = builder.context;

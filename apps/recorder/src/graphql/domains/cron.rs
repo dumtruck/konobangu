@@ -17,8 +17,8 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
     for column in cron::Column::iter() {
         if matches!(
             column,
-            cron::Column::SubscriberTask
-                | cron::Column::SystemTask
+            cron::Column::SubscriberTaskCron
+                | cron::Column::SystemTaskCron
                 | cron::Column::CronExpr
                 | cron::Column::Enabled
                 | cron::Column::TimeoutMs
@@ -45,8 +45,11 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
 pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
     restrict_subscriber_for_entity::<cron::Entity>(context, &cron::Column::SubscriberId);
 
-    restrict_subscriber_tasks_for_entity::<cron::Entity>(context, &cron::Column::SubscriberTask);
-    restrict_system_tasks_for_entity::<cron::Entity>(context, &cron::Column::SystemTask);
+    restrict_subscriber_tasks_for_entity::<cron::Entity>(
+        context,
+        &cron::Column::SubscriberTaskCron,
+    );
+    restrict_system_tasks_for_entity::<cron::Entity>(context, &cron::Column::SystemTaskCron);
     skip_columns_for_entity_input(context);
 }
 

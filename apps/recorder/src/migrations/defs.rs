@@ -189,8 +189,8 @@ pub enum Cron {
     MaxAttempts,
     Priority,
     Status,
-    SubscriberTask,
-    SystemTask,
+    SubscriberTaskCron,
+    SystemTaskCron,
 }
 
 #[derive(sea_query::Iden)]
@@ -317,6 +317,26 @@ pub trait CustomSchemaManagerExt {
         Ok(())
     }
 
+    async fn create_foreign_key_if_not_exists<
+        T: IntoIden + 'static + Send,
+        S: IntoIden + 'static + Send,
+    >(
+        &self,
+        from_tbl: T,
+        foreign_key: S,
+        stmt: ForeignKeyCreateStatement,
+    ) -> Result<(), DbErr>;
+
+    async fn drop_foreign_key_if_exists<
+        T: IntoIden + 'static + Send,
+        S: IntoIden + 'static + Send,
+    >(
+        &self,
+        from_tbl: T,
+        foreign_key: S,
+        stmt: ForeignKeyDropStatement,
+    ) -> Result<(), DbErr>;
+
     async fn create_postgres_enum_for_active_enum<
         E: IntoTypeRef + IntoIden + Send + Clone,
         I: IntoIterator<Item = String> + Send,
@@ -400,6 +420,71 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
         self.get_connection()
             .execute(Statement::from_string(self.get_database_backend(), sql))
             .await?;
+        Ok(())
+    }
+
+    async fn create_foreign_key_if_not_exists<
+        T: IntoIden + 'static + Send,
+        S: IntoIden + 'static + Send,
+    >(
+        &self,
+        from_tbl: T,
+        foreign_key: S,
+        stmt: ForeignKeyCreateStatement,
+    ) -> Result<(), DbErr> {
+        let from_tbl = from_tbl.into_iden().to_string();
+        let foreign_key = foreign_key.into_iden().to_string();
+        let db = self
+            .get_connection()
+            .query_one(Statement::from_string(
+                self.get_database_backend(),
+                format!(
+                    "
+                SELECT CONSTRAINT_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_NAME = '{from_tbl}' AND CONSTRAINT_NAME = '{foreign_key}'
+                "
+                ),
+            ))
+            .await?;
+
+        if db.is_some() {
+            return Ok(());
+        }
+
+        self.create_foreign_key(stmt).await?;
+        Ok(())
+    }
+
+    async fn drop_foreign_key_if_exists<
+        T: IntoIden + 'static + Send,
+        S: IntoIden + 'static + Send,
+    >(
+        &self,
+        from_tbl: T,
+        foreign_key: S,
+        stmt: ForeignKeyDropStatement,
+    ) -> Result<(), DbErr> {
+        let from_tbl = from_tbl.into_iden().to_string();
+        let foreign_key = foreign_key.into_iden().to_string();
+        let db = self
+            .get_connection()
+            .query_one(Statement::from_string(
+                self.get_database_backend(),
+                format!(
+                    "
+                SELECT CONSTRAINT_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_NAME = '{from_tbl}' AND CONSTRAINT_NAME = '{foreign_key}'
+                "
+                ),
+            ))
+            .await?;
+
+        if db.is_some() {
+            self.drop_foreign_key(stmt).await?;
+        }
+
         Ok(())
     }
 

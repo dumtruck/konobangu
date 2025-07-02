@@ -302,7 +302,10 @@ mod tests {
     use tracing::Level;
 
     use super::*;
-    use crate::test_utils::{app::TestingPreset, tracing::try_init_testing_tracing};
+    use crate::test_utils::{
+        // app::TestingPreset,
+        tracing::try_init_testing_tracing,
+    };
 
     #[fixture]
     fn before_each() {
@@ -312,13 +315,6 @@ mod tests {
     #[rstest]
     #[tokio::test]
     async fn test_cron_due_listening(before_each: ()) -> RecorderResult<()> {
-        let mut preset = TestingPreset::default().await?;
-        let app_ctx = preset.app_ctx.clone();
-
-        let db = app_ctx.db();
-
-        todo!();
-
-        Ok(())
+        todo!()
     }
 }

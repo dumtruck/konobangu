@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
                     .table((ApalisSchema::Schema, ApalisJobs::Table))
                     .add_column_if_not_exists(integer_null(ApalisJobs::SubscriberId))
                     .add_column_if_not_exists(integer_null(ApalisJobs::SubscriptionId))
-                    .add_column_if_not_exists(string_null(ApalisJobs::TaskType))
+                    .add_column_if_not_exists(text_null(ApalisJobs::TaskType))
                     .add_foreign_key(
                         TableForeignKey::new()
                             .name("fk_apalis_jobs_subscriber_id")

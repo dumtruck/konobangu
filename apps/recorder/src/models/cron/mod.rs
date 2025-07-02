@@ -1,5 +1,4 @@
 mod core;
-mod registry;
 
 pub use core::{
     CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT,
@@ -71,8 +70,8 @@ pub struct Model {
     pub status: CronStatus,
     #[sea_orm(default_expr = "true")]
     pub enabled: bool,
-    pub subscriber_task: Option<subscriber_tasks::SubscriberTask>,
-    pub system_task: Option<system_tasks::SystemTask>,
+    pub subscriber_task_cron: Option<subscriber_tasks::SubscriberTask>,
+    pub system_task_cron: Option<system_tasks::SystemTask>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -152,19 +151,19 @@ impl ActiveModelBehavior for ActiveModel {
             self.next_run = Set(Some(next_run));
         }
         if let ActiveValue::Set(Some(subscriber_id)) = self.subscriber_id
-            && let ActiveValue::Set(Some(ref subscriber_task)) = self.subscriber_task
+            && let ActiveValue::Set(Some(ref subscriber_task)) = self.subscriber_task_cron
             && subscriber_task.get_subscriber_id() != subscriber_id
         {
             return Err(DbErr::Custom(
-                "Cron subscriber_id does not match subscriber_task.subscriber_id".to_string(),
+                "Cron subscriber_id does not match subscriber_task_cron.subscriber_id".to_string(),
             ));
         }
         if let ActiveValue::Set(Some(subscriber_id)) = self.subscriber_id
-            && let ActiveValue::Set(Some(ref system_task)) = self.system_task
+            && let ActiveValue::Set(Some(ref system_task)) = self.system_task_cron
             && system_task.get_subscriber_id() != Some(subscriber_id)
         {
             return Err(DbErr::Custom(
-                "Cron subscriber_id does not match system_task.subscriber_id".to_string(),
+                "Cron subscriber_id does not match system_task_cron.subscriber_id".to_string(),
             ));
         }
 
@@ -248,14 +247,14 @@ impl Model {
     }
 
     async fn exec_cron(&self, ctx: &dyn AppContextTrait) -> RecorderResult<()> {
-        if let Some(subscriber_task) = self.subscriber_task.as_ref() {
+        if let Some(subscriber_task) = self.subscriber_task_cron.as_ref() {
             let task_service = ctx.task();
             let mut new_subscriber_task = subscriber_task.clone();
             new_subscriber_task.set_cron_id(Some(self.id));
             task_service
                 .add_subscriber_task(new_subscriber_task)
                 .await?;
-        } else if let Some(system_task) = self.system_task.as_ref() {
+        } else if let Some(system_task) = self.system_task_cron.as_ref() {
             let task_service = ctx.task();
             let mut new_system_task = system_task.clone();
             new_system_task.set_cron_id(Some(self.id));
