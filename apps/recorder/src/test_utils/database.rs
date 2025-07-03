@@ -52,7 +52,7 @@ pub async fn build_testing_database_service(
         uri: connection_string,
         enable_logging: true,
         min_connections: 1,
-        max_connections: 1,
+        max_connections: 5,
         connect_timeout: 5000,
         idle_timeout: 10000,
         acquire_timeout: None,

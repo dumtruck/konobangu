@@ -139,7 +139,7 @@ impl MigrationTrait for Migration {
             IF NEW.{next_run} IS NOT NULL
                AND NEW.{next_run} <= CURRENT_TIMESTAMP
                AND NEW.{enabled} = true
-               AND NEW.{status} = '{pending}'
+               AND NEW.{status} = '{pending}'::{status_type}
                AND NEW.{attempts} < NEW.{max_attempts}
                -- Check if not locked or lock timeout
                AND (
@@ -171,6 +171,7 @@ impl MigrationTrait for Migration {
             pending = &CronStatus::Pending.to_value(),
             attempts = &Cron::Attempts.to_string(),
             max_attempts = &Cron::MaxAttempts.to_string(),
+            status_type = &CronStatus::name().to_string(),
         ))
         .await?;
 
@@ -194,7 +195,7 @@ impl MigrationTrait for Migration {
                     WHERE {next_run} IS NOT NULL
                         AND {next_run} <= CURRENT_TIMESTAMP
                         AND {enabled} = true
-                        AND {status} = '{pending}'
+                        AND {status} = '{pending}'::{status_type}
                         AND {attempts} < {max_attempts}
                         AND (
                             {locked_at} IS NULL
@@ -222,6 +223,7 @@ impl MigrationTrait for Migration {
             priority = &Cron::Priority.to_string(),
             attempts = &Cron::Attempts.to_string(),
             max_attempts = &Cron::MaxAttempts.to_string(),
+            status_type = &CronStatus::name().to_string(),
         ))
         .await?;
 

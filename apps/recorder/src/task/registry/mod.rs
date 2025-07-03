@@ -9,6 +9,6 @@ pub use subscriber::{
 };
 pub(crate) use system::register_system_task_type;
 pub use system::{
-    OptimizeImageTask, SystemTask, SystemTaskInput, SystemTaskType, SystemTaskTypeEnum,
+    EchoTask, OptimizeImageTask, SystemTask, SystemTaskInput, SystemTaskType, SystemTaskTypeEnum,
     SystemTaskTypeVariant, SystemTaskTypeVariantIter,
 };

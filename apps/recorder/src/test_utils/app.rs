@@ -6,6 +6,7 @@ use typed_builder::TypedBuilder;
 use crate::{
     app::AppContextTrait,
     errors::RecorderResult,
+    task::TaskConfig,
     test_utils::{
         crypto::build_testing_crypto_service,
         database::{TestingDatabaseServiceConfig, build_testing_database_service},
@@ -43,10 +44,11 @@ impl TestingAppContext {
         self.task.get_or_init(|| task);
     }
 
-    pub async fn from_preset(preset: TestingAppContextPreset) -> RecorderResult<Arc<Self>> {
-        let mikan_client = build_testing_mikan_client(preset.mikan_base_url).await?;
+    pub async fn from_config(config: TestingAppContextConfig) -> RecorderResult<Arc<Self>> {
+        let mikan_base_url = config.mikan_base_url.expect("mikan_base_url is required");
+        let mikan_client = build_testing_mikan_client(mikan_base_url).await?;
         let db_service =
-            build_testing_database_service(preset.database_config.unwrap_or_default()).await?;
+            build_testing_database_service(config.database_config.unwrap_or_default()).await?;
         let crypto_service = build_testing_crypto_service().await?;
         let storage_service = build_testing_storage_service().await?;
         let media_service = build_testing_media_service().await?;
@@ -132,9 +134,12 @@ impl AppContextTrait for TestingAppContext {
     }
 }
 
-pub struct TestingAppContextPreset {
-    pub mikan_base_url: String,
+#[derive(TypedBuilder)]
+#[builder(field_defaults(default, setter(strip_option)))]
+pub struct TestingAppContextConfig {
+    pub mikan_base_url: Option<String>,
     pub database_config: Option<TestingDatabaseServiceConfig>,
+    pub task_config: Option<TaskConfig>,
 }
 
 #[derive(TypedBuilder)]
@@ -144,20 +149,29 @@ pub struct TestingPreset {
 }
 
 impl TestingPreset {
-    pub async fn default() -> RecorderResult<Self> {
+    pub async fn default_with_config(config: TestingAppContextConfig) -> RecorderResult<Self> {
         let mikan_server = MikanMockServer::new().await?;
-        let database_config = TestingDatabaseServiceConfig::default();
 
-        let app_ctx = TestingAppContext::from_preset(TestingAppContextPreset {
-            mikan_base_url: mikan_server.base_url().to_string(),
-            database_config: Some(database_config),
-        })
-        .await?;
+        let mixed_config = TestingAppContextConfig {
+            mikan_base_url: Some(mikan_server.base_url().to_string()),
+            ..config
+        };
+
+        let app_ctx = TestingAppContext::from_config(mixed_config).await?;
 
         let preset = Self::builder()
             .mikan_server(mikan_server)
             .app_ctx(app_ctx)
             .build();
         Ok(preset)
+    }
+
+    pub async fn default() -> RecorderResult<Self> {
+        Self::default_with_config(TestingAppContextConfig {
+            mikan_base_url: None,
+            database_config: None,
+            task_config: None,
+        })
+        .await
     }
 }

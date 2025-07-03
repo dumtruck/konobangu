@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_graphql::dynamic::ResolverContext;
 use sea_orm::Value as SeaValue;
 use seaography::{Builder as SeaographyBuilder, BuilderContext, SeaResult};
+use uuid::Uuid;
 
 use crate::{
     graphql::{
@@ -35,7 +36,9 @@ pub fn register_feeds_to_schema_context(context: &mut BuilderContext) {
                     if field_name == entity_create_one_mutation_field_name.as_str()
                         || field_name == entity_create_batch_mutation_field_name.as_str()
                     {
-                        Ok(Some(SeaValue::String(Some(Box::new(nanoid::nanoid!())))))
+                        Ok(Some(SeaValue::String(Some(Box::new(
+                            Uuid::now_v7().to_string(),
+                        )))))
                     } else {
                         Ok(None)
                     }

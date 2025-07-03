@@ -64,7 +64,7 @@ convert_case = "0.8"
 color-eyre = "0.6.5"
 inquire = "0.7.5"
 image = "0.25.6"
-uuid = { version = "1.6.0", features = ["v4"] }
+uuid = { version = "1.6.0", features = ["v7"] }
 maplit = "1.0.2"
 once_cell = "1.20.2"
 rand = "0.9.1"
@@ -82,6 +82,7 @@ ipnetwork = "0.21.1"
 typed-builder = "0.21.0"
 nanoid = "0.4.0"
 webp = "0.3.0"
+
 
 [patch.crates-io]
 seaography = { git = "https://github.com/dumtruck/seaography.git", rev = "9f7fc7c" }

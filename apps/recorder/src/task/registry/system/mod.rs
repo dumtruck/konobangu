@@ -1,8 +1,10 @@
 mod base;
 mod media;
+mod misc;
 
 pub(crate) use base::register_system_task_type;
 pub use media::OptimizeImageTask;
+pub use misc::EchoTask;
 use sea_orm::{DeriveActiveEnum, DeriveDisplay, EnumIter, FromJsonQueryResult};
 
 macro_rules! register_system_task_types {
@@ -131,30 +133,6 @@ macro_rules! register_system_task_types {
     };
 }
 
-#[cfg(not(any(test, feature = "test-utils")))]
-register_system_task_types! {
-    task_type_enum: {
-        #[derive(
-            Clone,
-            Debug,
-            Copy,
-            DeriveActiveEnum,
-            DeriveDisplay,
-            EnumIter,
-        )]
-        pub enum SystemTaskType {
-            OptimizeImage => "optimize_image"
-        }
-    },
-    task_enum: {
-        #[derive(Clone, Debug, FromJsonQueryResult)]
-        pub enum SystemTask {
-            OptimizeImage(OptimizeImageTask)
-        }
-    }
-}
-
-#[cfg(any(test, feature = "test-utils"))]
 register_system_task_types! {
     task_type_enum: {
         #[derive(
@@ -174,7 +152,7 @@ register_system_task_types! {
         #[derive(Clone, Debug, FromJsonQueryResult)]
         pub enum SystemTask {
             OptimizeImage(OptimizeImageTask),
-            Test(crate::test_utils::task::TestSystemTask),
+            Echo(EchoTask),
         }
     }
 }

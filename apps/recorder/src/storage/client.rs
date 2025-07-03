@@ -278,7 +278,7 @@ impl StorageService {
 
             if let Some(mut ranges) = ranges {
                 if ranges.len() > 1 {
-                    let boundary = Uuid::new_v4().to_string();
+                    let boundary = Uuid::now_v7().to_string();
                     let reader = self.reader(storage_path.as_ref()).await?;
                     let stream: impl Stream<Item = Result<Bytes, RecorderError>> = {
                         let boundary = boundary.clone();

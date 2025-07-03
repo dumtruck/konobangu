@@ -102,7 +102,7 @@ impl ActiveModelBehavior for ActiveModel {
         C: ConnectionTrait,
     {
         if insert && let ActiveValue::NotSet = self.token {
-            let token = nanoid::nanoid!(10);
+            let token = Uuid::now_v7().to_string();
             self.token = ActiveValue::Set(token);
         }
         Ok(self)

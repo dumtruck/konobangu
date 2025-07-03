@@ -14,6 +14,8 @@ pub struct TaskConfig {
     pub system_task_reenqueue_orphaned_after: Duration,
     #[serde(default = "default_cron_retry_duration")]
     pub cron_retry_duration: Duration,
+    #[serde(default = "default_cron_interval_duration")]
+    pub cron_interval_duration: Duration,
 }
 
 impl Default for TaskConfig {
@@ -25,6 +27,7 @@ impl Default for TaskConfig {
                 default_subscriber_task_reenqueue_orphaned_after(),
             system_task_reenqueue_orphaned_after: default_system_task_reenqueue_orphaned_after(),
             cron_retry_duration: default_cron_retry_duration(),
+            cron_interval_duration: default_cron_interval_duration(),
         }
     }
 }
@@ -43,6 +46,10 @@ pub fn default_system_task_workers() -> u32 {
     } else {
         ((num_cpus::get_physical() as f32 / 2.0).floor() as u32).max(1)
     }
+}
+
+pub fn default_cron_interval_duration() -> Duration {
+    Duration::from_secs(60)
 }
 
 pub fn default_subscriber_task_reenqueue_orphaned_after() -> Duration {

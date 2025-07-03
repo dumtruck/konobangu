@@ -110,7 +110,7 @@ fn make_request_id(maybe_request_id: Option<HeaderValue>) -> String {
             });
             id.filter(|s| !s.is_empty())
         })
-        .unwrap_or_else(|| Uuid::new_v4().to_string())
+        .unwrap_or_else(|| Uuid::now_v7().to_string())
 }
 
 #[cfg(test)]

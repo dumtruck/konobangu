@@ -11,7 +11,7 @@ pub use core::{
 
 pub use config::TaskConfig;
 pub use registry::{
-    OptimizeImageTask, SubscriberTask, SubscriberTaskInput, SubscriberTaskType,
+    EchoTask, OptimizeImageTask, SubscriberTask, SubscriberTaskInput, SubscriberTaskType,
     SubscriberTaskTypeEnum, SubscriberTaskTypeVariant, SubscriberTaskTypeVariantIter,
     SyncOneSubscriptionFeedsFullTask, SyncOneSubscriptionFeedsIncrementalTask,
     SyncOneSubscriptionSourcesTask, SystemTask, SystemTaskInput, SystemTaskType,
