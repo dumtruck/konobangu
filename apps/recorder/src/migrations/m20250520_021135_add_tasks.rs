@@ -61,7 +61,7 @@ impl MigrationTrait for Migration {
         )).await?;
 
         db.execute_unprepared(&format!(
-            r#"CREATE OR REPLACE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            r#"CREATE OR REPLACE FUNCTION {apalis_schema}.{SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
             DECLARE
                 new_job_subscriber_id integer;
                 new_job_subscription_id integer;
@@ -70,18 +70,19 @@ impl MigrationTrait for Migration {
                 new_job_subscriber_id = (NEW.{job} ->> '{subscriber_id}')::integer;
                 new_job_subscription_id = (NEW.{job} ->> '{subscription_id}')::integer;
                 new_job_task_type = (NEW.{job} ->> '{task_type}')::text;
-                IF new_job_subscriber_id != (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_job_subscriber_id IS DISTINCT FROM (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id IS DISTINCT FROM NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_job_subscriber_id;
                 END IF;
-                IF new_job_subscription_id != (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id != NEW.{subscription_id} THEN
+                IF new_job_subscription_id IS DISTINCT FROM (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id IS DISTINCT FROM NEW.{subscription_id} THEN
                     NEW.{subscription_id} = new_job_subscription_id;
                 END IF;
-                IF new_job_task_type != (OLD.{job} ->> '{task_type}')::text AND new_job_task_type != NEW.{task_type} THEN
+                IF new_job_task_type IS DISTINCT FROM (OLD.{job} ->> '{task_type}')::text AND new_job_task_type IS DISTINCT FROM NEW.{task_type} THEN
                     NEW.{task_type} = new_job_task_type;
                 END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
             job = ApalisJobs::Job.to_string(),
             subscriber_id = ApalisJobs::SubscriberId.to_string(),
             subscription_id = ApalisJobs::SubscriptionId.to_string(),
@@ -92,7 +93,7 @@ impl MigrationTrait for Migration {
             r#"CREATE OR REPLACE TRIGGER {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_TRIGGER_NAME}
             BEFORE INSERT OR UPDATE ON {apalis_schema}.{apalis_table}
             FOR EACH ROW
-            EXECUTE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}();"#,
+            EXECUTE FUNCTION {apalis_schema}.{SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}();"#,
             apalis_schema = ApalisSchema::Schema.to_string(),
             apalis_table = ApalisJobs::Table.to_string()
         ))
@@ -198,7 +199,8 @@ impl MigrationTrait for Migration {
         )).await?;
 
         db.execute_unprepared(&format!(
-            r#"DROP FUNCTION IF EXISTS {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}()"#,
+            r#"DROP FUNCTION IF EXISTS {apalis_schema}.{SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}()"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
         ))
         .await?;
 

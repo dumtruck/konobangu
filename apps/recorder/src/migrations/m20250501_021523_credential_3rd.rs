@@ -78,7 +78,7 @@ impl MigrationTrait for Migration {
 
         manager
             .create_foreign_key_if_not_exists(
-                Subscriptions::Table,
+                Subscriptions::Table.to_string(),
                 "fk_subscriptions_credential_id",
                 ForeignKeyCreateStatement::new()
                     .name("fk_subscriptions_credential_id")

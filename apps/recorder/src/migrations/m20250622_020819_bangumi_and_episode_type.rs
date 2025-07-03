@@ -15,6 +15,8 @@ pub struct Migration;
 #[async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let db = manager.get_connection();
+
         create_postgres_enum_for_active_enum!(manager, EpisodeTypeEnum, EpisodeType::Mikan).await?;
 
         {
@@ -29,10 +31,16 @@ impl MigrationTrait for Migration {
                             BangumiTypeEnum,
                             BangumiType::iden_values(),
                         ))
-                        .drop_column(Bangumi::SavePath)
                         .to_owned(),
                 )
                 .await?;
+
+            db.execute_unprepared(&format!(
+                r#"ALTER TABLE {bangumi} DROP COLUMN IF EXISTS {save_path}"#,
+                bangumi = Bangumi::Table.to_string(),
+                save_path = Bangumi::SavePath.to_string(),
+            ))
+            .await?;
 
             manager
                 .exec_stmt(
@@ -83,10 +91,16 @@ impl MigrationTrait for Migration {
                         .add_column_if_not_exists(big_integer_null(
                             Episodes::EnclosureContentLength,
                         ))
-                        .drop_column(Episodes::SavePath)
                         .to_owned(),
                 )
                 .await?;
+
+            db.execute_unprepared(&format!(
+                r#"ALTER TABLE {episodes} DROP COLUMN IF EXISTS {save_path}"#,
+                episodes = Episodes::Table.to_string(),
+                save_path = Episodes::SavePath.to_string(),
+            ))
+            .await?;
 
             manager
                 .exec_stmt(
@@ -121,7 +135,31 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
+            .alter_table(
+                Table::alter()
+                    .table(Bangumi::Table)
+                    .add_column_if_not_exists(text_null(Bangumi::SavePath))
+                    .drop_column(Bangumi::BangumiType)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
             .drop_postgres_enum_for_active_enum(BangumiTypeEnum)
+            .await?;
+
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Episodes::Table)
+                    .add_column_if_not_exists(text_null(Episodes::SavePath))
+                    .drop_column(Episodes::EpisodeType)
+                    .drop_column(Episodes::EnclosureMagnetLink)
+                    .drop_column(Episodes::EnclosureTorrentLink)
+                    .drop_column(Episodes::EnclosurePubDate)
+                    .drop_column(Episodes::EnclosureContentLength)
+                    .to_owned(),
+            )
             .await?;
 
         manager

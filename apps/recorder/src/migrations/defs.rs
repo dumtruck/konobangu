@@ -318,7 +318,7 @@ pub trait CustomSchemaManagerExt {
     }
 
     async fn create_foreign_key_if_not_exists<
-        T: IntoIden + 'static + Send,
+        T: ToString + 'static + Send,
         S: IntoIden + 'static + Send,
     >(
         &self,
@@ -328,7 +328,7 @@ pub trait CustomSchemaManagerExt {
     ) -> Result<(), DbErr>;
 
     async fn drop_foreign_key_if_exists<
-        T: IntoIden + 'static + Send,
+        T: ToString + 'static + Send,
         S: IntoIden + 'static + Send,
     >(
         &self,
@@ -424,7 +424,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
     }
 
     async fn create_foreign_key_if_not_exists<
-        T: IntoIden + 'static + Send,
+        T: ToString + 'static + Send,
         S: IntoIden + 'static + Send,
     >(
         &self,
@@ -432,7 +432,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
         foreign_key: S,
         stmt: ForeignKeyCreateStatement,
     ) -> Result<(), DbErr> {
-        let from_tbl = from_tbl.into_iden().to_string();
+        let from_tbl = from_tbl.to_string();
         let foreign_key = foreign_key.into_iden().to_string();
         let db = self
             .get_connection()
@@ -442,7 +442,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
                     "
                 SELECT CONSTRAINT_NAME
                 FROM information_schema.KEY_COLUMN_USAGE
-                WHERE TABLE_NAME = '{from_tbl}' AND CONSTRAINT_NAME = '{foreign_key}'
+                WHERE TABLE_NAME = {from_tbl} AND CONSTRAINT_NAME = '{foreign_key}'
                 "
                 ),
             ))
@@ -457,7 +457,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
     }
 
     async fn drop_foreign_key_if_exists<
-        T: IntoIden + 'static + Send,
+        T: ToString + 'static + Send,
         S: IntoIden + 'static + Send,
     >(
         &self,
@@ -465,7 +465,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
         foreign_key: S,
         stmt: ForeignKeyDropStatement,
     ) -> Result<(), DbErr> {
-        let from_tbl = from_tbl.into_iden().to_string();
+        let from_tbl = from_tbl.to_string();
         let foreign_key = foreign_key.into_iden().to_string();
         let db = self
             .get_connection()
@@ -475,7 +475,7 @@ impl CustomSchemaManagerExt for SchemaManager<'_> {
                     "
                 SELECT CONSTRAINT_NAME
                 FROM information_schema.KEY_COLUMN_USAGE
-                WHERE TABLE_NAME = '{from_tbl}' AND CONSTRAINT_NAME = '{foreign_key}'
+                WHERE TABLE_NAME = {from_tbl} AND CONSTRAINT_NAME = '{foreign_key}'
                 "
                 ),
             ))

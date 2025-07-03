@@ -105,13 +105,13 @@ impl MigrationTrait for Migration {
                 new_subscriber_task_subscriber_id = (NEW.{subscriber_task_cron} ->> 'subscriber_id')::integer;
                 new_subscriber_task_subscription_id = (NEW.{subscriber_task_cron} ->> 'subscription_id')::integer;
                 new_system_task_subscriber_id = (NEW.{system_task_cron} ->> 'subscriber_id')::integer;
-                IF new_subscriber_task_subscriber_id != (OLD.{subscriber_task_cron} ->> 'subscriber_id')::integer AND new_subscriber_task_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_subscriber_task_subscriber_id IS DISTINCT FROM (OLD.{subscriber_task_cron} ->> 'subscriber_id')::integer AND new_subscriber_task_subscriber_id IS DISTINCT FROM NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_subscriber_task_subscriber_id;
                 END IF;
-                IF new_subscriber_task_subscription_id != (OLD.{subscriber_task_cron} ->> 'subscription_id')::integer AND new_subscriber_task_subscription_id != NEW.{subscription_id} THEN
+                IF new_subscriber_task_subscription_id IS DISTINCT FROM (OLD.{subscriber_task_cron} ->> 'subscription_id')::integer AND new_subscriber_task_subscription_id IS DISTINCT FROM NEW.{subscription_id} THEN
                     NEW.{subscription_id} = new_subscriber_task_subscription_id;
                 END IF;
-                IF new_system_task_subscriber_id != (OLD.{system_task_cron} ->> 'subscriber_id')::integer AND new_system_task_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_system_task_subscriber_id IS DISTINCT FROM (OLD.{system_task_cron} ->> 'subscriber_id')::integer AND new_system_task_subscriber_id IS DISTINCT FROM NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_system_task_subscriber_id;
                 END IF;
                 RETURN NEW;
@@ -154,8 +154,8 @@ impl MigrationTrait for Migration {
                   OLD.{next_run} IS NULL
                   OR OLD.{next_run} > CURRENT_TIMESTAMP
                   OR OLD.{enabled} = false
-                  OR OLD.{status} != '{pending}'
-                  OR OLD.{attempts} != NEW.{attempts}
+                  OR OLD.{status} IS DISTINCT FROM '{pending}'
+                  OR OLD.{attempts} IS DISTINCT FROM NEW.{attempts}
                )
                THEN
                   PERFORM pg_notify('{CRON_DUE_EVENT}', row_to_json(NEW)::text);
@@ -341,7 +341,7 @@ impl MigrationTrait for Migration {
         .await?;
 
         db.execute_unprepared(&format!(
-            r#"CREATE OR REPLACE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            r#"CREATE OR REPLACE FUNCTION {apalis_schema}.{SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
             DECLARE
                 new_job_subscriber_id integer;
                 new_job_subscription_id integer;
@@ -352,21 +352,22 @@ impl MigrationTrait for Migration {
                 new_job_subscription_id = (NEW.{job} ->> '{subscription_id}')::integer;
                 new_job_cron_id = (NEW.{job} ->> '{cron_id}')::integer;
                 new_job_task_type = (NEW.{job} ->> '{task_type}')::text;
-                IF new_job_subscriber_id != (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_job_subscriber_id IS DISTINCT FROM (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id IS DISTINCT FROM NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_job_subscriber_id;
                 END IF;
-                IF new_job_subscription_id != (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id != NEW.{subscription_id} THEN
+                IF new_job_subscription_id IS DISTINCT FROM (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id IS DISTINCT FROM NEW.{subscription_id} THEN
                     NEW.{subscription_id} = new_job_subscription_id;
                 END IF;
-                IF new_job_cron_id != (OLD.{job} ->> '{cron_id}')::integer AND new_job_cron_id != NEW.{cron_id} THEN
+                IF new_job_cron_id IS DISTINCT FROM (OLD.{job} ->> '{cron_id}')::integer AND new_job_cron_id IS DISTINCT FROM NEW.{cron_id} THEN
                     NEW.{cron_id} = new_job_cron_id;
                 END IF;
-                IF new_job_task_type != (OLD.{job} ->> '{task_type}')::text AND new_job_task_type != NEW.{task_type} THEN
+                IF new_job_task_type IS DISTINCT FROM (OLD.{job} ->> '{task_type}')::text AND new_job_task_type IS DISTINCT FROM NEW.{task_type} THEN
                     NEW.{task_type} = new_job_task_type;
                 END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
             job = ApalisJobs::Job.to_string(),
             subscriber_id = ApalisJobs::SubscriberId.to_string(),
             subscription_id = ApalisJobs::SubscriptionId.to_string(),
@@ -381,7 +382,7 @@ impl MigrationTrait for Migration {
         let db = manager.get_connection();
 
         db.execute_unprepared(&format!(
-            r#"CREATE OR REPLACE FUNCTION {SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
+            r#"CREATE OR REPLACE FUNCTION {apalis_schema}.{SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME}() RETURNS trigger AS $$
             DECLARE
                 new_job_subscriber_id integer;
                 new_job_subscription_id integer;
@@ -390,18 +391,19 @@ impl MigrationTrait for Migration {
                 new_job_subscriber_id = (NEW.{job} ->> '{subscriber_id}')::integer;
                 new_job_subscription_id = (NEW.{job} ->> '{subscription_id}')::integer;
                 new_job_task_type = (NEW.{job} ->> '{task_type}')::text;
-                IF new_job_subscriber_id != (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id != NEW.{subscriber_id} THEN
+                IF new_job_subscriber_id IS DISTINCT FROM (OLD.{job} ->> '{subscriber_id}')::integer AND new_job_subscriber_id IS DISTINCT FROM NEW.{subscriber_id} THEN
                     NEW.{subscriber_id} = new_job_subscriber_id;
                 END IF;
-                IF new_job_subscription_id != (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id != NEW.{subscription_id} THEN
+                IF new_job_subscription_id IS DISTINCT FROM (OLD.{job} ->> '{subscription_id}')::integer AND new_job_subscription_id IS DISTINCT FROM NEW.{subscription_id} THEN
                     NEW.{subscription_id} = new_job_subscription_id;
                 END IF;
-                IF new_job_task_type != (OLD.{job} ->> '{task_type}')::text AND new_job_task_type != NEW.{task_type} THEN
+                IF new_job_task_type IS DISTINCT FROM (OLD.{job} ->> '{task_type}')::text AND new_job_task_type IS DISTINCT FROM NEW.{task_type} THEN
                     NEW.{task_type} = new_job_task_type;
                 END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;"#,
+            apalis_schema = ApalisSchema::Schema.to_string(),
             job = ApalisJobs::Job.to_string(),
             subscriber_id = ApalisJobs::SubscriberId.to_string(),
             subscription_id = ApalisJobs::SubscriptionId.to_string(),
