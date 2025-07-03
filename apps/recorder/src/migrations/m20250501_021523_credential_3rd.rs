@@ -72,22 +72,16 @@ impl MigrationTrait for Migration {
                 Table::alter()
                     .table(Subscriptions::Table)
                     .add_column_if_not_exists(integer_null(Subscriptions::CredentialId))
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
-            .create_foreign_key_if_not_exists(
-                Subscriptions::Table.to_string(),
-                "fk_subscriptions_credential_id",
-                ForeignKeyCreateStatement::new()
-                    .name("fk_subscriptions_credential_id")
-                    .from_tbl(Subscriptions::Table)
-                    .from_col(Subscriptions::CredentialId)
-                    .to_tbl(Credential3rd::Table)
-                    .to_col(Credential3rd::Id)
-                    .on_update(ForeignKeyAction::Cascade)
-                    .on_delete(ForeignKeyAction::SetNull)
+                    .add_foreign_key(
+                        TableForeignKey::new()
+                            .name("fk_subscriptions_credential_id")
+                            .from_tbl(Subscriptions::Table)
+                            .from_col(Subscriptions::CredentialId)
+                            .to_tbl(Credential3rd::Table)
+                            .to_col(Credential3rd::Id)
+                            .on_update(ForeignKeyAction::Cascade)
+                            .on_delete(ForeignKeyAction::SetNull),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -101,6 +95,7 @@ impl MigrationTrait for Migration {
                 Table::alter()
                     .table(Subscriptions::Table)
                     .drop_column(Subscriptions::CredentialId)
+                    .drop_foreign_key("fk_subscriptions_credential_id")
                     .to_owned(),
             )
             .await?;

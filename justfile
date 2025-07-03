@@ -8,7 +8,7 @@ clean-cargo-incremental:
 prepare-dev:
     cargo install cargo-binstall
     cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest
-    # <package-manager> install watchexec just zellij nasm libjxl netcat
+    # <package-manager> install watchexec just zellij nasm libjxl netcat heaptrack
 
 prepare-dev-testcontainers:
     docker pull linuxserver/qbittorrent:latest
@@ -35,6 +35,10 @@ dev-recorder:
 
 prod-recorder: prod-webui
     cargo run --release -p recorder --bin recorder_cli -- --environment=production --working-dir=apps/recorder --graceful-shutdown=false
+
+prod-recorder-heaptrack: prod-webui
+    cargo build --release -p recorder --bin recorder_cli
+    heaptrack target/release/recorder_cli --environment=production --working-dir=apps/recorder --graceful-shutdown=false
 
 dev-recorder-migrate-down:
     cargo run -p recorder --bin migrate_down -- --environment development

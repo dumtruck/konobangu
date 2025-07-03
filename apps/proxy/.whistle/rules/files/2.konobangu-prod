@@ -1,0 +1,8 @@
+```x-forwarded.json
+{
+  "X-Forwarded-Host": "konobangu.com",
+  "X-Forwarded-Proto": "https"
+}
+```
+
+^https://konobangu.com/*** reqHeaders://{x-forwarded.json} http://127.0.0.1:5001/$1 
