@@ -107,7 +107,7 @@ impl App {
                 Ok::<(), RecorderError>(())
             },
             async {
-                task.run(if graceful_shutdown {
+                task.run_with_signal(if graceful_shutdown {
                     Some(Self::shutdown_signal)
                 } else {
                     None

@@ -60,6 +60,8 @@ pub enum Relation {
     Feed,
     #[sea_orm(has_many = "super::subscriber_tasks::Entity")]
     SubscriberTask,
+    #[sea_orm(has_many = "super::cron::Entity")]
+    Cron,
 }
 
 impl Related<super::subscribers::Entity> for Entity {
@@ -126,6 +128,12 @@ impl Related<super::subscriber_tasks::Entity> for Entity {
     }
 }
 
+impl Related<super::cron::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Cron.def()
+    }
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
 pub enum RelatedEntity {
     #[sea_orm(entity = "super::subscribers::Entity")]
@@ -144,6 +152,8 @@ pub enum RelatedEntity {
     Feed,
     #[sea_orm(entity = "super::subscriber_tasks::Entity")]
     SubscriberTask,
+    #[sea_orm(entity = "super::cron::Entity")]
+    Cron,
 }
 
 #[async_trait]

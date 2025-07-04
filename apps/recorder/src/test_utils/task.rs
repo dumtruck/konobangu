@@ -7,11 +7,10 @@ use crate::{
 };
 
 pub async fn build_testing_task_service(
+    config: Option<TaskConfig>,
     ctx: Arc<dyn AppContextTrait>,
 ) -> RecorderResult<TaskService> {
-    let config = TaskConfig {
-        ..Default::default()
-    };
+    let config = config.unwrap_or_default();
     let task_service = TaskService::from_config_and_ctx(config, ctx).await?;
 
     Ok(task_service)

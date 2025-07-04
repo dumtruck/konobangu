@@ -1,4 +1,5 @@
 pub const CRON_DUE_EVENT: &str = "cron_due";
+pub const CRON_DUE_DEBUG_EVENT: &str = "cron_due_debug";
 
 pub const CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME: &str = "check_and_trigger_due_crons";
 

@@ -1,24 +1,27 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  DELETE_TASKS,
-  GET_TASKS,
-  RETRY_TASKS,
-  type TaskDto,
-} from '@/domains/recorder/schema/tasks';
+  type CronDto,
+  DELETE_CRONS,
+  GET_CRONS,
+} from '@/domains/recorder/schema/cron';
 import {
-  type DeleteTasksMutation,
-  type DeleteTasksMutationVariables,
-  type GetTasksQuery,
-  type GetTasksQueryVariables,
-  type RetryTasksMutation,
-  type RetryTasksMutationVariables,
-  SubscriberTaskStatusEnum,
+  apolloErrorToMessage,
+  getApolloQueryError,
+} from '@/infra/errors/apollo';
+import {
+  CronStatusEnum,
+  type DeleteCronsMutation,
+  type DeleteCronsMutationVariables,
+  type GetCronsQuery,
+  type GetCronsQueryVariables,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
@@ -35,26 +38,18 @@ import {
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
-
-import { ContainerHeader } from '@/components/ui/container-header';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import {
-  apolloErrorToMessage,
-  getApolloQueryError,
-} from '@/infra/errors/apollo';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { prettyTaskType } from './-pretty-task-type';
 import { getStatusBadge } from './-status-badge';
 
-export const Route = createFileRoute('/_app/tasks/manage')({
-  component: TaskManageRouteComponent,
+export const Route = createFileRoute('/_app/tasks/cron/manage')({
+  component: TaskCronManageRouteComponent,
   staticData: {
     breadcrumb: { label: 'Manage' },
   } satisfies RouteStateDataOption,
 });
 
-function TaskManageRouteComponent() {
+function TaskCronManageRouteComponent() {
   const navigate = useNavigate();
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -65,9 +60,9 @@ function TaskManageRouteComponent() {
   });
 
   const { loading, error, data, refetch } = useQuery<
-    GetTasksQuery,
-    GetTasksQueryVariables
-  >(GET_TASKS, {
+    GetCronsQuery,
+    GetCronsQueryVariables
+  >(GET_CRONS, {
     variables: {
       pagination: {
         page: {
@@ -77,7 +72,7 @@ function TaskManageRouteComponent() {
       },
       filter: {},
       orderBy: {
-        runAt: 'DESC',
+        nextRun: 'DESC',
       },
     },
     pollInterval: 5000, // Auto-refresh every 5 seconds
@@ -85,12 +80,12 @@ function TaskManageRouteComponent() {
 
   const { showSkeleton } = useDebouncedSkeleton({ loading });
 
-  const tasks = data?.subscriberTasks;
+  const crons = data?.cron;
 
-  const [deleteTasks] = useMutation<
-    DeleteTasksMutation,
-    DeleteTasksMutationVariables
-  >(DELETE_TASKS, {
+  const [deleteCron] = useMutation<
+    DeleteCronsMutation,
+    DeleteCronsMutationVariables
+  >(DELETE_CRONS, {
     onCompleted: async () => {
       const refetchResult = await refetch();
       const error = getApolloQueryError(refetchResult);
@@ -109,22 +104,8 @@ function TaskManageRouteComponent() {
     },
   });
 
-  const [retryTasks] = useMutation<
-    RetryTasksMutation,
-    RetryTasksMutationVariables
-  >(RETRY_TASKS, {
-    onCompleted: () => {
-      toast.success('Tasks retried');
-    },
-    onError: (error) => {
-      toast.error('Failed to retry tasks', {
-        description: error.message,
-      });
-    },
-  });
-
   const columns = useMemo(() => {
-    const cs: ColumnDef<TaskDto>[] = [
+    const cs: ColumnDef<CronDto>[] = [
       {
         header: 'ID',
         accessorKey: 'id',
@@ -132,7 +113,7 @@ function TaskManageRouteComponent() {
           return (
             <div
               className="max-w-[200px] truncate font-mono text-sm"
-              title={row.original.id}
+              title={row.original.id.toString()}
             >
               {row.original.id}
             </div>
@@ -144,15 +125,15 @@ function TaskManageRouteComponent() {
   }, []);
 
   const table = useReactTable({
-    data: useMemo(() => (tasks?.nodes ?? []) as TaskDto[], [tasks]),
+    data: useMemo(() => (crons?.nodes ?? []) as CronDto[], [crons]),
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
-    pageCount: tasks?.paginationInfo?.pages,
-    rowCount: tasks?.paginationInfo?.total,
+    pageCount: crons?.paginationInfo?.pages,
+    rowCount: crons?.paginationInfo?.total,
     enableColumnPinning: true,
     autoResetPageIndex: true,
     manualPagination: true,
@@ -175,8 +156,8 @@ function TaskManageRouteComponent() {
   return (
     <div className="container mx-auto max-w-4xl space-y-4 px-4">
       <ContainerHeader
-        title="Tasks Management"
-        description="Manage your tasks"
+        title="Crons Management"
+        description="Manage your crons"
         actions={
           <Button onClick={() => refetch()} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4" />
@@ -192,64 +173,54 @@ function TaskManageRouteComponent() {
 
         {!showSkeleton && table.getRowModel().rows?.length > 0 ? (
           table.getRowModel().rows.map((row, index) => {
-            const task = row.original;
+            const cron = row.original;
             return (
               <div
                 className="space-y-3 rounded-lg border bg-card p-4"
-                key={`${task.id}-${index}`}
+                key={`${cron.id}-${index}`}
               >
                 {/* Header with status and priority */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-mono text-muted-foreground text-xs">
-                    # {task.id}
+                    # {cron.id}
                   </div>
                   <div className="flex gap-2">
                     <Badge variant="outline" className="capitalize">
-                      {prettyTaskType(task.taskType)}
+                      {cron.cronExpr}
                     </Badge>
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
-                  {getStatusBadge(task.status)}
-                  <Badge variant="outline">Priority: {task.priority}</Badge>
+                  {getStatusBadge(cron.status)}
+                  <Badge variant="outline">Priority: {cron.priority}</Badge>
                   <div className="mr-0 ml-auto">
                     <DropdownMenuActions
-                      id={task.id}
+                      id={cron.id}
                       showDetail
                       onDetail={() => {
                         navigate({
-                          to: '/tasks/detail/$id',
-                          params: { id: task.id },
+                          to: '/tasks/cron/detail/$id',
+                          params: { id: cron.id.toString() },
                         });
                       }}
                       showDelete
                       onDelete={() =>
-                        deleteTasks({
+                        deleteCron({
                           variables: {
                             filter: {
                               id: {
-                                eq: task.id,
+                                eq: cron.id,
                               },
                             },
                           },
                         })
                       }
                     >
-                      {task.status ===
-                        (SubscriberTaskStatusEnum.Killed ||
-                          SubscriberTaskStatusEnum.Failed) && (
+                      {cron.status === CronStatusEnum.Failed && (
                         <DropdownMenuItem
-                          onSelect={() =>
-                            retryTasks({
-                              variables: {
-                                filter: {
-                                  id: {
-                                    eq: task.id,
-                                  },
-                                },
-                              },
-                            })
-                          }
+                          onSelect={() => {
+                            // TODO: Retry cron
+                          }}
                         >
                           Retry
                         </DropdownMenuItem>
@@ -261,15 +232,19 @@ function TaskManageRouteComponent() {
                 {/* Time info */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Run at: </span>
-                    <span>{format(new Date(task.runAt), 'MM/dd HH:mm')}</span>
+                    <span className="text-muted-foreground">Next run: </span>
+                    <span>
+                      {cron.nextRun
+                        ? format(new Date(cron.nextRun), 'MM/dd HH:mm')
+                        : '-'}
+                    </span>
                   </div>
 
                   <div>
-                    <span className="text-muted-foreground">Done: </span>
+                    <span className="text-muted-foreground">Last run: </span>
                     <span>
-                      {task.doneAt
-                        ? format(new Date(task.doneAt), 'MM/dd HH:mm')
+                      {cron.lastRun
+                        ? format(new Date(cron.lastRun), 'MM/dd HH:mm')
                         : '-'}
                     </span>
                   </div>
@@ -278,7 +253,7 @@ function TaskManageRouteComponent() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Attempts: </span>
                     <span>
-                      {task.attempts} / {task.maxAttempts}
+                      {cron.attempts} / {cron.maxAttempts}
                     </span>
                   </div>
 
@@ -286,35 +261,37 @@ function TaskManageRouteComponent() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Lock at: </span>
                     <span>
-                      {task.lockAt
-                        ? format(new Date(task.lockAt), 'MM/dd HH:mm')
+                      {cron.lockedAt
+                        ? format(new Date(cron.lockedAt), 'MM/dd HH:mm')
                         : '-'}
                     </span>
                   </div>
                 </div>
 
-                {/* Job */}
-                {task.job && (
+                {/* Subscriber task cron */}
+                {cron.subscriberTaskCron && (
                   <div className="text-sm">
-                    <span className="text-muted-foreground">Job: </span>
+                    <span className="text-muted-foreground">Task:</span>
                     <br />
                     <span
                       className="whitespace-pre-wrap"
                       dangerouslySetInnerHTML={{
-                        __html: JSON.stringify(task.job, null, 2),
+                        __html: JSON.stringify(
+                          cron.subscriberTaskCron,
+                          null,
+                          2
+                        ),
                       }}
                     />
                   </div>
                 )}
 
                 {/* Error if exists */}
-                {(task.status === SubscriberTaskStatusEnum.Failed ||
-                  task.status === SubscriberTaskStatusEnum.Killed) &&
-                  task.lastError && (
-                    <div className="rounded bg-destructive/10 p-2 text-destructive text-sm">
-                      {task.lastError}
-                    </div>
-                  )}
+                {cron.status === CronStatusEnum.Failed && cron.lastError && (
+                  <div className="rounded bg-destructive/10 p-2 text-destructive text-sm">
+                    {cron.lastError}
+                  </div>
+                )}
               </div>
             );
           })

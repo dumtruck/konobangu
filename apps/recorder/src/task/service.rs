@@ -13,7 +13,7 @@ use uuid::Uuid;
 use crate::{
     app::AppContextTrait,
     errors::{RecorderError, RecorderResult},
-    models::cron::{self, CRON_DUE_EVENT},
+    models::cron::{self, CRON_DUE_DEBUG_EVENT, CRON_DUE_EVENT},
     task::{
         AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, SubscriberTask,
         TaskConfig,
@@ -152,86 +152,95 @@ impl TaskService {
         Ok(m)
     }
 
-    pub async fn run<F, Fut>(&self, shutdown_signal: Option<F>) -> RecorderResult<()>
+    pub async fn run(&self) -> RecorderResult<()> {
+        self.run_with_signal(None::<fn() -> std::future::Ready<()>>)
+            .await
+    }
+
+    pub async fn run_with_signal<F, Fut>(&self, shutdown_signal: Option<F>) -> RecorderResult<()>
     where
-        F: Fn() -> Fut + Send + 'static,
+        F: FnOnce() -> Fut + Send + 'static,
         Fut: Future<Output = ()> + Send,
     {
-        tokio::try_join!(
-            async {
+        tokio::select! {
+            _ =  {
                 let monitor = self.setup_apalis_monitor().await?;
-                if let Some(shutdown_signal) = shutdown_signal {
-                    monitor
-                        .run_with_signal(async move {
-                            shutdown_signal().await;
-                            tracing::info!("apalis shutting down...");
-                            Ok(())
-                        })
-                        .await?;
-                } else {
-                    monitor.run().await?;
+                async move {
+                    if let Some(shutdown_signal) = shutdown_signal {
+                        monitor
+                            .run_with_signal(async move {
+                                shutdown_signal().await;
+                                tracing::info!("apalis shutting down...");
+                                Ok(())
+                            })
+                            .await?;
+                    } else {
+                        monitor.run().await?;
+                    }
+                    Ok::<_, RecorderError>(())
                 }
-                Ok::<_, RecorderError>(())
-            },
-            async {
+            } => {}
+            _ = {
                 let listener = self.setup_apalis_listener().await?;
-                tokio::task::spawn(async move {
+                async move {
                     if let Err(e) = listener.listen().await {
                         tracing::error!("Error listening to apalis: {e}");
                     }
-                });
-                Ok::<_, RecorderError>(())
-            },
-            async {
+                    Ok::<_, RecorderError>(())
+                }
+            } => {},
+            _ = {
                 let mut listener = self.setup_cron_due_listening().await?;
                 let cron_worker_id = self.cron_worker_id.clone();
-                let retry_duration = chrono::Duration::milliseconds(
-                    self.config.cron_retry_duration.as_millis() as i64,
-                );
+                let retry_duration =
+                    chrono::Duration::milliseconds(self.config.cron_retry_duration.as_millis() as i64);
                 let cron_interval_duration = self.config.cron_interval_duration;
-                listener.listen(CRON_DUE_EVENT).await?;
-                tracing::debug!("Listening for cron due event...");
+                async move {
+                    listener.listen_all([CRON_DUE_EVENT as &str, CRON_DUE_DEBUG_EVENT as &str]).await?;
 
-                tokio::task::spawn({
-                    let ctx = self.ctx.clone();
-                    async move {
-                        if let Err(e) =
-                            Self::listen_cron_due(listener, ctx, &cron_worker_id, retry_duration)
-                                .await
+                    tokio::join!(
                         {
-                            tracing::error!("Error listening to cron due: {e}");
-                        }
-                    }
-                });
-
-                tokio::task::spawn({
-                    let ctx = self.ctx.clone();
-                    async move {
-                        let mut interval = tokio::time::interval(cron_interval_duration);
-                        loop {
-                            interval.tick().await;
-                            if let Err(e) = cron::Model::check_and_cleanup_expired_cron_locks(
-                                ctx.as_ref(),
-                                retry_duration,
-                            )
-                            .await
-                            {
-                                tracing::error!(
-                                    "Error checking and cleaning up expired cron locks: {e}"
-                                );
+                            let ctx = self.ctx.clone();
+                            async move {
+                                if let Err(e) =
+                                    Self::listen_cron_due(listener, ctx, &cron_worker_id, retry_duration)
+                                        .await
+                                {
+                                    tracing::error!("Error listening to cron due: {e}");
+                                }
                             }
-                            if let Err(e) =
-                                cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
-                            {
-                                tracing::error!("Error checking and triggering due crons: {e}");
+                        },
+                        {
+                            let ctx = self.ctx.clone();
+                            let mut interval = tokio::time::interval(cron_interval_duration);
+                            async move {
+                                loop {
+                                    interval.tick().await;
+                                    if let Err(e) = cron::Model::check_and_cleanup_expired_cron_locks(
+                                        ctx.as_ref(),
+                                        retry_duration,
+                                    )
+                                    .await
+                                    {
+                                        tracing::error!(
+                                            "Error checking and cleaning up expired cron locks: {e}"
+                                        );
+                                    }
+
+                                    if let Err(e) =
+                                        cron::Model::check_and_trigger_due_crons(ctx.as_ref()).await
+                                    {
+                                        tracing::error!("Error checking and triggering due crons: {e}");
+                                    }
+                                }
                             }
                         }
-                    }
-                });
+                    );
+                    Ok::<_, RecorderError>(())
+                }
+            } => {}
+        };
 
-                Ok::<_, RecorderError>(())
-            }
-        )?;
         Ok(())
     }
 
@@ -299,14 +308,17 @@ impl TaskService {
     ) -> RecorderResult<()> {
         loop {
             let notification = listener.recv().await?;
-            tracing::debug!("Received cron due event: {:?}", notification);
-            if let Err(e) = cron::Model::handle_cron_notification(
-                ctx.as_ref(),
-                notification,
-                worker_id,
-                retry_duration,
-            )
-            .await
+            if notification.channel() == CRON_DUE_DEBUG_EVENT {
+                tracing::debug!("Received cron due debug event: {:?}", notification);
+                continue;
+            } else if notification.channel() == CRON_DUE_EVENT
+                && let Err(e) = cron::Model::handle_cron_notification(
+                    ctx.as_ref(),
+                    notification,
+                    worker_id,
+                    retry_duration,
+                )
+                .await
             {
                 tracing::error!("Error handling cron notification: {e}");
             }
@@ -319,6 +331,7 @@ impl TaskService {
 mod tests {
     use std::time::Duration;
 
+    use chrono::Utc;
     use rstest::{fixture, rstest};
     use sea_orm::ActiveValue;
     use tracing::Level;
@@ -340,12 +353,14 @@ mod tests {
 
     #[rstest]
     #[tokio::test]
-    // #[tracing_test::traced_test]
-    async fn test_cron_due_listening(before_each: ()) -> RecorderResult<()> {
+    #[tracing_test::traced_test]
+    async fn test_check_and_trigger_due_crons_with_certain_interval(
+        before_each: (),
+    ) -> RecorderResult<()> {
         let preset = TestingPreset::default_with_config(
             TestingAppContextConfig::builder()
                 .task_config(TaskConfig {
-                    cron_interval_duration: Duration::from_secs(1),
+                    cron_interval_duration: Duration::from_millis(1500),
                     ..Default::default()
                 })
                 .build(),
@@ -364,15 +379,53 @@ mod tests {
             ..Default::default()
         };
 
-        let _ = task_service
-            .run(Some(async move || {
-                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-            }))
-            .await;
+        task_service.add_system_task_cron(echo_cron).await?;
 
-        // assert!(logs_contain(&format!(
-        //     "EchoTask {task_id} start running at"
-        // )));
+        task_service
+            .run_with_signal(Some(async move || {
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            }))
+            .await?;
+
+        assert!(logs_contain(&format!(
+            "EchoTask {task_id} start running at"
+        )));
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_trigger_due_cron_when_mutating(before_each: ()) -> RecorderResult<()> {
+        let preset = TestingPreset::default().await?;
+        let app_ctx = preset.app_ctx;
+        let task_service = app_ctx.task();
+
+        let task_id = Uuid::now_v7().to_string();
+
+        let echo_cron = cron::ActiveModel {
+            cron_expr: ActiveValue::Set("* * * */1 * *".to_string()),
+            next_run: ActiveValue::Set(Some(Utc::now() + chrono::Duration::seconds(-10))),
+            system_task_cron: ActiveValue::Set(Some(
+                EchoTask::builder().task_id(task_id.clone()).build().into(),
+            )),
+            ..Default::default()
+        };
+
+        let task_runner = task_service.run_with_signal(Some(async move || {
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        }));
+
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+        task_service.add_system_task_cron(echo_cron).await?;
+
+        task_runner.await?;
+
+        assert!(logs_contain(&format!(
+            "EchoTask {task_id} start running at"
+        )));
 
         Ok(())
     }

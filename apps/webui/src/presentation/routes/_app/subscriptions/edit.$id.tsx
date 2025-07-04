@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { FormFieldErrors } from '@/components/ui/form-field-errors';
 import { Input } from '@/components/ui/input';
@@ -44,8 +45,8 @@ import {
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Save } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Credential3rdSelectContent } from './-credential3rd-select';
@@ -68,15 +69,7 @@ function FormView({
   subscription: SubscriptionDetailDto;
   onCompleted: VoidFunction;
 }) {
-  const navigate = useNavigate();
   const subscriptionService = useInject(SubscriptionService);
-
-  const handleBack = () => {
-    navigate({
-      to: '/subscriptions/detail/$id',
-      params: { id: subscription.id.toString() },
-    });
-  };
 
   const [updateSubscription, { loading: updating }] = useMutation<
     UpdateSubscriptionsMutation,
@@ -149,35 +142,17 @@ function FormView({
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="font-bold text-2xl">Subscription edit</h1>
-            <p className="mt-1 text-muted-foreground">
-              Edit subscription #{subscription.id}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleBack} disabled={updating}>
-            <X className="mr-2 h-4 w-4" />
-            Cancel
-          </Button>
+      <ContainerHeader
+        title="Subscription Edit"
+        description={`Edit subscription #${subscription.id}`}
+        defaultBackTo={`/subscriptions/detail/${subscription.id}`}
+        actions={
           <Button onClick={() => form.handleSubmit()} disabled={updating}>
             <Save className="mr-2 h-4 w-4" />
             {updating ? 'Saving...' : 'Save'}
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

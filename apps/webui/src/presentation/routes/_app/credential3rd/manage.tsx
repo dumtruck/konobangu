@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DataTableViewOptions } from '@/components/ui/data-table-view-options';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -297,18 +298,16 @@ function CredentialManageRouteComponent() {
 
   return (
     <div className="container mx-auto space-y-4 rounded-md">
-      <div className="flex items-center justify-between pt-4">
-        <div>
-          <h1 className="font-bold text-2xl">Credential 3rd Management</h1>
-          <p className="text-muted-foreground">
-            Manage your third-party platform login credentials
-          </p>
-        </div>
-        <Button onClick={() => navigate({ to: '/credential3rd/create' })}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Credential
-        </Button>
-      </div>
+      <ContainerHeader
+        title="Credential 3rd Management"
+        description="Manage your third-party platform login credentials"
+        actions={
+          <Button onClick={() => navigate({ to: '/credential3rd/create' })}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Credential
+          </Button>
+        }
+      />
       <div className="flex items-center py-2">
         <DataTableViewOptions table={table} />
       </div>

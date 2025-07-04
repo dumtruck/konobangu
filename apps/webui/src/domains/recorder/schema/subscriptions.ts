@@ -117,6 +117,25 @@ query GetSubscriptionDetail ($id: Int!) {
          id
          username
       }
+      cron {
+        nodes {
+            id
+            cronExpr
+            nextRun
+            lastRun
+            lastError
+            status
+            lockedAt
+            lockedBy
+            createdAt
+            updatedAt
+            timeoutMs
+            maxAttempts
+            priority
+            attempts
+            subscriberTaskCron
+        }
+      }
       bangumi {
         nodes {
           createdAt

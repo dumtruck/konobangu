@@ -65,9 +65,15 @@ export const AppNavMainData: NavMainGroup[] = [
         icon: ListTodo,
         children: [
           {
-            title: 'Manage',
+            title: 'Tasks',
             link: {
               to: '/tasks/manage',
+            },
+          },
+          {
+            title: 'Crons',
+            link: {
+              to: '/tasks/cron/manage',
             },
           },
         ],

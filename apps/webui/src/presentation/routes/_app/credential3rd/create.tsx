@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { FormFieldErrors } from '@/components/ui/form-field-errors';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -123,14 +124,11 @@ function CredentialCreateRouteComponent() {
 
   return (
     <div className="container mx-auto max-w-2xl py-6">
-      <div className="mb-6 flex items-center gap-4">
-        <div>
-          <h1 className="font-bold text-2xl">Create third-party credential</h1>
-          <p className="mt-1 text-muted-foreground">
-            Add new third-party login credential
-          </p>
-        </div>
-      </div>
+      <ContainerHeader
+        title="Create third-party credential"
+        description="Add new third-party login credential"
+        defaultBackTo="/credential3rd/manage"
+      />
 
       <Card>
         <CardHeader>

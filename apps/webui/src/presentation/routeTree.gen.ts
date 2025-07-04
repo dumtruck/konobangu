@@ -31,11 +31,15 @@ import { Route as AppCredential3rdManageRouteImport } from './routes/_app/creden
 import { Route as AppCredential3rdCreateRouteImport } from './routes/_app/credential3rd/create'
 import { Route as AppBangumiManageRouteImport } from './routes/_app/bangumi/manage'
 import { Route as AppExploreExploreRouteImport } from './routes/_app/_explore/explore'
+import { Route as AppTasksCronRouteRouteImport } from './routes/_app/tasks/cron/route'
 import { Route as AppTasksDetailIdRouteImport } from './routes/_app/tasks/detail.$id'
+import { Route as AppTasksCronManageRouteImport } from './routes/_app/tasks/cron/manage'
 import { Route as AppSubscriptionsEditIdRouteImport } from './routes/_app/subscriptions/edit.$id'
 import { Route as AppSubscriptionsDetailIdRouteImport } from './routes/_app/subscriptions/detail.$id'
 import { Route as AppCredential3rdEditIdRouteImport } from './routes/_app/credential3rd/edit.$id'
 import { Route as AppCredential3rdDetailIdRouteImport } from './routes/_app/credential3rd/detail.$id'
+import { Route as AppTasksCronEditIdRouteImport } from './routes/_app/tasks/cron/edit.$id'
+import { Route as AppTasksCronDetailIdRouteImport } from './routes/_app/tasks/cron/detail.$id'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -148,10 +152,20 @@ const AppExploreExploreRoute = AppExploreExploreRouteImport.update({
   path: '/explore',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppTasksCronRouteRoute = AppTasksCronRouteRouteImport.update({
+  id: '/cron',
+  path: '/cron',
+  getParentRoute: () => AppTasksRouteRoute,
+} as any)
 const AppTasksDetailIdRoute = AppTasksDetailIdRouteImport.update({
   id: '/detail/$id',
   path: '/detail/$id',
   getParentRoute: () => AppTasksRouteRoute,
+} as any)
+const AppTasksCronManageRoute = AppTasksCronManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => AppTasksCronRouteRoute,
 } as any)
 const AppSubscriptionsEditIdRoute = AppSubscriptionsEditIdRouteImport.update({
   id: '/edit/$id',
@@ -175,6 +189,16 @@ const AppCredential3rdDetailIdRoute =
     path: '/detail/$id',
     getParentRoute: () => AppCredential3rdRouteRoute,
   } as any)
+const AppTasksCronEditIdRoute = AppTasksCronEditIdRouteImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => AppTasksCronRouteRoute,
+} as any)
+const AppTasksCronDetailIdRoute = AppTasksCronDetailIdRouteImport.update({
+  id: '/detail/$id',
+  path: '/detail/$id',
+  getParentRoute: () => AppTasksCronRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -189,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/tasks/cron': typeof AppTasksCronRouteRouteWithChildren
   '/explore': typeof AppExploreExploreRoute
   '/bangumi/manage': typeof AppBangumiManageRoute
   '/credential3rd/create': typeof AppCredential3rdCreateRoute
@@ -203,7 +228,10 @@ export interface FileRoutesByFullPath {
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/tasks/cron/manage': typeof AppTasksCronManageRoute
   '/tasks/detail/$id': typeof AppTasksDetailIdRoute
+  '/tasks/cron/detail/$id': typeof AppTasksCronDetailIdRoute
+  '/tasks/cron/edit/$id': typeof AppTasksCronEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -218,6 +246,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/tasks/cron': typeof AppTasksCronRouteRouteWithChildren
   '/explore': typeof AppExploreExploreRoute
   '/bangumi/manage': typeof AppBangumiManageRoute
   '/credential3rd/create': typeof AppCredential3rdCreateRoute
@@ -232,7 +261,10 @@ export interface FileRoutesByTo {
   '/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/tasks/cron/manage': typeof AppTasksCronManageRoute
   '/tasks/detail/$id': typeof AppTasksDetailIdRoute
+  '/tasks/cron/detail/$id': typeof AppTasksCronDetailIdRoute
+  '/tasks/cron/edit/$id': typeof AppTasksCronEditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -248,6 +280,7 @@ export interface FileRoutesById {
   '/_app/tasks': typeof AppTasksRouteRouteWithChildren
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/_app/tasks/cron': typeof AppTasksCronRouteRouteWithChildren
   '/_app/_explore/explore': typeof AppExploreExploreRoute
   '/_app/bangumi/manage': typeof AppBangumiManageRoute
   '/_app/credential3rd/create': typeof AppCredential3rdCreateRoute
@@ -262,7 +295,10 @@ export interface FileRoutesById {
   '/_app/credential3rd/edit/$id': typeof AppCredential3rdEditIdRoute
   '/_app/subscriptions/detail/$id': typeof AppSubscriptionsDetailIdRoute
   '/_app/subscriptions/edit/$id': typeof AppSubscriptionsEditIdRoute
+  '/_app/tasks/cron/manage': typeof AppTasksCronManageRoute
   '/_app/tasks/detail/$id': typeof AppTasksDetailIdRoute
+  '/_app/tasks/cron/detail/$id': typeof AppTasksCronDetailIdRoute
+  '/_app/tasks/cron/edit/$id': typeof AppTasksCronEditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -279,6 +315,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/tasks/cron'
     | '/explore'
     | '/bangumi/manage'
     | '/credential3rd/create'
@@ -293,7 +330,10 @@ export interface FileRouteTypes {
     | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$id'
     | '/subscriptions/edit/$id'
+    | '/tasks/cron/manage'
     | '/tasks/detail/$id'
+    | '/tasks/cron/detail/$id'
+    | '/tasks/cron/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,6 +348,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/tasks/cron'
     | '/explore'
     | '/bangumi/manage'
     | '/credential3rd/create'
@@ -322,7 +363,10 @@ export interface FileRouteTypes {
     | '/credential3rd/edit/$id'
     | '/subscriptions/detail/$id'
     | '/subscriptions/edit/$id'
+    | '/tasks/cron/manage'
     | '/tasks/detail/$id'
+    | '/tasks/cron/detail/$id'
+    | '/tasks/cron/edit/$id'
   id:
     | '__root__'
     | '/'
@@ -337,6 +381,7 @@ export interface FileRouteTypes {
     | '/_app/tasks'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/_app/tasks/cron'
     | '/_app/_explore/explore'
     | '/_app/bangumi/manage'
     | '/_app/credential3rd/create'
@@ -351,7 +396,10 @@ export interface FileRouteTypes {
     | '/_app/credential3rd/edit/$id'
     | '/_app/subscriptions/detail/$id'
     | '/_app/subscriptions/edit/$id'
+    | '/_app/tasks/cron/manage'
     | '/_app/tasks/detail/$id'
+    | '/_app/tasks/cron/detail/$id'
+    | '/_app/tasks/cron/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -520,12 +568,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExploreExploreRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/tasks/cron': {
+      id: '/_app/tasks/cron'
+      path: '/cron'
+      fullPath: '/tasks/cron'
+      preLoaderRoute: typeof AppTasksCronRouteRouteImport
+      parentRoute: typeof AppTasksRouteRoute
+    }
     '/_app/tasks/detail/$id': {
       id: '/_app/tasks/detail/$id'
       path: '/detail/$id'
       fullPath: '/tasks/detail/$id'
       preLoaderRoute: typeof AppTasksDetailIdRouteImport
       parentRoute: typeof AppTasksRouteRoute
+    }
+    '/_app/tasks/cron/manage': {
+      id: '/_app/tasks/cron/manage'
+      path: '/manage'
+      fullPath: '/tasks/cron/manage'
+      preLoaderRoute: typeof AppTasksCronManageRouteImport
+      parentRoute: typeof AppTasksCronRouteRoute
     }
     '/_app/subscriptions/edit/$id': {
       id: '/_app/subscriptions/edit/$id'
@@ -554,6 +616,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/credential3rd/detail/$id'
       preLoaderRoute: typeof AppCredential3rdDetailIdRouteImport
       parentRoute: typeof AppCredential3rdRouteRoute
+    }
+    '/_app/tasks/cron/edit/$id': {
+      id: '/_app/tasks/cron/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/tasks/cron/edit/$id'
+      preLoaderRoute: typeof AppTasksCronEditIdRouteImport
+      parentRoute: typeof AppTasksCronRouteRoute
+    }
+    '/_app/tasks/cron/detail/$id': {
+      id: '/_app/tasks/cron/detail/$id'
+      path: '/detail/$id'
+      fullPath: '/tasks/cron/detail/$id'
+      preLoaderRoute: typeof AppTasksCronDetailIdRouteImport
+      parentRoute: typeof AppTasksCronRouteRoute
     }
   }
 }
@@ -630,12 +706,29 @@ const AppSubscriptionsRouteRouteWithChildren =
     AppSubscriptionsRouteRouteChildren,
   )
 
+interface AppTasksCronRouteRouteChildren {
+  AppTasksCronManageRoute: typeof AppTasksCronManageRoute
+  AppTasksCronDetailIdRoute: typeof AppTasksCronDetailIdRoute
+  AppTasksCronEditIdRoute: typeof AppTasksCronEditIdRoute
+}
+
+const AppTasksCronRouteRouteChildren: AppTasksCronRouteRouteChildren = {
+  AppTasksCronManageRoute: AppTasksCronManageRoute,
+  AppTasksCronDetailIdRoute: AppTasksCronDetailIdRoute,
+  AppTasksCronEditIdRoute: AppTasksCronEditIdRoute,
+}
+
+const AppTasksCronRouteRouteWithChildren =
+  AppTasksCronRouteRoute._addFileChildren(AppTasksCronRouteRouteChildren)
+
 interface AppTasksRouteRouteChildren {
+  AppTasksCronRouteRoute: typeof AppTasksCronRouteRouteWithChildren
   AppTasksManageRoute: typeof AppTasksManageRoute
   AppTasksDetailIdRoute: typeof AppTasksDetailIdRoute
 }
 
 const AppTasksRouteRouteChildren: AppTasksRouteRouteChildren = {
+  AppTasksCronRouteRoute: AppTasksCronRouteRouteWithChildren,
   AppTasksManageRoute: AppTasksManageRoute,
   AppTasksDetailIdRoute: AppTasksDetailIdRoute,
 }

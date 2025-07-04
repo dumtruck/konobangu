@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { FormFieldErrors } from '@/components/ui/form-field-errors';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -96,14 +97,11 @@ function SubscriptionCreateRouteComponent() {
 
   return (
     <div className="container mx-auto max-w-2xl py-6">
-      <div className="mb-6 flex items-center gap-4">
-        <div>
-          <h1 className="font-bold text-2xl">Create Bangumi Subscription</h1>
-          <p className="mt-1 text-muted-foreground">
-            Add a new bangumi subscription source
-          </p>
-        </div>
-      </div>
+      <ContainerHeader
+        title="Create Bangumi Subscription"
+        description="Add a new bangumi subscription source"
+        defaultBackTo="/subscriptions/manage"
+      />
 
       <Card>
         <CardHeader>

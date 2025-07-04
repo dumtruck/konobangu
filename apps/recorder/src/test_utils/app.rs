@@ -62,7 +62,7 @@ impl TestingAppContext {
                 .build(),
         );
 
-        let task_service = build_testing_task_service(app_ctx.clone()).await?;
+        let task_service = build_testing_task_service(config.task_config, app_ctx.clone()).await?;
 
         app_ctx.set_task(task_service);
 
@@ -134,7 +134,7 @@ impl AppContextTrait for TestingAppContext {
     }
 }
 
-#[derive(TypedBuilder)]
+#[derive(TypedBuilder, Debug)]
 #[builder(field_defaults(default, setter(strip_option)))]
 pub struct TestingAppContextConfig {
     pub mikan_base_url: Option<String>,

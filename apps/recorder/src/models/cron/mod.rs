@@ -1,7 +1,7 @@
 mod core;
 
 pub use core::{
-    CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT,
+    CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_DEBUG_EVENT, CRON_DUE_EVENT,
     NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME, NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
     SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
 };
@@ -59,8 +59,8 @@ pub struct Model {
     pub last_error: Option<String>,
     pub locked_by: Option<String>,
     pub locked_at: Option<DateTimeUtc>,
-    #[sea_orm(default_expr = "5000")]
-    pub timeout_ms: i32,
+    // default_expr = "5000"
+    pub timeout_ms: Option<i32>,
     #[sea_orm(default_expr = "0")]
     pub attempts: i32,
     #[sea_orm(default_expr = "1")]
@@ -223,7 +223,10 @@ impl Model {
                 && cron.attempts < cron.max_attempts
                 && cron.status == CronStatus::Pending
                 && (cron.locked_at.is_none_or(|locked_at| {
-                    locked_at + chrono::Duration::milliseconds(cron.timeout_ms as i64) <= Utc::now()
+                    cron.timeout_ms.is_some_and(|cron_timeout_ms| {
+                        locked_at + chrono::Duration::milliseconds(cron_timeout_ms as i64)
+                            <= Utc::now()
+                    })
                 }))
                 && cron.next_run.is_some_and(|next_run| next_run <= Utc::now())
             {
@@ -376,7 +379,15 @@ impl Model {
                 locked_cron
                     .mark_cron_failed(
                         ctx,
-                        format!("Cron timeout of {}ms", locked_cron.timeout_ms).as_str(),
+                        format!(
+                            "Cron timeout of {}ms",
+                            locked_cron
+                                .timeout_ms
+                                .as_ref()
+                                .map(|s| s.to_string())
+                                .unwrap_or_else(|| "Infinite".to_string())
+                        )
+                        .as_str(),
                         retry_duration,
                     )
                     .await?;
@@ -389,7 +400,7 @@ impl Model {
     }
 
     pub fn calculate_next_run(cron_expr: &str) -> RecorderResult<DateTime<Utc>> {
-        let cron_expr = Cron::new(cron_expr).parse()?;
+        let cron_expr = Cron::new(cron_expr).with_seconds_optional().parse()?;
 
         let next = cron_expr.find_next_occurrence(&Utc::now(), false)?;
 

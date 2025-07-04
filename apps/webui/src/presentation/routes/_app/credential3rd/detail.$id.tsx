@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -17,14 +18,9 @@ import { GET_CREDENTIAL_3RD_DETAIL } from '@/domains/recorder/schema/credential3
 import type { GetCredential3rdDetailQuery } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useQuery } from '@apollo/client';
-import {
-  createFileRoute,
-  useCanGoBack,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { format } from 'date-fns/format';
-import { ArrowLeft, CheckIcon, Edit, Eye, EyeOff } from 'lucide-react';
+import { CheckIcon, Edit, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { Credential3rdCheckAvailableViewDialogContent } from './-check-available';
 
@@ -38,20 +34,8 @@ export const Route = createFileRoute('/_app/credential3rd/detail/$id')({
 function Credential3rdDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
 
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleBack = () => {
-    if (canGoBack) {
-      router.history.back();
-    } else {
-      navigate({
-        to: '/credential3rd/manage',
-      });
-    }
-  };
 
   const { loading, error, data } = useQuery<GetCredential3rdDetailQuery>(
     GET_CREDENTIAL_3RD_DETAIL,
@@ -91,31 +75,17 @@ function Credential3rdDetailRouteComponent() {
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="font-bold text-2xl">Credential detail</h1>
-            <p className="mt-1 text-muted-foreground">
-              View credential #{credential.id}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
+      <ContainerHeader
+        title="Credential Detail"
+        description={`View credential #${credential.id}`}
+        defaultBackTo="/credential3rd/manage"
+        actions={
           <Button onClick={handleEnterEditMode}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

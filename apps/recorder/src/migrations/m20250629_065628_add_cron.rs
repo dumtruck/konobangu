@@ -8,9 +8,10 @@ use crate::{
         Subscriptions, table_auto_z,
     },
     models::cron::{
-        CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_EVENT, CronStatus, CronStatusEnum,
-        NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME, NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME,
-        SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
+        CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_DEBUG_EVENT, CRON_DUE_EVENT,
+        CronStatus, CronStatusEnum, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
+        NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME,
+        SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
     },
     task::{
         SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SUBSCRIBER_TASK_APALIS_NAME,
@@ -48,14 +49,13 @@ impl MigrationTrait for Migration {
                     .col(string_null(Cron::LockedBy))
                     .col(timestamp_with_time_zone_null(Cron::LockedAt))
                     .col(integer_null(Cron::TimeoutMs))
-                    .col(integer(Cron::Attempts))
-                    .col(integer(Cron::MaxAttempts))
-                    .col(integer(Cron::Priority))
-                    .col(enumeration(
-                        Cron::Status,
-                        CronStatusEnum,
-                        CronStatus::iden_values(),
-                    ))
+                    .col(integer(Cron::Attempts).default(0))
+                    .col(integer(Cron::MaxAttempts).default(1))
+                    .col(integer(Cron::Priority).default(0))
+                    .col(
+                        enumeration(Cron::Status, CronStatusEnum, CronStatus::iden_values())
+                            .default(CronStatus::Pending),
+                    )
                     .col(json_binary_null(Cron::SubscriberTaskCron))
                     .col(json_binary_null(Cron::SystemTaskCron))
                     .foreign_key(
@@ -207,9 +207,12 @@ impl MigrationTrait for Migration {
                     ORDER BY {priority} ASC, {next_run} ASC
                     FOR UPDATE SKIP LOCKED
                 LOOP
+                    -- PERFORM pg_notify('{CRON_DUE_DEBUG_EVENT}',format('Found due cron: value=%s; Now time: %s', row_to_json(cron_record)::text, CURRENT_TIMESTAMP));
                     PERFORM pg_notify('{CRON_DUE_EVENT}', row_to_json(cron_record)::text);
                     notification_count := notification_count + 1;
                 END LOOP;
+
+                -- PERFORM pg_notify('{CRON_DUE_DEBUG_EVENT}', format('Notification count: %I; Now time: %s', notification_count, CURRENT_TIMESTAMP));
                 RETURN notification_count;
             END;
             $$ LANGUAGE plpgsql;"#,

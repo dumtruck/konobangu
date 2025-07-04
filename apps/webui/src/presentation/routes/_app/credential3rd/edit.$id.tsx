@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,13 +40,8 @@ import type {
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useMutation, useQuery } from '@apollo/client';
-import {
-  createFileRoute,
-  useCanGoBack,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
-import { ArrowLeft, Eye, EyeOff, Save, X } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Eye, EyeOff, Save } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -63,22 +59,9 @@ function FormView({
   credential: Credential3rdDetailDto;
   onCompleted: VoidFunction;
 }) {
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
-  };
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-
-  const handleBack = () => {
-    if (canGoBack) {
-      router.history.back();
-    } else {
-      navigate({
-        to: '/credential3rd/manage',
-      });
-    }
   };
 
   const [updateCredential, { loading: updating }] = useMutation<
@@ -121,35 +104,17 @@ function FormView({
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="font-bold text-2xl">Credential edit</h1>
-            <p className="mt-1 text-muted-foreground">
-              Edit credential #{credential.id}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleBack} disabled={updating}>
-            <X className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+      <ContainerHeader
+        title="Credential Edit"
+        description={`Edit credential #${credential.id}`}
+        defaultBackTo={`/credential3rd/detail/${credential.id}`}
+        actions={
           <Button onClick={() => form.handleSubmit()} disabled={updating}>
             <Save className="mr-2 h-4 w-4" />
             {updating ? 'Saving...' : 'Save'}
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
@@ -24,14 +25,9 @@ import {
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useMutation, useQuery } from '@apollo/client';
-import {
-  createFileRoute,
-  useCanGoBack,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { prettyTaskType } from './-pretty-task-type';
@@ -46,19 +42,6 @@ export const Route = createFileRoute('/_app/tasks/detail/$id')({
 
 function TaskDetailRouteComponent() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-
-  const handleBack = () => {
-    if (canGoBack) {
-      router.history.back();
-    } else {
-      navigate({
-        to: '/tasks/manage',
-      });
-    }
-  };
 
   const { data, loading, error, refetch } = useQuery<
     GetTasksQuery,
@@ -129,27 +112,17 @@ function TaskDetailRouteComponent() {
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
+      <ContainerHeader
+        title="Task Detail"
+        description={`View task #${task.id}`}
+        defaultBackTo="/tasks/manage"
+        actions={
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
-          <div>
-            <h1 className="font-bold text-2xl">Task Detail</h1>
-            <p className="mt-1 text-muted-foreground">View task #{task.id}</p>
-          </div>
-        </div>
-
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
-      </div>
+        }
+      />
 
       <Card>
         <CardHeader>

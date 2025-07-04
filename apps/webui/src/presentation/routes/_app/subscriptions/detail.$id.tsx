@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Img } from '@/components/ui/img';
@@ -33,15 +34,9 @@ import {
   SubscriptionCategoryEnum,
 } from '@/infra/graphql/gql/graphql';
 import { useMutation, useQuery } from '@apollo/client';
-import {
-  createFileRoute,
-  useCanGoBack,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { format } from 'date-fns';
 import {
-  ArrowLeft,
   Edit,
   ExternalLink,
   ListIcon,
@@ -61,19 +56,7 @@ export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
 function SubscriptionDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
   const subscriptionService = useInject(SubscriptionService);
-
-  const handleBack = () => {
-    if (canGoBack) {
-      router.history.back();
-    } else {
-      navigate({
-        to: '/subscriptions/manage',
-      });
-    }
-  };
 
   const handleReload = async () => {
     const result = await refetch();
@@ -177,31 +160,16 @@ function SubscriptionDetailRouteComponent() {
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="font-bold text-2xl">Subscription detail</h1>
-            <p className="mt-1 text-muted-foreground">
-              View subscription #{subscription.id}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
+      <ContainerHeader
+        title="Subscription Detail"
+        description={`View subscription #${subscription.id}`}
+        actions={
           <Button onClick={handleEnterEditMode}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
-          </Button>{' '}
-        </div>
-      </div>
+          </Button>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -416,6 +384,79 @@ function SubscriptionDetailRouteComponent() {
                 ) : (
                   <div className="col-span-full py-8 text-center text-muted-foreground">
                     No associated feeds now
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium text-sm">Associated Crons</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      navigate({
+                        to: '/tasks/cron/manage',
+                      })
+                    }
+                  >
+                    <ListIcon className="h-4 w-4" />
+                    Crons
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <RefreshCcwIcon className="h-4 w-4" />
+                        Setup Cron
+                      </Button>
+                    </DialogTrigger>
+                    <SubscriptionSyncDialogContent
+                      id={subscription.id}
+                      onCancel={handleReload}
+                      isCron={true}
+                    />
+                  </Dialog>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {subscription.cron?.nodes &&
+                subscription.cron.nodes.length > 0 ? (
+                  subscription.cron.nodes.map((task) => (
+                    <Card
+                      key={task.id}
+                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
+                      onClick={() =>
+                        navigate({
+                          to: '/tasks/cron/detail/$id',
+                          params: {
+                            id: task.id.toString(),
+                          },
+                        })
+                      }
+                    >
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium text-sm capitalize">
+                            <span>{task.cronExpr}</span>
+                          </Label>
+                        </div>
+
+                        <code className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">
+                          {task.id}
+                        </code>
+
+                        <div className="text-muted-foreground text-xs">
+                          {task.status}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full py-8 text-center text-muted-foreground">
+                    No associated crons now
                   </div>
                 )}
               </div>
