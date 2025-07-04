@@ -145,3 +145,5 @@
     cursor: pointer;
   }
 }
+
+@plugin "tailwind-scrollbar";

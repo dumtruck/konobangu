@@ -40,6 +40,7 @@ impl MigrationTrait for Migration {
                 table_auto_z(Cron::Table)
                     .col(pk_auto(Cron::Id))
                     .col(string(Cron::CronExpr))
+                    .col(string(Cron::CronTimezone))
                     .col(integer_null(Cron::SubscriberId))
                     .col(integer_null(Cron::SubscriptionId))
                     .col(timestamp_with_time_zone_null(Cron::NextRun))

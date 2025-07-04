@@ -45,6 +45,14 @@
   },
   "overrides": [
     {
+      "include": ["**/tsconfig.json", "**/tsconfig.*.json"],
+      "json": {
+        "parser": {
+          "allowComments": true
+        }
+      }
+    },
+    {
       "include": ["apps/webui/src/infra/graphql/gql/**/*"],
       "linter": {
         "rules": {

@@ -19,8 +19,9 @@
     "target": "ES2020",
     "strictNullChecks": true,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // controlled by biome
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "useDefineForClassFields": true
   }
 }

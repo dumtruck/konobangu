@@ -178,6 +178,7 @@ pub enum Cron {
     SubscriberId,
     SubscriptionId,
     CronExpr,
+    CronTimezone,
     NextRun,
     LastRun,
     LastError,

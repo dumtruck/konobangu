@@ -1,4 +1,3 @@
-import { DetailCardSkeleton } from '@/components/detail-card-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ContainerHeader } from '@/components/ui/container-header';
+import { DetailCardSkeleton } from '@/components/ui/detail-card-skeleton';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

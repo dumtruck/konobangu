@@ -169,6 +169,7 @@ croner = "2.2.0"
 ts-rs = "11.0.1"
 secrecy = { version = "0.10.3", features = ["serde"] }
 paste = "1.0.15"
+chrono-tz = "0.10.3"
 
 [dev-dependencies]
 inquire = { workspace = true }

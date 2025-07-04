@@ -1,4 +1,3 @@
-import { DetailCardSkeleton } from '@/components/detail-card-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ContainerHeader } from '@/components/ui/container-header';
+import { DetailCardSkeleton } from '@/components/ui/detail-card-skeleton';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Img } from '@/components/ui/img';
@@ -47,7 +47,8 @@ import {
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { prettyTaskType } from '../tasks/-pretty-task-type';
-import { SubscriptionSyncDialogContent } from './-sync';
+import { SubscriptionCronCreationDialogContent } from './-cron-creation';
+import { SubscriptionTaskCreationDialogContent } from './-task-creation';
 
 export const Route = createFileRoute('/_app/subscriptions/detail/$id')({
   component: SubscriptionDetailRouteComponent,
@@ -404,19 +405,18 @@ function SubscriptionDetailRouteComponent() {
                     }
                   >
                     <ListIcon className="h-4 w-4" />
-                    Crons
+                    More
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
-                        <RefreshCcwIcon className="h-4 w-4" />
-                        Setup Cron
+                        <PlusIcon className="h-4 w-4" />
+                        Add Cron
                       </Button>
                     </DialogTrigger>
-                    <SubscriptionSyncDialogContent
-                      id={subscription.id}
+                    <SubscriptionCronCreationDialogContent
+                      subscriptionId={subscription.id}
                       onCancel={handleReload}
-                      isCron={true}
                     />
                   </Dialog>
                 </div>
@@ -477,17 +477,17 @@ function SubscriptionDetailRouteComponent() {
                     }
                   >
                     <ListIcon className="h-4 w-4" />
-                    Tasks
+                    More
                   </Button>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm">
                         <RefreshCcwIcon className="h-4 w-4" />
-                        Sync
+                        Run Task
                       </Button>
                     </DialogTrigger>
-                    <SubscriptionSyncDialogContent
-                      id={subscription.id}
+                    <SubscriptionTaskCreationDialogContent
+                      subscriptionId={subscription.id}
                       onCancel={handleReload}
                     />
                   </Dialog>

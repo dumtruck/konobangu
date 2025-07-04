@@ -19,6 +19,8 @@ use crate::{
 #[snafu(visibility(pub(crate)))]
 pub enum RecorderError {
     #[snafu(transparent)]
+    ChronoTzParseError { source: chrono_tz::ParseError },
+    #[snafu(transparent)]
     SeaographyError { source: seaography::SeaographyError },
     #[snafu(transparent)]
     CronError { source: croner::errors::CronError },

@@ -20,6 +20,7 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
             cron::Column::SubscriberTaskCron
                 | cron::Column::SystemTaskCron
                 | cron::Column::CronExpr
+                | cron::Column::CronTimezone
                 | cron::Column::Enabled
                 | cron::Column::TimeoutMs
                 | cron::Column::MaxAttempts
@@ -30,7 +31,8 @@ fn skip_columns_for_entity_input(context: &mut BuilderContext) {
         context.entity_input.insert_skips.push(entity_column_key);
     }
     for column in cron::Column::iter() {
-        if matches!(column, |cron::Column::CronExpr| cron::Column::Enabled
+        if matches!(column, |cron::Column::CronExpr| cron::Column::CronTimezone
+            | cron::Column::Enabled
             | cron::Column::TimeoutMs
             | cron::Column::Priority
             | cron::Column::MaxAttempts)

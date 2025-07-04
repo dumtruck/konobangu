@@ -10,7 +10,6 @@
     {
       "path": "./apps/webui"
     },
-
     {
       "path": "./packages/email"
     },

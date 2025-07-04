@@ -47,7 +47,7 @@ import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { SubscriptionSyncDialogContent } from './-sync';
+import { SubscriptionTaskCreationDialogContent } from './-task-creation';
 
 export const Route = createFileRoute('/_app/subscriptions/manage')({
   component: SubscriptionManageRouteComponent,
@@ -238,7 +238,9 @@ function SubscriptionManageRouteComponent() {
                   Sync
                 </DropdownMenuItem>
               </DialogTrigger>
-              <SubscriptionSyncDialogContent id={row.original.id} />
+              <SubscriptionTaskCreationDialogContent
+                subscriptionId={row.original.id}
+              />
             </Dialog>
           </DropdownMenuActions>
         ),

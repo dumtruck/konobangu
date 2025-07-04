@@ -18,17 +18,17 @@ import { RefreshCcwIcon } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 
-export type SubscriptionSyncViewCompletePayload = {
+export type SubscriptionTaskCreationViewCompletePayload = {
   id: string;
 };
 
-export interface SubscriptionSyncViewProps {
-  id: number;
-  onComplete: (payload: SubscriptionSyncViewCompletePayload) => void;
+export interface SubscriptionTaskCreationViewProps {
+  subscriptionId: number;
+  onComplete: (payload: SubscriptionTaskCreationViewCompletePayload) => void;
 }
 
-export const SubscriptionSyncView = memo(
-  ({ id, onComplete }: SubscriptionSyncViewProps) => {
+export const SubscriptionTaskCreationView = memo(
+  ({ subscriptionId, onComplete }: SubscriptionTaskCreationViewProps) => {
     const [insertSubscriberTask, { loading: loadingInsert }] = useMutation<
       InsertSubscriberTaskMutation,
       InsertSubscriberTaskMutationVariables
@@ -56,7 +56,7 @@ export const SubscriptionSyncView = memo(
               variables: {
                 data: {
                   job: {
-                    subscriptionId: id,
+                    subscriptionId: subscriptionId,
                     taskType: SubscriberTaskTypeEnum.SyncOneSubscriptionSources,
                   },
                 },
@@ -75,7 +75,7 @@ export const SubscriptionSyncView = memo(
               variables: {
                 data: {
                   job: {
-                    subscriptionId: id,
+                    subscriptionId: subscriptionId,
                     taskType:
                       SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsIncremental,
                   },
@@ -95,7 +95,7 @@ export const SubscriptionSyncView = memo(
               variables: {
                 data: {
                   job: {
-                    subscriptionId: id,
+                    subscriptionId: subscriptionId,
                     taskType:
                       SubscriberTaskTypeEnum.SyncOneSubscriptionFeedsFull,
                   },
@@ -111,7 +111,7 @@ export const SubscriptionSyncView = memo(
         {loading && (
           <div className="absolute inset-0 flex flex-row items-center justify-center gap-2">
             <Spinner variant="circle-filled" size="16" />
-            <span>Syncing...</span>
+            <span>Running...</span>
           </div>
         )}
       </div>
@@ -119,18 +119,20 @@ export const SubscriptionSyncView = memo(
   }
 );
 
-export interface SubscriptionSyncDialogContentProps {
-  id: number;
+export interface SubscriptionTaskCreationDialogContentProps {
+  subscriptionId: number;
   onCancel?: VoidFunction;
-  isCron?: boolean;
 }
 
-export const SubscriptionSyncDialogContent = memo(
-  ({ id, onCancel }: SubscriptionSyncDialogContentProps) => {
+export const SubscriptionTaskCreationDialogContent = memo(
+  ({
+    subscriptionId,
+    onCancel,
+  }: SubscriptionTaskCreationDialogContentProps) => {
     const navigate = useNavigate();
 
-    const handleSyncComplete = useCallback(
-      (payload: SubscriptionSyncViewCompletePayload) => {
+    const handleCreationComplete = useCallback(
+      (payload: SubscriptionTaskCreationViewCompletePayload) => {
         navigate({
           to: '/tasks/detail/$id',
           params: {
@@ -144,12 +146,15 @@ export const SubscriptionSyncDialogContent = memo(
     return (
       <DialogContent onAbort={onCancel}>
         <DialogHeader>
-          <DialogTitle>Sync Subscription</DialogTitle>
+          <DialogTitle>Run Task</DialogTitle>
           <DialogDescription>
-            Sync the subscription with sources and feeds.
+            Run the task for the subscription.
           </DialogDescription>
         </DialogHeader>
-        <SubscriptionSyncView id={id} onComplete={handleSyncComplete} />
+        <SubscriptionTaskCreationView
+          subscriptionId={subscriptionId}
+          onComplete={handleCreationComplete}
+        />
       </DialogContent>
     );
   }
