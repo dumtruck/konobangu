@@ -27,6 +27,8 @@ export class GraphQLService {
         fetchPolicy: 'cache-and-network',
         nextFetchPolicy: 'network-only',
         errorPolicy: 'all',
+        refetchWritePolicy: 'overwrite',
+        initialFetchPolicy: 'cache-and-network',
       },
       query: {
         fetchPolicy: 'network-only',

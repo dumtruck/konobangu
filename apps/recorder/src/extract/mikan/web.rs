@@ -26,8 +26,8 @@ use crate::{
             MIKAN_EPISODE_HOMEPAGE_PATH, MIKAN_FANSUB_HOMEPAGE_PATH, MIKAN_FANSUB_ID_QUERY_KEY,
             MIKAN_POSTER_BUCKET_KEY, MIKAN_SEASON_FLOW_PAGE_PATH, MIKAN_SEASON_STR_QUERY_KEY,
             MIKAN_SUBSCRIBER_SUBSCRIPTION_RSS_PATH, MIKAN_SUBSCRIBER_SUBSCRIPTION_TOKEN_QUERY_KEY,
-            MIKAN_YEAR_QUERY_KEY, MikanClient, build_mikan_bangumi_subscription_rss_url,
-            build_mikan_subscriber_subscription_rss_url,
+            MIKAN_UNKNOWN_FANSUB_ID, MIKAN_YEAR_QUERY_KEY, MikanClient,
+            build_mikan_bangumi_subscription_rss_url, build_mikan_subscriber_subscription_rss_url,
         },
     },
     media::{
@@ -564,16 +564,17 @@ pub fn extract_mikan_episode_meta_from_episode_homepage_html(
         RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("mikan_episode_id"))
     })?;
 
-    let fansub_name = html
-        .select(
+    let fansub_name = if mikan_fansub_id == MIKAN_UNKNOWN_FANSUB_ID {
+        MIKAN_UNKNOWN_FANSUB_ID.to_string()
+    } else {
+        html.select(
             &Selector::parse(".bangumi-info a.magnet-link-wrap[href^='/Home/PublishGroup/']")
                 .unwrap(),
         )
         .next()
         .map(extract_inner_text_from_element_ref)
-        .ok_or_else(|| {
-            RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name"))
-        })?;
+        .ok_or_else(|| RecorderError::from_mikan_meta_missing_field(Cow::Borrowed("fansub_name")))?
+    };
 
     let origin_poster_src = html.select(bangumi_poster_selector).next().and_then(|el| {
         el.value()
@@ -685,6 +686,13 @@ pub fn extract_mikan_fansub_meta_from_bangumi_homepage_html(
     html: &Html,
     mikan_fansub_id: String,
 ) -> Option<MikanFansubMeta> {
+    if mikan_fansub_id == MIKAN_UNKNOWN_FANSUB_ID {
+        return Some(MikanFansubMeta {
+            mikan_fansub_id,
+            fansub: MIKAN_UNKNOWN_FANSUB_ID.to_string(),
+        });
+    }
+
     html.select(
         &Selector::parse(&format!(
             "a.subgroup-name[data-anchor='#{mikan_fansub_id}']"

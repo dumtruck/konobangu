@@ -24,24 +24,22 @@ export const GET_TASKS = gql`
         subscription {
           displayName
           sourceUrl
-          cron {
-            nodes {
-              id
-              cronExpr
-              nextRun
-              lastRun
-              lastError
-              status
-              lockedAt
-              lockedBy
-              createdAt
-              updatedAt
-              timeoutMs
-              maxAttempts
-              priority
-              attempts
-            }
-          }
+        }
+        cron {
+            id
+            cronExpr
+            nextRun
+            lastRun
+            lastError
+            status
+            lockedAt
+            lockedBy
+            createdAt
+            updatedAt
+            timeoutMs
+            maxAttempts
+            priority
+            attempts
         }
       }
       paginationInfo {
