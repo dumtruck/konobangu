@@ -31,7 +31,8 @@ impl MigrationTrait for Migration {
             CronStatus::Pending,
             CronStatus::Running,
             CronStatus::Completed,
-            CronStatus::Failed
+            CronStatus::Failed,
+            CronStatus::Disabled
         )
         .await?;
 
@@ -49,7 +50,7 @@ impl MigrationTrait for Migration {
                     .col(boolean(Cron::Enabled).default(true))
                     .col(string_null(Cron::LockedBy))
                     .col(timestamp_with_time_zone_null(Cron::LockedAt))
-                    .col(integer_null(Cron::TimeoutMs))
+                    .col(integer_null(Cron::TimeoutMs).default(5000))
                     .col(integer(Cron::Attempts).default(0))
                     .col(integer(Cron::MaxAttempts).default(1))
                     .col(integer(Cron::Priority).default(0))
@@ -243,8 +244,8 @@ impl MigrationTrait for Migration {
                             .from_col(ApalisJobs::CronId)
                             .to_tbl(Cron::Table)
                             .to_col(Cron::Id)
-                            .on_delete(ForeignKeyAction::NoAction)
-                            .on_update(ForeignKeyAction::NoAction),
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Restrict),
                     )
                     .to_owned(),
             )

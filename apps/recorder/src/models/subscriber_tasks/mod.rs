@@ -52,23 +52,23 @@ pub enum Relation {
         from = "Column::SubscriberId",
         to = "super::subscribers::Column::Id",
         on_update = "Cascade",
-        on_delete = "NoAction"
+        on_delete = "Restrict"
     )]
     Subscriber,
     #[sea_orm(
         belongs_to = "super::subscriptions::Entity",
         from = "Column::SubscriptionId",
         to = "super::subscriptions::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
+        on_update = "Cascade",
+        on_delete = "Restrict"
     )]
     Subscription,
     #[sea_orm(
         belongs_to = "super::cron::Entity",
         from = "Column::CronId",
         to = "super::cron::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
+        on_update = "Cascade",
+        on_delete = "Restrict"
     )]
     Cron,
 }

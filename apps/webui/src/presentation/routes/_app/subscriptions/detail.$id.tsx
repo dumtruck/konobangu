@@ -15,8 +15,10 @@ import { Img } from '@/components/ui/img';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
+import { UPDATE_CRONS } from '@/domains/recorder/schema/cron';
 import { DELETE_FEED, INSERT_FEED } from '@/domains/recorder/schema/feeds';
 import { GET_SUBSCRIPTION_DETAIL } from '@/domains/recorder/schema/subscriptions';
+import { DELETE_TASKS } from '@/domains/recorder/schema/tasks';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
 import {
@@ -26,12 +28,16 @@ import {
 import {
   type DeleteFeedMutation,
   type DeleteFeedMutationVariables,
+  type DeleteTasksMutation,
+  type DeleteTasksMutationVariables,
   FeedSourceEnum,
   FeedTypeEnum,
   type GetSubscriptionDetailQuery,
   type InsertFeedMutation,
   type InsertFeedMutationVariables,
   SubscriptionCategoryEnum,
+  type UpdateCronsMutation,
+  type UpdateCronsMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import { useMutation, useQuery } from '@apollo/client';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -40,6 +46,8 @@ import {
   Edit,
   ExternalLink,
   ListIcon,
+  Pause,
+  Play,
   PlusIcon,
   RefreshCcwIcon,
   Trash2,
@@ -124,6 +132,50 @@ function SubscriptionDetailRouteComponent() {
     },
     onError: (error) => {
       toast.error('Failed to delete feed', {
+        description: apolloErrorToMessage(error),
+      });
+    },
+  });
+
+  const [deleteTask] = useMutation<
+    DeleteTasksMutation,
+    DeleteTasksMutationVariables
+  >(DELETE_TASKS, {
+    onCompleted: async () => {
+      const result = await refetch();
+      const error = getApolloQueryError(result);
+      if (error) {
+        toast.error('Failed to delete task', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Task deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete task', {
+        description: apolloErrorToMessage(error),
+      });
+    },
+  });
+
+  const [updateCron] = useMutation<
+    UpdateCronsMutation,
+    UpdateCronsMutationVariables
+  >(UPDATE_CRONS, {
+    onCompleted: async () => {
+      const result = await refetch();
+      const error = getApolloQueryError(result);
+      if (error) {
+        toast.error('Failed to update cron', {
+          description: apolloErrorToMessage(error),
+        });
+        return;
+      }
+      toast.success('Cron updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update cron', {
         description: apolloErrorToMessage(error),
       });
     },
@@ -424,15 +476,15 @@ function SubscriptionDetailRouteComponent() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {subscription.cron?.nodes &&
                 subscription.cron.nodes.length > 0 ? (
-                  subscription.cron.nodes.map((task) => (
+                  subscription.cron.nodes.map((cron) => (
                     <Card
-                      key={task.id}
+                      key={cron.id}
                       className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
                       onClick={() =>
                         navigate({
                           to: '/tasks/cron/detail/$id',
                           params: {
-                            id: task.id.toString(),
+                            id: cron.id.toString(),
                           },
                         })
                       }
@@ -440,16 +492,42 @@ function SubscriptionDetailRouteComponent() {
                       <div className="flex flex-col space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="font-medium text-sm capitalize">
-                            <span>{task.cronExpr}</span>
+                            <span>{cron.cronExpr}</span>
                           </Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateCron({
+                                variables: {
+                                  filter: {
+                                    id: {
+                                      eq: cron.id,
+                                    },
+                                  },
+                                  data: {
+                                    enabled: !cron.enabled,
+                                  },
+                                },
+                              });
+                            }}
+                          >
+                            {cron.enabled ? (
+                              <Pause className="h-3 w-3 text-destructive" />
+                            ) : (
+                              <Play className="h-3 w-3" />
+                            )}
+                          </Button>
                         </div>
 
                         <code className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">
-                          {task.id}
+                          {cron.id}
                         </code>
 
                         <div className="text-muted-foreground text-xs">
-                          {task.status}
+                          {cron.status}
                         </div>
                       </div>
                     </Card>
@@ -514,6 +592,25 @@ function SubscriptionDetailRouteComponent() {
                           <Label className="font-medium text-sm capitalize">
                             <span>{prettyTaskType(task.taskType)} Task</span>
                           </Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTask({
+                                variables: {
+                                  filter: {
+                                    id: {
+                                      eq: task.id,
+                                    },
+                                  },
+                                },
+                              });
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
                         </div>
 
                         <code className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">

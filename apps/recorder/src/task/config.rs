@@ -49,7 +49,7 @@ pub fn default_system_task_workers() -> u32 {
 }
 
 pub fn default_cron_interval_duration() -> Duration {
-    Duration::from_secs(60)
+    Duration::from_secs(30)
 }
 
 pub fn default_subscriber_task_reenqueue_orphaned_after() -> Duration {

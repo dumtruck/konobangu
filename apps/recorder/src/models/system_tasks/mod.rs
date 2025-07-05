@@ -57,8 +57,8 @@ pub enum Relation {
         belongs_to = "super::cron::Entity",
         from = "Column::CronId",
         to = "super::cron::Column::Id",
-        on_update = "NoAction",
-        on_delete = "NoAction"
+        on_update = "Cascade",
+        on_delete = "Restrict"
     )]
     Cron,
 }

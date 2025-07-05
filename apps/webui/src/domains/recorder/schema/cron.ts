@@ -20,6 +20,7 @@ query GetCrons($filter: CronFilterInput!, $orderBy: CronOrderInput!, $pagination
             maxAttempts
             priority
             attempts
+            enabled
             subscriberTaskCron
             subscriberTask {
                 nodes {
@@ -58,6 +59,29 @@ export const DELETE_CRONS = gql`
     }
 `;
 
+export const UPDATE_CRONS = gql`
+    mutation UpdateCrons($filter: CronFilterInput!, $data: CronUpdateInput!) {
+        cronUpdate(filter: $filter, data: $data) {
+           id
+            cronExpr
+            nextRun
+            lastRun
+            lastError
+            status
+            lockedAt
+            lockedBy
+            createdAt
+            updatedAt
+            timeoutMs
+            enabled
+            maxAttempts
+            priority
+            attempts
+            subscriberTaskCron
+        }
+    }
+`;
+
 export const INSERT_CRON = gql`
     mutation InsertCron($data: CronInsertInput!) {
         cronCreateOne(data: $data) {
@@ -71,6 +95,7 @@ export const INSERT_CRON = gql`
             lockedBy
             createdAt
             updatedAt
+            enabled
             timeoutMs
             maxAttempts
             priority
@@ -79,42 +104,3 @@ export const INSERT_CRON = gql`
         }
     }
 `;
-
-export const SUBSCRIPTION_TASK_CRON_PRESETS: CronPreset[] = [
-  {
-    label: 'Daily at midnight',
-    value: '0 0 0 * * *',
-    description: 'Runs once daily at 00:00',
-    category: 'daily',
-  },
-  {
-    label: 'Daily at 9 AM',
-    value: '0 0 9 * * *',
-    description: 'Runs daily at 9:00 AM',
-    category: 'daily',
-  },
-  {
-    label: 'Weekdays at 9 AM',
-    value: '0 0 9 * * 1-5',
-    description: 'Runs Monday to Friday at 9:00 AM',
-    category: 'weekly',
-  },
-  {
-    label: 'Every Sunday',
-    value: '0 0 0 * * 0',
-    description: 'Runs every Sunday at midnight',
-    category: 'weekly',
-  },
-  {
-    label: 'First day of month',
-    value: '0 0 0 1 * *',
-    description: 'Runs on the 1st day of every month',
-    category: 'monthly',
-  },
-  {
-    label: 'Every year',
-    value: '0 0 0 1 1 *',
-    description: 'Runs on January 1st every year',
-    category: 'yearly',
-  },
-];

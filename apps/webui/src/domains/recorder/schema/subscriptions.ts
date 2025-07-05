@@ -124,6 +124,7 @@ query GetSubscriptionDetail ($id: Int!) {
             nextRun
             lastRun
             lastError
+            enabled
             status
             lockedAt
             lockedBy

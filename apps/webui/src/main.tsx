@@ -14,9 +14,9 @@ import {
 import { Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import './app.css';
-import { provideRecorder } from '@/domains/recorder/context';
-import { provideGraphql } from '@/infra/graphql';
-import { graphqlContextFromInjector } from '@/infra/graphql/context';
+import { provideRecorder } from '@/domains/recorder';
+import { graphqlContextFromInjector, provideGraphql } from '@/infra/graphql';
+import { provideIntl } from '@/infra/intl';
 import { ApolloProvider } from '@apollo/client';
 
 // Create a new router instance
@@ -46,6 +46,7 @@ const injector: Injector = ReflectiveInjector.resolveAndCreate([
   ...provideStyles(),
   ...provideGraphql(),
   ...provideRecorder(),
+  ...provideIntl(),
 ]);
 
 setupAuthContext(injector);

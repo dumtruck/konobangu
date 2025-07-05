@@ -84,6 +84,7 @@ export interface CronProps {
   showHelp?: boolean;
   showPresets?: boolean;
   withCard?: boolean;
+  isFirstSibling?: boolean;
 }
 
 export const CronPeriod = {

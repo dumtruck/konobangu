@@ -373,6 +373,7 @@ mod tests {
 
         let echo_cron = cron::ActiveModel {
             cron_expr: ActiveValue::Set("*/1 * * * * *".to_string()),
+            cron_timezone: ActiveValue::Set("Asia/Singapore".to_string()),
             system_task_cron: ActiveValue::Set(Some(
                 EchoTask::builder().task_id(task_id.clone()).build().into(),
             )),
@@ -406,6 +407,7 @@ mod tests {
 
         let echo_cron = cron::ActiveModel {
             cron_expr: ActiveValue::Set("* * * */1 * *".to_string()),
+            cron_timezone: ActiveValue::Set("Asia/Singapore".to_string()),
             next_run: ActiveValue::Set(Some(Utc::now() + chrono::Duration::seconds(-10))),
             system_task_cron: ActiveValue::Set(Some(
                 EchoTask::builder().task_id(task_id.clone()).build().into(),

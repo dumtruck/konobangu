@@ -41,6 +41,8 @@ pub enum CronStatus {
     Completed,
     #[sea_orm(string_value = "failed")]
     Failed,
+    #[sea_orm(string_value = "disabled")]
+    Disabled,
 }
 
 #[derive(Debug, Clone, DeriveEntityModel, PartialEq, Serialize, Deserialize)]
@@ -138,7 +140,7 @@ pub enum RelatedEntity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
-    async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
+    async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait,
     {
@@ -188,6 +190,15 @@ impl ActiveModelBehavior for ActiveModel {
             return Err(DbErr::Custom(
                 "Cron subscriber_id does not match system_task_cron.subscriber_id".to_string(),
             ));
+        }
+        if let ActiveValue::Set(enabled) = self.enabled
+            && !insert
+        {
+            if enabled {
+                self.status = Set(CronStatus::Pending)
+            } else {
+                self.status = Set(CronStatus::Disabled)
+            }
         }
 
         Ok(self)

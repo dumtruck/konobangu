@@ -4,6 +4,10 @@ import { DOCUMENT } from '../platform/injection';
 export class IntlService {
   document = inject(DOCUMENT);
 
+  get timezone() {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
   formatTimestamp(timestamp: number, options?: Intl.DateTimeFormatOptions) {
     const defaultOptions: Intl.DateTimeFormatOptions = {
       year: 'numeric',

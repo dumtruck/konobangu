@@ -54,6 +54,7 @@ const Cron: FC<CronProps> = ({
   presets,
   showPresets,
   withCard = true,
+  isFirstSibling = false,
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
 }) => {
   const [internalValue, setInternalValue] = useState(value || '');
@@ -184,7 +185,12 @@ const Cron: FC<CronProps> = ({
 
   return (
     <div className={cn(withCard && 'space-y-6', className)}>
-      <Card className={cn(!withCard && 'border-none pt-0 shadow-none')}>
+      <Card
+        className={cn(
+          !withCard && 'border-none shadow-none',
+          !withCard && isFirstSibling && 'pt-0'
+        )}
+      >
         <CardHeader className={cn(!withCard && 'px-0')}>
           <div className="flex items-center justify-between">
             <div>
@@ -240,13 +246,19 @@ const Cron: FC<CronProps> = ({
             }
           >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="input" className="flex items-center gap-2">
+              <TabsTrigger
+                value="input"
+                className="flex min-w-fit items-center gap-1"
+              >
                 <Type className="h-4 w-4" />
                 Text Input
               </TabsTrigger>
-              <TabsTrigger value="builder" className="flex items-center gap-2">
+              <TabsTrigger
+                value="builder"
+                className="flex min-w-fit items-center gap-1"
+              >
                 <Settings className="h-4 w-4" />
-                Visual Builder
+                Visual Build
               </TabsTrigger>
             </TabsList>
 
