@@ -1,3 +1,8 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute } from '@tanstack/react-router';
+import { Save } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,6 +41,7 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from '@/infra/errors/apollo';
+import { compatFormDefaultValues } from '@/infra/forms/compat';
 import {
   Credential3rdTypeEnum,
   type GetSubscriptionDetailQuery,
@@ -44,11 +50,6 @@ import {
   type UpdateSubscriptionsMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { Save } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
-import { toast } from 'sonner';
 import { Credential3rdSelectContent } from './-credential3rd-select';
 
 export const Route = createFileRoute('/_app/subscriptions/edit/$id')({
@@ -100,7 +101,9 @@ function FormView({
       category: subscription.category,
       enabled: subscription.enabled,
       sourceUrl: subscription.sourceUrl,
-      credentialId: subscription.credential3rd?.id || '',
+      credentialId: subscription.credential3rd?.id ?? Number.NaN,
+      year: Number.NaN,
+      seasonStr: '',
     };
 
     if (
@@ -118,14 +121,16 @@ function FormView({
   }, [subscription, sourceUrlMeta]);
 
   const form = useAppForm({
-    defaultValues: defaultValues as unknown as SubscriptionForm,
+    defaultValues: compatFormDefaultValues<SubscriptionForm>(defaultValues),
     validators: {
       onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: SubscriptionFormSchema,
     },
-    onSubmit: async (form) => {
-      const input = subscriptionService.transformInsertFormToInput(form.value);
+    onSubmit: async (submittedForm) => {
+      const input = subscriptionService.transformInsertFormToInput(
+        submittedForm.value
+      );
 
       await updateSubscription({
         variables: {
@@ -217,7 +222,7 @@ function FormView({
                       <Select
                         value={field.state.value.toString()}
                         onValueChange={(value) =>
-                          field.handleChange(Number.parseInt(value))
+                          field.handleChange(Number.parseInt(value, 10))
                         }
                       >
                         <SelectTrigger>
@@ -249,7 +254,9 @@ function FormView({
                         min={1970}
                         onBlur={field.handleBlur}
                         onChange={(e) =>
-                          field.handleChange(Number.parseInt(e.target.value))
+                          field.handleChange(
+                            Number.parseInt(e.target.value, 10)
+                          )
                         }
                         placeholder={`Please enter full year (e.g. ${new Date().getFullYear()})`}
                         autoComplete="off"
@@ -359,7 +366,7 @@ function SubscriptionEditRouteComponent() {
   const { loading, error, data, refetch } =
     useQuery<GetSubscriptionDetailQuery>(GET_SUBSCRIPTION_DETAIL, {
       variables: {
-        id: Number.parseInt(id),
+        id: Number.parseInt(id, 10),
       },
     });
 
@@ -367,10 +374,10 @@ function SubscriptionEditRouteComponent() {
 
   const onCompleted = useCallback(async () => {
     const refetchResult = await refetch();
-    const error = getApolloQueryError(refetchResult);
-    if (error) {
+    const _error = getApolloQueryError(refetchResult);
+    if (_error) {
       toast.error('Update subscription failed', {
-        description: apolloErrorToMessage(error),
+        description: apolloErrorToMessage(_error),
       });
     } else {
       toast.success('Update subscription successfully');

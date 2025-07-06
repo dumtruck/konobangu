@@ -1,5 +1,5 @@
-import type { GetTasksQuery } from '@/infra/graphql/gql/graphql';
 import { gql } from '@apollo/client';
+import type { GetTasksQuery } from '@/infra/graphql/gql/graphql';
 
 export const GET_TASKS = gql`
   query GetTasks($filter: SubscriberTasksFilterInput!, $orderBy: SubscriberTasksOrderInput!, $pagination: PaginationInput!) {

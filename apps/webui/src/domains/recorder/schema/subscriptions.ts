@@ -1,16 +1,16 @@
+import { gql } from '@apollo/client';
+import { type } from 'arktype';
 import { arkValidatorToTypeNarrower } from '@/infra/errors/arktype';
 import {
   type GetSubscriptionsQuery,
   SubscriptionCategoryEnum,
 } from '@/infra/graphql/gql/graphql';
-import { gql } from '@apollo/client';
-import { type } from 'arktype';
 import {
+  extractMikanSubscriptionBangumiSourceUrl,
+  extractMikanSubscriptionSubscriberSourceUrl,
   MikanSubscriptionBangumiSourceUrlSchema,
   MikanSubscriptionSeasonSourceUrlSchema,
   MikanSubscriptionSubscriberSourceUrlSchema,
-  extractMikanSubscriptionBangumiSourceUrl,
-  extractMikanSubscriptionSubscriberSourceUrl,
 } from './mikan';
 
 export const GET_SUBSCRIPTIONS = gql`

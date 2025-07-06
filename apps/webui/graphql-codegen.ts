@@ -12,6 +12,7 @@ const config: CodegenConfig = {
       },
       config: {
         enumsAsConst: true,
+        useTypeImports: true,
         scalars: {
           SubscriberTaskType: {
             input: 'recorder/bindings/SubscriberTaskInput#SubscriberTaskInput',

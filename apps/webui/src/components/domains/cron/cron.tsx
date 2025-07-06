@@ -1,3 +1,14 @@
+import { parse } from '@datasert/cronjs-parser';
+import {
+  AlertCircle,
+  Bolt,
+  Check,
+  Code2,
+  Copy,
+  Settings,
+  Type,
+} from 'lucide-react';
+import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,17 +21,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/presentation/utils';
-import { parse } from '@datasert/cronjs-parser';
-import {
-  AlertCircle,
-  Bolt,
-  Check,
-  Code2,
-  Copy,
-  Settings,
-  Type,
-} from 'lucide-react';
-import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { CronBuilder } from './cron-builder';
 import { CronDisplay } from './cron-display';
 import { CronInput } from './cron-input';
@@ -55,7 +55,7 @@ const Cron: FC<CronProps> = ({
   showPresets,
   withCard = true,
   isFirstSibling = false,
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: false
 }) => {
   const [internalValue, setInternalValue] = useState(value || '');
   const [internalActiveMode, setInternalActiveMode] =
@@ -106,9 +106,9 @@ const Cron: FC<CronProps> = ({
   );
 
   const handleActiveModeChange = useCallback(
-    (mode: CronPrimitiveMode) => {
-      setInternalActiveMode(mode);
-      onActiveModeChange?.(mode);
+    (m: CronPrimitiveMode) => {
+      setInternalActiveMode(m);
+      onActiveModeChange?.(m);
     },
     [onActiveModeChange]
   );
@@ -122,8 +122,8 @@ const Cron: FC<CronProps> = ({
       await navigator.clipboard.writeText(internalValue);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.warn('Failed to copy to clipboard:', error);
+    } catch (e) {
+      console.warn('Failed to copy to clipboard:', e);
     }
   }, [internalValue]);
 
@@ -241,8 +241,8 @@ const Cron: FC<CronProps> = ({
         <CardContent className={cn(!withCard && 'px-0')}>
           <Tabs
             value={internalActiveMode}
-            onValueChange={(value) =>
-              handleActiveModeChange(value as 'input' | 'builder')
+            onValueChange={(v) =>
+              handleActiveModeChange(v as 'input' | 'builder')
             }
           >
             <TabsList className="grid w-full grid-cols-2">

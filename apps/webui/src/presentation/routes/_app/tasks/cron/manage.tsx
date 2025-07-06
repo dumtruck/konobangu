@@ -1,9 +1,23 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  type ColumnDef,
+  getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
+} from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ContainerHeader } from '@/components/ui/container-header';
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { DropdownMenuActions } from '@/components/ui/dropdown-menu-actions';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,21 +39,6 @@ import {
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { useDebouncedSkeleton } from '@/presentation/hooks/use-debounded-skeleton';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import {
-  type ColumnDef,
-  type PaginationState,
-  type SortingState,
-  type VisibilityState,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/cron/manage')({
@@ -88,18 +87,18 @@ function TaskCronManageRouteComponent() {
   >(DELETE_CRONS, {
     onCompleted: async () => {
       const refetchResult = await refetch();
-      const error = getApolloQueryError(refetchResult);
-      if (error) {
+      const errorResult = getApolloQueryError(refetchResult);
+      if (errorResult) {
         toast.error('Failed to delete tasks', {
-          description: apolloErrorToMessage(error),
+          description: apolloErrorToMessage(errorResult),
         });
         return;
       }
       toast.success('Tasks deleted');
     },
-    onError: (error) => {
+    onError: (mutationError) => {
       toast.error('Failed to delete tasks', {
-        description: error.message,
+        description: mutationError.message,
       });
     },
   });
@@ -168,16 +167,16 @@ function TaskCronManageRouteComponent() {
       <div className="space-y-3">
         {showSkeleton &&
           Array.from(new Array(10)).map((_, index) => (
-            <Skeleton key={index} className="h-32 w-full" />
+            <Skeleton key={`skeleton-${index}`} className="h-32 w-full" />
           ))}
 
         {!showSkeleton && table.getRowModel().rows?.length > 0 ? (
-          table.getRowModel().rows.map((row, index) => {
+          table.getRowModel().rows.map((row) => {
             const cron = row.original;
             return (
               <div
                 className="space-y-3 rounded-lg border bg-card p-4"
-                key={`${cron.id}-${index}`}
+                key={cron.id}
               >
                 {/* Header with status and priority */}
                 <div className="flex items-center justify-between gap-2">
@@ -215,17 +214,7 @@ function TaskCronManageRouteComponent() {
                           },
                         })
                       }
-                    >
-                      {cron.status === CronStatusEnum.Failed && (
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            // TODO: Retry cron
-                          }}
-                        >
-                          Retry
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuActions>
+                    />
                   </div>
                 </div>
 

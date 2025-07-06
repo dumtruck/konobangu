@@ -1,3 +1,8 @@
+import { useMutation, useQuery } from '@apollo/client';
+import { createFileRoute } from '@tanstack/react-router';
+import { Eye, EyeOff, Save } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,18 +37,15 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from '@/infra/errors/apollo';
+import { compatFormDefaultValues } from '@/infra/forms/compat';
 import type {
   Credential3rdTypeEnum,
+  Credential3rdUpdateInput,
   GetCredential3rdDetailQuery,
   UpdateCredential3rdMutation,
   UpdateCredential3rdMutationVariables,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useMutation, useQuery } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { Eye, EyeOff, Save } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_app/credential3rd/edit/$id')({
   component: Credential3rdEditRouteComponent,
@@ -77,18 +79,21 @@ function FormView({
   });
 
   const form = useAppForm({
-    defaultValues: {
+    defaultValues: compatFormDefaultValues<
+      Credential3rdUpdateInput,
+      'credentialType' | 'username' | 'password' | 'userAgent'
+    >({
       credentialType: credential.credentialType,
-      username: credential.username,
-      password: credential.password,
-      userAgent: credential.userAgent,
-    },
+      username: credential.username ?? '',
+      password: credential.password ?? '',
+      userAgent: credential.userAgent ?? '',
+    }),
     validators: {
       onBlur: Credential3rdUpdateSchema,
       onSubmit: Credential3rdUpdateSchema,
     },
-    onSubmit: (form) => {
-      const value = form.value;
+    onSubmit: (submittedForm) => {
+      const value = submittedForm.value;
       updateCredential({
         variables: {
           data: value,
@@ -238,7 +243,7 @@ function Credential3rdEditRouteComponent() {
   const { loading, error, data, refetch } =
     useQuery<GetCredential3rdDetailQuery>(GET_CREDENTIAL_3RD_DETAIL, {
       variables: {
-        id: Number.parseInt(id),
+        id: Number.parseInt(id, 10),
       },
     });
 
@@ -246,10 +251,10 @@ function Credential3rdEditRouteComponent() {
 
   const onCompleted = useCallback(async () => {
     const refetchResult = await refetch();
-    const error = getApolloQueryError(refetchResult);
-    if (error) {
+    const _error = getApolloQueryError(refetchResult);
+    if (_error) {
       toast.error('Update credential failed', {
-        description: apolloErrorToMessage(error),
+        description: apolloErrorToMessage(_error),
       });
     } else {
       toast.success('Update credential successfully');

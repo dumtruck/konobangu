@@ -1,3 +1,7 @@
+import { useMutation } from '@apollo/client';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,6 +31,7 @@ import {
 } from '@/domains/recorder/schema/subscriptions';
 import { SubscriptionService } from '@/domains/recorder/services/subscription.service';
 import { useInject } from '@/infra/di/inject';
+import { compatFormDefaultValues } from '@/infra/forms/compat';
 import {
   Credential3rdTypeEnum,
   type InsertSubscriptionMutation,
@@ -34,11 +39,6 @@ import {
   SubscriptionCategoryEnum,
 } from '@/infra/graphql/gql/graphql';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useMutation } from '@apollo/client';
-import { createFileRoute } from '@tanstack/react-router';
-import { useNavigate } from '@tanstack/react-router';
-import { Loader2, Save } from 'lucide-react';
-import { toast } from 'sonner';
 import { Credential3rdSelectContent } from './-credential3rd-select';
 
 export const Route = createFileRoute('/_app/subscriptions/create')({
@@ -71,22 +71,24 @@ function SubscriptionCreateRouteComponent() {
   });
 
   const form = useAppForm({
-    defaultValues: {
+    defaultValues: compatFormDefaultValues<SubscriptionForm>({
       displayName: '',
-      category: undefined,
+      category: '',
       enabled: true,
       sourceUrl: '',
-      credentialId: '',
-      year: undefined,
+      credentialId: Number.NaN,
+      year: Number.NaN,
       seasonStr: '',
-    } as unknown as SubscriptionForm,
+    }),
     validators: {
       onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: SubscriptionFormSchema,
     },
-    onSubmit: async (form) => {
-      const input = subscriptionService.transformInsertFormToInput(form.value);
+    onSubmit: async (submittedForm) => {
+      const input = subscriptionService.transformInsertFormToInput(
+        submittedForm.value
+      );
       await insertSubscription({
         variables: {
           data: input,
@@ -119,30 +121,6 @@ function SubscriptionCreateRouteComponent() {
             }}
             className="space-y-6"
           >
-            <form.Field name="displayName">
-              {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor={field.name}>Display Name *</Label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Please enter display name"
-                    autoComplete="off"
-                  />
-                  {field.state.meta.errors && (
-                    <FormFieldErrors
-                      errors={field.state.meta.errors}
-                      isDirty={field.state.meta.isDirty}
-                      submissionAttempts={form.state.submissionAttempts}
-                    />
-                  )}
-                </div>
-              )}
-            </form.Field>
-
             <form.Field name="category">
               {(field) => (
                 <div className="space-y-2">
@@ -192,7 +170,7 @@ function SubscriptionCreateRouteComponent() {
                             <Select
                               value={field.state.value.toString()}
                               onValueChange={(value) =>
-                                field.handleChange(Number.parseInt(value))
+                                field.handleChange(Number.parseInt(value, 10))
                               }
                             >
                               <SelectTrigger>
@@ -227,7 +205,7 @@ function SubscriptionCreateRouteComponent() {
                               onBlur={field.handleBlur}
                               onChange={(e) =>
                                 field.handleChange(
-                                  Number.parseInt(e.target.value)
+                                  Number.parseInt(e.target.value, 10)
                                 )
                               }
                               placeholder={`Please enter full year (e.g. ${new Date().getFullYear()})`}
@@ -315,6 +293,29 @@ function SubscriptionCreateRouteComponent() {
                 );
               }}
             </form.Subscribe>
+            <form.Field name="displayName">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor={field.name}>Display Name *</Label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Please enter display name"
+                    autoComplete="off"
+                  />
+                  {field.state.meta.errors && (
+                    <FormFieldErrors
+                      errors={field.state.meta.errors}
+                      isDirty={field.state.meta.isDirty}
+                      submissionAttempts={form.state.submissionAttempts}
+                    />
+                  )}
+                </div>
+              )}
+            </form.Field>
             <form.Field name="enabled">
               {(field) => (
                 <div className="flex items-center justify-between">

@@ -33,7 +33,11 @@ const CronInput = forwardRef<HTMLInputElement, CronInputProps>(
 
     const validationResult = useMemo((): CronValidationResult => {
       if (!internalValue.trim()) {
-        return { isValid: false, error: 'Expression is required' };
+        return {
+          isValid: false,
+          error: 'Expression is required',
+          isEmpty: true,
+        };
       }
 
       try {

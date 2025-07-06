@@ -1,3 +1,13 @@
+import { useMutation } from '@apollo/client';
+import {
+  createFileRoute,
+  useCanGoBack,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
+import { type } from 'arktype';
+import { Loader2, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,7 +34,9 @@ import {
   INSERT_CREDENTIAL_3RD,
 } from '@/domains/recorder/schema/credential3rd';
 import { useInject } from '@/infra/di/inject';
+import { compatFormDefaultValues } from '@/infra/forms/compat';
 import {
+  type Credential3rdInsertInput,
   Credential3rdTypeEnum,
   type InsertCredential3rdMutation,
   type InsertCredential3rdMutationVariables,
@@ -35,16 +47,6 @@ import {
   CreateCompleteActionSchema,
 } from '@/infra/routes/nav';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
-import { useMutation } from '@apollo/client';
-import {
-  createFileRoute,
-  useCanGoBack,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
-import { type } from 'arktype';
-import { Loader2, Save } from 'lucide-react';
-import { toast } from 'sonner';
 
 const RouteSearchSchema = type({
   completeAction: CreateCompleteActionSchema.optional(),
@@ -98,21 +100,24 @@ function CredentialCreateRouteComponent() {
   });
 
   const form = useAppForm({
-    defaultValues: {
+    defaultValues: compatFormDefaultValues<
+      Credential3rdInsertInput,
+      'credentialType' | 'username' | 'password' | 'userAgent'
+    >({
       credentialType: Credential3rdTypeEnum.Mikan,
       username: '',
       password: '',
       userAgent: '',
-    },
+    }),
     validators: {
       onChangeAsync: Credential3rdInsertSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: Credential3rdInsertSchema,
     },
-    onSubmit: async (form) => {
+    onSubmit: async (submittedForm) => {
       const value = {
-        ...form.value,
-        userAgent: form.value.userAgent || platformService.userAgent,
+        ...submittedForm.value,
+        userAgent: submittedForm.value.userAgent || platformService.userAgent,
       };
       await insertCredential3rd({
         variables: {
@@ -183,7 +188,7 @@ function CredentialCreateRouteComponent() {
                   <Input
                     id={field.name}
                     name={field.name}
-                    value={field.state.value}
+                    value={field.state.value ?? ''}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="Please enter username"
@@ -207,7 +212,7 @@ function CredentialCreateRouteComponent() {
                     id={field.name}
                     name={field.name}
                     type="password"
-                    value={field.state.value}
+                    value={field.state.value ?? ''}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="Please enter password"

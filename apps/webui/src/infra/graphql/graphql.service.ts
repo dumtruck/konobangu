@@ -1,8 +1,8 @@
-import { AUTH_PROVIDER } from '@/infra/auth/auth.provider';
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { Injectable, inject } from '@outposts/injection-js';
 import { firstValueFrom } from 'rxjs';
+import { AUTH_PROVIDER } from '@/infra/auth/auth.provider';
 
 @Injectable()
 export class GraphQLService {

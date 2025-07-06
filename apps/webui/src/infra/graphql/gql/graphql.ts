@@ -1,28 +1,44 @@
 /* eslint-disable */
-import { SubscriberTaskInput } from 'recorder/bindings/SubscriberTaskInput';
-import { SubscriberTaskType } from 'recorder/bindings/SubscriberTaskType';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import type { SubscriberTaskInput } from 'recorder/bindings/SubscriberTaskInput';
+import type { SubscriberTaskType } from 'recorder/bindings/SubscriberTaskType';
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
+export type MakeEmpty<
+  T extends { [key: string]: unknown },
+  K extends keyof T,
+> = { [_ in K]?: never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+    };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
   /** The `JSON` scalar type represents raw JSON values */
-  Json: { input: any; output: any; }
-  JsonbFilterInput: { input: any; output: any; }
+  Json: { input: any; output: any };
+  JsonbFilterInput: { input: any; output: any };
   /** type SubscriberTaskType = { "taskType": "sync_one_subscription_feeds_incremental" } & SyncOneSubscriptionFeedsIncrementalTask | { "taskType": "sync_one_subscription_feeds_full" } & SyncOneSubscriptionFeedsFullTask | { "taskType": "sync_one_subscription_sources" } & SyncOneSubscriptionSourcesTask; */
-  SubscriberTaskType: { input: SubscriberTaskInput; output: SubscriberTaskType; }
+  SubscriberTaskType: {
+    input: SubscriberTaskInput;
+    output: SubscriberTaskType;
+  };
   /** type SystemTaskType = { "taskType": "optimize_image" } & OptimizeImageTask | { "taskType": "test" } & EchoTask; */
-  SystemTaskType: { input: any; output: any; }
+  SystemTaskType: { input: any; output: any };
 };
 
 export type Bangumi = {
@@ -50,20 +66,17 @@ export type Bangumi = {
   updatedAt: Scalars['String']['output'];
 };
 
-
 export type BangumiEpisodeArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type BangumiSubscriptionArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type BangumiSubscriptionBangumiArgs = {
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
@@ -168,10 +181,11 @@ export type BangumiOrderInput = {
 };
 
 export const BangumiTypeEnum = {
-  Mikan: 'mikan'
+  Mikan: 'mikan',
 } as const;
 
-export type BangumiTypeEnum = typeof BangumiTypeEnum[keyof typeof BangumiTypeEnum];
+export type BangumiTypeEnum =
+  (typeof BangumiTypeEnum)[keyof typeof BangumiTypeEnum];
 export type BangumiTypeEnumFilterInput = {
   eq?: InputMaybe<BangumiTypeEnum>;
   gt?: InputMaybe<BangumiTypeEnum>;
@@ -231,7 +245,6 @@ export type Credential3rd = {
   userAgent?: Maybe<Scalars['String']['output']>;
   username?: Maybe<Scalars['String']['output']>;
 };
-
 
 export type Credential3rdSubscriptionArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
@@ -311,10 +324,11 @@ export type Credential3rdOrderInput = {
 };
 
 export const Credential3rdTypeEnum = {
-  Mikan: 'mikan'
+  Mikan: 'mikan',
 } as const;
 
-export type Credential3rdTypeEnum = typeof Credential3rdTypeEnum[keyof typeof Credential3rdTypeEnum];
+export type Credential3rdTypeEnum =
+  (typeof Credential3rdTypeEnum)[keyof typeof Credential3rdTypeEnum];
 export type Credential3rdTypeEnumFilterInput = {
   eq?: InputMaybe<Credential3rdTypeEnum>;
   gt?: InputMaybe<Credential3rdTypeEnum>;
@@ -367,13 +381,11 @@ export type Cron = {
   updatedAt: Scalars['String']['output'];
 };
 
-
 export type CronSubscriberTaskArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type CronSystemTaskArgs = {
   filter?: InputMaybe<SystemTasksFilterInput>;
@@ -479,12 +491,14 @@ export type CronOrderInput = {
 
 export const CronStatusEnum = {
   Completed: 'completed',
+  Disabled: 'disabled',
   Failed: 'failed',
   Pending: 'pending',
-  Running: 'running'
+  Running: 'running',
 } as const;
 
-export type CronStatusEnum = typeof CronStatusEnum[keyof typeof CronStatusEnum];
+export type CronStatusEnum =
+  (typeof CronStatusEnum)[keyof typeof CronStatusEnum];
 export type CronStatusEnumFilterInput = {
   eq?: InputMaybe<CronStatusEnum>;
   gt?: InputMaybe<CronStatusEnum>;
@@ -514,10 +528,11 @@ export type CursorInput = {
 
 export const DownloadMimeEnum = {
   Applicationoctetstream: 'applicationoctetstream',
-  Applicationxbittorrent: 'applicationxbittorrent'
+  Applicationxbittorrent: 'applicationxbittorrent',
 } as const;
 
-export type DownloadMimeEnum = typeof DownloadMimeEnum[keyof typeof DownloadMimeEnum];
+export type DownloadMimeEnum =
+  (typeof DownloadMimeEnum)[keyof typeof DownloadMimeEnum];
 export type DownloadMimeEnumFilterInput = {
   eq?: InputMaybe<DownloadMimeEnum>;
   gt?: InputMaybe<DownloadMimeEnum>;
@@ -537,10 +552,11 @@ export const DownloadStatusEnum = {
   Downloading: 'downloading',
   Failed: 'failed',
   Paused: 'paused',
-  Pending: 'pending'
+  Pending: 'pending',
 } as const;
 
-export type DownloadStatusEnum = typeof DownloadStatusEnum[keyof typeof DownloadStatusEnum];
+export type DownloadStatusEnum =
+  (typeof DownloadStatusEnum)[keyof typeof DownloadStatusEnum];
 export type DownloadStatusEnumFilterInput = {
   eq?: InputMaybe<DownloadStatusEnum>;
   gt?: InputMaybe<DownloadStatusEnum>;
@@ -556,10 +572,11 @@ export type DownloadStatusEnumFilterInput = {
 
 export const DownloaderCategoryEnum = {
   Dandanplay: 'dandanplay',
-  Qbittorrent: 'qbittorrent'
+  Qbittorrent: 'qbittorrent',
 } as const;
 
-export type DownloaderCategoryEnum = typeof DownloaderCategoryEnum[keyof typeof DownloaderCategoryEnum];
+export type DownloaderCategoryEnum =
+  (typeof DownloaderCategoryEnum)[keyof typeof DownloaderCategoryEnum];
 export type DownloaderCategoryEnumFilterInput = {
   eq?: InputMaybe<DownloaderCategoryEnum>;
   gt?: InputMaybe<DownloaderCategoryEnum>;
@@ -587,7 +604,6 @@ export type Downloaders = {
   updatedAt: Scalars['String']['output'];
   username: Scalars['String']['output'];
 };
-
 
 export type DownloadersDownloadArgs = {
   filter?: InputMaybe<DownloadsFilterInput>;
@@ -800,10 +816,11 @@ export type DownloadsUpdateInput = {
 };
 
 export const EpisodeTypeEnum = {
-  Mikan: 'mikan'
+  Mikan: 'mikan',
 } as const;
 
-export type EpisodeTypeEnum = typeof EpisodeTypeEnum[keyof typeof EpisodeTypeEnum];
+export type EpisodeTypeEnum =
+  (typeof EpisodeTypeEnum)[keyof typeof EpisodeTypeEnum];
 export type EpisodeTypeEnumFilterInput = {
   eq?: InputMaybe<EpisodeTypeEnum>;
   gt?: InputMaybe<EpisodeTypeEnum>;
@@ -849,20 +866,17 @@ export type Episodes = {
   updatedAt: Scalars['String']['output'];
 };
 
-
 export type EpisodesDownloadArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type EpisodesSubscriptionArgs = {
   filter?: InputMaybe<DownloadsFilterInput>;
   orderBy?: InputMaybe<DownloadsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type EpisodesSubscriptionEpisodeArgs = {
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
@@ -1017,10 +1031,11 @@ export type EpisodesUpdateInput = {
 };
 
 export const FeedSourceEnum = {
-  SubscriptionEpisode: 'subscription_episode'
+  SubscriptionEpisode: 'subscription_episode',
 } as const;
 
-export type FeedSourceEnum = typeof FeedSourceEnum[keyof typeof FeedSourceEnum];
+export type FeedSourceEnum =
+  (typeof FeedSourceEnum)[keyof typeof FeedSourceEnum];
 export type FeedSourceEnumFilterInput = {
   eq?: InputMaybe<FeedSourceEnum>;
   gt?: InputMaybe<FeedSourceEnum>;
@@ -1035,10 +1050,10 @@ export type FeedSourceEnumFilterInput = {
 };
 
 export const FeedTypeEnum = {
-  Rss: 'rss'
+  Rss: 'rss',
 } as const;
 
-export type FeedTypeEnum = typeof FeedTypeEnum[keyof typeof FeedTypeEnum];
+export type FeedTypeEnum = (typeof FeedTypeEnum)[keyof typeof FeedTypeEnum];
 export type FeedTypeEnumFilterInput = {
   eq?: InputMaybe<FeedTypeEnum>;
   gt?: InputMaybe<FeedTypeEnum>;
@@ -1204,246 +1219,199 @@ export type Mutation = {
   systemTasksRetryOne: SystemTasksBasic;
 };
 
-
 export type MutationBangumiCreateBatchArgs = {
   data: Array<BangumiInsertInput>;
 };
-
 
 export type MutationBangumiCreateOneArgs = {
   data: BangumiInsertInput;
 };
 
-
 export type MutationBangumiDeleteArgs = {
   filter?: InputMaybe<BangumiFilterInput>;
 };
-
 
 export type MutationBangumiUpdateArgs = {
   data: BangumiUpdateInput;
   filter?: InputMaybe<BangumiFilterInput>;
 };
 
-
 export type MutationCredential3rdCheckAvailableArgs = {
   filter?: InputMaybe<Credential3rdFilterInput>;
 };
-
 
 export type MutationCredential3rdCreateBatchArgs = {
   data: Array<Credential3rdInsertInput>;
 };
 
-
 export type MutationCredential3rdCreateOneArgs = {
   data: Credential3rdInsertInput;
 };
 
-
 export type MutationCredential3rdDeleteArgs = {
   filter?: InputMaybe<Credential3rdFilterInput>;
 };
-
 
 export type MutationCredential3rdUpdateArgs = {
   data: Credential3rdUpdateInput;
   filter?: InputMaybe<Credential3rdFilterInput>;
 };
 
-
 export type MutationCronCreateBatchArgs = {
   data: Array<CronInsertInput>;
 };
-
 
 export type MutationCronCreateOneArgs = {
   data: CronInsertInput;
 };
 
-
 export type MutationCronDeleteArgs = {
   filter?: InputMaybe<CronFilterInput>;
 };
-
 
 export type MutationCronUpdateArgs = {
   data: CronUpdateInput;
   filter?: InputMaybe<CronFilterInput>;
 };
 
-
 export type MutationDownloadersCreateBatchArgs = {
   data: Array<DownloadersInsertInput>;
 };
-
 
 export type MutationDownloadersCreateOneArgs = {
   data: DownloadersInsertInput;
 };
 
-
 export type MutationDownloadersDeleteArgs = {
   filter?: InputMaybe<DownloadersFilterInput>;
 };
-
 
 export type MutationDownloadersUpdateArgs = {
   data: DownloadersUpdateInput;
   filter?: InputMaybe<DownloadersFilterInput>;
 };
 
-
 export type MutationDownloadsCreateBatchArgs = {
   data: Array<DownloadsInsertInput>;
 };
-
 
 export type MutationDownloadsCreateOneArgs = {
   data: DownloadsInsertInput;
 };
 
-
 export type MutationDownloadsDeleteArgs = {
   filter?: InputMaybe<DownloadsFilterInput>;
 };
-
 
 export type MutationDownloadsUpdateArgs = {
   data: DownloadsUpdateInput;
   filter?: InputMaybe<DownloadsFilterInput>;
 };
 
-
 export type MutationEpisodesCreateBatchArgs = {
   data: Array<EpisodesInsertInput>;
 };
-
 
 export type MutationEpisodesCreateOneArgs = {
   data: EpisodesInsertInput;
 };
 
-
 export type MutationEpisodesDeleteArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
 };
-
 
 export type MutationEpisodesUpdateArgs = {
   data: EpisodesUpdateInput;
   filter?: InputMaybe<EpisodesFilterInput>;
 };
 
-
 export type MutationFeedsCreateBatchArgs = {
   data: Array<FeedsInsertInput>;
 };
-
 
 export type MutationFeedsCreateOneArgs = {
   data: FeedsInsertInput;
 };
 
-
 export type MutationFeedsDeleteArgs = {
   filter?: InputMaybe<FeedsFilterInput>;
 };
-
 
 export type MutationFeedsUpdateArgs = {
   data: FeedsUpdateInput;
   filter?: InputMaybe<FeedsFilterInput>;
 };
 
-
 export type MutationSubscriberTasksCreateOneArgs = {
   data: SubscriberTasksInsertInput;
 };
-
 
 export type MutationSubscriberTasksDeleteArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
 };
 
-
 export type MutationSubscriberTasksRetryOneArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
 };
-
 
 export type MutationSubscriptionBangumiCreateBatchArgs = {
   data: Array<SubscriptionBangumiInsertInput>;
 };
 
-
 export type MutationSubscriptionBangumiCreateOneArgs = {
   data: SubscriptionBangumiInsertInput;
 };
 
-
 export type MutationSubscriptionBangumiDeleteArgs = {
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
 };
-
 
 export type MutationSubscriptionBangumiUpdateArgs = {
   data: SubscriptionBangumiUpdateInput;
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
 };
 
-
 export type MutationSubscriptionEpisodeCreateBatchArgs = {
   data: Array<SubscriptionEpisodeInsertInput>;
 };
-
 
 export type MutationSubscriptionEpisodeCreateOneArgs = {
   data: SubscriptionEpisodeInsertInput;
 };
 
-
 export type MutationSubscriptionEpisodeDeleteArgs = {
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
 };
-
 
 export type MutationSubscriptionEpisodeUpdateArgs = {
   data: SubscriptionEpisodeUpdateInput;
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
 };
 
-
 export type MutationSubscriptionsCreateBatchArgs = {
   data: Array<SubscriptionsInsertInput>;
 };
-
 
 export type MutationSubscriptionsCreateOneArgs = {
   data: SubscriptionsInsertInput;
 };
 
-
 export type MutationSubscriptionsDeleteArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
 };
-
 
 export type MutationSubscriptionsUpdateArgs = {
   data: SubscriptionsUpdateInput;
   filter?: InputMaybe<SubscriptionsFilterInput>;
 };
 
-
 export type MutationSystemTasksCreateOneArgs = {
   data: SystemTasksInsertInput;
 };
 
-
 export type MutationSystemTasksDeleteArgs = {
   filter?: InputMaybe<SystemTasksFilterInput>;
 };
-
 
 export type MutationSystemTasksRetryOneArgs = {
   filter?: InputMaybe<SystemTasksFilterInput>;
@@ -1456,10 +1424,10 @@ export type OffsetInput = {
 
 export const OrderByEnum = {
   Asc: 'ASC',
-  Desc: 'DESC'
+  Desc: 'DESC',
 } as const;
 
-export type OrderByEnum = typeof OrderByEnum[keyof typeof OrderByEnum];
+export type OrderByEnum = (typeof OrderByEnum)[keyof typeof OrderByEnum];
 export type PageInfo = {
   __typename?: 'PageInfo';
   endCursor?: Maybe<Scalars['String']['output']>;
@@ -1505,11 +1473,9 @@ export type Query = {
   systemTasks: SystemTasksConnection;
 };
 
-
 export type Query_Sea_Orm_Entity_MetadataArgs = {
   table_name: Scalars['String']['input'];
 };
-
 
 export type QueryBangumiArgs = {
   filter?: InputMaybe<BangumiFilterInput>;
@@ -1517,13 +1483,11 @@ export type QueryBangumiArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QueryCredential3rdArgs = {
   filter?: InputMaybe<Credential3rdFilterInput>;
   orderBy?: InputMaybe<Credential3rdOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QueryCronArgs = {
   filter?: InputMaybe<CronFilterInput>;
@@ -1531,13 +1495,11 @@ export type QueryCronArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QueryDownloadersArgs = {
   filter?: InputMaybe<DownloadersFilterInput>;
   orderBy?: InputMaybe<DownloadersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QueryDownloadsArgs = {
   filter?: InputMaybe<DownloadsFilterInput>;
@@ -1545,13 +1507,11 @@ export type QueryDownloadsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QueryEpisodesArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QueryFeedsArgs = {
   filter?: InputMaybe<FeedsFilterInput>;
@@ -1559,13 +1519,11 @@ export type QueryFeedsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QuerySubscriberTasksArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QuerySubscribersArgs = {
   filter?: InputMaybe<SubscribersFilterInput>;
@@ -1573,13 +1531,11 @@ export type QuerySubscribersArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QuerySubscriptionBangumiArgs = {
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QuerySubscriptionEpisodeArgs = {
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
@@ -1587,13 +1543,11 @@ export type QuerySubscriptionEpisodeArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type QuerySubscriptionsArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type QuerySystemTasksArgs = {
   filter?: InputMaybe<SystemTasksFilterInput>;
@@ -1631,17 +1585,20 @@ export const SubscriberTaskStatusEnum = {
   Killed: 'Killed',
   Pending: 'Pending',
   Running: 'Running',
-  Scheduled: 'Scheduled'
+  Scheduled: 'Scheduled',
 } as const;
 
-export type SubscriberTaskStatusEnum = typeof SubscriberTaskStatusEnum[keyof typeof SubscriberTaskStatusEnum];
+export type SubscriberTaskStatusEnum =
+  (typeof SubscriberTaskStatusEnum)[keyof typeof SubscriberTaskStatusEnum];
 export const SubscriberTaskTypeEnum = {
   SyncOneSubscriptionFeedsFull: 'sync_one_subscription_feeds_full',
-  SyncOneSubscriptionFeedsIncremental: 'sync_one_subscription_feeds_incremental',
-  SyncOneSubscriptionSources: 'sync_one_subscription_sources'
+  SyncOneSubscriptionFeedsIncremental:
+    'sync_one_subscription_feeds_incremental',
+  SyncOneSubscriptionSources: 'sync_one_subscription_sources',
 } as const;
 
-export type SubscriberTaskTypeEnum = typeof SubscriberTaskTypeEnum[keyof typeof SubscriberTaskTypeEnum];
+export type SubscriberTaskTypeEnum =
+  (typeof SubscriberTaskTypeEnum)[keyof typeof SubscriberTaskTypeEnum];
 export type SubscriberTasks = {
   __typename?: 'SubscriberTasks';
   attempts: Scalars['Int']['output'];
@@ -1757,13 +1714,11 @@ export type Subscribers = {
   updatedAt: Scalars['String']['output'];
 };
 
-
 export type SubscribersBangumiArgs = {
   filter?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscribersCredential3rdArgs = {
   filter?: InputMaybe<Credential3rdFilterInput>;
@@ -1771,13 +1726,11 @@ export type SubscribersCredential3rdArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscribersDownloaderArgs = {
   filter?: InputMaybe<DownloadersFilterInput>;
   orderBy?: InputMaybe<DownloadersOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscribersEpisodeArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
@@ -1785,13 +1738,11 @@ export type SubscribersEpisodeArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscribersFeedArgs = {
   filter?: InputMaybe<FeedsFilterInput>;
   orderBy?: InputMaybe<FeedsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscribersSubscriberTaskArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
@@ -1799,13 +1750,11 @@ export type SubscribersSubscriberTaskArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscribersSubscriptionArgs = {
   filter?: InputMaybe<SubscriptionsFilterInput>;
   orderBy?: InputMaybe<SubscriptionsOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscribersSystemTaskArgs = {
   filter?: InputMaybe<SystemTasksFilterInput>;
@@ -1906,10 +1855,11 @@ export type SubscriptionBangumiUpdateInput = {
 export const SubscriptionCategoryEnum = {
   MikanBangumi: 'mikan_bangumi',
   MikanSeason: 'mikan_season',
-  MikanSubscriber: 'mikan_subscriber'
+  MikanSubscriber: 'mikan_subscriber',
 } as const;
 
-export type SubscriptionCategoryEnum = typeof SubscriptionCategoryEnum[keyof typeof SubscriptionCategoryEnum];
+export type SubscriptionCategoryEnum =
+  (typeof SubscriptionCategoryEnum)[keyof typeof SubscriptionCategoryEnum];
 export type SubscriptionCategoryEnumFilterInput = {
   eq?: InputMaybe<SubscriptionCategoryEnum>;
   gt?: InputMaybe<SubscriptionCategoryEnum>;
@@ -2007,13 +1957,11 @@ export type Subscriptions = {
   updatedAt: Scalars['String']['output'];
 };
 
-
 export type SubscriptionsBangumiArgs = {
   filter?: InputMaybe<BangumiFilterInput>;
   orderBy?: InputMaybe<BangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscriptionsCronArgs = {
   filter?: InputMaybe<CronFilterInput>;
@@ -2021,13 +1969,11 @@ export type SubscriptionsCronArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscriptionsEpisodeArgs = {
   filter?: InputMaybe<EpisodesFilterInput>;
   orderBy?: InputMaybe<EpisodesOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscriptionsFeedArgs = {
   filter?: InputMaybe<FeedsFilterInput>;
@@ -2035,20 +1981,17 @@ export type SubscriptionsFeedArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscriptionsSubscriberTaskArgs = {
   filter?: InputMaybe<SubscriberTasksFilterInput>;
   orderBy?: InputMaybe<SubscriberTasksOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
 
-
 export type SubscriptionsSubscriptionBangumiArgs = {
   filter?: InputMaybe<SubscriptionBangumiFilterInput>;
   orderBy?: InputMaybe<SubscriptionBangumiOrderInput>;
   pagination?: InputMaybe<PaginationInput>;
 };
-
 
 export type SubscriptionsSubscriptionEpisodeArgs = {
   filter?: InputMaybe<SubscriptionEpisodeFilterInput>;
@@ -2138,16 +2081,18 @@ export const SystemTaskStatusEnum = {
   Killed: 'Killed',
   Pending: 'Pending',
   Running: 'Running',
-  Scheduled: 'Scheduled'
+  Scheduled: 'Scheduled',
 } as const;
 
-export type SystemTaskStatusEnum = typeof SystemTaskStatusEnum[keyof typeof SystemTaskStatusEnum];
+export type SystemTaskStatusEnum =
+  (typeof SystemTaskStatusEnum)[keyof typeof SystemTaskStatusEnum];
 export const SystemTaskTypeEnum = {
   OptimizeImage: 'optimize_image',
-  Test: 'test'
+  Test: 'test',
 } as const;
 
-export type SystemTaskTypeEnum = typeof SystemTaskTypeEnum[keyof typeof SystemTaskTypeEnum];
+export type SystemTaskTypeEnum =
+  (typeof SystemTaskTypeEnum)[keyof typeof SystemTaskTypeEnum];
 export type SystemTasks = {
   __typename?: 'SystemTasks';
   attempts: Scalars['Int']['output'];
@@ -2262,44 +2207,110 @@ export type GetCredential3rdQueryVariables = Exact<{
   pagination?: InputMaybe<PaginationInput>;
 }>;
 
-
-export type GetCredential3rdQuery = { __typename?: 'Query', credential3rd: { __typename?: 'Credential3rdConnection', nodes: Array<{ __typename?: 'Credential3rd', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+export type GetCredential3rdQuery = {
+  __typename?: 'Query';
+  credential3rd: {
+    __typename?: 'Credential3rdConnection';
+    nodes: Array<{
+      __typename?: 'Credential3rd';
+      id: number;
+      cookies?: string | null;
+      username?: string | null;
+      password?: string | null;
+      userAgent?: string | null;
+      createdAt: string;
+      updatedAt: string;
+      credentialType: Credential3rdTypeEnum;
+    }>;
+    paginationInfo?: {
+      __typename?: 'PaginationInfo';
+      total: number;
+      pages: number;
+    } | null;
+  };
+};
 
 export type InsertCredential3rdMutationVariables = Exact<{
   data: Credential3rdInsertInput;
 }>;
 
-
-export type InsertCredential3rdMutation = { __typename?: 'Mutation', credential3rdCreateOne: { __typename?: 'Credential3rdBasic', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum } };
+export type InsertCredential3rdMutation = {
+  __typename?: 'Mutation';
+  credential3rdCreateOne: {
+    __typename?: 'Credential3rdBasic';
+    id: number;
+    cookies?: string | null;
+    username?: string | null;
+    password?: string | null;
+    userAgent?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    credentialType: Credential3rdTypeEnum;
+  };
+};
 
 export type UpdateCredential3rdMutationVariables = Exact<{
   data: Credential3rdUpdateInput;
   filter: Credential3rdFilterInput;
 }>;
 
-
-export type UpdateCredential3rdMutation = { __typename?: 'Mutation', credential3rdUpdate: Array<{ __typename?: 'Credential3rdBasic', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }> };
+export type UpdateCredential3rdMutation = {
+  __typename?: 'Mutation';
+  credential3rdUpdate: Array<{
+    __typename?: 'Credential3rdBasic';
+    id: number;
+    cookies?: string | null;
+    username?: string | null;
+    password?: string | null;
+    userAgent?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    credentialType: Credential3rdTypeEnum;
+  }>;
+};
 
 export type DeleteCredential3rdMutationVariables = Exact<{
   filter: Credential3rdFilterInput;
 }>;
 
-
-export type DeleteCredential3rdMutation = { __typename?: 'Mutation', credential3rdDelete: number };
+export type DeleteCredential3rdMutation = {
+  __typename?: 'Mutation';
+  credential3rdDelete: number;
+};
 
 export type GetCredential3rdDetailQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
-
-export type GetCredential3rdDetailQuery = { __typename?: 'Query', credential3rd: { __typename?: 'Credential3rdConnection', nodes: Array<{ __typename?: 'Credential3rd', id: number, cookies?: string | null, username?: string | null, password?: string | null, userAgent?: string | null, createdAt: string, updatedAt: string, credentialType: Credential3rdTypeEnum }> } };
+export type GetCredential3rdDetailQuery = {
+  __typename?: 'Query';
+  credential3rd: {
+    __typename?: 'Credential3rdConnection';
+    nodes: Array<{
+      __typename?: 'Credential3rd';
+      id: number;
+      cookies?: string | null;
+      username?: string | null;
+      password?: string | null;
+      userAgent?: string | null;
+      createdAt: string;
+      updatedAt: string;
+      credentialType: Credential3rdTypeEnum;
+    }>;
+  };
+};
 
 export type CheckCredential3rdAvailableMutationVariables = Exact<{
   filter: Credential3rdFilterInput;
 }>;
 
-
-export type CheckCredential3rdAvailableMutation = { __typename?: 'Mutation', credential3rdCheckAvailable: { __typename?: 'Credential3rdCheckAvailableInfo', available: boolean } };
+export type CheckCredential3rdAvailableMutation = {
+  __typename?: 'Mutation';
+  credential3rdCheckAvailable: {
+    __typename?: 'Credential3rdCheckAvailableInfo';
+    available: boolean;
+  };
+};
 
 export type GetCronsQueryVariables = Exact<{
   filter: CronFilterInput;
@@ -2307,44 +2318,148 @@ export type GetCronsQueryVariables = Exact<{
   pagination: PaginationInput;
 }>;
 
-
-export type GetCronsQuery = { __typename?: 'Query', cron: { __typename?: 'CronConnection', nodes: Array<{ __typename?: 'Cron', id: number, cronExpr: string, nextRun?: string | null, lastRun?: string | null, lastError?: string | null, status: CronStatusEnum, lockedAt?: string | null, lockedBy?: string | null, createdAt: string, updatedAt: string, timeoutMs?: number | null, maxAttempts: number, priority: number, attempts: number, enabled: boolean, subscriberTaskCron?: SubscriberTaskType | null, subscriberTask: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: SubscriberTaskType, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number, subscription?: { __typename?: 'Subscriptions', displayName: string, sourceUrl: string } | null }> } }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+export type GetCronsQuery = {
+  __typename?: 'Query';
+  cron: {
+    __typename?: 'CronConnection';
+    nodes: Array<{
+      __typename?: 'Cron';
+      id: number;
+      cronExpr: string;
+      nextRun?: string | null;
+      lastRun?: string | null;
+      lastError?: string | null;
+      status: CronStatusEnum;
+      lockedAt?: string | null;
+      lockedBy?: string | null;
+      createdAt: string;
+      updatedAt: string;
+      timeoutMs?: number | null;
+      maxAttempts: number;
+      priority: number;
+      attempts: number;
+      enabled: boolean;
+      subscriberTaskCron?: SubscriberTaskType | null;
+      subscriberTask: {
+        __typename?: 'SubscriberTasksConnection';
+        nodes: Array<{
+          __typename?: 'SubscriberTasks';
+          id: string;
+          job: SubscriberTaskType;
+          taskType: SubscriberTaskTypeEnum;
+          status: SubscriberTaskStatusEnum;
+          attempts: number;
+          maxAttempts: number;
+          runAt: string;
+          lastError?: string | null;
+          lockAt?: string | null;
+          lockBy?: string | null;
+          doneAt?: string | null;
+          priority: number;
+          subscription?: {
+            __typename?: 'Subscriptions';
+            displayName: string;
+            sourceUrl: string;
+          } | null;
+        }>;
+      };
+    }>;
+    paginationInfo?: {
+      __typename?: 'PaginationInfo';
+      total: number;
+      pages: number;
+    } | null;
+  };
+};
 
 export type DeleteCronsMutationVariables = Exact<{
   filter: CronFilterInput;
 }>;
 
-
-export type DeleteCronsMutation = { __typename?: 'Mutation', cronDelete: number };
+export type DeleteCronsMutation = {
+  __typename?: 'Mutation';
+  cronDelete: number;
+};
 
 export type UpdateCronsMutationVariables = Exact<{
   filter: CronFilterInput;
   data: CronUpdateInput;
 }>;
 
-
-export type UpdateCronsMutation = { __typename?: 'Mutation', cronUpdate: Array<{ __typename?: 'CronBasic', id: number, cronExpr: string, nextRun?: string | null, lastRun?: string | null, lastError?: string | null, status: CronStatusEnum, lockedAt?: string | null, lockedBy?: string | null, createdAt: string, updatedAt: string, timeoutMs?: number | null, enabled: boolean, maxAttempts: number, priority: number, attempts: number, subscriberTaskCron?: SubscriberTaskType | null }> };
+export type UpdateCronsMutation = {
+  __typename?: 'Mutation';
+  cronUpdate: Array<{
+    __typename?: 'CronBasic';
+    id: number;
+    cronExpr: string;
+    nextRun?: string | null;
+    lastRun?: string | null;
+    lastError?: string | null;
+    status: CronStatusEnum;
+    lockedAt?: string | null;
+    lockedBy?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    timeoutMs?: number | null;
+    enabled: boolean;
+    maxAttempts: number;
+    priority: number;
+    attempts: number;
+    subscriberTaskCron?: SubscriberTaskType | null;
+  }>;
+};
 
 export type InsertCronMutationVariables = Exact<{
   data: CronInsertInput;
 }>;
 
-
-export type InsertCronMutation = { __typename?: 'Mutation', cronCreateOne: { __typename?: 'CronBasic', id: number, cronExpr: string, nextRun?: string | null, lastRun?: string | null, lastError?: string | null, status: CronStatusEnum, lockedAt?: string | null, lockedBy?: string | null, createdAt: string, updatedAt: string, enabled: boolean, timeoutMs?: number | null, maxAttempts: number, priority: number, attempts: number, subscriberTaskCron?: SubscriberTaskType | null } };
+export type InsertCronMutation = {
+  __typename?: 'Mutation';
+  cronCreateOne: {
+    __typename?: 'CronBasic';
+    id: number;
+    cronExpr: string;
+    nextRun?: string | null;
+    lastRun?: string | null;
+    lastError?: string | null;
+    status: CronStatusEnum;
+    lockedAt?: string | null;
+    lockedBy?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    enabled: boolean;
+    timeoutMs?: number | null;
+    maxAttempts: number;
+    priority: number;
+    attempts: number;
+    subscriberTaskCron?: SubscriberTaskType | null;
+  };
+};
 
 export type InsertFeedMutationVariables = Exact<{
   data: FeedsInsertInput;
 }>;
 
-
-export type InsertFeedMutation = { __typename?: 'Mutation', feedsCreateOne: { __typename?: 'FeedsBasic', id: number, createdAt: string, updatedAt: string, feedType: FeedTypeEnum, token: string } };
+export type InsertFeedMutation = {
+  __typename?: 'Mutation';
+  feedsCreateOne: {
+    __typename?: 'FeedsBasic';
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    feedType: FeedTypeEnum;
+    token: string;
+  };
+};
 
 export type DeleteFeedMutationVariables = Exact<{
   filter: FeedsFilterInput;
 }>;
 
-
-export type DeleteFeedMutation = { __typename?: 'Mutation', feedsDelete: number };
+export type DeleteFeedMutation = {
+  __typename?: 'Mutation';
+  feedsDelete: number;
+};
 
 export type GetSubscriptionsQueryVariables = Exact<{
   filter: SubscriptionsFilterInput;
@@ -2352,37 +2467,163 @@ export type GetSubscriptionsQueryVariables = Exact<{
   pagination: PaginationInput;
 }>;
 
-
-export type GetSubscriptionsQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, credentialId?: number | null }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+export type GetSubscriptionsQuery = {
+  __typename?: 'Query';
+  subscriptions: {
+    __typename?: 'SubscriptionsConnection';
+    nodes: Array<{
+      __typename?: 'Subscriptions';
+      id: number;
+      createdAt: string;
+      updatedAt: string;
+      displayName: string;
+      category: SubscriptionCategoryEnum;
+      sourceUrl: string;
+      enabled: boolean;
+      credentialId?: number | null;
+    }>;
+    paginationInfo?: {
+      __typename?: 'PaginationInfo';
+      total: number;
+      pages: number;
+    } | null;
+  };
+};
 
 export type InsertSubscriptionMutationVariables = Exact<{
   data: SubscriptionsInsertInput;
 }>;
 
-
-export type InsertSubscriptionMutation = { __typename?: 'Mutation', subscriptionsCreateOne: { __typename?: 'SubscriptionsBasic', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, credentialId?: number | null } };
+export type InsertSubscriptionMutation = {
+  __typename?: 'Mutation';
+  subscriptionsCreateOne: {
+    __typename?: 'SubscriptionsBasic';
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    displayName: string;
+    category: SubscriptionCategoryEnum;
+    sourceUrl: string;
+    enabled: boolean;
+    credentialId?: number | null;
+  };
+};
 
 export type UpdateSubscriptionsMutationVariables = Exact<{
   data: SubscriptionsUpdateInput;
   filter: SubscriptionsFilterInput;
 }>;
 
-
-export type UpdateSubscriptionsMutation = { __typename?: 'Mutation', subscriptionsUpdate: Array<{ __typename?: 'SubscriptionsBasic', id: number, createdAt: string, updatedAt: string, displayName: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean }> };
+export type UpdateSubscriptionsMutation = {
+  __typename?: 'Mutation';
+  subscriptionsUpdate: Array<{
+    __typename?: 'SubscriptionsBasic';
+    id: number;
+    createdAt: string;
+    updatedAt: string;
+    displayName: string;
+    category: SubscriptionCategoryEnum;
+    sourceUrl: string;
+    enabled: boolean;
+  }>;
+};
 
 export type DeleteSubscriptionsMutationVariables = Exact<{
   filter?: InputMaybe<SubscriptionsFilterInput>;
 }>;
 
-
-export type DeleteSubscriptionsMutation = { __typename?: 'Mutation', subscriptionsDelete: number };
+export type DeleteSubscriptionsMutation = {
+  __typename?: 'Mutation';
+  subscriptionsDelete: number;
+};
 
 export type GetSubscriptionDetailQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
-
-export type GetSubscriptionDetailQuery = { __typename?: 'Query', subscriptions: { __typename?: 'SubscriptionsConnection', nodes: Array<{ __typename?: 'Subscriptions', id: number, subscriberId: number, displayName: string, createdAt: string, updatedAt: string, category: SubscriptionCategoryEnum, sourceUrl: string, enabled: boolean, feed: { __typename?: 'FeedsConnection', nodes: Array<{ __typename?: 'Feeds', id: number, createdAt: string, updatedAt: string, token: string, feedType: FeedTypeEnum, feedSource: FeedSourceEnum }> }, subscriberTask: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum }> }, credential3rd?: { __typename?: 'Credential3rd', id: number, username?: string | null } | null, cron: { __typename?: 'CronConnection', nodes: Array<{ __typename?: 'Cron', id: number, cronExpr: string, nextRun?: string | null, lastRun?: string | null, lastError?: string | null, enabled: boolean, status: CronStatusEnum, lockedAt?: string | null, lockedBy?: string | null, createdAt: string, updatedAt: string, timeoutMs?: number | null, maxAttempts: number, priority: number, attempts: number, subscriberTaskCron?: SubscriberTaskType | null }> }, bangumi: { __typename?: 'BangumiConnection', nodes: Array<{ __typename?: 'Bangumi', createdAt: string, updatedAt: string, id: number, mikanBangumiId?: string | null, displayName: string, season: number, seasonRaw?: string | null, fansub?: string | null, mikanFansubId?: string | null, rssLink?: string | null, posterLink?: string | null, homepage?: string | null }> } }> } };
+export type GetSubscriptionDetailQuery = {
+  __typename?: 'Query';
+  subscriptions: {
+    __typename?: 'SubscriptionsConnection';
+    nodes: Array<{
+      __typename?: 'Subscriptions';
+      id: number;
+      subscriberId: number;
+      displayName: string;
+      createdAt: string;
+      updatedAt: string;
+      category: SubscriptionCategoryEnum;
+      sourceUrl: string;
+      enabled: boolean;
+      feed: {
+        __typename?: 'FeedsConnection';
+        nodes: Array<{
+          __typename?: 'Feeds';
+          id: number;
+          createdAt: string;
+          updatedAt: string;
+          token: string;
+          feedType: FeedTypeEnum;
+          feedSource: FeedSourceEnum;
+        }>;
+      };
+      subscriberTask: {
+        __typename?: 'SubscriberTasksConnection';
+        nodes: Array<{
+          __typename?: 'SubscriberTasks';
+          id: string;
+          taskType: SubscriberTaskTypeEnum;
+          status: SubscriberTaskStatusEnum;
+        }>;
+      };
+      credential3rd?: {
+        __typename?: 'Credential3rd';
+        id: number;
+        username?: string | null;
+      } | null;
+      cron: {
+        __typename?: 'CronConnection';
+        nodes: Array<{
+          __typename?: 'Cron';
+          id: number;
+          cronExpr: string;
+          nextRun?: string | null;
+          lastRun?: string | null;
+          lastError?: string | null;
+          enabled: boolean;
+          status: CronStatusEnum;
+          lockedAt?: string | null;
+          lockedBy?: string | null;
+          createdAt: string;
+          updatedAt: string;
+          timeoutMs?: number | null;
+          maxAttempts: number;
+          priority: number;
+          attempts: number;
+          subscriberTaskCron?: SubscriberTaskType | null;
+        }>;
+      };
+      bangumi: {
+        __typename?: 'BangumiConnection';
+        nodes: Array<{
+          __typename?: 'Bangumi';
+          createdAt: string;
+          updatedAt: string;
+          id: number;
+          mikanBangumiId?: string | null;
+          displayName: string;
+          season: number;
+          seasonRaw?: string | null;
+          fansub?: string | null;
+          mikanFansubId?: string | null;
+          rssLink?: string | null;
+          posterLink?: string | null;
+          homepage?: string | null;
+        }>;
+      };
+    }>;
+  };
+};
 
 export type GetTasksQueryVariables = Exact<{
   filter: SubscriberTasksFilterInput;
@@ -2390,49 +2631,2227 @@ export type GetTasksQueryVariables = Exact<{
   pagination: PaginationInput;
 }>;
 
-
-export type GetTasksQuery = { __typename?: 'Query', subscriberTasks: { __typename?: 'SubscriberTasksConnection', nodes: Array<{ __typename?: 'SubscriberTasks', id: string, job: SubscriberTaskType, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number, subscription?: { __typename?: 'Subscriptions', displayName: string, sourceUrl: string, cron: { __typename?: 'CronConnection', nodes: Array<{ __typename?: 'Cron', id: number, cronExpr: string, nextRun?: string | null, lastRun?: string | null, lastError?: string | null, status: CronStatusEnum, lockedAt?: string | null, lockedBy?: string | null, createdAt: string, updatedAt: string, timeoutMs?: number | null, maxAttempts: number, priority: number, attempts: number }> } } | null }>, paginationInfo?: { __typename?: 'PaginationInfo', total: number, pages: number } | null } };
+export type GetTasksQuery = {
+  __typename?: 'Query';
+  subscriberTasks: {
+    __typename?: 'SubscriberTasksConnection';
+    nodes: Array<{
+      __typename?: 'SubscriberTasks';
+      id: string;
+      job: SubscriberTaskType;
+      taskType: SubscriberTaskTypeEnum;
+      status: SubscriberTaskStatusEnum;
+      attempts: number;
+      maxAttempts: number;
+      runAt: string;
+      lastError?: string | null;
+      lockAt?: string | null;
+      lockBy?: string | null;
+      doneAt?: string | null;
+      priority: number;
+      subscription?: {
+        __typename?: 'Subscriptions';
+        displayName: string;
+        sourceUrl: string;
+      } | null;
+      cron?: {
+        __typename?: 'Cron';
+        id: number;
+        cronExpr: string;
+        nextRun?: string | null;
+        lastRun?: string | null;
+        lastError?: string | null;
+        status: CronStatusEnum;
+        lockedAt?: string | null;
+        lockedBy?: string | null;
+        createdAt: string;
+        updatedAt: string;
+        timeoutMs?: number | null;
+        maxAttempts: number;
+        priority: number;
+        attempts: number;
+      } | null;
+    }>;
+    paginationInfo?: {
+      __typename?: 'PaginationInfo';
+      total: number;
+      pages: number;
+    } | null;
+  };
+};
 
 export type InsertSubscriberTaskMutationVariables = Exact<{
   data: SubscriberTasksInsertInput;
 }>;
 
-
-export type InsertSubscriberTaskMutation = { __typename?: 'Mutation', subscriberTasksCreateOne: { __typename?: 'SubscriberTasksBasic', id: string } };
+export type InsertSubscriberTaskMutation = {
+  __typename?: 'Mutation';
+  subscriberTasksCreateOne: { __typename?: 'SubscriberTasksBasic'; id: string };
+};
 
 export type DeleteTasksMutationVariables = Exact<{
   filter: SubscriberTasksFilterInput;
 }>;
 
-
-export type DeleteTasksMutation = { __typename?: 'Mutation', subscriberTasksDelete: number };
+export type DeleteTasksMutation = {
+  __typename?: 'Mutation';
+  subscriberTasksDelete: number;
+};
 
 export type RetryTasksMutationVariables = Exact<{
   filter: SubscriberTasksFilterInput;
 }>;
 
+export type RetryTasksMutation = {
+  __typename?: 'Mutation';
+  subscriberTasksRetryOne: {
+    __typename?: 'SubscriberTasksBasic';
+    id: string;
+    job: SubscriberTaskType;
+    taskType: SubscriberTaskTypeEnum;
+    status: SubscriberTaskStatusEnum;
+    attempts: number;
+    maxAttempts: number;
+    runAt: string;
+    lastError?: string | null;
+    lockAt?: string | null;
+    lockBy?: string | null;
+    doneAt?: string | null;
+    priority: number;
+  };
+};
 
-export type RetryTasksMutation = { __typename?: 'Mutation', subscriberTasksRetryOne: { __typename?: 'SubscriberTasksBasic', id: string, job: SubscriberTaskType, taskType: SubscriberTaskTypeEnum, status: SubscriberTaskStatusEnum, attempts: number, maxAttempts: number, runAt: string, lastError?: string | null, lockAt?: string | null, lockBy?: string | null, doneAt?: string | null, priority: number } };
-
-
-export const GetCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdOrderInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}},{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdQuery, GetCredential3rdQueryVariables>;
-export const InsertCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<InsertCredential3rdMutation, InsertCredential3rdMutationVariables>;
-export const UpdateCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]} as unknown as DocumentNode<UpdateCredential3rdMutation, UpdateCredential3rdMutationVariables>;
-export const DeleteCredential3rdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteCredential3rd"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteCredential3rdMutation, DeleteCredential3rdMutationVariables>;
-export const GetCredential3rdDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCredential3rdDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cookies"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"userAgent"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"credentialType"}}]}}]}}]}}]} as unknown as DocumentNode<GetCredential3rdDetailQuery, GetCredential3rdDetailQueryVariables>;
-export const CheckCredential3rdAvailableDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CheckCredential3rdAvailable"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Credential3rdFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"credential3rdCheckAvailable"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"available"}}]}}]}}]} as unknown as DocumentNode<CheckCredential3rdAvailableMutation, CheckCredential3rdAvailableMutationVariables>;
-export const GetCronsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCrons"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cron"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cronExpr"}},{"kind":"Field","name":{"kind":"Name","value":"nextRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"lockedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockedBy"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"timeoutMs"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTaskCron"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTask"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"subscription"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetCronsQuery, GetCronsQueryVariables>;
-export const DeleteCronsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteCrons"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cronDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteCronsMutation, DeleteCronsMutationVariables>;
-export const UpdateCronsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateCrons"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronUpdateInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cronUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cronExpr"}},{"kind":"Field","name":{"kind":"Name","value":"nextRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"lockedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockedBy"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"timeoutMs"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTaskCron"}}]}}]}}]} as unknown as DocumentNode<UpdateCronsMutation, UpdateCronsMutationVariables>;
-export const InsertCronDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertCron"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CronInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cronCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cronExpr"}},{"kind":"Field","name":{"kind":"Name","value":"nextRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"lockedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockedBy"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"timeoutMs"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTaskCron"}}]}}]}}]} as unknown as DocumentNode<InsertCronMutation, InsertCronMutationVariables>;
-export const InsertFeedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertFeed"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FeedsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feedsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"feedType"}},{"kind":"Field","name":{"kind":"Name","value":"token"}}]}}]}}]} as unknown as DocumentNode<InsertFeedMutation, InsertFeedMutationVariables>;
-export const DeleteFeedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteFeed"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"FeedsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feedsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteFeedMutation, DeleteFeedMutationVariables>;
-export const GetSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionsQuery, GetSubscriptionsQueryVariables>;
-export const InsertSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"credentialId"}}]}}]}}]} as unknown as DocumentNode<InsertSubscriptionMutation, InsertSubscriptionMutationVariables>;
-export const UpdateSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsUpdateInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsUpdate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}}]}}]}}]} as unknown as DocumentNode<UpdateSubscriptionsMutation, UpdateSubscriptionsMutationVariables>;
-export const DeleteSubscriptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteSubscriptions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriptionsFilterInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptionsDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteSubscriptionsMutation, DeleteSubscriptionsMutationVariables>;
-export const GetSubscriptionDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSubscriptionDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriptions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"eq"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"feed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"feedType"}},{"kind":"Field","name":{"kind":"Name","value":"feedSource"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTask"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"credential3rd"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cron"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cronExpr"}},{"kind":"Field","name":{"kind":"Name","value":"nextRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"lockedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockedBy"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"timeoutMs"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"subscriberTaskCron"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"bangumi"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"mikanBangumiId"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"season"}},{"kind":"Field","name":{"kind":"Name","value":"seasonRaw"}},{"kind":"Field","name":{"kind":"Name","value":"fansub"}},{"kind":"Field","name":{"kind":"Name","value":"mikanFansubId"}},{"kind":"Field","name":{"kind":"Name","value":"rssLink"}},{"kind":"Field","name":{"kind":"Name","value":"posterLink"}},{"kind":"Field","name":{"kind":"Name","value":"homepage"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetSubscriptionDetailQuery, GetSubscriptionDetailQueryVariables>;
-export const GetTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksOrderInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PaginationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasks"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pagination"},"value":{"kind":"Variable","name":{"kind":"Name","value":"pagination"}}},{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"orderBy"},"value":{"kind":"Variable","name":{"kind":"Name","value":"orderBy"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"subscription"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"sourceUrl"}},{"kind":"Field","name":{"kind":"Name","value":"cron"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"cronExpr"}},{"kind":"Field","name":{"kind":"Name","value":"nextRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastRun"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"lockedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockedBy"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"timeoutMs"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}}]}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"paginationInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"pages"}}]}}]}}]}}]} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
-export const InsertSubscriberTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertSubscriberTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksInsertInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksCreateOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<InsertSubscriberTaskMutation, InsertSubscriberTaskMutationVariables>;
-export const DeleteTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksDelete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}]}]}}]} as unknown as DocumentNode<DeleteTasksMutation, DeleteTasksMutationVariables>;
-export const RetryTasksDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RetryTasks"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubscriberTasksFilterInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"subscriberTasksRetryOne"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"job"}},{"kind":"Field","name":{"kind":"Name","value":"taskType"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"attempts"}},{"kind":"Field","name":{"kind":"Name","value":"maxAttempts"}},{"kind":"Field","name":{"kind":"Name","value":"runAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"lockAt"}},{"kind":"Field","name":{"kind":"Name","value":"lockBy"}},{"kind":"Field","name":{"kind":"Name","value":"doneAt"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}}]}}]}}]} as unknown as DocumentNode<RetryTasksMutation, RetryTasksMutationVariables>;
+export const GetCredential3rdDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetCredential3rd' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdFilterInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'Credential3rdOrderInput' },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'pagination' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'PaginationInput' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rd' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'pagination' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'pagination' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'cookies' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'username' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'password' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'userAgent' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'createdAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'updatedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'credentialType' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'paginationInfo' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'pages' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetCredential3rdQuery,
+  GetCredential3rdQueryVariables
+>;
+export const InsertCredential3rdDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InsertCredential3rd' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rdCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cookies' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'username' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'password' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'userAgent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'credentialType' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InsertCredential3rdMutation,
+  InsertCredential3rdMutationVariables
+>;
+export const UpdateCredential3rdDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateCredential3rd' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdUpdateInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rdUpdate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cookies' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'username' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'password' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'userAgent' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'credentialType' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateCredential3rdMutation,
+  UpdateCredential3rdMutationVariables
+>;
+export const DeleteCredential3rdDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteCredential3rd' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rdDelete' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteCredential3rdMutation,
+  DeleteCredential3rdMutationVariables
+>;
+export const GetCredential3rdDetailDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetCredential3rdDetail' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rd' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'id' },
+                      value: {
+                        kind: 'ObjectValue',
+                        fields: [
+                          {
+                            kind: 'ObjectField',
+                            name: { kind: 'Name', value: 'eq' },
+                            value: {
+                              kind: 'Variable',
+                              name: { kind: 'Name', value: 'id' },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'cookies' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'username' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'password' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'userAgent' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'createdAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'updatedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'credentialType' },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetCredential3rdDetailQuery,
+  GetCredential3rdDetailQueryVariables
+>;
+export const CheckCredential3rdAvailableDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'CheckCredential3rdAvailable' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'Credential3rdFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'credential3rdCheckAvailable' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'available' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  CheckCredential3rdAvailableMutation,
+  CheckCredential3rdAvailableMutationVariables
+>;
+export const GetCronsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetCrons' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronFilterInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronOrderInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'pagination' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'PaginationInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'cron' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'pagination' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'pagination' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'cronExpr' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'nextRun' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lastRun' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lastError' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'status' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lockedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lockedBy' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'createdAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'updatedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeoutMs' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'maxAttempts' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'priority' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'attempts' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'enabled' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subscriberTaskCron' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subscriberTask' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'job' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'taskType' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'status' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'attempts' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'maxAttempts',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'runAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lastError' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lockAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lockBy' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'doneAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'priority' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'subscription',
+                                    },
+                                    selectionSet: {
+                                      kind: 'SelectionSet',
+                                      selections: [
+                                        {
+                                          kind: 'Field',
+                                          name: {
+                                            kind: 'Name',
+                                            value: 'displayName',
+                                          },
+                                        },
+                                        {
+                                          kind: 'Field',
+                                          name: {
+                                            kind: 'Name',
+                                            value: 'sourceUrl',
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'paginationInfo' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'pages' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetCronsQuery, GetCronsQueryVariables>;
+export const DeleteCronsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteCrons' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'cronDelete' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteCronsMutation, DeleteCronsMutationVariables>;
+export const UpdateCronsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateCrons' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronFilterInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronUpdateInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'cronUpdate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cronExpr' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'nextRun' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lastRun' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lastError' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockedBy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'timeoutMs' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'maxAttempts' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'attempts' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'subscriberTaskCron' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<UpdateCronsMutation, UpdateCronsMutationVariables>;
+export const InsertCronDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InsertCron' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'CronInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'cronCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'cronExpr' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'nextRun' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lastRun' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lastError' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockedBy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'timeoutMs' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'maxAttempts' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'attempts' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'subscriberTaskCron' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<InsertCronMutation, InsertCronMutationVariables>;
+export const InsertFeedDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InsertFeed' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'FeedsInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'feedsCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'feedType' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'token' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<InsertFeedMutation, InsertFeedMutationVariables>;
+export const DeleteFeedDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteFeed' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'FeedsFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'feedsDelete' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteFeedMutation, DeleteFeedMutationVariables>;
+export const GetSubscriptionsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetSubscriptions' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsFilterInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsOrderInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'pagination' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'PaginationInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptions' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'pagination' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'pagination' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'createdAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'updatedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'displayName' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'category' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'sourceUrl' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'enabled' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'credentialId' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'paginationInfo' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'pages' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetSubscriptionsQuery,
+  GetSubscriptionsQueryVariables
+>;
+export const InsertSubscriptionDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InsertSubscription' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptionsCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'credentialId' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InsertSubscriptionMutation,
+  InsertSubscriptionMutationVariables
+>;
+export const UpdateSubscriptionsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'UpdateSubscriptions' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsUpdateInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriptionsFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptionsUpdate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'createdAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'updatedAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'displayName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'enabled' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  UpdateSubscriptionsMutation,
+  UpdateSubscriptionsMutationVariables
+>;
+export const DeleteSubscriptionsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteSubscriptions' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'SubscriptionsFilterInput' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptionsDelete' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  DeleteSubscriptionsMutation,
+  DeleteSubscriptionsMutationVariables
+>;
+export const GetSubscriptionDetailDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetSubscriptionDetail' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriptions' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'ObjectValue',
+                  fields: [
+                    {
+                      kind: 'ObjectField',
+                      name: { kind: 'Name', value: 'id' },
+                      value: {
+                        kind: 'ObjectValue',
+                        fields: [
+                          {
+                            kind: 'ObjectField',
+                            name: { kind: 'Name', value: 'eq' },
+                            value: {
+                              kind: 'Variable',
+                              name: { kind: 'Name', value: 'id' },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subscriberId' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'displayName' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'createdAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'updatedAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'category' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'sourceUrl' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'enabled' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'feed' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'createdAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'updatedAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'token' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'feedType' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'feedSource' },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subscriberTask' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'taskType' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'status' },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'credential3rd' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'username' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'cron' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'cronExpr' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'nextRun' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lastRun' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lastError' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'enabled' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'status' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lockedAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'lockedBy' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'createdAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'updatedAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'timeoutMs' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'maxAttempts',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'priority' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'attempts' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'subscriberTaskCron',
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'bangumi' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nodes' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'createdAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'updatedAt' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'mikanBangumiId',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'displayName',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'season' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'seasonRaw' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'fansub' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: {
+                                      kind: 'Name',
+                                      value: 'mikanFansubId',
+                                    },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'rssLink' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'posterLink' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'homepage' },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetSubscriptionDetailQuery,
+  GetSubscriptionDetailQueryVariables
+>;
+export const GetTasksDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetTasks' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriberTasksFilterInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriberTasksOrderInput' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'pagination' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'PaginationInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriberTasks' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'pagination' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'pagination' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'nodes' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'job' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'taskType' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'status' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'attempts' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'maxAttempts' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'runAt' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lastError' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lockAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'lockBy' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'doneAt' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'priority' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subscription' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'displayName' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'sourceUrl' },
+                            },
+                          ],
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'cron' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'cronExpr' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'nextRun' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'lastRun' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'lastError' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'status' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'lockedAt' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'lockedBy' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'createdAt' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'updatedAt' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'timeoutMs' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'maxAttempts' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'priority' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'attempts' },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'paginationInfo' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'pages' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetTasksQuery, GetTasksQueryVariables>;
+export const InsertSubscriberTaskDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InsertSubscriberTask' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'data' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriberTasksInsertInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriberTasksCreateOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'data' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'data' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InsertSubscriberTaskMutation,
+  InsertSubscriberTaskMutationVariables
+>;
+export const DeleteTasksDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'DeleteTasks' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriberTasksFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriberTasksDelete' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DeleteTasksMutation, DeleteTasksMutationVariables>;
+export const RetryTasksDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'RetryTasks' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'filter' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'SubscriberTasksFilterInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'subscriberTasksRetryOne' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'filter' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'filter' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'job' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'taskType' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'attempts' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'maxAttempts' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'runAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lastError' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'lockBy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'doneAt' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'priority' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<RetryTasksMutation, RetryTasksMutationVariables>;

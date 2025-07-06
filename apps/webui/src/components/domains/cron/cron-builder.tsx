@@ -1,3 +1,14 @@
+import { getFutureMatches } from '@datasert/cronjs-matcher';
+import { Calendar, Clock, Info, Settings, Zap } from 'lucide-react';
+import {
+  type CSSProperties,
+  type FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,16 +31,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/presentation/utils';
-import { getFutureMatches } from '@datasert/cronjs-matcher';
-import { Calendar, Clock, Info, Settings, Zap } from 'lucide-react';
-import {
-  type CSSProperties,
-  type FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
 import {
   type CronBuilderProps,
   CronField,
@@ -345,7 +346,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
     <div className={cn(withCard && 'space-y-6', className)}>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => handlePeriodChange(value as CronPeriod)}
+        onValueChange={(v) => handlePeriodChange(v as CronPeriod)}
       >
         <div className="overflow-x-auto">
           <TabsList
@@ -516,110 +517,209 @@ const CronFieldEditor: FC<CronFieldEditorProps> = ({
         const currentValue = fields[field];
 
         return (
-          <div key={field} className="space-y-2">
-            <Label className="font-medium text-sm capitalize">
-              {field.replace(/([A-Z])/g, ' $1').toLowerCase()}
-            </Label>
-
-            {field === 'month' || field === 'dayOfWeek' ? (
-              <Select
-                value={currentValue}
-                onValueChange={(value) => onChange(field, value)}
-                disabled={disabled}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="*">Any</SelectItem>
-                  {config.options?.map((option, index) => (
-                    <SelectItem key={index} value={option.value.toString()}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              // biome-ignore lint/nursery/noNestedTernary: <explanation>
-            ) : field === 'dayOfMonth' ? (
-              <div className="space-y-2">
-                <Select
-                  value={currentValue}
-                  onValueChange={(value) => onChange(field, value)}
-                  disabled={disabled}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {config.options?.map((option, index) => (
-                      <SelectItem key={index} value={option.value.toString()}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                      <SelectItem key={day} value={day.toString()}>
-                        {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <ToggleGroup
-                  type="single"
-                  value={currentValue === '*' ? '*' : 'specific'}
-                  onValueChange={(value) => {
-                    if (value === '*') {
-                      onChange(field, '*');
-                    } else if (value === 'specific' && currentValue === '*') {
-                      onChange(field, '0');
-                    }
-                  }}
-                  disabled={disabled}
-                >
-                  <ToggleGroupItem value="*" className="min-w-fit text-xs">
-                    Any
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="specific"
-                    className="min-w-fit text-xs"
-                  >
-                    Specific
-                  </ToggleGroupItem>
-                </ToggleGroup>
-
-                {currentValue !== '*' && (
-                  <Input
-                    type="text"
-                    value={currentValue}
-                    onChange={(e) => onChange(field, e.target.value)}
-                    placeholder={`0-${config.max}`}
-                    disabled={disabled}
-                    className="font-mono text-sm"
-                  />
-                )}
-
-                <div className="text-muted-foreground text-xs">
-                  <div className="flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    <span>
-                      Range: {config.min}-{config.max}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    Supports: *, numbers, ranges (1-5), lists (1,3,5), steps
-                    (*/5)
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <CronFieldItemEditor
+            key={field}
+            config={config}
+            field={field}
+            value={currentValue}
+            onChange={onChange}
+            disabled={disabled}
+          />
         );
       })}
     </div>
   );
 };
+
+const CronFieldItemAnyOrSpecificOption = {
+  Any: 'any',
+  Specific: 'specific',
+} as const;
+
+type CronFieldItemAnyOrSpecificOption =
+  (typeof CronFieldItemAnyOrSpecificOption)[keyof typeof CronFieldItemAnyOrSpecificOption];
+
+interface CronFieldItemEditorProps {
+  config: CronFieldConfig;
+  field: CronField;
+  value: string;
+  onChange: (field: CronField, value: string) => void;
+  disabled?: boolean;
+}
+
+function encodeCronFieldItem(value: string): string {
+  if (value === '') {
+    return '<meta:empty>';
+  }
+
+  if (value.includes(' ')) {
+    return `<meta:contains-space:${encodeURIComponent(value)}>`;
+  }
+
+  return value;
+}
+
+function decodeCronFieldItem(value: string): string {
+  if (value.startsWith('<meta:contains')) {
+    return decodeURIComponent(
+      // biome-ignore lint/performance/useTopLevelRegex: false
+      value.replace(/^<meta:contains-space:([^>]+)>$/, '$1')
+    );
+  }
+
+  if (value === '<meta:empty>') {
+    return '';
+  }
+
+  return value;
+}
+
+export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
+  ({ field, value, onChange, config, disabled = false }) => {
+    const [innerValue, _setInnerValue] = useState(() =>
+      decodeCronFieldItem(value)
+    );
+
+    const [anyOrSpecificOption, _setAnyOrSpecificOption] =
+      useState<CronFieldItemAnyOrSpecificOption>(() =>
+        innerValue === '*'
+          ? CronFieldItemAnyOrSpecificOption.Any
+          : CronFieldItemAnyOrSpecificOption.Specific
+      );
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: false
+    useEffect(() => {
+      const nextValue = decodeCronFieldItem(value);
+      if (nextValue !== innerValue) {
+        _setInnerValue(nextValue);
+      }
+    }, [value]);
+
+    const handleChange = useCallback(
+      (v: string) => {
+        _setInnerValue(v);
+        onChange(field, encodeCronFieldItem(v));
+      },
+      [field, onChange]
+    );
+
+    const setAnyOrSpecificOption = useCallback(
+      (v: CronFieldItemAnyOrSpecificOption) => {
+        _setAnyOrSpecificOption(v);
+        if (v === CronFieldItemAnyOrSpecificOption.Any) {
+          handleChange('*');
+        } else if (v === CronFieldItemAnyOrSpecificOption.Specific) {
+          handleChange('0');
+        }
+      },
+      [handleChange]
+    );
+
+    return (
+      <div className="space-y-2">
+        <Label className="font-medium text-sm capitalize">
+          {field.replace(/([A-Z])/g, ' $1').toLowerCase()}
+        </Label>
+
+        {(field === 'month' || field === 'dayOfWeek') && (
+          <Select
+            value={innerValue}
+            onValueChange={handleChange}
+            disabled={disabled}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="*">Any</SelectItem>
+              {config.options?.map((option, index) => (
+                <SelectItem key={index} value={option.value.toString()}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {field === 'dayOfMonth' && (
+          <div className="space-y-2">
+            <Select
+              value={innerValue}
+              onValueChange={handleChange}
+              disabled={disabled}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {config.options?.map((option, index) => (
+                  <SelectItem key={index} value={option.value.toString()}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <SelectItem key={day} value={day.toString()}>
+                    {day}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {!(
+          field === 'month' ||
+          field === 'dayOfWeek' ||
+          field === 'dayOfMonth'
+        ) && (
+          <div className="space-y-2">
+            <ToggleGroup
+              type="single"
+              value={anyOrSpecificOption}
+              onValueChange={setAnyOrSpecificOption}
+              disabled={disabled}
+            >
+              <ToggleGroupItem
+                value={CronFieldItemAnyOrSpecificOption.Any}
+                className="min-w-fit text-xs"
+              >
+                Any
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value={CronFieldItemAnyOrSpecificOption.Specific}
+                className="min-w-fit text-xs"
+              >
+                Specific
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {anyOrSpecificOption ===
+              CronFieldItemAnyOrSpecificOption.Specific && (
+              <Input
+                type="text"
+                value={innerValue}
+                onChange={(e) => handleChange(e.target.value)}
+                placeholder={`0-${config.max}`}
+                disabled={disabled}
+                className="font-mono text-sm"
+              />
+            )}
+
+            <div className="text-muted-foreground text-xs">
+              <div className="flex items-center gap-1">
+                <Info className="h-3 w-3" />
+                <span>
+                  Range: {config.min}-{config.max}
+                </span>
+              </div>
+              <div className="mt-1">
+                Supports: *, numbers, ranges (1-5), lists (1,3,5), steps (*/5)
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 function parseCronExpression(expression: string): Record<CronField, string> {
   const parts = expression.split(' ');

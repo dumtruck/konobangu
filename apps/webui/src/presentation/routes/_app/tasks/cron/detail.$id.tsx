@@ -1,9 +1,313 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@apollo/client';
+import { createFileRoute } from '@tanstack/react-router';
+import { format } from 'date-fns';
+import { RefreshCw } from 'lucide-react';
+import { useMemo } from 'react';
+
+import { CronDisplay } from '@/components/domains/cron';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ContainerHeader } from '@/components/ui/container-header';
+import { DetailCardSkeleton } from '@/components/ui/detail-card-skeleton';
+import { DetailEmptyView } from '@/components/ui/detail-empty-view';
+import { Label } from '@/components/ui/label';
+import { QueryErrorView } from '@/components/ui/query-error-view';
+import { Separator } from '@/components/ui/separator';
+import { GET_CRONS } from '@/domains/recorder/schema/cron';
+import {
+  CronStatusEnum,
+  type GetCronsQuery,
+  type GetCronsQueryVariables,
+} from '@/infra/graphql/gql/graphql';
+import type { RouteStateDataOption } from '@/infra/routes/traits';
+import { getStatusBadge } from './-status-badge';
 
 export const Route = createFileRoute('/_app/tasks/cron/detail/$id')({
-  component: RouteComponent,
-})
+  component: CronDetailRouteComponent,
+  staticData: {
+    breadcrumb: { label: 'Detail' },
+  } satisfies RouteStateDataOption,
+});
 
-function RouteComponent() {
-  return <div>Hello "/_app/tasks/cron/detail/$id"!</div>
+function CronDetailRouteComponent() {
+  const { id } = Route.useParams();
+
+  const { data, loading, error, refetch } = useQuery<
+    GetCronsQuery,
+    GetCronsQueryVariables
+  >(GET_CRONS, {
+    variables: {
+      filter: {
+        id: {
+          eq: Number.parseInt(id, 10),
+        },
+      },
+      pagination: {
+        page: {
+          page: 0,
+          limit: 1,
+        },
+      },
+      orderBy: {},
+    },
+    pollInterval: 5000, // Auto-refresh every 5 seconds for running crons
+  });
+
+  const cron = data?.cron?.nodes?.[0];
+
+  const subscriberTaskCron = useMemo(() => {
+    if (!cron) {
+      return null;
+    }
+    return cron.subscriberTaskCron;
+  }, [cron]);
+
+  if (loading) {
+    return <DetailCardSkeleton />;
+  }
+
+  if (error) {
+    return <QueryErrorView message={error.message} onRetry={refetch} />;
+  }
+
+  if (!cron) {
+    return <DetailEmptyView message="Not found Cron task" />;
+  }
+
+  return (
+    <div className="container mx-auto max-w-4xl py-6">
+      <ContainerHeader
+        title="Cron task detail"
+        description={`View Cron task #${cron.id}`}
+        defaultBackTo="/tasks/cron/manage"
+        actions={
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+        }
+      />
+
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Cron task information</CardTitle>
+                <CardDescription className="mt-2">
+                  View Cron task execution details
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                {getStatusBadge(cron.status)}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Cron ID</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <code className="text-sm">{cron.id}</code>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Priority</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">{cron.priority}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Retry count</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {cron.attempts} / {cron.maxAttempts}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Enabled</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <Badge variant={cron.enabled ? 'default' : 'secondary'}>
+                      {cron.enabled ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Next run time</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {cron.nextRun
+                        ? format(new Date(cron.nextRun), 'yyyy-MM-dd HH:mm:ss')
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Last run time</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {cron.lastRun
+                        ? format(new Date(cron.lastRun), 'yyyy-MM-dd HH:mm:ss')
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Locked time</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {cron.lockedAt
+                        ? format(new Date(cron.lockedAt), 'yyyy-MM-dd HH:mm:ss')
+                        : '-'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Locked by</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <code className="text-sm">{cron.lockedBy || '-'}</code>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Timeout</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {cron.timeoutMs ? `${cron.timeoutMs}ms` : 'No limit'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Created at</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {format(new Date(cron.createdAt), 'yyyy-MM-dd HH:mm:ss')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-medium text-sm">Updated at</Label>
+                  <div className="rounded-md bg-muted p-3">
+                    <span className="text-sm">
+                      {format(new Date(cron.updatedAt), 'yyyy-MM-dd HH:mm:ss')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cron Expression Display */}
+              {cron.cronExpr && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">
+                      Cron expression
+                    </Label>
+                    <CronDisplay
+                      expression={cron.cronExpr}
+                      timezone="UTC"
+                      showDescription={true}
+                      showNextRuns={true}
+                      withCard={false}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Subscriber Task Details */}
+              {subscriberTaskCron && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">
+                      Subscriber task details
+                    </Label>
+                    <div className="rounded-md bg-muted p-3">
+                      <pre className="overflow-x-auto whitespace-pre-wrap text-sm">
+                        <code>
+                          {JSON.stringify(subscriberTaskCron, null, 2)}
+                        </code>
+                      </pre>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Related Subscriber Tasks */}
+              {cron.subscriberTask?.nodes &&
+                cron.subscriberTask.nodes.length > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label className="font-medium text-sm">
+                        Associated tasks
+                      </Label>
+                      <div className="space-y-2">
+                        {cron.subscriberTask.nodes.map((task, index) => (
+                          <div
+                            key={`${task.id}-${index}`}
+                            className="rounded-md border bg-muted/50 p-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <code className="text-sm">{task.id}</code>
+                              <Badge variant="outline">{task.status}</Badge>
+                            </div>
+                            <div className="mt-2 text-muted-foreground text-sm">
+                              Priority: {task.priority} | Retry: {task.attempts}
+                              /{task.maxAttempts}
+                            </div>
+                            {task.subscription && (
+                              <div className="mt-1 text-sm">
+                                <span className="font-medium">
+                                  Subscription:
+                                </span>{' '}
+                                {task.subscription.displayName}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+              {/* Error Information */}
+              {cron.status === CronStatusEnum.Failed && cron.lastError && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="font-medium text-sm">最后错误</Label>
+                    <div className="rounded-md bg-destructive/10 p-3">
+                      <p className="text-destructive text-sm">
+                        {cron.lastError}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
