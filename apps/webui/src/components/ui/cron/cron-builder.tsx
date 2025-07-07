@@ -1,5 +1,5 @@
-import { getFutureMatches } from '@datasert/cronjs-matcher';
-import { Calendar, Clock, Info, Settings, Zap } from 'lucide-react';
+import { getFutureMatches } from "@datasert/cronjs-matcher";
+import { Calendar, Clock, Info, Settings, Zap } from "lucide-react";
 import {
   type CSSProperties,
   type FC,
@@ -8,109 +8,109 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/presentation/utils';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/presentation/utils";
 import {
   type CronBuilderProps,
   CronField,
   type CronFieldConfig,
   CronPeriod,
   type CronPreset,
-} from './types';
+} from "./types.js";
 
 const CRON_PRESETS: CronPreset[] = [
   {
-    label: 'Every minute',
-    value: '0 * * * * *',
-    description: 'Runs every minute',
-    category: 'common',
+    label: "Every minute",
+    value: "0 * * * * *",
+    description: "Runs every minute",
+    category: "common",
   },
   {
-    label: 'Every 5 minutes',
-    value: '0 */5 * * * *',
-    description: 'Runs every 5 minutes',
-    category: 'common',
+    label: "Every 5 minutes",
+    value: "0 */5 * * * *",
+    description: "Runs every 5 minutes",
+    category: "common",
   },
   {
-    label: 'Every 15 minutes',
-    value: '0 */15 * * * *',
-    description: 'Runs every 15 minutes',
-    category: 'common',
+    label: "Every 15 minutes",
+    value: "0 */15 * * * *",
+    description: "Runs every 15 minutes",
+    category: "common",
   },
   {
-    label: 'Every 30 minutes',
-    value: '0 */30 * * * *',
-    description: 'Runs every 30 minutes',
-    category: 'common',
+    label: "Every 30 minutes",
+    value: "0 */30 * * * *",
+    description: "Runs every 30 minutes",
+    category: "common",
   },
   {
-    label: 'Every hour',
-    value: '0 0 * * * *',
-    description: 'Runs at the top of every hour',
-    category: 'common',
+    label: "Every hour",
+    value: "0 0 * * * *",
+    description: "Runs at the top of every hour",
+    category: "common",
   },
   {
-    label: 'Every 6 hours',
-    value: '0 0 */6 * * *',
-    description: 'Runs every 6 hours',
-    category: 'common',
+    label: "Every 6 hours",
+    value: "0 0 */6 * * *",
+    description: "Runs every 6 hours",
+    category: "common",
   },
   {
-    label: 'Daily at midnight',
-    value: '0 0 0 * * *',
-    description: 'Runs once daily at 00:00',
-    category: 'daily',
+    label: "Daily at midnight",
+    value: "0 0 0 * * *",
+    description: "Runs once daily at 00:00",
+    category: "daily",
   },
   {
-    label: 'Daily at 9 AM',
-    value: '0 0 9 * * *',
-    description: 'Runs daily at 9:00 AM',
-    category: 'daily',
+    label: "Daily at 9 AM",
+    value: "0 0 9 * * *",
+    description: "Runs daily at 9:00 AM",
+    category: "daily",
   },
   {
-    label: 'Weekdays at 9 AM',
-    value: '0 0 9 * * 1-5',
-    description: 'Runs Monday to Friday at 9:00 AM',
-    category: 'weekly',
+    label: "Weekdays at 9 AM",
+    value: "0 0 9 * * 1-5",
+    description: "Runs Monday to Friday at 9:00 AM",
+    category: "weekly",
   },
   {
-    label: 'Every Sunday',
-    value: '0 0 0 * * 0',
-    description: 'Runs every Sunday at midnight',
-    category: 'weekly',
+    label: "Every Sunday",
+    value: "0 0 0 * * 0",
+    description: "Runs every Sunday at midnight",
+    category: "weekly",
   },
   {
-    label: 'First day of month',
-    value: '0 0 0 1 * *',
-    description: 'Runs on the 1st day of every month',
-    category: 'monthly',
+    label: "First day of month",
+    value: "0 0 0 1 * *",
+    description: "Runs on the 1st day of every month",
+    category: "monthly",
   },
   {
-    label: 'Every year',
-    value: '0 0 0 1 1 *',
-    description: 'Runs on January 1st every year',
-    category: 'yearly',
+    label: "Every year",
+    value: "0 0 0 1 1 *",
+    description: "Runs on January 1st every year",
+    category: "yearly",
   },
 ];
 
@@ -119,98 +119,98 @@ const FIELD_CONFIGS: Record<CronField, CronFieldConfig> = {
     min: 0,
     max: 59,
     step: 1,
-    allowSpecial: ['*', '?'],
+    allowSpecial: ["*", "?"],
   },
   minutes: {
     min: 0,
     max: 59,
     step: 1,
-    allowSpecial: ['*', '?'],
+    allowSpecial: ["*", "?"],
   },
   hours: {
     min: 0,
     max: 23,
     step: 1,
-    allowSpecial: ['*', '?'],
+    allowSpecial: ["*", "?"],
   },
   dayOfMonth: {
     min: 1,
     max: 31,
     step: 1,
-    allowSpecial: ['*', '?', 'L', 'W'],
+    allowSpecial: ["*", "?", "L", "W"],
     options: [
-      { label: 'Any day', value: '*' },
-      { label: 'No specific day', value: '?' },
-      { label: 'Last day', value: 'L' },
-      { label: 'Weekday', value: 'W' },
+      { label: "Any day", value: "*" },
+      { label: "No specific day", value: "?" },
+      { label: "Last day", value: "L" },
+      { label: "Weekday", value: "W" },
     ],
   },
   month: {
     min: 1,
     max: 12,
     step: 1,
-    allowSpecial: ['*'],
+    allowSpecial: ["*"],
     options: [
-      { label: 'January', value: 1 },
-      { label: 'February', value: 2 },
-      { label: 'March', value: 3 },
-      { label: 'April', value: 4 },
-      { label: 'May', value: 5 },
-      { label: 'June', value: 6 },
-      { label: 'July', value: 7 },
-      { label: 'August', value: 8 },
-      { label: 'September', value: 9 },
-      { label: 'October', value: 10 },
-      { label: 'November', value: 11 },
-      { label: 'December', value: 12 },
+      { label: "January", value: 1 },
+      { label: "February", value: 2 },
+      { label: "March", value: 3 },
+      { label: "April", value: 4 },
+      { label: "May", value: 5 },
+      { label: "June", value: 6 },
+      { label: "July", value: 7 },
+      { label: "August", value: 8 },
+      { label: "September", value: 9 },
+      { label: "October", value: 10 },
+      { label: "November", value: 11 },
+      { label: "December", value: 12 },
     ],
   },
   dayOfWeek: {
     min: 0,
     max: 6,
     step: 1,
-    allowSpecial: ['*', '?'],
+    allowSpecial: ["*", "?"],
     options: [
-      { label: 'Sunday', value: 0 },
-      { label: 'Monday', value: 1 },
-      { label: 'Tuesday', value: 2 },
-      { label: 'Wednesday', value: 3 },
-      { label: 'Thursday', value: 4 },
-      { label: 'Friday', value: 5 },
-      { label: 'Saturday', value: 6 },
+      { label: "Sunday", value: 0 },
+      { label: "Monday", value: 1 },
+      { label: "Tuesday", value: 2 },
+      { label: "Wednesday", value: 3 },
+      { label: "Thursday", value: 4 },
+      { label: "Friday", value: 5 },
+      { label: "Saturday", value: 6 },
     ],
   },
   year: {
     min: 0,
     max: 9999,
     step: 1,
-    allowSpecial: ['*', '?'],
+    allowSpecial: ["*", "?"],
   },
 };
 
 const PERIOD_CONFIGS = {
   minute: {
     label: CronPeriod.Minute,
-    description: 'Run every minute',
-    template: '0 * * * * *',
+    description: "Run every minute",
+    template: "0 * * * * *",
     fields: [CronField.Minutes],
   },
   hourly: {
     label: CronPeriod.Hourly,
-    description: 'Run every hour',
-    template: '0 0 * * * *',
+    description: "Run every hour",
+    template: "0 0 * * * *",
     fields: [CronField.Minutes, CronField.Hours],
   },
   daily: {
     label: CronPeriod.Daily,
-    description: 'Run every day',
-    template: '0 0 0 * * *',
+    description: "Run every day",
+    template: "0 0 0 * * *",
     fields: [CronField.Seconds, CronField.Minutes, CronField.Hours],
   },
   weekly: {
     label: CronPeriod.Weekly,
-    description: 'Run every week',
-    template: '0 0 0 * * 0',
+    description: "Run every week",
+    template: "0 0 0 * * 0",
     fields: [
       CronField.Seconds,
       CronField.Minutes,
@@ -220,8 +220,8 @@ const PERIOD_CONFIGS = {
   },
   monthly: {
     label: CronPeriod.Monthly,
-    description: 'Run every month',
-    template: '0 0 0 1 * *',
+    description: "Run every month",
+    template: "0 0 0 1 * *",
     fields: [
       CronField.Seconds,
       CronField.Minutes,
@@ -231,8 +231,8 @@ const PERIOD_CONFIGS = {
   },
   yearly: {
     label: CronPeriod.Yearly,
-    description: 'Run every year',
-    template: '0 0 0 1 1 *',
+    description: "Run every year",
+    template: "0 0 0 1 1 *",
     fields: [
       CronField.Seconds,
       CronField.Minutes,
@@ -243,8 +243,8 @@ const PERIOD_CONFIGS = {
   },
   custom: {
     label: CronPeriod.Custom,
-    description: 'Custom expression',
-    template: '0 0 * * * *',
+    description: "Custom expression",
+    template: "0 0 * * * *",
     fields: [
       CronField.Seconds,
       CronField.Minutes,
@@ -257,8 +257,8 @@ const PERIOD_CONFIGS = {
 } as const;
 
 const CronBuilder: FC<CronBuilderProps> = ({
-  timezone = 'UTC',
-  value = '0 0 * * * *',
+  timezone = "UTC",
+  value = "0 0 * * * *",
   onChange,
   className,
   disabled = false,
@@ -301,7 +301,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
       });
       return matches.map((match) => new Date(match));
     } catch (error) {
-      console.error('Failed to get future matched runs', error);
+      console.error("Failed to get future matched runs", error);
       return [];
     }
   }, [currentExpression, showPreview, timezone]);
@@ -327,7 +327,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
 
   const handlePeriodChange = useCallback((period: CronPeriod) => {
     setActiveTab(period);
-    if (period !== 'custom') {
+    if (period !== "custom") {
       const config = PERIOD_CONFIGS[period];
       setCronFields(parseCronExpression(config.template));
     }
@@ -335,7 +335,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
 
   const filteredPresets = useMemo(() => {
     return presets.filter((preset) => {
-      if (activeTab === 'custom') {
+      if (activeTab === "custom") {
         return true;
       }
       return preset.category === activeTab;
@@ -343,7 +343,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
   }, [presets, activeTab]);
 
   return (
-    <div className={cn(withCard && 'space-y-6', className)}>
+    <div className={cn(withCard && "space-y-6", className)}>
       <Tabs
         value={activeTab}
         onValueChange={(v) => handlePeriodChange(v as CronPeriod)}
@@ -353,11 +353,11 @@ const CronBuilder: FC<CronBuilderProps> = ({
             className="grid w-(--all-grids-width) grid-cols-7 whitespace-nowrap lg:w-full"
             style={
               {
-                '--my-grid-cols': `grid-template-columns: repeat(${displayPeriods.length}, minmax(0, 1fr))`,
-                '--all-grids-width':
+                "--my-grid-cols": `grid-template-columns: repeat(${displayPeriods.length}, minmax(0, 1fr))`,
+                "--all-grids-width":
                   displayPeriods.length > 4
                     ? `${displayPeriods.length * 25 - 20}%`
-                    : '100%',
+                    : "100%",
               } as CSSProperties
             }
           >
@@ -377,10 +377,10 @@ const CronBuilder: FC<CronBuilderProps> = ({
           <TabsContent
             key={period}
             value={period}
-            className={cn(withCard ? 'space-y-4' : 'px-0')}
+            className={cn(withCard ? "space-y-4" : "px-0")}
           >
-            <Card className={cn(!withCard && 'border-none shadow-none')}>
-              <CardHeader className={cn('pb-1', !withCard && 'px-0')}>
+            <Card className={cn(!withCard && "border-none shadow-none")}>
+              <CardHeader className={cn("pb-1", !withCard && "px-0")}>
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Settings className="h-4 w-4" />
                   <span className="capitalize">
@@ -391,7 +391,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
                   {PERIOD_CONFIGS[period].description}
                 </CardDescription>
               </CardHeader>
-              <CardContent className={cn('space-y-4', !withCard && 'px-0')}>
+              <CardContent className={cn("space-y-4", !withCard && "px-0")}>
                 <CronFieldEditor
                   period={period}
                   fields={cronFields}
@@ -402,8 +402,8 @@ const CronBuilder: FC<CronBuilderProps> = ({
             </Card>
 
             {showPresets && filteredPresets.length > 0 && (
-              <Card className={cn(!withCard && 'border-none shadow-none')}>
-                <CardHeader className={cn(!withCard && 'px-0')}>
+              <Card className={cn(!withCard && "border-none shadow-none")}>
+                <CardHeader className={cn(!withCard && "px-0")}>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Zap className="h-4 w-4" />
                     Quick Presets
@@ -412,7 +412,7 @@ const CronBuilder: FC<CronBuilderProps> = ({
                     Common cron expressions for quick setup
                   </CardDescription>
                 </CardHeader>
-                <CardContent className={cn(!withCard && 'px-0')}>
+                <CardContent className={cn(!withCard && "px-0")}>
                   <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                     {filteredPresets.map((preset, index) => (
                       <Button
@@ -447,14 +447,14 @@ const CronBuilder: FC<CronBuilderProps> = ({
       </Tabs>
       {/* Current Expression & Preview */}
       {showGeneratedExpression && (
-        <Card className={cn(!withCard && 'border-none shadow-none')}>
-          <CardHeader className={cn(!withCard && 'px-0')}>
+        <Card className={cn(!withCard && "border-none shadow-none")}>
+          <CardHeader className={cn(!withCard && "px-0")}>
             <CardTitle className="flex items-center gap-2 text-base">
               <Clock className="h-4 w-4" />
               Generated Expression
             </CardTitle>
           </CardHeader>
-          <CardContent className={cn('space-y-4', !withCard && 'px-0')}>
+          <CardContent className={cn("space-y-4", !withCard && "px-0")}>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="px-3 py-1 font-mono text-sm">
                 {currentExpression}
@@ -532,8 +532,8 @@ const CronFieldEditor: FC<CronFieldEditorProps> = ({
 };
 
 const CronFieldItemAnyOrSpecificOption = {
-  Any: 'any',
-  Specific: 'specific',
+  Any: "any",
+  Specific: "specific",
 } as const;
 
 type CronFieldItemAnyOrSpecificOption =
@@ -548,11 +548,11 @@ interface CronFieldItemEditorProps {
 }
 
 function encodeCronFieldItem(value: string): string {
-  if (value === '') {
-    return '<meta:empty>';
+  if (value === "") {
+    return "<meta:empty>";
   }
 
-  if (value.includes(' ')) {
+  if (value.includes(" ")) {
     return `<meta:contains-space:${encodeURIComponent(value)}>`;
   }
 
@@ -560,15 +560,15 @@ function encodeCronFieldItem(value: string): string {
 }
 
 function decodeCronFieldItem(value: string): string {
-  if (value.startsWith('<meta:contains')) {
+  if (value.startsWith("<meta:contains")) {
     return decodeURIComponent(
       // biome-ignore lint/performance/useTopLevelRegex: false
-      value.replace(/^<meta:contains-space:([^>]+)>$/, '$1')
+      value.replace(/^<meta:contains-space:([^>]+)>$/, "$1")
     );
   }
 
-  if (value === '<meta:empty>') {
-    return '';
+  if (value === "<meta:empty>") {
+    return "";
   }
 
   return value;
@@ -582,7 +582,7 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
 
     const [anyOrSpecificOption, _setAnyOrSpecificOption] =
       useState<CronFieldItemAnyOrSpecificOption>(() =>
-        innerValue === '*'
+        innerValue === "*"
           ? CronFieldItemAnyOrSpecificOption.Any
           : CronFieldItemAnyOrSpecificOption.Specific
       );
@@ -607,9 +607,9 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
       (v: CronFieldItemAnyOrSpecificOption) => {
         _setAnyOrSpecificOption(v);
         if (v === CronFieldItemAnyOrSpecificOption.Any) {
-          handleChange('*');
+          handleChange("*");
         } else if (v === CronFieldItemAnyOrSpecificOption.Specific) {
-          handleChange('0');
+          handleChange("0");
         }
       },
       [handleChange]
@@ -618,10 +618,10 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
     return (
       <div className="space-y-2">
         <Label className="font-medium text-sm capitalize">
-          {field.replace(/([A-Z])/g, ' $1').toLowerCase()}
+          {field.replace(/([A-Z])/g, " $1").toLowerCase()}
         </Label>
 
-        {(field === 'month' || field === 'dayOfWeek') && (
+        {(field === "month" || field === "dayOfWeek") && (
           <Select
             value={innerValue}
             onValueChange={handleChange}
@@ -640,7 +640,7 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
             </SelectContent>
           </Select>
         )}
-        {field === 'dayOfMonth' && (
+        {field === "dayOfMonth" && (
           <div className="space-y-2">
             <Select
               value={innerValue}
@@ -666,9 +666,9 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
           </div>
         )}
         {!(
-          field === 'month' ||
-          field === 'dayOfWeek' ||
-          field === 'dayOfMonth'
+          field === "month" ||
+          field === "dayOfWeek" ||
+          field === "dayOfMonth"
         ) && (
           <div className="space-y-2">
             <ToggleGroup
@@ -722,21 +722,21 @@ export const CronFieldItemEditor: FC<CronFieldItemEditorProps> = memo(
 );
 
 function parseCronExpression(expression: string): Record<CronField, string> {
-  const parts = expression.split(' ');
+  const parts = expression.split(" ");
 
   // Ensure we have 6 parts, pad with defaults if needed
   while (parts.length < 6) {
-    parts.push('*');
+    parts.push("*");
   }
 
   return {
-    seconds: parts[0] || '0',
-    minutes: parts[1] || '*',
-    hours: parts[2] || '*',
-    dayOfMonth: parts[3] || '*',
-    month: parts[4] || '*',
-    dayOfWeek: parts[5] || '*',
-    year: parts[6] || '*',
+    seconds: parts[0] || "0",
+    minutes: parts[1] || "*",
+    hours: parts[2] || "*",
+    dayOfMonth: parts[3] || "*",
+    month: parts[4] || "*",
+    dayOfWeek: parts[5] || "*",
+    year: parts[6] || "*",
   };
 }
 

@@ -3,8 +3,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 import { RefreshCw } from 'lucide-react';
 import { useMemo } from 'react';
-
-import { CronDisplay } from '@/components/domains/cron';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,17 +13,20 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ContainerHeader } from '@/components/ui/container-header';
+import { CronDisplay } from '@/components/ui/cron';
 import { DetailCardSkeleton } from '@/components/ui/detail-card-skeleton';
 import { DetailEmptyView } from '@/components/ui/detail-empty-view';
 import { Label } from '@/components/ui/label';
 import { QueryErrorView } from '@/components/ui/query-error-view';
 import { Separator } from '@/components/ui/separator';
 import { GET_CRONS } from '@/domains/recorder/schema/cron';
+import { useInject } from '@/infra/di/inject';
 import {
   CronStatusEnum,
   type GetCronsQuery,
   type GetCronsQueryVariables,
 } from '@/infra/graphql/gql/graphql';
+import { IntlService } from '@/infra/intl/intl.service';
 import type { RouteStateDataOption } from '@/infra/routes/traits';
 import { getStatusBadge } from './-status-badge';
 
@@ -38,6 +39,7 @@ export const Route = createFileRoute('/_app/tasks/cron/detail/$id')({
 
 function CronDetailRouteComponent() {
   const { id } = Route.useParams();
+  const intlService = useInject(IntlService);
 
   const { data, loading, error, refetch } = useQuery<
     GetCronsQuery,
@@ -115,7 +117,7 @@ function CronDetailRouteComponent() {
               {/* Basic Information */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Cron ID</Label>
+                  <Label className="font-medium text-sm">ID</Label>
                   <div className="rounded-md bg-muted p-3">
                     <code className="text-sm">{cron.id}</code>
                   </div>
@@ -129,7 +131,7 @@ function CronDetailRouteComponent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-medium text-sm">Retry count</Label>
+                  <Label className="font-medium text-sm">Attemps</Label>
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
                       {cron.attempts} / {cron.maxAttempts}
@@ -199,7 +201,10 @@ function CronDetailRouteComponent() {
                   <Label className="font-medium text-sm">Created at</Label>
                   <div className="rounded-md bg-muted p-3">
                     <span className="text-sm">
-                      {format(new Date(cron.createdAt), 'yyyy-MM-dd HH:mm:ss')}
+                      {intlService.formatTimestamp(
+                        cron.createdAt,
+                        'yyyy-MM-dd HH:mm:ss'
+                      )}
                     </span>
                   </div>
                 </div>

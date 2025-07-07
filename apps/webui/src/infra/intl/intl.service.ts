@@ -4,8 +4,12 @@ import { DOCUMENT } from '../platform/injection';
 export class IntlService {
   document = inject(DOCUMENT);
 
+  get Intl(): typeof Intl {
+    return this.document.defaultView?.Intl as typeof Intl;
+  }
+
   get timezone() {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return this.Intl.DateTimeFormat().resolvedOptions().timeZone;
   }
 
   formatTimestamp(timestamp: number, options?: Intl.DateTimeFormatOptions) {
@@ -20,7 +24,7 @@ export class IntlService {
       ...options,
     };
 
-    return new Intl.DateTimeFormat(
+    return new this.Intl.DateTimeFormat(
       this.document.defaultView?.navigator.language,
       {
         ...defaultOptions,

@@ -1,67 +1,67 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Code2, Play, Settings, Type } from "lucide-react";
+import { type FC, useCallback, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Code2, Play, Settings, Type } from 'lucide-react';
-import { type FC, useCallback, useState } from 'react';
-import { CronBuilder } from './cron-builder.js';
-import { CronDisplay } from './cron-display.js';
-import { CronInput } from './cron-input.js';
-import { Cron } from './cron.js';
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Cron } from "./cron.jsx";
+import { CronBuilder } from "./cron-builder.jsx";
+import { CronDisplay } from "./cron-display.jsx";
+import { CronInput } from "./cron-input.jsx";
 
 const CronExample: FC = () => {
-  const [inputValue, setInputValue] = useState('0 30 9 * * 1-5');
-  const [builderValue, setBuilderValue] = useState('0 0 */6 * * *');
-  const [fullValue, setFullValue] = useState('0 */15 * * * *');
-  const [displayValue] = useState('0 0 0 * * 0');
+  const [inputValue, setInputValue] = useState("0 30 9 * * 1-5");
+  const [builderValue, setBuilderValue] = useState("0 0 */6 * * *");
+  const [fullValue, setFullValue] = useState("0 */15 * * * *");
+  const [displayValue] = useState("0 0 0 * * 0");
 
   const examples = [
     {
-      label: 'Every minute',
-      expression: '0 * * * * *',
-      description: 'Runs at the start of every minute',
+      label: "Every minute",
+      expression: "0 * * * * *",
+      description: "Runs at the start of every minute",
     },
     {
-      label: 'Every 5 minutes',
-      expression: '0 */5 * * * *',
-      description: 'Runs every 5 minutes',
+      label: "Every 5 minutes",
+      expression: "0 */5 * * * *",
+      description: "Runs every 5 minutes",
     },
     {
-      label: 'Every hour',
-      expression: '0 0 * * * *',
-      description: 'Runs at the start of every hour',
+      label: "Every hour",
+      expression: "0 0 * * * *",
+      description: "Runs at the start of every hour",
     },
     {
-      label: 'Daily at 9 AM',
-      expression: '0 0 9 * * *',
-      description: 'Runs every day at 9:00 AM',
+      label: "Daily at 9 AM",
+      expression: "0 0 9 * * *",
+      description: "Runs every day at 9:00 AM",
     },
     {
-      label: 'Weekdays at 9:30 AM',
-      expression: '0 30 9 * * 1-5',
-      description: 'Runs Monday through Friday at 9:30 AM',
+      label: "Weekdays at 9:30 AM",
+      expression: "0 30 9 * * 1-5",
+      description: "Runs Monday through Friday at 9:30 AM",
     },
     {
-      label: 'Every Sunday',
-      expression: '0 0 0 * * 0',
-      description: 'Runs every Sunday at midnight',
+      label: "Every Sunday",
+      expression: "0 0 0 * * 0",
+      description: "Runs every Sunday at midnight",
     },
     {
-      label: 'First day of month',
-      expression: '0 0 0 1 * *',
-      description: 'Runs on the 1st day of every month',
+      label: "First day of month",
+      expression: "0 0 0 1 * *",
+      description: "Runs on the 1st day of every month",
     },
     {
-      label: 'Every quarter',
-      expression: '0 0 0 1 */3 *',
-      description: 'Runs on the 1st day of every quarter',
+      label: "Every quarter",
+      expression: "0 0 0 1 */3 *",
+      description: "Runs on the 1st day of every quarter",
     },
   ];
 
@@ -69,7 +69,7 @@ const CronExample: FC = () => {
     try {
       await navigator.clipboard.writeText(expression);
     } catch (error) {
-      console.warn('Failed to copy to clipboard:', error);
+      console.warn("Failed to copy to clipboard:", error);
     }
   }, []);
 
@@ -165,7 +165,7 @@ const CronExample: FC = () => {
                   <div className="rounded bg-muted p-4">
                     <h4 className="mb-2 font-medium text-sm">Current Value:</h4>
                     <Badge variant="outline" className="font-mono">
-                      {fullValue || 'No expression set'}
+                      {fullValue || "No expression set"}
                     </Badge>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ const CronExample: FC = () => {
                   <div className="rounded bg-muted p-4">
                     <h4 className="mb-2 font-medium text-sm">Current Value:</h4>
                     <Badge variant="outline" className="font-mono">
-                      {inputValue || 'No expression set'}
+                      {inputValue || "No expression set"}
                     </Badge>
                   </div>
                 </div>
@@ -244,7 +244,7 @@ const CronExample: FC = () => {
                   <div className="rounded bg-muted p-4">
                     <h4 className="mb-2 font-medium text-sm">Current Value:</h4>
                     <Badge variant="outline" className="font-mono">
-                      {builderValue || 'No expression set'}
+                      {builderValue || "No expression set"}
                     </Badge>
                   </div>
                 </div>

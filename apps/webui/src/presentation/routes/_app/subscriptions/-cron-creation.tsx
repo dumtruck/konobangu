@@ -1,5 +1,8 @@
-import { Cron } from '@/components/domains/cron';
-import { CronMode } from '@/components/domains/cron/types';
+import { useMutation } from '@apollo/client';
+import { useNavigate } from '@tanstack/react-router';
+import { CalendarIcon } from 'lucide-react';
+import { memo, useCallback, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,6 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Cron } from '@/components/ui/cron';
+import { CronMode } from '@/components/ui/cron/types';
 import {
   DialogContent,
   DialogDescription,
@@ -26,11 +31,6 @@ import {
   SubscriberTaskTypeEnum,
 } from '@/infra/graphql/gql/graphql';
 import { IntlService } from '@/infra/intl/intl.service';
-import { useMutation } from '@apollo/client';
-import { useNavigate } from '@tanstack/react-router';
-import { CalendarIcon } from 'lucide-react';
-import { memo, useCallback, useState } from 'react';
-import { toast } from 'sonner';
 
 const SUBSCRIPTION_TASK_CRON_PRESETS = [
   {
@@ -162,59 +162,53 @@ export const SubscriptionCronCreationView = memo(
     const loading = loadingInsert;
 
     return (
-      <>
-        <Tabs
-          defaultValue={CRON_TABS[0].tab}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          <div className="flex w-full shrink-0 overflow-x-auto">
-            <TabsList className="flex items-center justify-center whitespace-nowrap">
-              {CRON_TABS.map((tab) => (
-                <TabsTrigger
-                  key={tab.tab}
-                  value={tab.tab}
-                  className="w-fit px-4"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </div>
-          {CRON_TABS.map((tab) => (
-            <TabsContent
-              key={tab.tab}
-              value={tab.tab}
-              className="flex-1 space-y-2"
-              asChild
-            >
-              <SubscriptionCronForm
-                tab={tab}
-                onComplete={(payload) => {
-                  insertCron({
-                    variables: {
-                      data: {
-                        cronExpr: payload.cronExpr,
-                        cronTimezone: intlService.timezone,
-                        subscriberTaskCron: {
-                          subscriptionId,
-                          taskType: tab.tab,
-                        },
+      <Tabs
+        defaultValue={CRON_TABS[0].tab}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <div className="flex w-full shrink-0 overflow-x-auto">
+          <TabsList className="flex items-center justify-center whitespace-nowrap">
+            {CRON_TABS.map((tab) => (
+              <TabsTrigger key={tab.tab} value={tab.tab} className="w-fit px-4">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+        {CRON_TABS.map((tab) => (
+          <TabsContent
+            key={tab.tab}
+            value={tab.tab}
+            className="flex-1 space-y-2"
+            asChild
+          >
+            <SubscriptionCronForm
+              tab={tab}
+              onComplete={(payload) => {
+                insertCron({
+                  variables: {
+                    data: {
+                      cronExpr: payload.cronExpr,
+                      cronTimezone: intlService.timezone,
+                      subscriberTaskCron: {
+                        subscriptionId,
+                        taskType: tab.tab,
                       },
                     },
-                  });
-                }}
-                timezone={intlService.timezone}
-              />
-            </TabsContent>
-          ))}
-          {loading && (
-            <div className="absolute inset-0 flex flex-row items-center justify-center gap-2">
-              <Spinner variant="circle-filled" size="16" />
-              <span>Creating cron...</span>
-            </div>
-          )}
-        </Tabs>
-      </>
+                  },
+                });
+              }}
+              timezone={intlService.timezone}
+            />
+          </TabsContent>
+        ))}
+        {loading && (
+          <div className="absolute inset-0 flex flex-row items-center justify-center gap-2">
+            <Spinner variant="circle-filled" size="16" />
+            <span>Creating cron...</span>
+          </div>
+        )}
+      </Tabs>
     );
   }
 );

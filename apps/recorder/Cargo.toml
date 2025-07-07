@@ -109,7 +109,7 @@ sea-orm = { version = "1.1", features = [
 figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
 sea-orm-migration = { version = "1.1", features = ["runtime-tokio"] }
 rss = { version = "2", features = ["builders", "with-serde"] }
-fancy-regex = "0.14"
+fancy-regex = "0.15"
 lightningcss = "1.0.0-alpha.66"
 html-escape = "0.2.13"
 opendal = { version = "0.53", features = ["default", "services-fs"] }
@@ -126,6 +126,7 @@ seaography = { version = "1.1", features = [
     "with-postgres-array",
     "with-json-as-scalar",
     "with-custom-as-json",
+    "with-chrono-datetime-utc-as-timestamp",
 ] }
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6", features = [
@@ -160,7 +161,7 @@ polars = { version = "0.49.1", features = [
     "lazy",
     "diagonal_concat",
 ], optional = true }
-quick-xml = { version = "0.37.5", features = [
+quick-xml = { version = "0.38", features = [
     "serialize",
     "serde-types",
     "serde",

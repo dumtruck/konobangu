@@ -1,4 +1,4 @@
-import { parse } from '@datasert/cronjs-parser';
+import { parse } from "@datasert/cronjs-parser";
 import {
   AlertCircle,
   Bolt,
@@ -7,45 +7,45 @@ import {
   Copy,
   Settings,
   Type,
-} from 'lucide-react';
-import { type FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { type FC, useCallback, useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/presentation/utils';
-import { CronBuilder } from './cron-builder';
-import { CronDisplay } from './cron-display';
-import { CronInput } from './cron-input';
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/presentation/utils";
+import { CronBuilder } from "./cron-builder.js";
+import { CronDisplay } from "./cron-display.js";
+import { CronInput } from "./cron-input.js";
 import {
   CronMode,
   type CronPrimitiveMode,
   type CronProps,
   type CronValidationResult,
-} from './types';
+} from "./types.js";
 
-const PLACEHOLDER = '0 0 * * * *';
+const PLACEHOLDER = "0 0 * * * *";
 
 const Cron: FC<CronProps> = ({
-  value = '',
+  value = "",
   onChange,
-  activeMode = 'input',
+  activeMode = "input",
   onActiveModeChange,
   onValidate,
   className,
-  mode = 'both',
+  mode = "both",
   disabled = false,
   placeholder = PLACEHOLDER,
   showPreview = true,
   showDescription = true,
-  timezone = 'UTC',
+  timezone = "UTC",
   error,
   children,
   showHelp = true,
@@ -57,7 +57,7 @@ const Cron: FC<CronProps> = ({
   isFirstSibling = false,
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: false
 }) => {
-  const [internalValue, setInternalValue] = useState(value || '');
+  const [internalValue, setInternalValue] = useState(value || "");
   const [internalActiveMode, setInternalActiveMode] =
     useState<CronPrimitiveMode>(
       mode === CronMode.Both ? activeMode : (mode as CronPrimitiveMode)
@@ -66,7 +66,7 @@ const Cron: FC<CronProps> = ({
 
   const validationResult = useMemo((): CronValidationResult => {
     if (!internalValue.trim()) {
-      return { isValid: false, error: 'Expression is required', isEmpty: true };
+      return { isValid: false, error: "Expression is required", isEmpty: true };
     }
 
     try {
@@ -78,13 +78,13 @@ const Cron: FC<CronProps> = ({
         error:
           parseError instanceof Error
             ? parseError.message
-            : 'Invalid cron expression',
+            : "Invalid cron expression",
       };
     }
   }, [internalValue]);
 
   useEffect(() => {
-    setInternalValue(value || '');
+    setInternalValue(value || "");
   }, [value]);
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const Cron: FC<CronProps> = ({
   }, [validationResult.isValid, onValidate]);
 
   useEffect(() => {
-    if (mode === 'both') {
+    if (mode === "both") {
       setInternalActiveMode(activeMode);
     }
   }, [activeMode, mode]);
@@ -123,16 +123,16 @@ const Cron: FC<CronProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
-      console.warn('Failed to copy to clipboard:', e);
+      console.warn("Failed to copy to clipboard:", e);
     }
   }, [internalValue]);
 
   const hasError =
     !!error || !!(!validationResult.isValid && internalValue.trim());
 
-  if (mode === 'input') {
+  if (mode === "input") {
     return (
-      <div className={cn(withCard && 'space-y-4', className)}>
+      <div className={cn(withCard && "space-y-4", className)}>
         <CronInput
           value={internalValue}
           onChange={handleChange}
@@ -161,9 +161,9 @@ const Cron: FC<CronProps> = ({
     );
   }
 
-  if (mode === 'builder') {
+  if (mode === "builder") {
     return (
-      <div className={cn(withCard && 'space-y-4', className)}>
+      <div className={cn(withCard && "space-y-4", className)}>
         <CronBuilder
           value={internalValue}
           onChange={handleChange}
@@ -184,14 +184,14 @@ const Cron: FC<CronProps> = ({
   }
 
   return (
-    <div className={cn(withCard && 'space-y-6', className)}>
+    <div className={cn(withCard && "space-y-6", className)}>
       <Card
         className={cn(
-          !withCard && 'border-none shadow-none',
-          !withCard && isFirstSibling && 'pt-0'
+          !withCard && "border-none shadow-none",
+          !withCard && isFirstSibling && "pt-0"
         )}
       >
-        <CardHeader className={cn(!withCard && 'px-0')}>
+        <CardHeader className={cn(!withCard && "px-0")}>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -207,7 +207,7 @@ const Cron: FC<CronProps> = ({
               <div className="flex items-center gap-2">
                 <Badge
                   variant={
-                    validationResult.isValid ? 'secondary' : 'destructive'
+                    validationResult.isValid ? "secondary" : "destructive"
                   }
                   className="font-mono text-sm"
                 >
@@ -238,11 +238,11 @@ const Cron: FC<CronProps> = ({
           )}
         </CardHeader>
 
-        <CardContent className={cn(!withCard && 'px-0')}>
+        <CardContent className={cn(!withCard && "px-0")}>
           <Tabs
             value={internalActiveMode}
             onValueChange={(v) =>
-              handleActiveModeChange(v as 'input' | 'builder')
+              handleActiveModeChange(v as "input" | "builder")
             }
           >
             <TabsList className="grid w-full grid-cols-2">
@@ -314,14 +314,14 @@ const Cron: FC<CronProps> = ({
       {showHelp && (
         <>
           {!withCard && <Separator />}
-          <Card className={cn(!withCard && 'border-none shadow-none')}>
-            <CardHeader className={cn(!withCard && 'px-0')}>
+          <Card className={cn(!withCard && "border-none shadow-none")}>
+            <CardHeader className={cn(!withCard && "px-0")}>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Code2 className="h-4 w-4" />
                 Cron Expression Format
               </CardTitle>
             </CardHeader>
-            <CardContent className={cn(!withCard && 'px-0')}>
+            <CardContent className={cn(!withCard && "px-0")}>
               <div className="space-y-4">
                 <div className="grid grid-cols-6 gap-2 text-center text-sm">
                   <div className="space-y-1">
