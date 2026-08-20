@@ -23,7 +23,7 @@ use super::{
 
 fn user(owner: i32) -> AuthUserInfo {
   AuthUserInfo {
-    auth_type: AuthType::Oidc,
+    is_admin: false,
     subscriber_auth: Model {
       id: owner,
       pid: format!("lifecycle-{owner}"),

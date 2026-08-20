@@ -25,7 +25,6 @@ DO $$ BEGIN
     END IF;
 END $$;
 CREATE SCHEMA {auth_identity};
-CREATE SCHEMA {auth_session};
 ALTER TABLE public.auth ADD COLUMN issuer text;
 UPDATE public.auth SET issuer = current_setting('konobangu.legacy_oidc_issuer', true) WHERE auth_type = 'oidc';
 ALTER TABLE public.auth ADD CONSTRAINT auth_issuer_type CHECK (
@@ -36,22 +35,9 @@ CREATE UNIQUE INDEX {auth_identity}_key ON public.auth (auth_type, issuer, pid) 
 ALTER TABLE public.auth DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.auth NO FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.auth SET SCHEMA {auth_identity};
-REVOKE ALL ON SCHEMA {auth_identity}, {auth_session} FROM PUBLIC;
-CREATE TABLE {auth_session}.pending_oauth (
-    state text PRIMARY KEY, nonce text NOT NULL, code_verifier text,
-    extra_data jsonb, expires_at timestamptz NOT NULL
-);
-CREATE INDEX pending_oauth_expiry ON {auth_session}.pending_oauth (expires_at);
-CREATE TABLE {auth_session}.login_grant (
-    id uuid PRIMARY KEY, auth_id integer NOT NULL REFERENCES {auth_identity}.auth(id),
-    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at timestamptz NOT NULL, revoked_at timestamptz,
-    CHECK (expires_at > created_at)
-);
-CREATE INDEX login_grant_expiry ON {auth_session}.login_grant (expires_at);
+REVOKE ALL ON SCHEMA {auth_identity} FROM PUBLIC;
 "#,
         auth_identity = ApplicationSchema::AuthIdentity.to_string(),
-        auth_session = ApplicationSchema::AuthSession.to_string(),
       ))
       .await?;
     let setting = "NULLIF(current_setting('app.subscriber_id', true), '')::integer";
@@ -87,6 +73,7 @@ CREATE INDEX login_grant_expiry ON {auth_session}.login_grant (expires_at);
         "CREATE POLICY cron_task_control ON cron TO {TASK_CONTROL_ACCESS_ROLE} USING (true) WITH CHECK (true)"
       ))
       .await?;
+    konobangu_auth_provider::apply_migrations(manager.get_connection()).await?;
     Ok(())
   }
 

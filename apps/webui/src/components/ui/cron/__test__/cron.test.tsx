@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import { CronBuilder } from "@/components/ui/cron/cron-builder";
 import { CronDisplay } from "@/components/ui/cron/cron-display";
 
-afterEach(cleanup);
 it("updates actual cron builder presets and displays named-zone previews", () => {
   const onChange = vi.fn();
   render(

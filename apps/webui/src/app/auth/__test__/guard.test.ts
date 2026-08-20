@@ -1,40 +1,29 @@
 // @vitest-environment jsdom
-import type { ParsedLocation } from "@tanstack/react-router";
-import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { describe, expect, it, vi } from "vitest";
 import {
-  createSessionScope,
+  createKonobanguFixture,
+  type KonobanguFixtureOptions,
+  parsedLocation,
+  principalPayload,
   response,
-  sessionPayload,
-} from "@/__test__/support/auth";
+} from "@/__test__/support/fixture";
 import { beforeLoadGuard } from "../guard";
 
-const scopes: ReturnType<typeof createSessionScope>[] = [];
-afterEach(() => {
-  for (const scope of scopes.splice(0)) scope.runtime.dispose();
-  vi.unstubAllEnvs();
-});
-function fixture(status: number) {
-  vi.stubEnv("AUTH__PROVIDER__TYPE", "oidc");
-  const scope = createSessionScope(() =>
-    response(status, status === 200 ? sessionPayload() : null),
-  );
-  scopes.push(scope);
-  const location: ParsedLocation = {
-    href: "/subscriptions",
-    publicHref: "/subscriptions",
-    pathname: "/subscriptions",
-    search: {},
-    searchStr: "",
-    state: { __TSR_index: 0 },
-    hash: "",
-    external: false,
-  };
+function fixture(
+  status: number,
+  options: Pick<KonobanguFixtureOptions, "auth"> = {},
+) {
+  const app = createKonobanguFixture({
+    ...options,
+    handler: () => response(status, status === 200 ? principalPayload() : null),
+  });
   return {
-    ...scope,
-    args: { context: { injector: scope.runtime.injector }, location },
+    ...app,
+    args: { context: { injector: app.injector }, location: parsedLocation() },
   };
 }
-describe("session route guard", () => {
+describe("private route guard", () => {
   it("waits for server authentication before allowing private routes", async () => {
     const { args } = fixture(200);
     await expect(beforeLoadGuard(args)).resolves.toBeUndefined();
@@ -54,4 +43,15 @@ describe("session route guard", () => {
       expect(login).not.toHaveBeenCalled();
     },
   );
+  it("does not turn a cancelled logout acquisition into login or private access", async () => {
+    const { args, auth } = fixture(200);
+    await auth.refresh();
+    const login = vi.spyOn(auth, "login");
+    const logout = auth.logout();
+    await expect(beforeLoadGuard(args)).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    expect(login).not.toHaveBeenCalled();
+    await logout;
+  });
 });

@@ -1,6 +1,8 @@
 import { gql } from "@/infra/graphql/gql";
 import type { GetCronsQuery } from "@/infra/graphql/gql/graphql";
 
+// A cron row is the plan. Attempts, leases and outcomes belong to its task runs,
+// which carry the retry command, so the plan selects no execution fields.
 export const GET_CRONS = gql(`
 query GetCrons($filter: CronFilterInput!, $orderBy: CronOrderInput!, $pagination: PaginationInput!) {
     cron(pagination: $pagination, filter: $filter, orderBy: $orderBy) {
@@ -11,15 +13,8 @@ query GetCrons($filter: CronFilterInput!, $orderBy: CronOrderInput!, $pagination
             nextRun
             lastRun
             lastError
-            status
-            lockedAt
-            lockedBy
             createdAt
             updatedAt
-            timeoutMs
-            maxAttempts
-            priority
-            attempts
             enabled
             subscriberTaskCron
             subscriberTask {
@@ -33,8 +28,8 @@ query GetCrons($filter: CronFilterInput!, $orderBy: CronOrderInput!, $pagination
                     runAt,
                     lastError,
                     generation,
-        cancelRequestedAt,
-                                doneAt,
+                    cancelRequestedAt,
+                    doneAt,
                     subscription {
                         displayName
                         sourceUrl
@@ -61,21 +56,15 @@ export const DELETE_CRONS = gql(`
 export const UPDATE_CRONS = gql(`
     mutation UpdateCrons($filter: CronFilterInput!, $data: CronUpdateInput!) {
         cronUpdate(filter: $filter, data: $data) {
-           id
+            id
             cronExpr
+            cronTimezone
             nextRun
             lastRun
             lastError
-            status
-            lockedAt
-            lockedBy
             createdAt
             updatedAt
-            timeoutMs
             enabled
-            maxAttempts
-            priority
-            attempts
             subscriberTaskCron
         }
     }
@@ -86,19 +75,13 @@ export const INSERT_CRON = gql(`
         cronCreateOne(data: $data) {
             id
             cronExpr
+            cronTimezone
             nextRun
             lastRun
             lastError
-            status
-            lockedAt
-            lockedBy
             createdAt
             updatedAt
             enabled
-            timeoutMs
-            maxAttempts
-            priority
-            attempts
             subscriberTaskCron
         }
     }

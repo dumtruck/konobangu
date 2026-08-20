@@ -14,6 +14,7 @@ output_directory = "temp/release"
 binary = "recorder-cli"
 cargo_package = "recorder"
 changelog = "CHANGELOG.md"
+targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl", "x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
 
 # Publication intent is versioned with the release source commit.
 [release.artifacts]
@@ -113,6 +114,21 @@ publish = false
 [[rust_package]]
 name = "animeta"
 manifest = "packages/animeta/Cargo.toml"
+publish = false
+
+[[rust_package]]
+name = "konobangu-configuration"
+manifest = "packages/configuration/Cargo.toml"
+publish = false
+
+[[rust_package]]
+name = "konobangu-database"
+manifest = "packages/database/Cargo.toml"
+publish = false
+
+[[rust_package]]
+name = "konobangu-auth-provider"
+manifest = "packages/auth-provider/Cargo.toml"
 publish = false
 
 [[python_package]]

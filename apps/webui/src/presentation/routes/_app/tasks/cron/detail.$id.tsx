@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +23,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { GET_CRONS } from "@/domains/recorder/schema/cron";
 import { useInject } from "@/infra/di/inject";
-import { CronStatusEnum } from "@/infra/graphql/gql/graphql";
 import { IntlService } from "@/infra/intl/intl.service";
 import type { RouteStateDataOption } from "@/infra/routes/traits";
-import { getStatusBadge } from "./-status-badge";
 
 export const Route = createFileRoute("/_app/tasks/cron/detail/$id")({
   component: CronDetailRouteComponent,
@@ -104,7 +102,9 @@ function CronDetailRouteComponent() {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                {getStatusBadge(cron.status)}
+                <Badge variant={cron.enabled ? "default" : "secondary"}>
+                  {cron.enabled ? "Enabled" : "Disabled"}
+                </Badge>
               </div>
             </div>
           </CardHeader>
@@ -116,22 +116,6 @@ function CronDetailRouteComponent() {
                   <Label className="font-medium text-sm">ID</Label>
                   <div className="rounded-md bg-muted p-3">
                     <code className="text-sm">{cron.id}</code>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-sm">Priority</Label>
-                  <div className="rounded-md bg-muted p-3">
-                    <span className="text-sm">{cron.priority}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-sm">Attemps</Label>
-                  <div className="rounded-md bg-muted p-3">
-                    <span className="text-sm">
-                      {cron.attempts} / {cron.maxAttempts}
-                    </span>
                   </div>
                 </div>
 
@@ -162,33 +146,6 @@ function CronDetailRouteComponent() {
                       {cron.lastRun
                         ? intlService.formatDatetimeWithTz(cron.lastRun)
                         : "-"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-sm">Locked time</Label>
-                  <div className="rounded-md bg-muted p-3">
-                    <span className="text-sm">
-                      {cron.lockedAt
-                        ? intlService.formatDatetimeWithTz(cron.lockedAt)
-                        : "-"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-sm">Locked by</Label>
-                  <div className="rounded-md bg-muted p-3">
-                    <code className="text-sm">{cron.lockedBy || "-"}</code>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-medium text-sm">Timeout</Label>
-                  <div className="rounded-md bg-muted p-3">
-                    <span className="text-sm">
-                      {cron.timeoutMs ? `${cron.timeoutMs}ms` : "No limit"}
                     </span>
                   </div>
                 </div>
@@ -261,9 +218,11 @@ function CronDetailRouteComponent() {
                       </Label>
                       <div className="space-y-2">
                         {cron.subscriberTask.nodes.map((task, index) => (
-                          <div
+                          <Link
                             key={`${task.id}-${index}`}
-                            className="rounded-md border bg-muted/50 p-3"
+                            to="/tasks/detail/$id"
+                            params={{ id: task.id.toString() }}
+                            className="block rounded-md border bg-muted/50 p-3 hover:bg-muted"
                           >
                             <div className="flex items-center justify-between">
                               <code className="text-sm">{task.id}</code>
@@ -281,19 +240,21 @@ function CronDetailRouteComponent() {
                                 {task.subscription.displayName}
                               </div>
                             )}
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
                   </>
                 )}
 
-              {/* Error Information */}
-              {cron.status === CronStatusEnum.Failed && cron.lastError && (
+              {/* Scheduling diagnostics, not an execution result */}
+              {cron.lastError && (
                 <>
                   <Separator />
                   <div className="space-y-2">
-                    <Label className="font-medium text-sm">最后错误</Label>
+                    <Label className="font-medium text-sm">
+                      Last scheduling note
+                    </Label>
                     <div className="rounded-md bg-destructive/10 p-3">
                       <p className="text-destructive text-sm">
                         {cron.lastError}

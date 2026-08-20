@@ -34,7 +34,7 @@ import {
   INSERT_CREDENTIAL_3RD,
 } from "@/domains/recorder/schema/credential3rd";
 import { useInject } from "@/infra/di/inject";
-import { compatFormDefaultValues } from "@/infra/forms/compat";
+import type { FormDraft } from "@/infra/forms/draft";
 import {
   type Credential3rdInsertInput,
   Credential3rdTypeEnum,
@@ -98,15 +98,15 @@ function CredentialCreateRouteComponent() {
   );
 
   const form = useAppForm({
-    defaultValues: compatFormDefaultValues<
-      Credential3rdInsertInput,
-      "credentialType" | "username" | "password" | "userAgent"
-    >({
+    defaultValues: {
       credentialType: Credential3rdTypeEnum.Mikan,
       username: "",
       password: "",
       userAgent: "",
-    }),
+    } satisfies FormDraft<
+      Credential3rdInsertInput,
+      "credentialType" | "username" | "password" | "userAgent"
+    >,
     validators: {
       onChangeAsync: Credential3rdInsertSchema,
       onChangeAsyncDebounceMs: 300,

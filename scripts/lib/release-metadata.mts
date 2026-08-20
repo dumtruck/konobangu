@@ -34,12 +34,24 @@ export type Metadata = {
     binary: string;
     cargo_package: string;
     changelog: string;
+    targets: ReleaseTarget[];
     artifacts: ReleaseArtifacts;
   };
   node_package: ManagedPackage[];
   rust_package: ManagedPackage[];
   python_package: ManagedPackage[];
 };
+// This maps supported host capabilities, while metadata owns the release selection.
+export const releaseTargetHosts = {
+  "x86_64-unknown-linux-gnu": { os: "ubuntu-24.04", cache_mode: "read-only" },
+  "x86_64-unknown-linux-musl": { os: "ubuntu-24.04", cache_mode: "read-only" },
+  "x86_64-pc-windows-msvc": { os: "windows-2025", cache_mode: "read-write" },
+  "aarch64-apple-darwin": { os: "macos-15", cache_mode: "read-write" },
+} as const;
+export type ReleaseTarget = keyof typeof releaseTargetHosts;
+export function isReleaseTarget(value: unknown): value is ReleaseTarget {
+  return typeof value === "string" && Object.hasOwn(releaseTargetHosts, value);
+}
 export function releaseVersion(value: string): string {
   if (semver.valid(value) !== value)
     throw new Error(`Expected an exact SemVer version: ${value}`);
@@ -59,27 +71,96 @@ export function loadMetadata(base = root): Metadata {
   );
 }
 export function parseMetadata(source: string, base = root): Metadata {
-  const metadata = parse(source) as unknown as Metadata;
-  releaseVersion(metadata.project.version);
-  projectPath(base, metadata.tooling.typescript.config);
-  for (const key of [
-    "display_name",
-    "description",
-    "license",
-    "repository_url",
-  ] as const)
-    if (!metadata.project[key]) throw new Error(`Missing project.${key}`);
-  const seen = new Set<string>();
-  for (const entry of [
-    ...metadata.node_package,
-    ...metadata.rust_package,
-    ...metadata.python_package,
-  ]) {
-    projectPath(base, entry.manifest);
-    if (!entry.name || entry.publish !== false || seen.has(entry.manifest))
-      throw new Error(`Invalid package entry: ${entry.manifest}`);
-    seen.add(entry.manifest);
+  function object(value: unknown, name: string): Record<string, unknown> {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      throw new Error(`Missing ${name}`);
+    return value as Record<string, unknown>;
   }
+  function text(data: Record<string, unknown>, key: string): string {
+    if (typeof data[key] !== "string" || !data[key])
+      throw new Error(`Missing ${key}`);
+    return data[key];
+  }
+  const data = object(parse(source), "metadata"),
+    project = object(data.project, "project"),
+    tooling = object(data.tooling, "tooling");
+  const typescript = object(tooling.typescript, "tooling.typescript"),
+    release = object(data.release, "release"),
+    artifacts = object(release.artifacts, "release.artifacts");
+  const artifactKeys = ["bundles", "runtime_image", "testing_torrents_image"];
+  if (
+    Object.keys(artifacts).length !== artifactKeys.length ||
+    artifactKeys.some((key) => typeof artifacts[key] !== "boolean")
+  )
+    throw new Error(
+      "release.artifacts requires boolean bundles, runtime_image and testing_torrents_image fields",
+    );
+  if (
+    !Array.isArray(release.targets) ||
+    release.targets.length !== Object.keys(releaseTargetHosts).length ||
+    new Set(release.targets).size !== release.targets.length
+  )
+    throw new Error(
+      "release.targets must contain each supported release target exactly once",
+    );
+  const targets = release.targets.map((target) => {
+    if (!isReleaseTarget(target))
+      throw new Error("Unknown release.targets entry");
+    return target;
+  });
+  const seen = new Set<string>();
+  function packages(name: string): ManagedPackage[] {
+    const entries = data[name];
+    if (!Array.isArray(entries)) throw new Error(`Missing ${name}`);
+    return entries.map((value) => {
+      const entry = object(value, name),
+        manifest = text(entry, "manifest");
+      projectPath(base, manifest);
+      if (
+        entry.publish !== false ||
+        seen.has(manifest) ||
+        (entry.versioned !== undefined && typeof entry.versioned !== "boolean")
+      )
+        throw new Error(`Invalid package entry: ${manifest}`);
+      seen.add(manifest);
+      return {
+        name: text(entry, "name"),
+        manifest,
+        publish: false,
+        ...(typeof entry.versioned === "boolean"
+          ? { versioned: entry.versioned }
+          : {}),
+      };
+    });
+  }
+  const metadata: Metadata = {
+    tooling: { typescript: { config: text(typescript, "config") } },
+    project: {
+      version: releaseVersion(text(project, "version")),
+      display_name: text(project, "display_name"),
+      description: text(project, "description"),
+      license: text(project, "license"),
+      repository_url: text(project, "repository_url"),
+    },
+    release: {
+      tag_prefix:
+        typeof release.tag_prefix === "string" ? release.tag_prefix : "invalid",
+      output_directory: text(release, "output_directory"),
+      binary: text(release, "binary"),
+      cargo_package: text(release, "cargo_package"),
+      changelog: text(release, "changelog"),
+      targets,
+      artifacts: {
+        bundles: artifacts.bundles === true,
+        runtime_image: artifacts.runtime_image === true,
+        testing_torrents_image: artifacts.testing_torrents_image === true,
+      },
+    },
+    node_package: packages("node_package"),
+    rust_package: packages("rust_package"),
+    python_package: packages("python_package"),
+  };
+  projectPath(base, metadata.tooling.typescript.config);
   if (!/^v?$/.test(metadata.release.tag_prefix))
     throw new Error("Unsupported tag prefix");
   projectPath(base, metadata.release.output_directory);
@@ -88,25 +169,6 @@ export function parseMetadata(source: string, base = root): Metadata {
   projectPath(base, metadata.release.changelog);
   if (!/^[\w-]+$/.test(metadata.release.binary))
     throw new Error("Invalid release binary");
-  const artifacts = metadata.release.artifacts;
-  const artifactKeys = ["bundles", "runtime_image", "testing_torrents_image"];
-  if (
-    !artifacts ||
-    Array.isArray(artifacts) ||
-    Object.keys(artifacts).length !== artifactKeys.length ||
-    artifactKeys.some(
-      (key) => typeof artifacts[key as keyof ReleaseArtifacts] !== "boolean",
-    )
-  )
-    throw new Error(
-      "release.artifacts requires boolean bundles, runtime_image and testing_torrents_image fields",
-    );
-  // Keep metadata snapshots comparable after JSON serialization of receipts.
-  metadata.release.artifacts = {
-    bundles: artifacts.bundles,
-    runtime_image: artifacts.runtime_image,
-    testing_torrents_image: artifacts.testing_torrents_image,
-  };
   return metadata;
 }
 export function packageVersion(source: string, section: string): string {

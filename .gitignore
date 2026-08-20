@@ -174,8 +174,9 @@ out
 dist
 .cache/
 
-# vuepress build output
+# Documentation site build outputs
 .vuepress/dist
+**/.vitepress/.temp/
 
 # Serverless directories
 .serverless/
@@ -218,8 +219,8 @@ index.d.ts.map
 /.angular
 /*.session.sql
 
-/temp/*
-!/temp/.gitkeep
+**/temp/*
+!**/temp/.gitkeep
 /rustc-ice-*
 
 # Misc

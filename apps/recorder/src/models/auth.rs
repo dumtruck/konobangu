@@ -2,11 +2,6 @@ use async_trait::async_trait;
 use sea_orm::{ConnectionTrait, EntityTrait, Set, TransactionTrait, prelude::*};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-  app::AppContextTrait,
-  errors::app_error::{RecorderError, RecorderResult},
-};
-
 #[derive(Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, DeriveDisplay, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "auth_type")]
 #[serde(rename_all = "snake_case")]
@@ -54,17 +49,30 @@ impl Related<super::subscribers::Entity> for Entity {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-  pub async fn find_by_pid(ctx: &dyn AppContextTrait, pid: &str) -> RecorderResult<Self> {
-    Entity::find()
-      .filter(Column::Pid.eq(pid))
-      .filter(Column::AuthType.eq(AuthType::Basic))
-      .one(ctx.auth().identity_db())
-      .await?
-      .ok_or_else(|| RecorderError::from_entity_not_found_detail::<Entity, _>("Basic identity not found"))
+  pub async fn find_or_create_oidc(db: &sea_orm::DatabaseConnection, issuer: &str, subject: &str) -> Result<Self, sea_orm::DbErr> {
+    Self::find_or_create_oidc_with_seed(db, issuer, subject, false).await
   }
 
-  pub async fn find_or_create_oidc(db: &sea_orm::DatabaseConnection, issuer: &str, subject: &str) -> Result<Self, sea_orm::DbErr> {
+  pub async fn find_or_create_oidc_with_seed(
+    db: &sea_orm::DatabaseConnection,
+    issuer: &str,
+    subject: &str,
+    use_legacy_seed: bool,
+  ) -> Result<Self, sea_orm::DbErr> {
     let transaction = db.begin().await?;
+    let seed = if use_legacy_seed {
+      Some(
+        Entity::find()
+          .filter(Column::AuthType.eq(AuthType::Basic))
+          .filter(Column::Pid.eq(super::subscribers::SEED_SUBSCRIBER))
+          .one(&transaction)
+          .await?
+          .ok_or_else(|| sea_orm::DbErr::Custom("Bundled administrator requires the unambiguous legacy seed mapping".into()))?
+          .subscriber_id,
+      )
+    } else {
+      None
+    };
     // Serialize only identical identity keys. A hash collision merely
     // serializes unrelated logins.
     transaction
@@ -81,18 +89,27 @@ impl Model {
       .one(&transaction)
       .await?
     {
+      if seed.is_some_and(|seed| seed != identity.subscriber_id) {
+        return Err(sea_orm::DbErr::Custom(
+          "Bundled administrator conflicts with the existing identity owner".into(),
+        ));
+      }
       transaction.commit().await?;
       return Ok(identity);
     }
-    let subscriber_id: i32 = transaction
-      .query_one_raw(sea_orm::Statement::from_sql_and_values(
-        sea_orm::DbBackend::Postgres,
-        "INSERT INTO public.subscribers (display_name) VALUES ($1) RETURNING id",
-        [subject.into()],
-      ))
-      .await?
-      .ok_or_else(|| sea_orm::DbErr::RecordNotInserted)?
-      .try_get_by_index(0)?;
+    let subscriber_id = if let Some(seed) = seed {
+      seed
+    } else {
+      transaction
+        .query_one_raw(sea_orm::Statement::from_sql_and_values(
+          sea_orm::DbBackend::Postgres,
+          "INSERT INTO public.subscribers (display_name) VALUES ($1) RETURNING id",
+          [subject.into()],
+        ))
+        .await?
+        .ok_or_else(|| sea_orm::DbErr::RecordNotInserted)?
+        .try_get_by_index(0)?
+    };
     let identity = ActiveModel {
       pid: Set(subject.to_owned()),
       issuer: Set(Some(issuer.to_owned())),

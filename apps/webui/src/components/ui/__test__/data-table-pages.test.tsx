@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-import { ApolloProvider } from "@apollo/client/react";
-import { SecuritydeptProvider } from "@securitydept/client-react";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -9,21 +7,12 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { useTable } from "@tanstack/react-table";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { toast } from "sonner";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createSessionScope,
-  response,
-  sessionPayload,
-} from "@/__test__/support/auth";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createSignedInFixture, response } from "@/__test__/support/fixture";
+import { renderInEnvironment } from "@/__test__/support/render";
 import { GraphQLService } from "@/infra/graphql/graphql.service";
 import { CredentialManageRouteComponent } from "@/presentation/routes/_app/credential3rd/manage";
 import { SubscriptionManageRouteComponent } from "@/presentation/routes/_app/subscriptions/manage";
@@ -36,14 +25,6 @@ import { useClampServerPage, useServerTableState } from "../data-table-state";
 beforeEach(() => {
   vi.spyOn(window, "scrollTo").mockImplementation(() => {});
   HTMLElement.prototype.scrollIntoView = vi.fn();
-});
-const scopes: ReturnType<typeof createSessionScope>[] = [];
-afterEach(() => {
-  cleanup();
-  for (const scope of scopes.splice(0)) scope.runtime.dispose();
-  vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
-  vi.restoreAllMocks();
 });
 const cases = [
   ["subscriptions", SubscriptionManageRouteComponent, "displayName"],
@@ -85,41 +66,28 @@ const record = {
   cronTimezone: "UTC",
   nextRun: "2026-10-04 19:38:05.559928 UTC",
   lastRun: "2026-10-04 12:38:05.559928 -07:00",
-  lockedAt: "invalid",
-  lockedBy: null,
-  timeoutMs: null,
-  priority: 0,
   subscriberTaskCron: null,
   systemTaskCron: null,
   subscriberId: 1,
 };
 async function mount(Page: ComponentType, field: string, partial = false) {
-  vi.stubEnv("AUTH__PROVIDER__TYPE", "oidc");
-  const scope = createSessionScope(() => response(200, sessionPayload()));
-  scopes.push(scope);
-  await scope.auth.session.start();
-  const graphql = scope.runtime.injector.get(GraphQLService);
   const requests: Variables[] = [];
   let pages = 3;
   let mutationError: string | null = null;
   let mutationCount = 1;
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as {
+  const app = await createSignedInFixture({
+    handler: async (request) => {
+      const body = (await request.json()) as {
         query: string;
         variables: Variables;
       };
-      if (body.query.includes("mutation")) {
-        return new Response(
-          JSON.stringify(
-            mutationError
-              ? { data: null, errors: [{ message: mutationError }] }
-              : { data: { subscriberTasksDelete: mutationCount } },
-          ),
-          { headers: { "content-type": "application/json" } },
+      if (body.query.includes("mutation"))
+        return response(
+          200,
+          mutationError
+            ? { data: null, errors: [{ message: mutationError }] }
+            : { data: { subscriberTasksDelete: mutationCount } },
         );
-      }
       requests.push(body.variables);
       const nodes =
         body.variables.pagination.page.page >= pages
@@ -130,15 +98,12 @@ async function mount(Page: ComponentType, field: string, partial = false) {
                 id: field === "subscriberTasks" ? "server-row" : 17,
               },
             ];
-      return new Response(
-        JSON.stringify({
-          data: { [field]: { nodes, paginationInfo: { total: 21, pages } } },
-          ...(partial ? { errors: [{ message: "another field failed" }] } : {}),
-        }),
-        { headers: { "content-type": "application/json" } },
-      );
-    }),
-  );
+      return response(200, {
+        data: { [field]: { nodes, paginationInfo: { total: 21, pages } } },
+        ...(partial ? { errors: [{ message: "another field failed" }] } : {}),
+      });
+    },
+  });
   const root = createRootRoute();
   const route = createRoute({
     getParentRoute: () => root,
@@ -149,13 +114,9 @@ async function mount(Page: ComponentType, field: string, partial = false) {
     routeTree: root.addChildren([route]),
     history: createMemoryHistory({ initialEntries: ["/"] }),
   });
-  render(
-    <SecuritydeptProvider injector={scope.runtime.injector}>
-      <ApolloProvider client={graphql._apollo}>
-        <RouterProvider router={router} />
-      </ApolloProvider>
-    </SecuritydeptProvider>,
-  );
+  renderInEnvironment(app, <RouterProvider router={router} />, {
+    apollo: true,
+  });
   await screen.findByLabelText("Filter records");
   await waitFor(() => expect(requests.length).toBeGreaterThan(0));
   return {
@@ -169,7 +130,7 @@ async function mount(Page: ComponentType, field: string, partial = false) {
     mutationZero: () => {
       mutationCount = 0;
     },
-    client: graphql._apollo,
+    client: app.injector.get(GraphQLService)._apollo,
   };
 }
 function openMenu(button: HTMLElement) {
@@ -297,9 +258,12 @@ it("shared components retain stable selection, column visibility and reset page 
   expect(screen.getByText("false")).toBeTruthy();
 });
 
-it("formats legacy GraphQL Cron times through the shared boundary without crashing on bad data", async () => {
+// Both legacy Chrono shapes reach this page from existing rows. Rejecting
+// ambiguous or unparsable input is the shared boundary's own unit contract.
+it("formats legacy GraphQL Cron times through the shared boundary", async () => {
   await mount(TaskCronManageRouteComponent, "cron");
-  expect(await screen.findByText("Invalid timestamp")).toBeTruthy();
+  await waitFor(() =>
+    expect(screen.getAllByText(/2026/).length).toBeGreaterThanOrEqual(2),
+  );
   expect(screen.queryByText("Something went wrong")).toBeNull();
-  expect(screen.getAllByText(/2026/).length).toBeGreaterThanOrEqual(2);
 });

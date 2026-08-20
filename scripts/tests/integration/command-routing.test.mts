@@ -369,12 +369,18 @@ test("container builds share the requested Cargo home and preserve compact profi
 });
 test("native Just forwarding preserves release paths without evaluating shell content", () => {
   const path = `outside/中文 space $(echo unsafe) & "literal" apostrophe's`;
-  const result = run("just", ["release", "publish", path], {
-    capture: true,
-    check: false,
-  });
+  const result = run(
+    "just",
+    ["release", "assemble", path, "inputs", "output"],
+    {
+      capture: true,
+      check: false,
+    },
+  );
   assert.equal(result.code, 1, result.stderr);
-  assert.match(result.stderr, /Select a platform bundle/);
+  assert.match(result.stderr, /ENOENT/);
+  assert(result.stderr.includes("$(echo unsafe)"));
+  assert(result.stderr.includes("中文 space"));
   assert.doesNotMatch(
     result.stderr,
     /not recognized|command not found|unexpected token/i,

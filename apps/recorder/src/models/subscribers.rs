@@ -132,11 +132,6 @@ pub struct SubscriberIdParams {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-  pub async fn find_seed_subscriber_id(ctx: &dyn AppContextTrait) -> RecorderResult<i32> {
-    let subscriber_auth = crate::models::auth::Model::find_by_pid(ctx, SEED_SUBSCRIBER).await?;
-    Ok(subscriber_auth.subscriber_id)
-  }
-
   pub async fn find_by_id(ctx: &dyn AppContextTrait, id: i32) -> RecorderResult<Self> {
     let db = ctx.db();
 

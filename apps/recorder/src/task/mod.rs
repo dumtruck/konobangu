@@ -5,10 +5,7 @@ pub mod execution;
 mod registry;
 mod service;
 
-pub use core::{
-  AsyncTaskTrait, SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_TRIGGER_NAME, SUBSCRIBER_TASK_APALIS_NAME,
-  SYSTEM_TASK_APALIS_NAME, StreamTaskTrait, SubscriberTaskTrait, SystemTaskTrait,
-};
+pub use core::{AsyncTaskTrait, SUBSCRIBER_TASK_APALIS_NAME, SYSTEM_TASK_APALIS_NAME, StreamTaskTrait, SubscriberTaskTrait, SystemTaskTrait};
 
 pub use config::TaskConfig;
 pub use registry::{

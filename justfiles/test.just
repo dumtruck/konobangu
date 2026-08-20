@@ -1,6 +1,9 @@
 # Optional integration and example coverage for the default workspace runner.
 rust_test_features := "testcontainers,test-utils,playground"
 
+# Playwright 1.55.1 ships Chromium 140, the WebUI's minimum Chromium target.
+browser_baseline_playwright_version := "1.55.1"
+
 # Run a native suite with runner filters: all, rust, webui, tooling, browser, media.
 [positional-arguments]
 test *args:

@@ -3,6 +3,8 @@
 binding = "0.0.0.0"
 port = 5001
 host = "localhost" # Override with SERVER__HOST.
+# API address for RSS self-links only; independent of WebUI entry rules.
+external_base_url = "auto"
 
 [server.middlewares.etag]
 enable = true
@@ -16,14 +18,7 @@ enable = true
 [server.middlewares.timeout_request]
 enable = false
 timeout = 5000
-[server.middlewares.cors]
-enable = true
-# For credentialed cross-origin access, use explicit origins, headers and methods.
-# allow_origins = ["https://webui.example.com"]
-# allow_headers = ["content-type", "x-csrf-token"]
-# allow_methods = ["GET", "POST", "OPTIONS"]
-# allow_credentials = true
-# max_age = 3600 # Seconds.
+# API CORS uses auth.webui.allowed_origins; the Provider uses registered callback origins.
 [server.middlewares.compression]
 enable = true
 
@@ -67,7 +62,7 @@ auto_run = true
 [storage]
 data_dir = "./data"
 
-# Media defaults follow the compiled codec capabilities; see documentation 015.
+# Media defaults follow the compiled codec capabilities; see docs/en/004-MEDIA-AND-CONFIGURATION.md.
 [media.encoding.webp]
 quality = 80
 

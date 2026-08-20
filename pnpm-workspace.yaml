@@ -12,7 +12,10 @@ allowBuilds:
   "@tailwindcss/oxide": true
   bufferutil: true
   core-js: true
+  cpu-features: false
   esbuild: true
+  protobufjs: true
+  ssh2: false
   utf-8-validate: true
 minimumReleaseAgeExclude:
   - '@ark/schema@0.56.4'
@@ -22,5 +25,9 @@ minimumReleaseAgeExclude:
   - arkregex@0.0.10
   - arktype@2.2.5
   - vitest@5.0.2
+  - '@securitydept/client-react@0.3.2 || 0.3.3'
+  - '@securitydept/client@0.3.2 || 0.3.3'
+  - '@securitydept/token-set-context-client-react@0.3.2 || 0.3.3'
+  - '@securitydept/token-set-context-client@0.3.2 || 0.3.3'
 overrides:
   codemirror-graphql>@codemirror/language: "^6.12.4"

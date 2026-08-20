@@ -40,7 +40,7 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from "@/infra/errors/apollo";
-import { compatFormDefaultValues } from "@/infra/forms/compat";
+import type { FormDraft } from "@/infra/forms/draft";
 import type {
   Credential3rdTypeEnum,
   Credential3rdUpdateInput,
@@ -79,15 +79,15 @@ function FormView({
   );
 
   const form = useAppForm({
-    defaultValues: compatFormDefaultValues<
-      Credential3rdUpdateInput,
-      "credentialType" | "username" | "password" | "userAgent"
-    >({
+    defaultValues: {
       credentialType: credential.credentialType,
       username: credential.username ?? "",
       password: credential.password ?? "",
       userAgent: credential.userAgent ?? "",
-    }),
+    } satisfies FormDraft<
+      Credential3rdUpdateInput,
+      "credentialType" | "username" | "password" | "userAgent"
+    >,
     validators: {
       onBlur: Credential3rdUpdateSchema,
       onSubmit: Credential3rdUpdateSchema,

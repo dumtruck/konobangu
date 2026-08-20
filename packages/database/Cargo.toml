@@ -1,0 +1,17 @@
+[package]
+name = "konobangu-database"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/apeiraco/konobangu"
+publish = false
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true }
+sea-orm = { version = "=2.0.4", default-features = false, features = ["sqlx-postgres", "runtime-tokio", "macros"] }
+sea-orm-migration = { version = "=2.0.4", default-features = false, features = ["sqlx-postgres", "runtime-tokio"] }
+sqlx = { version = "=0.9.0", default-features = false, features = ["postgres", "runtime-tokio"] }
+
+[lints]
+workspace = true

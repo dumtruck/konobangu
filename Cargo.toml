@@ -8,6 +8,9 @@ members = [
   "apps/recorder",
   "apps/proxy",
   "packages/animeta",
+  "packages/configuration",
+  "packages/database",
+  "packages/auth-provider",
 ]
 resolver = "2"
 
@@ -22,6 +25,9 @@ fetch = { path = "./packages/fetch" }
 downloader = { path = "./packages/downloader" }
 recorder = { path = "./apps/recorder" }
 animeta = { path = "./packages/animeta" }
+konobangu-configuration = { path = "./packages/configuration" }
+konobangu-database = { path = "./packages/database" }
+konobangu-auth-provider = { path = "./packages/auth-provider" }
 
 reqwest = { version = "0.13", features = [
   "charset",

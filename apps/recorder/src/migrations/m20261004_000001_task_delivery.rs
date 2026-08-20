@@ -1,7 +1,6 @@
-use sea_orm::DbBackend;
 use sea_orm_migration::prelude::*;
 
-use super::defs::{ApalisJobs, Cron, Subscribers, Subscriptions, TaskOutbox, TaskRuns, TaskViews};
+use super::defs::{Cron, Subscribers, Subscriptions, TaskOutbox, TaskRuns, TaskViews};
 use crate::database::roles::TASK_CONTROL_ACCESS_ROLE;
 
 #[derive(DeriveMigrationName)]
@@ -11,51 +10,17 @@ pub struct Migration;
 impl MigrationTrait for Migration {
   async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
     manager.get_connection().execute_unprepared(&schema_sql()).await?;
-    // Version 0 used the same registered task variants. Decode and serialize
-    // through those types explicitly rather than treating arbitrary JSON as v1.
-    let db = manager.get_connection();
-    for row in db
-      .query_all_raw(
-        DbBackend::Postgres.build(
-          &Query::select()
-            .columns([TaskRuns::Id, TaskRuns::Kind, TaskRuns::Payload])
-            .from(TaskRuns::Table)
-            .to_owned(),
-        ),
-      )
-      .await?
-    {
-      let id: String = row.try_get("", &TaskRuns::Id.to_string())?;
-      let kind: String = row.try_get("", &TaskRuns::Kind.to_string())?;
-      let payload: serde_json::Value = row.try_get("", &TaskRuns::Payload.to_string())?;
-      let converted = match kind.as_str() {
-        "subscriber_task" => serde_json::from_value::<crate::task::SubscriberTask>(payload).and_then(serde_json::to_value),
-        "system_task" => serde_json::from_value::<crate::task::SystemTask>(payload).and_then(serde_json::to_value),
-        _ => return Err(DbErr::Migration(format!("Task {id}: unsupported legacy payload kind"))),
-      }
-      .map_err(|_| DbErr::Migration(format!("Task {id}: legacy payload conversion failed")))?;
-      db.execute_raw(
-        DbBackend::Postgres.build(
-          &Query::update()
-            .table(TaskRuns::Table)
-            .values([(TaskRuns::Payload, converted.into()), (TaskRuns::PayloadVersion, 1.into())])
-            .and_where(Expr::col(TaskRuns::Id).eq(id))
-            .to_owned(),
-        ),
-      )
-      .await?;
-    }
     Ok(())
   }
 
   async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
     Err(DbErr::Migration(
-      "Task cutover is not reversible after new writes; stop services and restore the pre-upgrade backup".into(),
+      "Task delivery is not reversible after new writes; stop services and restore a backup".into(),
     ))
   }
 }
 
-// PostgreSQL policies, partial indexes and the legacy cutover need native SQL.
+// PostgreSQL policies and partial indexes need native SQL.
 // Names come from the same Rust identifiers as the typed migration queries.
 fn schema_sql() -> String {
   format!(
@@ -81,8 +46,6 @@ CREATE TABLE {task_runs} (
   {archived_at} timestamptz,
   {execution_token} uuid,
   {execution_lease_until} timestamptz,
-  {recovering} boolean NOT NULL DEFAULT false,
-  {legacy_execution} jsonb,
   {created_at} timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CHECK ({kind} <> 'subscriber_task' OR {subscriber_id} IS NOT NULL),
   UNIQUE ({cron_id}, {scheduled_at_utc})
@@ -101,40 +64,6 @@ CREATE TABLE {task_outbox} (
   PRIMARY KEY ({task_id}, {generation})
 );
 CREATE INDEX {task_outbox}_due ON {task_outbox}({available_at}) WHERE {sent_at} IS NULL;
-
-INSERT INTO {task_runs} ({id}, {kind}, {subscriber_id}, {subscription_id}, {cron_id}, {scheduled_at_utc}, {payload}, {task_type},
-  {status}, {attempts}, {max_attempts}, {run_at}, {done_at}, {last_error}, {recovering}, {legacy_execution})
-SELECT {id}, {job_type}, {subscriber_id}, {subscription_id}, {cron_id}, CASE WHEN {cron_id} IS NOT NULL THEN {run_at} ELSE NULL END, {job}, {task_type},
-  CASE WHEN {status} = 'Running' THEN 'Pending' ELSE {status} END,
-  {attempts}, {max_attempts}, {run_at}, {done_at}, {last_error}, {status} = 'Running',
-  jsonb_build_object('status', {status}, 'attempts', {attempts}, 'lock_at', {lock_at}, 'lock_by', {lock_by}, 'priority', {priority})
-FROM apalis.jobs;
-INSERT INTO {task_outbox} ({task_id}, {generation}, {available_at})
-SELECT {id}, {generation}, {run_at} FROM {task_runs} WHERE {status} IN ('Pending', 'Scheduled');
-
-UPDATE {cron} SET {status}='pending', {locked_at}=NULL, {locked_by}=NULL, {attempts}=0 WHERE {status}='running';
-DROP VIEW {subscriber_tasks};
-DROP VIEW {system_tasks};
-DROP TRIGGER setup_apalis_jobs_extra_foreign_keys_trigger ON apalis.jobs;
-DROP FUNCTION apalis.setup_apalis_jobs_extra_foreign_keys();
-DROP TRIGGER notify_due_cron_when_mutating_trigger ON {cron};
-DROP FUNCTION notify_due_cron_when_mutating();
-DROP FUNCTION check_and_trigger_due_crons();
-ALTER SCHEMA apalis RENAME TO apalis_legacy_v07;
-DO $$ BEGIN
-  IF to_regclass('public._sqlx_migrations') IS NOT NULL THEN
-    ALTER TABLE public._sqlx_migrations SET SCHEMA apalis_legacy_v07;
-  END IF;
-END $$;
-REVOKE ALL ON SCHEMA apalis_legacy_v07 FROM PUBLIC;
-DO $$ DECLARE role_name text; BEGIN
-  FOR role_name IN SELECT rolname FROM pg_roles WHERE NOT rolsuper AND rolname <> current_user LOOP
-    EXECUTE format('REVOKE ALL ON SCHEMA apalis_legacy_v07 FROM %I', role_name);
-    EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA apalis_legacy_v07 FROM %I', role_name);
-    EXECUTE format('REVOKE ALL ON ALL SEQUENCES IN SCHEMA apalis_legacy_v07 FROM %I', role_name);
-    EXECUTE format('REVOKE ALL ON ALL FUNCTIONS IN SCHEMA apalis_legacy_v07 FROM %I', role_name);
-  END LOOP;
-END $$;
 
 ALTER TABLE {task_runs} ENABLE ROW LEVEL SECURITY;
 ALTER TABLE {task_runs} FORCE ROW LEVEL SECURITY;
@@ -172,22 +101,14 @@ CREATE VIEW {system_tasks} WITH (security_invoker = true) AS
     execution_token = TaskRuns::ExecutionToken.to_string(),
     generation = TaskRuns::Generation.to_string(),
     id = TaskRuns::Id.to_string(),
-    job = ApalisJobs::Job.to_string(),
-    job_type = ApalisJobs::JobType.to_string(),
+    job = TaskViews::Job.to_string(),
     kind = TaskRuns::Kind.to_string(),
     last_error = TaskRuns::LastError.to_string(),
     lease_token = TaskOutbox::LeaseToken.to_string(),
     lease_until = TaskOutbox::LeaseUntil.to_string(),
-    legacy_execution = TaskRuns::LegacyExecution.to_string(),
-    lock_at = ApalisJobs::LockAt.to_string(),
-    lock_by = ApalisJobs::LockBy.to_string(),
-    locked_at = Cron::LockedAt.to_string(),
-    locked_by = Cron::LockedBy.to_string(),
     max_attempts = TaskRuns::MaxAttempts.to_string(),
     payload = TaskRuns::Payload.to_string(),
     payload_version = TaskRuns::PayloadVersion.to_string(),
-    priority = ApalisJobs::Priority.to_string(),
-    recovering = TaskRuns::Recovering.to_string(),
     run_at = TaskRuns::RunAt.to_string(),
     scheduled_at_utc = TaskRuns::ScheduledAtUtc.to_string(),
     sent_at = TaskOutbox::SentAt.to_string(),

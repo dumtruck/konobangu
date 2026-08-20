@@ -1,4 +1,4 @@
-import { type } from "arktype";
+import { ArkErrors, type } from "arktype";
 import { arkValidatorToTypeNarrower } from "@/infra/errors/arktype";
 import { gql } from "@/infra/graphql/gql";
 import {
@@ -139,15 +139,8 @@ query GetSubscriptionDetail ($filter: SubscriptionsFilterInput!) {
             lastRun
             lastError
             enabled
-            status
-            lockedAt
-            lockedBy
             createdAt
             updatedAt
-            timeoutMs
-            maxAttempts
-            priority
-            attempts
             subscriberTaskCron
         }
       }
@@ -208,6 +201,20 @@ export const SubscriptionFormSchema = type({
 }).and(SubscriptionFormTypedSchema);
 
 export type SubscriptionForm = typeof SubscriptionFormSchema.infer;
+
+/**
+ * Turns an edited draft into the validated form value. The form's own submit
+ * validator has already run, so this is the typed way to obtain that value —
+ * and the error is the safety net if a caller submits unvalidated state.
+ */
+export function validateSubscriptionForm(draft: unknown): SubscriptionForm {
+  const validated = SubscriptionFormSchema(draft);
+  if (validated instanceof ArkErrors)
+    throw new Error(
+      `The subscription form is incomplete: ${validated.summary}`,
+    );
+  return validated;
+}
 
 export const SubscriptionTypedMikanSeasonSchema =
   MikanSubscriptionSeasonSourceUrlSchema.and(

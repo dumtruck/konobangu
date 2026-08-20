@@ -11,8 +11,19 @@ use serde::{Deserialize, Serialize};
 
 use super::env::Environment;
 use crate::{
-  auth::AuthConfig, cache::CacheConfig, crypto::CryptoConfig, database::DatabaseConfig, errors::RecorderResult, extract::mikan::MikanConfig,
-  graphql::GraphQLConfig, logger::LoggerConfig, media::MediaConfig, message::MessageConfig, storage::StorageConfig, task::TaskConfig, web::WebServerConfig,
+  auth::{AuthConfig, ProviderAuthConfig},
+  cache::CacheConfig,
+  crypto::CryptoConfig,
+  database::DatabaseConfig,
+  errors::RecorderResult,
+  extract::mikan::MikanConfig,
+  graphql::GraphQLConfig,
+  logger::LoggerConfig,
+  media::MediaConfig,
+  message::MessageConfig,
+  storage::StorageConfig,
+  task::TaskConfig,
+  web::WebServerConfig,
 };
 
 const DEFAULT_CONFIG_MIXIN: &str = include_str!("./default_mixin.toml");
@@ -193,21 +204,22 @@ impl AppConfig {
       })?;
 
     app_config.resolve_database_urls();
-    app_config.validate()?;
+    app_config.validate(environment)?;
     Ok(app_config)
   }
   pub fn resolve_database_urls(&mut self) {
-    let session = match &mut self.auth {
-      AuthConfig::Basic(config) => &mut config.session,
-      AuthConfig::Oidc(config) => &mut config.session,
-    };
-    if session.identity_database_uri.is_empty() {
-      session.identity_database_uri = self.database.uri.clone();
+    if self.auth.identity.database_url.is_empty() {
+      self.auth.identity.database_url = self.database.uri.clone();
     }
     self.task.queue_database_uri.get_or_insert_with(|| self.database.uri.clone());
+    if let ProviderAuthConfig::Bundled(provider) = &mut self.auth.provider
+      && provider.database.url.is_empty()
+    {
+      provider.database.url = self.auth.identity.database_url.clone();
+    }
   }
 
-  fn validate(&self) -> RecorderResult<()> {
+  pub(crate) fn validate(&self, environment: &Environment) -> RecorderResult<()> {
     let check_uri = |path: &str, value: &str| -> RecorderResult<()> {
       if value.is_empty() || value.chars().any(char::is_whitespace) || url::Url::parse(value).is_err() {
         return Err(resolve::invalid(path, "invalid database URI"));
@@ -221,11 +233,44 @@ impl AppConfig {
     if let Some(uri) = &self.task.queue_database_uri {
       check_uri("scheduler.database.url", uri)?;
     }
-    check_uri("auth.session.database_url", &self.auth.session().identity_database_uri)?;
-    match &self.auth {
-      AuthConfig::Basic(config) if config.password.is_empty() => return Err(resolve::invalid("auth.provider.password", "empty secret")),
-      AuthConfig::Oidc(config) if config.client_secret.is_empty() => return Err(resolve::invalid("auth.provider.client_secret", "empty secret")),
+    check_uri("auth.identity.database_url", &self.auth.identity.database_url)?;
+    self
+      .server
+      .validate_external_base_url()
+      .map_err(|message| resolve::invalid("server.external_base_url", message))?;
+    self
+      .auth
+      .webui_policy()
+      .map_err(|error| resolve::invalid("auth.webui.allowed_origins", &error.to_string()))?;
+    if self.server.middlewares.cors.as_ref().is_some_and(|cors| cors.enable) {
+      return Err(resolve::invalid(
+        "server.middlewares.cors",
+        "authentication owns CORS; configure auth.webui.allowed_origins instead of an independent CORS layer",
+      ));
+    }
+    match &self.auth.provider {
+      ProviderAuthConfig::Bundled(config) => {
+        check_uri("auth.provider.database.url", &config.database.url)?;
+        config
+          .validate()
+          .map_err(|_| resolve::invalid("auth.provider", "invalid bundled provider configuration"))?;
+        if matches!(environment, Environment::Production) && url::Url::parse(&config.issuer).is_ok_and(|issuer| issuer.scheme() != "https") {
+          return Err(resolve::invalid("auth.provider.issuer", "production requires an HTTPS issuer"));
+        }
+      }
+      ProviderAuthConfig::Oidc(config) if config.issuer.trim().is_empty() => return Err(resolve::invalid("auth.provider.issuer", "empty issuer")),
+      ProviderAuthConfig::Oidc(config) if config.browser.client_id.trim().is_empty() => {
+        return Err(resolve::invalid("auth.provider.browser.client_id", "empty client id"));
+      }
       _ => (),
+    }
+    for administrator in &self.auth.administrators {
+      if administrator.subject.trim().is_empty() || url::Url::parse(&administrator.issuer).is_err() {
+        return Err(resolve::invalid(
+          "auth.administrators",
+          "administrator requires an exact issuer and nonempty subject",
+        ));
+      }
     }
     if self.task.subscriber_task_concurrency == 0 || self.task.system_task_concurrency == 0 || self.task.cron_interval_duration.is_zero() {
       return Err(resolve::invalid("scheduler", "worker concurrency and cron interval must be positive"));

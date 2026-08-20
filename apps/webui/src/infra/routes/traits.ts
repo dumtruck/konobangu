@@ -4,6 +4,7 @@ import type { ProLinkProps } from "@/components/ui/pro-link";
 
 export type RouterContext = {
   injector?: Injector;
+  securitydeptInjector?: Injector;
 };
 
 export type RouteBreadcrumbItem = {
@@ -19,7 +20,7 @@ export interface RouteStateDataOption {
 export function requireRouterInjector(context: RouterContext): Injector {
   if (!context.injector) {
     throw new Error(
-      "Application runtime must be attached before loading routes.",
+      "Application environment must be attached before loading routes.",
     );
   }
   return context.injector;

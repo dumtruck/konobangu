@@ -1,10 +1,11 @@
-import { inject } from "injection-js";
-import { DOCUMENT } from "./injection.js";
+import { inject } from "@securitydept/client";
+import { PLATFORM_INFO } from "@/app/environment/traits";
 
 export class PlatformService {
-  document = inject(DOCUMENT);
+  private readonly info = inject(PLATFORM_INFO);
 
+  /** Resolved once by the environment; never discovered per call. */
   get userAgent(): string {
-    return this.document.defaultView?.navigator.userAgent || "";
+    return this.info.userAgent;
   }
 }

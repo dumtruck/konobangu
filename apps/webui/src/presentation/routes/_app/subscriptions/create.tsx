@@ -28,16 +28,28 @@ import {
   INSERT_SUBSCRIPTION,
   type SubscriptionForm,
   SubscriptionFormSchema,
+  validateSubscriptionForm,
 } from "@/domains/recorder/schema/subscriptions";
 import { SubscriptionService } from "@/domains/recorder/services/subscription.service";
 import { useInject } from "@/infra/di/inject";
-import { compatFormDefaultValues } from "@/infra/forms/compat";
+import type { FormDraft } from "@/infra/forms/draft";
 import {
   Credential3rdTypeEnum,
   SubscriptionCategoryEnum,
 } from "@/infra/graphql/gql/graphql";
 import type { RouteStateDataOption } from "@/infra/routes/traits";
 import { Credential3rdSelectContent } from "./-credential3rd-select";
+
+/** The untouched draft: empty strings and NaN are not yet a subscription. */
+const EMPTY_SUBSCRIPTION_DRAFT: FormDraft<SubscriptionForm> = {
+  displayName: "",
+  category: "",
+  enabled: true,
+  sourceUrl: "",
+  credentialId: Number.NaN,
+  year: Number.NaN,
+  seasonStr: "",
+};
 
 export const Route = createFileRoute("/_app/subscriptions/create")({
   component: SubscriptionCreateRouteComponent,
@@ -66,23 +78,16 @@ function SubscriptionCreateRouteComponent() {
   });
 
   const form = useAppForm({
-    defaultValues: compatFormDefaultValues<SubscriptionForm>({
-      displayName: "",
-      category: "",
-      enabled: true,
-      sourceUrl: "",
-      credentialId: Number.NaN,
-      year: Number.NaN,
-      seasonStr: "",
-    }),
+    defaultValues: EMPTY_SUBSCRIPTION_DRAFT,
     validators: {
       onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: SubscriptionFormSchema,
     },
     onSubmit: async (submittedForm) => {
+      // The draft only becomes a mutation input once the schema accepts it.
       const input = subscriptionService.transformInsertFormToInput(
-        submittedForm.value,
+        validateSubscriptionForm(submittedForm.value),
       );
       await insertSubscription({
         variables: {

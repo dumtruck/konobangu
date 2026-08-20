@@ -25,7 +25,7 @@ _Single source of truth for Agent identity, code standards, and project rules. R
 ### File Organization
 
 - **Docs**: [`README.md`](README.md) -> [`docs/`](docs/)
-- **Temp**: [`temp/`](temp/) if agents need to create temp files, please use temp folder
+- **Working materials**: Use the ignored `temp/` directory for agent scratch files; repository documents must not link to temporary documents or resources.
 
 ### Tools Preferences
 
@@ -37,13 +37,16 @@ _Single source of truth for Agent identity, code standards, and project rules. R
 - **documentation site**: VitePress consumes docs through tracked relative symlinks; developers must enable symlinks on modern operating systems. See [development rules](docs/en/001-DEVELOPMENT-VERIFICATION.md#documentation-site).
 - **native dependencies**: keep codec source upstream, pin Git dependencies to full commits, and do not vendor codec source trees here.
 - **configuration**: use service-owned nested fields with explicit units; see [configuration contracts](docs/en/004-MEDIA-AND-CONFIGURATION.md).
-- **documentation and evidence**: keep current contracts in topic docs, plans in the roadmap and history in CHANGELOG; retain necessary handoffs/evidence in temp, preserve unrelated workspace changes, and validate links with `just check docs`.
+- **documentation and evidence**: keep current contracts in topic docs, plans in the roadmap and history in CHANGELOG; keep working handoffs/evidence ignored, keep repository documents independent of temporary resources, preserve unrelated workspace changes, and validate links with `just check docs`.
 - **node package manager**: use `pnpm` as the package manager.
 - **rust toolchain**: use `rust-toolchain.toml` to manage the rust toolchain, use `cargo` as the build tool.
 - **typescript**: use tsconfig.json with references for managing the typescript project. Run erasable Node tooling directly as TypeScript; guard shared executable entry points with `import.meta.main`.
 - **python**: use pyproject.toml to manage the python project, use `uv` as the package manager (workspace mode).
 - **webui stack**: use typescript + vite + react + @tanstack/react-xxx seriers + tailwindcss + shadcn/ui for the webui stack.
-- **server stack**: use rust + axum + SecurityDept OIDC/session + serde + snafu + tracing series for the server stack.
+- **webui environment**: `KonobanguEnvironment` (and the pre-polyfill `KonobanguBootstrapEnvironment`) is the only place WebUI platform differences are flattened. Extend the SecurityDept SDK environment pattern: host differences are `CreateKonobanguEnvironmentFor{Host}Options` passed to `createKonobanguEnvironmentFor{Host}` under `apps/webui/src/app/environment`, with Konobangu traits exposed as short injection tokens (`PLATFORM_INFO`, registered as `"PLATFORM_INFO_TRAIT"`). **NEVER** add a parallel host/capability/ports abstraction, read browser globals in services, or assemble providers outside the environment creator. See [runtime contracts](docs/en/001-DEVELOPMENT-VERIFICATION.md#runtime-dependency-and-type-contracts).
+- **webui domain objects**: domain state and lifecycle live in framework-free services and objects; React only bridges. A service drives React through its own signals and never restates an upstream domain's rules. View-scoped objects expose a state signal with counted, reconnectable `connect()`/`disconnect()` (not dispose) and are created by their service. Components read signals, connect/disconnect and forward intent; **NEVER** run domain logic in effects or hold domain state in `useState`/`useRef`. Route-bound CRUD pages are exempt and use TanStack Query/Form directly. See [domain objects](docs/en/001-DEVELOPMENT-VERIFICATION.md#domain-objects-and-the-react-bridge).
+- **webui test fixtures**: unit tests get the application only from `createKonobanguEnvironmentForTest` through the shared fixtures in `apps/webui/src/__test__/support`. One suite owns each behavior; others reuse the fixture or override a single unit through `providers`. Do not hand-write per-case provider lists, service mocks, injectors or cleanup registries. See [test organization](docs/en/001-DEVELOPMENT-VERIFICATION.md#test-organization).
+- **server stack**: use rust + axum + SecurityDept auth contexts + serde + snafu + tracing series for the server stack.
 - **unreleased migrations**: before the first post-refactor release, edit existing migrations directly; do not add compatibility migrations for intermediate implementations. Recreate isolated test databases when migration definitions change.
 - **test**: use cargo test for Rust and testcontainers for external dependencies. Organize tests by unit/integration/e2e as defined in [development rules](docs/en/001-DEVELOPMENT-VERIFICATION.md); keep Rust units inline or in test modules, and lifecycle ownership inside the test framework.
 
@@ -79,6 +82,7 @@ When working with seaography `insert_skips` / `update_skips`:
 - [Authentication](docs/en/002-AUTHENTICATION-DECISION.md) · [中文](docs/zh/002-AUTHENTICATION-DECISION.md)
 - [Task delivery and migrations](docs/en/003-TASK-DELIVERY-AND-MIGRATION.md) · [中文](docs/zh/003-TASK-DELIVERY-AND-MIGRATION.md)
 - [Media and configuration](docs/en/004-MEDIA-AND-CONFIGURATION.md) · [中文](docs/zh/004-MEDIA-AND-CONFIGURATION.md)
+- [Release delivery and acceptance](docs/en/005-RELEASE-ACCEPTANCE.md) · [中文](docs/zh/005-RELEASE-ACCEPTANCE.md)
 - [Roadmap](docs/en/roadmap/001-SHORT-TERM-ROADMAP.md) · [中文](docs/zh/roadmap/001-SHORT-TERM-ROADMAP.md)
 - [Animeta model proposal](docs/en/roadmap/002-ANIMETA-MODEL.md) · [中文](docs/zh/roadmap/002-ANIMETA-MODEL.md)
 - [Release history](CHANGELOG.md)

@@ -18,19 +18,9 @@ async fn main() -> RecorderResult<()> {
   config.auto_migrate = false;
   let database = DatabaseService::from_migration_config(config).await?;
   let result: RecorderResult<()> = async {
-    if builder.migration_preflight {
-      let report = recorder::migrations::legacy::preflight(database.as_ref()).await?;
-      println!("{}", serde_json::to_string_pretty(&report)?);
-      if report.issues.is_empty() {
-        Ok(())
-      } else {
-        Err(sea_orm::DbErr::Migration("Upgrade preflight rejected; no changes applied".into()).into())
-      }
-    } else {
-      database.migrate_up().await?;
-      grant_runtime_memberships(database.as_ref(), &roles).await?;
-      Ok(())
-    }
+    database.migrate_up().await?;
+    grant_runtime_memberships(database.as_ref(), &roles).await?;
+    Ok(())
   }
   .await;
   database.as_ref().clone().close().await?;

@@ -12,7 +12,6 @@ build-email mode="build":
 
 build-webui:
     pnpm --filter webui exec vite build
-    pnpm --filter webui exec biome check --write src/presentation/routeTree.gen.ts
 
 # Build and collect a release artifact through the platform-aware utility.
 [positional-arguments]

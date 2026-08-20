@@ -148,8 +148,8 @@ pub async fn retry(db: &DatabaseTransaction, id: &str) -> Result<(), DbErr> {
     .query_one_raw(Statement::from_sql_and_values(
       DbBackend::Postgres,
       "UPDATE task_runs SET generation = generation+1, status = 'Pending', attempts = 0, run_at = CURRENT_TIMESTAMP, done_at = NULL, last_error = NULL, \
-       cancel_requested_at = NULL, execution_token = NULL, execution_lease_until = NULL, recovering = false WHERE id = $1 AND (execution_lease_until IS NULL \
-       OR execution_lease_until <= clock_timestamp()) RETURNING generation",
+       cancel_requested_at = NULL, execution_token = NULL, execution_lease_until = NULL WHERE id = $1 AND (execution_lease_until IS NULL OR \
+       execution_lease_until <= clock_timestamp()) RETURNING generation",
       [id.to_owned().into()],
     ))
     .await?

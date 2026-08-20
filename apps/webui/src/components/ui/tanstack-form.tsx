@@ -32,9 +32,10 @@ type FormItemContextValue = {
   id: string;
 };
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue,
-);
+// Default null rather than an empty object faked as having an id: a field
+// rendered outside FormItem must fail, not silently produce `id={undefined}`
+// and break every aria-describedby/htmlFor relation on the control.
+const FormItemContext = React.createContext<FormItemContextValue | null>(null);
 
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   const id = React.useId();
@@ -51,7 +52,10 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const useFieldContext = () => {
-  const { id } = React.useContext(FormItemContext);
+  const item = React.useContext(FormItemContext);
+  if (!item)
+    throw new Error("A form field must be rendered inside a FormItem.");
+  const { id } = item;
   const { name, store } = useFormFieldContext();
 
   const errors = useStore(store, (state) => state.meta.errors);

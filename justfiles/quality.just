@@ -62,4 +62,4 @@ _check-types:
 
 [private]
 _check-fmt:
-    cargo fmt -p recorder -p downloader -p testing-torrents -p util-derive --check
+    cargo fmt -p recorder -p downloader -p testing-torrents -p util-derive -p konobangu-configuration -p konobangu-database -p konobangu-auth-provider --check

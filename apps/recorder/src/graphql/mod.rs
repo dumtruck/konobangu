@@ -2,6 +2,7 @@ pub mod config;
 pub mod domains;
 pub mod infra;
 mod schema;
+mod schema_export;
 pub mod service;
 
 pub use config::GraphQLConfig;

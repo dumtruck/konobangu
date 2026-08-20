@@ -11,29 +11,20 @@ use crate::{
   models::cron,
 };
 
+/// Writable input is the plan itself. Occurrences, diagnostics and ownership
+/// are produced by the scheduler, and execution belongs to `task_runs`.
 fn skip_columns_for_entity_input(context: &mut BuilderContext) {
   for column in cron::Column::iter() {
     if matches!(
       column,
-      cron::Column::SubscriberTaskCron
-        | cron::Column::SystemTaskCron
-        | cron::Column::CronExpr
-        | cron::Column::CronTimezone
-        | cron::Column::Enabled
-        | cron::Column::TimeoutMs
-        | cron::Column::MaxAttempts
+      cron::Column::SubscriberTaskCron | cron::Column::SystemTaskCron | cron::Column::CronExpr | cron::Column::CronTimezone | cron::Column::Enabled
     ) {
       continue;
     }
     GraphqlColumnKey::of::<cron::Entity>(context, &column).push_insert_skip(context);
   }
   for column in cron::Column::iter() {
-    if matches!(column, |cron::Column::CronExpr| cron::Column::CronTimezone
-      | cron::Column::Enabled
-      | cron::Column::TimeoutMs
-      | cron::Column::Priority
-      | cron::Column::MaxAttempts)
-    {
+    if matches!(column, cron::Column::CronExpr | cron::Column::CronTimezone | cron::Column::Enabled) {
       continue;
     }
     GraphqlColumnKey::of::<cron::Entity>(context, &column).push_update_skip(context);
@@ -49,8 +40,6 @@ pub fn register_cron_to_schema_context(context: &mut BuilderContext) {
 }
 
 pub fn register_cron_to_schema_builder(mut builder: SeaographyBuilder) -> SeaographyBuilder {
-  builder.register_enumeration::<cron::CronStatus>();
-
   builder = register_entity_default_writable!(builder, cron);
 
   builder

@@ -1,9 +1,6 @@
 mod core;
 
-pub use core::{
-  CHECK_AND_TRIGGER_DUE_CRONS_FUNCTION_NAME, CRON_DUE_DEBUG_EVENT, CRON_DUE_EVENT, NOTIFY_DUE_CRON_WHEN_MUTATING_FUNCTION_NAME,
-  NOTIFY_DUE_CRON_WHEN_MUTATING_TRIGGER_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME,
-};
+pub use core::{SETUP_CRON_EXTRA_FOREIGN_KEYS_FUNCTION_NAME, SETUP_CRON_EXTRA_FOREIGN_KEYS_TRIGGER_NAME};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Duration, Offset, TimeZone, Utc};
@@ -11,7 +8,7 @@ use chrono_tz::Tz;
 use croner::parser::{CronParser, Seconds};
 use sea_orm::{
   ActiveValue::{self, Set},
-  DeriveActiveEnum, DeriveDisplay, DeriveEntityModel, EnumIter, QueryOrder, QuerySelect, TransactionTrait,
+  DeriveEntityModel, EnumIter, QueryOrder, QuerySelect, TransactionTrait,
   entity::prelude::*,
   sea_query::{LockBehavior, LockType},
 };
@@ -23,22 +20,8 @@ use crate::{
   task::{SubscriberTaskTrait, SystemTaskTrait},
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, DeriveActiveEnum, EnumIter, DeriveDisplay, Serialize, Deserialize)]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "cron_status")]
-#[serde(rename_all = "snake_case")]
-pub enum CronStatus {
-  #[sea_orm(string_value = "pending")]
-  Pending,
-  #[sea_orm(string_value = "running")]
-  Running,
-  #[sea_orm(string_value = "completed")]
-  Completed,
-  #[sea_orm(string_value = "failed")]
-  Failed,
-  #[sea_orm(string_value = "disabled")]
-  Disabled,
-}
-
+/// A plan, not an execution: `task_runs` owns attempts, leases and results, so
+/// this entity keeps only the schedule, its owner and scheduling diagnostics.
 #[derive(Debug, Clone, DeriveEntityModel, PartialEq, Serialize, Deserialize)]
 #[sea_orm(table_name = "cron")]
 pub struct Model {
@@ -55,17 +38,6 @@ pub struct Model {
   pub next_run: Option<DateTimeUtc>,
   pub last_run: Option<DateTimeUtc>,
   pub last_error: Option<String>,
-  pub locked_by: Option<String>,
-  pub locked_at: Option<DateTimeUtc>,
-  // default_expr = "5000"
-  pub timeout_ms: Option<i32>,
-  #[sea_orm(default_expr = "0")]
-  pub attempts: i32,
-  #[sea_orm(default_expr = "1")]
-  pub max_attempts: i32,
-  #[sea_orm(default_expr = "0")]
-  pub priority: i32,
-  pub status: CronStatus,
   #[sea_orm(default_expr = "true")]
   pub enabled: bool,
   pub subscriber_task_cron: Option<subscriber_tasks::SubscriberTask>,
@@ -134,7 +106,7 @@ pub enum RelatedEntity {
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
-  async fn before_save<C>(mut self, _db: &C, insert: bool) -> Result<Self, DbErr>
+  async fn before_save<C>(mut self, _db: &C, _insert: bool) -> Result<Self, DbErr>
   where
     C: ConnectionTrait,
   {
@@ -168,16 +140,6 @@ impl ActiveModelBehavior for ActiveModel {
     {
       return Err(DbErr::Custom("Cron subscriber_id does not match system_task_cron.subscriber_id".to_string()));
     }
-    if let ActiveValue::Set(enabled) = self.enabled
-      && !insert
-    {
-      if enabled {
-        self.status = Set(CronStatus::Pending)
-      } else {
-        self.status = Set(CronStatus::Disabled)
-      }
-    }
-
     Ok(self)
   }
 }
@@ -233,10 +195,6 @@ impl Model {
         id: Set(due.id),
         next_run: Set(Some(Self::calculate_next_run_after(&due.cron_expr, &due.cron_timezone, now)?)),
         last_run: Set(Some(scheduled)),
-        status: Set(CronStatus::Pending),
-        locked_by: Set(None),
-        locked_at: Set(None),
-        attempts: Set(0),
         last_error: Set(active.then(|| "Occurrence skipped: prior business run is still active".into())),
         ..Default::default()
       }

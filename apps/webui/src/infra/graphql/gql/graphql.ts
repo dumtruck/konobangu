@@ -91,7 +91,6 @@ export type Credential3rdUpdateInput = {
 
 export type CronFilterInput = {
   and?: Array<CronFilterInput> | null | undefined;
-  attempts?: IntegerFilterInput | null | undefined;
   createdAt?: TextFilterInput | null | undefined;
   cronExpr?: StringFilterInput | null | undefined;
   cronTimezone?: StringFilterInput | null | undefined;
@@ -99,19 +98,13 @@ export type CronFilterInput = {
   id?: IntegerFilterInput | null | undefined;
   lastError?: StringFilterInput | null | undefined;
   lastRun?: TextFilterInput | null | undefined;
-  lockedAt?: TextFilterInput | null | undefined;
-  lockedBy?: StringFilterInput | null | undefined;
-  maxAttempts?: IntegerFilterInput | null | undefined;
   nextRun?: TextFilterInput | null | undefined;
   not?: CronFilterInput | null | undefined;
   or?: Array<CronFilterInput> | null | undefined;
-  priority?: IntegerFilterInput | null | undefined;
-  status?: CronStatusEnumFilterInput | null | undefined;
   subscriberId?: SubscriberIdFilterInput | null | undefined;
   subscriberTaskCron?: unknown;
   subscriptionId?: IntegerFilterInput | null | undefined;
   systemTaskCron?: unknown;
-  timeoutMs?: IntegerFilterInput | null | undefined;
   updatedAt?: TextFilterInput | null | undefined;
 };
 
@@ -119,14 +112,11 @@ export type CronInsertInput = {
   cronExpr: string;
   cronTimezone: string;
   enabled?: boolean | null | undefined;
-  maxAttempts?: number | null | undefined;
   subscriberTaskCron?: SubscriberTaskInput | null | undefined;
   systemTaskCron?: unknown;
-  timeoutMs?: number | null | undefined;
 };
 
 export type CronOrderInput = {
-  attempts?: OrderByEnum | null | undefined;
   createdAt?: OrderByEnum | null | undefined;
   cronExpr?: OrderByEnum | null | undefined;
   cronTimezone?: OrderByEnum | null | undefined;
@@ -134,49 +124,18 @@ export type CronOrderInput = {
   id?: OrderByEnum | null | undefined;
   lastError?: OrderByEnum | null | undefined;
   lastRun?: OrderByEnum | null | undefined;
-  lockedAt?: OrderByEnum | null | undefined;
-  lockedBy?: OrderByEnum | null | undefined;
-  maxAttempts?: OrderByEnum | null | undefined;
   nextRun?: OrderByEnum | null | undefined;
-  priority?: OrderByEnum | null | undefined;
-  status?: OrderByEnum | null | undefined;
   subscriberId?: OrderByEnum | null | undefined;
   subscriberTaskCron?: OrderByEnum | null | undefined;
   subscriptionId?: OrderByEnum | null | undefined;
   systemTaskCron?: OrderByEnum | null | undefined;
-  timeoutMs?: OrderByEnum | null | undefined;
   updatedAt?: OrderByEnum | null | undefined;
-};
-
-export const CronStatusEnum = {
-  Completed: "completed",
-  Disabled: "disabled",
-  Failed: "failed",
-  Pending: "pending",
-  Running: "running",
-} as const;
-
-export type CronStatusEnum =
-  (typeof CronStatusEnum)[keyof typeof CronStatusEnum];
-export type CronStatusEnumFilterInput = {
-  eq?: CronStatusEnum | null | undefined;
-  gt?: CronStatusEnum | null | undefined;
-  gte?: CronStatusEnum | null | undefined;
-  is_in?: Array<CronStatusEnum> | null | undefined;
-  is_not_in?: Array<CronStatusEnum> | null | undefined;
-  is_null?: boolean | null | undefined;
-  lt?: CronStatusEnum | null | undefined;
-  lte?: CronStatusEnum | null | undefined;
-  ne?: CronStatusEnum | null | undefined;
 };
 
 export type CronUpdateInput = {
   cronExpr?: string | null | undefined;
   cronTimezone?: string | null | undefined;
   enabled?: boolean | null | undefined;
-  maxAttempts?: number | null | undefined;
-  priority?: number | null | undefined;
-  timeoutMs?: number | null | undefined;
 };
 
 export type CursorInput = {
@@ -567,15 +526,8 @@ export type GetCronsQuery = {
       nextRun: string | null;
       lastRun: string | null;
       lastError: string | null;
-      status: CronStatusEnum;
-      lockedAt: string | null;
-      lockedBy: string | null;
       createdAt: string;
       updatedAt: string;
-      timeoutMs: number | null;
-      maxAttempts: number;
-      priority: number;
-      attempts: number;
       enabled: boolean;
       subscriberTaskCron: SubscriberTaskType | null;
       subscriberTask: {
@@ -614,19 +566,13 @@ export type UpdateCronsMutation = {
   cronUpdate: Array<{
     id: number;
     cronExpr: string;
+    cronTimezone: string;
     nextRun: string | null;
     lastRun: string | null;
     lastError: string | null;
-    status: CronStatusEnum;
-    lockedAt: string | null;
-    lockedBy: string | null;
     createdAt: string;
     updatedAt: string;
-    timeoutMs: number | null;
     enabled: boolean;
-    maxAttempts: number;
-    priority: number;
-    attempts: number;
     subscriberTaskCron: SubscriberTaskType | null;
   }>;
 };
@@ -639,19 +585,13 @@ export type InsertCronMutation = {
   cronCreateOne: {
     id: number;
     cronExpr: string;
+    cronTimezone: string;
     nextRun: string | null;
     lastRun: string | null;
     lastError: string | null;
-    status: CronStatusEnum;
-    lockedAt: string | null;
-    lockedBy: string | null;
     createdAt: string;
     updatedAt: string;
     enabled: boolean;
-    timeoutMs: number | null;
-    maxAttempts: number;
-    priority: number;
-    attempts: number;
     subscriberTaskCron: SubscriberTaskType | null;
   };
 };
@@ -779,15 +719,8 @@ export type GetSubscriptionDetailQuery = {
           lastRun: string | null;
           lastError: string | null;
           enabled: boolean;
-          status: CronStatusEnum;
-          lockedAt: string | null;
-          lockedBy: string | null;
           createdAt: string;
           updatedAt: string;
-          timeoutMs: number | null;
-          maxAttempts: number;
-          priority: number;
-          attempts: number;
           subscriberTaskCron: SubscriberTaskType | null;
         }>;
       };
@@ -839,14 +772,9 @@ export type GetTasksQuery = {
         nextRun: string | null;
         lastRun: string | null;
         lastError: string | null;
-        status: CronStatusEnum;
-        lockedAt: string | null;
-        lockedBy: string | null;
+        enabled: boolean;
         createdAt: string;
         updatedAt: string;
-        timeoutMs: number | null;
-        maxAttempts: number;
-        attempts: number;
       } | null;
     }>;
     paginationInfo: { total: number; pages: number } | null;
@@ -1437,39 +1365,11 @@ export const GetCronsDocument = {
                       },
                       {
                         kind: "Field",
-                        name: { kind: "Name", value: "status" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "lockedAt" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "lockedBy" },
-                      },
-                      {
-                        kind: "Field",
                         name: { kind: "Name", value: "createdAt" },
                       },
                       {
                         kind: "Field",
                         name: { kind: "Name", value: "updatedAt" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "timeoutMs" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "maxAttempts" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "priority" },
-                      },
-                      {
-                        kind: "Field",
-                        name: { kind: "Name", value: "attempts" },
                       },
                       {
                         kind: "Field",
@@ -1703,19 +1603,16 @@ export const UpdateCronsDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "cronExpr" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "cronTimezone" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "nextRun" } },
                 { kind: "Field", name: { kind: "Name", value: "lastRun" } },
                 { kind: "Field", name: { kind: "Name", value: "lastError" } },
-                { kind: "Field", name: { kind: "Name", value: "status" } },
-                { kind: "Field", name: { kind: "Name", value: "lockedAt" } },
-                { kind: "Field", name: { kind: "Name", value: "lockedBy" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
-                { kind: "Field", name: { kind: "Name", value: "timeoutMs" } },
                 { kind: "Field", name: { kind: "Name", value: "enabled" } },
-                { kind: "Field", name: { kind: "Name", value: "maxAttempts" } },
-                { kind: "Field", name: { kind: "Name", value: "priority" } },
-                { kind: "Field", name: { kind: "Name", value: "attempts" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "subscriberTaskCron" },
@@ -1769,19 +1666,16 @@ export const InsertCronDocument = {
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "id" } },
                 { kind: "Field", name: { kind: "Name", value: "cronExpr" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "cronTimezone" },
+                },
                 { kind: "Field", name: { kind: "Name", value: "nextRun" } },
                 { kind: "Field", name: { kind: "Name", value: "lastRun" } },
                 { kind: "Field", name: { kind: "Name", value: "lastError" } },
-                { kind: "Field", name: { kind: "Name", value: "status" } },
-                { kind: "Field", name: { kind: "Name", value: "lockedAt" } },
-                { kind: "Field", name: { kind: "Name", value: "lockedBy" } },
                 { kind: "Field", name: { kind: "Name", value: "createdAt" } },
                 { kind: "Field", name: { kind: "Name", value: "updatedAt" } },
                 { kind: "Field", name: { kind: "Name", value: "enabled" } },
-                { kind: "Field", name: { kind: "Name", value: "timeoutMs" } },
-                { kind: "Field", name: { kind: "Name", value: "maxAttempts" } },
-                { kind: "Field", name: { kind: "Name", value: "priority" } },
-                { kind: "Field", name: { kind: "Name", value: "attempts" } },
                 {
                   kind: "Field",
                   name: { kind: "Name", value: "subscriberTaskCron" },
@@ -2514,42 +2408,11 @@ export const GetSubscriptionDetailDocument = {
                                   },
                                   {
                                     kind: "Field",
-                                    name: { kind: "Name", value: "status" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "lockedAt" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "lockedBy" },
-                                  },
-                                  {
-                                    kind: "Field",
                                     name: { kind: "Name", value: "createdAt" },
                                   },
                                   {
                                     kind: "Field",
                                     name: { kind: "Name", value: "updatedAt" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "timeoutMs" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: {
-                                      kind: "Name",
-                                      value: "maxAttempts",
-                                    },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "priority" },
-                                  },
-                                  {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "attempts" },
                                   },
                                   {
                                     kind: "Field",
@@ -2829,15 +2692,7 @@ export const GetTasksDocument = {
                             },
                             {
                               kind: "Field",
-                              name: { kind: "Name", value: "status" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "lockedAt" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "lockedBy" },
+                              name: { kind: "Name", value: "enabled" },
                             },
                             {
                               kind: "Field",
@@ -2846,18 +2701,6 @@ export const GetTasksDocument = {
                             {
                               kind: "Field",
                               name: { kind: "Name", value: "updatedAt" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "timeoutMs" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "maxAttempts" },
-                            },
-                            {
-                              kind: "Field",
-                              name: { kind: "Name", value: "attempts" },
                             },
                           ],
                         },

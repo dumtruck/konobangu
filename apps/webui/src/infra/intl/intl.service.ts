@@ -1,27 +1,31 @@
-import { inject } from "injection-js";
-import { DOCUMENT } from "../platform/injection";
+import { inject } from "@securitydept/client";
+import { LOCALE } from "@/app/environment/traits";
 import { formatInstant, parseGraphqlDatetime } from "../time/instant";
 
 export { parseGraphqlDatetime } from "../time/instant";
 
 export class IntlService {
-  document = inject(DOCUMENT);
+  /** Resolved and non-empty; the environment guarantees a preferred locale. */
+  private readonly locale = inject(LOCALE);
+
   get timezone() {
     return Temporal.Now.timeZoneId();
   }
+
   formatTimestamp(timestamp: number, options?: Intl.DateTimeFormatOptions) {
     return formatInstant(
       Temporal.Instant.fromEpochMilliseconds(timestamp),
       options,
-      this.document.defaultView?.navigator.language,
+      this.locale,
     );
   }
+
   formatDatetimeWithTz(datetime: string, options?: Intl.DateTimeFormatOptions) {
     try {
       return formatInstant(
         parseGraphqlDatetime(datetime),
         { timeZoneName: "short", ...options },
-        this.document.defaultView?.navigator.language,
+        this.locale,
       );
     } catch {
       return "Invalid timestamp";

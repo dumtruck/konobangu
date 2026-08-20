@@ -62,11 +62,6 @@ pub fn default_middleware_stack(ctx: Arc<dyn AppContextTrait>) -> Vec<Box<dyn Mi
   let middlewares = &ctx.config().server.middlewares;
 
   vec![
-    // CORS middleware with a default if none
-    Box::new(middlewares.cors.clone().unwrap_or_else(|| cors::Cors {
-      enable: false,
-      ..Default::default()
-    })),
     // Catch Panic middleware with a default if none
     Box::new(middlewares.catch_panic.clone().unwrap_or_else(|| catch_panic::CatchPanic { enable: true })),
     // Etag middleware with a default if none
@@ -128,3 +123,5 @@ pub struct MiddlewareConfig {
   /// Request ID
   pub request_id: Option<request_id::RequestId>,
 }
+
+pub mod native_resources;

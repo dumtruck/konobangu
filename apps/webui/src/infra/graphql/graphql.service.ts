@@ -5,26 +5,37 @@ import {
   InMemoryCache,
   Observable,
 } from "@apollo/client";
-import { createSignal, readonlySignal } from "@securitydept/client";
-import { inject } from "injection-js";
+import { createSignal, inject, readonlySignal } from "@securitydept/client";
+import { ApiTarget } from "@/app/config/context";
+import type { AppLifetime } from "@/app/lifetime/scope";
 import { AuthService } from "@/domains/auth/auth.service";
+import { HTTP_CLIENT } from "@/infra/http/http-client";
 
-export class GraphQLService implements Disposable {
-  private readonly auth = inject(AuthService);
-  private epoch = 0;
-  private identityKey = this.auth.identityKey.get();
-  private controller = new AbortController();
+/**
+ * Owns the Apollo client and its cache. An identity change upstream only tells
+ * this service that its cached data belongs to nobody anymore; it then retires
+ * the client and publishes a new one. Who may send a request, and with which
+ * credential, stays with the HTTP client underneath.
+ */
+export class GraphQLService {
+  private readonly api = inject(ApiTarget);
+  private readonly http = inject(HTTP_CLIENT);
+  private retirement = new AbortController();
+  private ended = false;
   private readonly clientState = createSignal(this.createClient());
+  /** The only thing consumers observe: this domain's own current client. */
   readonly client = readonlySignal(this.clientState);
-  private readonly subscription = this.auth.identityKey
-    .watchStream()
-    .subscribe({
-      next: () => this.switchIdentity(this.auth.identityKey.get()),
-    });
-  private disposed = false;
+  private readonly subscription = inject(
+    AuthService,
+  ).identityKeyChanges.subscribe(() => this.replaceClient());
+
+  static createOwned(lifetime: AppLifetime): GraphQLService {
+    lifetime.signal.throwIfAborted();
+    const service = new GraphQLService();
+    return lifetime.own(service, (value) => value.end());
+  }
 
   get _apollo(): ApolloClient {
-    this.switchIdentity(this.auth.identityKey.get());
     return this.clientState.get();
   }
   get query(): ApolloClient["query"] {
@@ -38,58 +49,38 @@ export class GraphQLService implements Disposable {
   }
 
   private createClient(): ApolloClient {
-    const epoch = this.epoch;
-    const signal = this.controller.signal;
-    const boundary = new ApolloLink(
+    const retired = this.retirement.signal;
+    // A reply that arrives after this client was retired must not reach its
+    // observers or cache; cancelling the request alone cannot cover a reply
+    // that had already been received.
+    const whileCurrent = new ApolloLink(
       (operation, forward) =>
         new Observable((observer) => {
           const subscription = forward(operation).subscribe({
             next: (result) => {
-              if (
-                !this.disposed &&
-                epoch === this.epoch &&
-                this.identityKey === this.auth.identityKey.get()
-              )
-                observer.next(result);
+              if (!retired.aborted) observer.next(result);
             },
             error: (error) => {
-              if (
-                !this.disposed &&
-                epoch === this.epoch &&
-                this.identityKey === this.auth.identityKey.get()
-              )
-                observer.error(error);
+              if (!retired.aborted) observer.error(error);
             },
             complete: () => observer.complete(),
           });
           return () => subscription.unsubscribe();
         }),
     );
-    const http = new HttpLink({
-      uri: "/api/graphql",
-      credentials: "include",
-      headers: { "X-Konobangu-CSRF": "1" },
-      fetch: async (input, init) => {
-        const requestSignal = init?.signal;
-        const response = await fetch(input, {
-          ...init,
-          signal: requestSignal
-            ? AbortSignal.any([requestSignal, signal])
-            : signal,
-        });
-        if (
-          this.disposed ||
-          epoch !== this.epoch ||
-          this.identityKey !== this.auth.identityKey.get()
-        )
-          throw new DOMException("Identity changed", "AbortError");
-        if (response.status === 401)
-          void this.auth.session.refresh().catch(() => undefined);
-        return response;
-      },
-    });
+    const createHttp = (replay: "safe" | "never") =>
+      new HttpLink({
+        uri: this.api.url("graphql"),
+        fetch: (input, init) =>
+          this.http.apolloFetch(retired, replay)(input, init),
+      });
+    const http = ApolloLink.split(
+      (operation) => operation.operationType === "query",
+      createHttp("safe"),
+      createHttp("never"),
+    );
     return new ApolloClient({
-      link: boundary.concat(http),
+      link: whileCurrent.concat(http),
       cache: new InMemoryCache(),
       defaultOptions: {
         watchQuery: {
@@ -106,26 +97,21 @@ export class GraphQLService implements Disposable {
     });
   }
 
-  private switchIdentity(key: string | null): void {
-    if (key === this.identityKey || this.disposed) return;
-    this.epoch++;
-    this.controller.abort();
+  private retire(): void {
+    this.retirement.abort();
     this.clientState.get().stop();
-    this.identityKey = key;
-    this.controller = new AbortController();
+  }
+
+  private replaceClient(): void {
+    if (this.ended) return;
+    this.retire();
+    this.retirement = new AbortController();
     this.clientState.set(this.createClient());
   }
 
-  [Symbol.dispose](): void {
-    this.dispose();
-  }
-
-  dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.epoch++;
+  private end(): void {
+    this.ended = true;
     this.subscription.unsubscribe();
-    this.controller.abort();
-    this.clientState.get().stop();
+    this.retire();
   }
 }

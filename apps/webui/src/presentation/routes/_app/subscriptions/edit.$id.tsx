@@ -37,6 +37,7 @@ import {
   type SubscriptionForm,
   SubscriptionFormSchema,
   UPDATE_SUBSCRIPTIONS,
+  validateSubscriptionForm,
 } from "@/domains/recorder/schema/subscriptions";
 import { SubscriptionService } from "@/domains/recorder/services/subscription.service";
 import { useInject } from "@/infra/di/inject";
@@ -44,7 +45,7 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from "@/infra/errors/apollo";
-import { compatFormDefaultValues } from "@/infra/forms/compat";
+import type { FormDraft } from "@/infra/forms/draft";
 import {
   Credential3rdTypeEnum,
   type GetSubscriptionDetailQuery,
@@ -96,8 +97,8 @@ function FormView({
   );
 
   // Initialize form with current subscription data
-  const defaultValues = useMemo(() => {
-    const base = {
+  const defaultValues = useMemo((): FormDraft<SubscriptionForm> => {
+    const base: FormDraft<SubscriptionForm> = {
       displayName: subscription.displayName,
       category: subscription.category,
       enabled: subscription.enabled,
@@ -122,15 +123,16 @@ function FormView({
   }, [subscription, sourceUrlMeta]);
 
   const form = useAppForm({
-    defaultValues: compatFormDefaultValues<SubscriptionForm>(defaultValues),
+    defaultValues,
     validators: {
       onChangeAsync: SubscriptionFormSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: SubscriptionFormSchema,
     },
     onSubmit: async (submittedForm) => {
+      // The draft only becomes a mutation input once the schema accepts it.
       const input = subscriptionService.transformInsertFormToInput(
-        submittedForm.value,
+        validateSubscriptionForm(submittedForm.value),
       );
 
       await updateSubscription({

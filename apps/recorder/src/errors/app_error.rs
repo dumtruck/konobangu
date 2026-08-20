@@ -73,6 +73,8 @@ pub enum RecorderError {
   #[snafu(display("Configuration is invalid: {message}"))]
   InvalidConfiguration { message: String },
   #[snafu(transparent)]
+  SharedConfigurationError { source: konobangu_configuration::ConfigurationError },
+  #[snafu(transparent)]
   IOError { source: std::io::Error },
   #[snafu(transparent)]
   DbError { source: sea_orm::DbErr },

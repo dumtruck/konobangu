@@ -117,7 +117,7 @@ export const AppNavMainData: NavMainGroup[] = [
       {
         title: "Documentation",
         link: {
-          href: "https://github.com/dumtruck/konobangu/wiki",
+          href: "https://konobangu.apeiraco.com/",
           target: "_blank",
         },
         icon: BookOpen,

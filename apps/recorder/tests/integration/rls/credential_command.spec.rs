@@ -19,7 +19,7 @@ use fetch::reqwest;
 use futures::FutureExt;
 use recorder::{
   app::AppContextTrait,
-  auth::{AuthConfig, AuthService, AuthUserInfo},
+  auth::{AuthService, AuthUserInfo},
   database::{DatabaseService, operation::begin_task_transaction},
   graphql::{build_schema, operation::execute_operation},
   models::auth::{AuthType, Model},
@@ -37,13 +37,13 @@ use super::support::RlsFixture;
 
 fn user(subscriber_id: i32) -> AuthUserInfo {
   AuthUserInfo {
-    auth_type: AuthType::Basic,
+    is_admin: true,
     subscriber_auth: Model {
       id: subscriber_id,
       pid: "command-fixture".into(),
-      issuer: None,
+      issuer: Some("https://fixture.example".into()),
       subscriber_id,
-      auth_type: AuthType::Basic,
+      auth_type: AuthType::Oidc,
       created_at: chrono::Utc::now(),
       updated_at: chrono::Utc::now(),
     },
@@ -74,12 +74,11 @@ async fn cookie(fixture: &RlsFixture, id: i64) -> Option<String> {
     .try_get_by_index(0)
     .unwrap()
 }
-fn command(client: &reqwest::Client, base: &str, id: i64) -> reqwest::RequestBuilder {
+fn command(client: &reqwest::Client, base: &str, id: i64, access: &str) -> reqwest::RequestBuilder {
   client
     .post(format!("{base}/api/credential3rd/{id}/check-available"))
-    .basic_auth("fixture-admin", Some("fixture-password"))
+    .bearer_auth(access)
     .header("Origin", base)
-    .header("X-Konobangu-CSRF", "1")
     .json(&json!({}))
 }
 
@@ -182,11 +181,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
   );
   let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
   let base = format!("http://{}", listener.local_addr().unwrap());
-  let auth: AuthConfig = serde_json::from_value(json!({
-    "provider": {"type": "basic", "username": "fixture-admin", "password": "fixture-password"},
-    "session": {"database_url": fixture.identity_uri, "public_url": base, "cookie_secure": false},
-  }))
-  .unwrap();
+  let auth = fixture.bundled_auth(&base);
   let ctx: Arc<dyn AppContextTrait> = Arc::new(
     TestingAppContext::builder()
       .db(DatabaseService::from_config(config).await.unwrap())
@@ -195,13 +190,13 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
       .auth(AuthService::from_conf(auth).await.unwrap())
       .build(),
   );
+  let access = super::support::bundled_access_token(ctx.auth()).await;
   let schema = build_schema(ctx.clone(), None, None).unwrap();
   let router = credential3rd::create(ctx.clone())
     .await
     .unwrap()
     .apply_to(Router::new())
-    .with_state(ctx.clone())
-    .layer(ctx.auth().runtime().layer());
+    .with_state(ctx.clone());
   let mut server = HttpServer::start(listener, router);
   let client = reqwest::Client::builder().timeout(Duration::from_secs(60)).build().unwrap();
   let mut gate = None;
@@ -211,7 +206,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
     assert!(!schema.sdl().contains("credential3rdCheckAvailable"));
     let own = create(&schema, ctx.as_ref(), 1).await;
     let other = create(&schema, ctx.as_ref(), 1002).await;
-    assert_eq!(command(&client, &base, other).send().await.unwrap().status(), 403);
+    assert_eq!(command(&client, &base, other, &access).send().await.unwrap().status(), 403);
     assert_eq!(
       client
         .post(format!("{base}/api/credential3rd/{own}/check-available"))
@@ -223,31 +218,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
       401
     );
     assert_eq!(
-      command(&client, &base, own)
-        .headers(reqwest::header::HeaderMap::from_iter([(
-          reqwest::header::ORIGIN,
-          "https://foreign.example".parse().unwrap(),
-        )]))
-        .send()
-        .await
-        .unwrap()
-        .status(),
-      403
-    );
-    assert_eq!(
-      command(&client, &base, own)
-        .headers(reqwest::header::HeaderMap::from_iter([(
-          "x-konobangu-csrf".parse().unwrap(),
-          "0".parse().unwrap(),
-        )]))
-        .send()
-        .await
-        .unwrap()
-        .status(),
-      403
-    );
-    assert_eq!(
-      command(&client, &base, own)
+      command(&client, &base, own, &access)
         .headers(reqwest::header::HeaderMap::from_iter([(
           reqwest::header::CONTENT_TYPE,
           "text/plain".parse().unwrap(),
@@ -262,7 +233,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
     assert_eq!(cookie(&fixture, other).await, None);
     assert_eq!(remote.calls.load(Ordering::SeqCst), 0);
 
-    let response = command(&client, &base, own).send().await.unwrap();
+    let response = command(&client, &base, own, &access).send().await.unwrap();
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers()["cache-control"], "no-store");
     assert_eq!(response.json::<Value>().await.unwrap(), json!({"available": true}));
@@ -273,7 +244,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
 
     let failed = create(&schema, ctx.as_ref(), 1).await;
     remote.fail.store(true, Ordering::SeqCst);
-    assert_eq!(command(&client, &base, failed).send().await.unwrap().status(), 502);
+    assert_eq!(command(&client, &base, failed, &access).send().await.unwrap().status(), 502);
     assert_eq!(cookie(&fixture, failed).await, None);
     assert_eq!(remote.calls.load(Ordering::SeqCst), 2);
     remote.fail.store(false, Ordering::SeqCst);
@@ -286,7 +257,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
       release: allowed,
     });
     gate = Some(release);
-    checking = Some(tokio::spawn(command(&client, &base, stale).send()));
+    checking = Some(tokio::spawn(command(&client, &base, stale, &access).send()));
     let concurrent: Result<(), String> = async {
       // Real synchronous credential decryption precedes the remote request.
       tokio::time::timeout(Duration::from_secs(30), entered)
@@ -351,6 +322,16 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
       .try_get_by_index(0)
       .unwrap();
     assert_eq!(ctx.crypto().decrypt_string(&password).unwrap(), "new-fixture-password");
+    let referer_only = client
+      .post(format!("{base}/api/credential3rd/{own}/check-available"))
+      .bearer_auth(&access)
+      .header(reqwest::header::REFERER, format!("{base}/subscriptions/manage"))
+      .json(&json!({}))
+      .send()
+      .await
+      .unwrap();
+    assert_eq!(referer_only.status(), 200);
+    assert_eq!(remote.calls.load(Ordering::SeqCst), 4);
     Ok::<(), String>(())
   })
   .catch_unwind()
@@ -373,7 +354,7 @@ async fn credential_command_uses_short_stages_and_rejects_stale_writes() {
     }
   }
   for result in [
-    ctx.auth().runtime().close().await.map_err(|e| sea_orm::DbErr::Custom(e.to_string())),
+    ctx.auth().close().await.map_err(|e| sea_orm::DbErr::Custom(e.to_string())),
     ctx.db().as_ref().clone().close().await,
   ] {
     if let Err(error) = result {

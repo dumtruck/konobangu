@@ -11,13 +11,14 @@ use super::defs::{
 };
 use crate::{
   app::AppConfig,
-  database::roles::{APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, CAPABILITY_ROLES, TASK_CONTROL_ACCESS_ROLE},
+  database::roles::{APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, AUTH_PROVIDER_ACCESS_ROLE, CAPABILITY_ROLES, TASK_CONTROL_ACCESS_ROLE},
 };
 
 pub struct RuntimeLogins {
   pub app_scoped: String,
   pub auth: String,
   pub task_control: Option<String>,
+  pub auth_provider: Option<String>,
 }
 
 pub(crate) fn login(uri: &str) -> Result<String, DbErr> {
@@ -37,8 +38,12 @@ impl RuntimeLogins {
   pub fn from_config(config: &AppConfig) -> Result<Self, DbErr> {
     Ok(Self {
       app_scoped: login(&config.database.uri)?,
-      auth: login(&config.auth.session().identity_database_uri)?,
+      auth: login(&config.auth.identity.database_url)?,
       task_control: config.task.queue_database_uri.as_deref().map(login).transpose()?,
+      auth_provider: match &config.auth.provider {
+        crate::auth::ProviderAuthConfig::Bundled(provider) => Some(login(&provider.database.url)?),
+        crate::auth::ProviderAuthConfig::Oidc(_) => None,
+      },
     })
   }
 }
@@ -81,10 +86,11 @@ pub async fn create_capability_roles(db: &impl ConnectionTrait) -> Result<(), Db
     db.execute_unprepared(&format!(
       "DO $$ BEGIN
          IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{name}') THEN
-           CREATE ROLE {role} NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS;
+           CREATE ROLE {role} NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB NOREPLICATION;
          END IF;
-         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{name}' AND (rolcanlogin OR rolsuper OR rolbypassrls)) THEN
-           RAISE EXCEPTION 'Capability role must be NOLOGIN NOSUPERUSER NOBYPASSRLS';
+         IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{name}' AND (rolcanlogin OR rolsuper OR rolbypassrls OR rolinherit OR rolcreaterole OR rolcreatedb \
+       OR rolreplication)) THEN
+           RAISE EXCEPTION 'Capability role must be NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEROLE NOCREATEDB NOREPLICATION';
          END IF;
        END $$;"
     ))
@@ -101,6 +107,7 @@ pub async fn grant_runtime_memberships(db: &DatabaseConnection, roles: &RuntimeL
     (APP_SCOPED_ACCESS_ROLE, Some(roles.app_scoped.as_str())),
     (AUTH_ACCESS_ROLE, Some(roles.auth.as_str())),
     (TASK_CONTROL_ACCESS_ROLE, roles.task_control.as_deref()),
+    (AUTH_PROVIDER_ACCESS_ROLE, roles.auth_provider.as_deref()),
   ] {
     let Some(login) = login else { continue };
     grant_membership(&txn, capability, login).await?;
@@ -130,7 +137,6 @@ pub async fn initialize_access(db: &DatabaseConnection) -> Result<(), DbErr> {
   let auth = identifier(Alias::new(AUTH_ACCESS_ROLE));
   let public = identifier(ApplicationSchema::Public);
   let identity = identifier(ApplicationSchema::AuthIdentity);
-  let session = identifier(ApplicationSchema::AuthSession);
   let writable = [
     Subscriptions::Table.into_iden(),
     Bangumi::Table.into_iden(),
@@ -154,11 +160,10 @@ pub async fn initialize_access(db: &DatabaseConnection) -> Result<(), DbErr> {
      GRANT SELECT ON {subscribers}, {subscriber_tasks}, {system_tasks} TO {app};
      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA {public} TO {app};
      GRANT SELECT, INSERT, UPDATE ON {runs}, {outbox} TO {app};
-     GRANT USAGE ON SCHEMA {public}, {identity}, {session} TO {auth};
+     GRANT USAGE ON SCHEMA {public}, {identity} TO {auth};
      GRANT SELECT, INSERT ON {identity}.{auth_table} TO {auth};
      GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA {identity} TO {auth};
-     GRANT INSERT ({display_name}), SELECT ({id}) ON {subscribers} TO {auth};
-     GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA {session} TO {auth};",
+     GRANT INSERT ({display_name}), SELECT ({id}) ON {subscribers} TO {auth};",
       subscribers = public_table(Subscribers::Table),
       subscriber_tasks = public_table(TaskViews::SubscriberTasks),
       system_tasks = public_table(TaskViews::SystemTasks),
@@ -181,6 +186,7 @@ pub async fn initialize_access(db: &DatabaseConnection) -> Result<(), DbErr> {
   let sequence = sequence.ok_or_else(|| DbErr::Custom("Subscriber ID requires its migration-owned sequence".into()))?;
   txn.execute_unprepared(&format!("GRANT USAGE, SELECT ON SEQUENCE {sequence} TO {auth}")).await?;
   grant_task_control_access(&txn).await?;
+  konobangu_auth_provider::grant_access(&txn).await?;
   for role in CAPABILITY_ROLES {
     txn
       .execute_unprepared(&format!("GRANT {} TO CURRENT_USER WITH INHERIT FALSE, SET TRUE", identifier(Alias::new(role)),))

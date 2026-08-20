@@ -8,8 +8,6 @@ use crate::{app::AppContextTrait, errors::RecorderResult};
 
 pub const SYSTEM_TASK_APALIS_NAME: &str = "system_task";
 pub const SUBSCRIBER_TASK_APALIS_NAME: &str = "subscriber_task";
-pub const SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_FUNCTION_NAME: &str = "setup_apalis_jobs_extra_foreign_keys";
-pub const SETUP_APALIS_JOBS_EXTRA_FOREIGN_KEYS_TRIGGER_NAME: &str = "setup_apalis_jobs_extra_foreign_keys_trigger";
 
 #[async_trait]
 pub trait AsyncTaskTrait: Serialize + DeserializeOwned + Sized {

@@ -1,79 +1,79 @@
 name: Testing Torrents Container
 
 on:
-  workflow_dispatch:
   workflow_call:
     inputs:
       source_sha:
-        description: Tested source commit selected by the release orchestrator.
+        description: Immutable source commit from the release plan.
+        required: true
+        type: string
+      candidate_id:
+        description: Immutable caller plan identity.
         required: true
         type: string
     outputs:
       image_digest:
-        value: ${{ jobs.build-container.outputs.digest }}
-      source_sha:
-        value: ${{ jobs.plan.outputs.source_sha }}
-      metadata_sha256:
-        value: ${{ jobs.plan.outputs.metadata_sha256 }}
+        value: ${{ jobs.publish.outputs.digest }}
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  plan:
-    if: github.ref == 'refs/heads/release'
+  publish:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      packages: write
     outputs:
-      enabled: ${{ steps.plan.outputs.testing_torrents_image }}
-      source_sha: ${{ steps.plan.outputs.source_sha }}
-      metadata_sha256: ${{ steps.plan.outputs.metadata_sha256 }}
-      version: ${{ steps.plan.outputs.version }}
-      tags: ${{ steps.plan.outputs.testing_torrents_image_tags }}
+      digest: ${{ steps.receipt.outputs.image_digest }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.source_sha || github.sha }}
+          ref: ${{ inputs.source_sha }}
       - uses: ./.github/actions/setup
         with:
           extra-tools: ''
-      - id: plan
-        run: mise exec -- just release plan --format github-output
-
-  build-container:
-    needs: plan
-    if: needs.plan.outputs.enabled == 'true'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    environment: stable-release
-    outputs:
-      digest: ${{ steps.image.outputs.digest }}
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
+      # The caller run owns this plan. A caller-provided boolean cannot authorize publishing.
+      - uses: actions/download-artifact@v4
         with:
-          ref: ${{ needs.plan.outputs.source_sha }}
+          name: release-candidate-plan
+          path: temp/release/plan
+      - name: Verify release caller and approval
+        run: mise exec -- just release publisher-check temp/release/plan/candidate.json --candidate-id "$CANDIDATE_ID"
+        env:
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/setup-qemu-action@v3
-      - id: image
-        uses: docker/build-push-action@v5
+      - id: preflight
+        run: mise exec -- just release image preflight temp/release/plan/candidate.json testing_torrents_image temp/release/fixture-image.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish selected fixture
+        if: steps.preflight.outputs.image_exists != 'true'
+        run: mise exec -- just release-image fixture packages/testing-torrents "$IMAGE_TAGS" "$SOURCE_SHA" "$VERSION" "$CANDIDATE_ID" "$METADATA_SHA256"
+        env:
+          IMAGE_TAGS: ${{ steps.preflight.outputs.image_tags }}
+          SOURCE_SHA: ${{ steps.preflight.outputs.source_sha }}
+          VERSION: ${{ steps.preflight.outputs.version }}
+          CANDIDATE_ID: ${{ steps.preflight.outputs.candidate_id }}
+          METADATA_SHA256: ${{ steps.preflight.outputs.metadata_sha256 }}
+      - id: receipt
+        run: mise exec -- just release image receipt temp/release/plan/candidate.json testing_torrents_image temp/release/fixture-image.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
         with:
-          context: packages/testing-torrents
-          file: packages/testing-torrents/Dockerfile
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ${{ needs.plan.outputs.tags }}
-          labels: |
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.revision=${{ needs.plan.outputs.source_sha }}
-            org.opencontainers.image.version=${{ needs.plan.outputs.version }}
-            io.apeiraco.konobangu.release-metadata-sha256=${{ needs.plan.outputs.metadata_sha256 }}
-          cache-from: type=gha,scope=testing-torrents
-          cache-to: type=gha,scope=testing-torrents,mode=min
+          name: fixture-image-receipt
+          path: temp/release/fixture-image.json
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error

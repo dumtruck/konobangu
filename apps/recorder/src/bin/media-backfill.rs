@@ -65,7 +65,7 @@ async fn run_main() -> RecorderResult<()> {
   if let Some(ctx) = context {
     use recorder::app::AppContextTrait;
     ctx.task().queue_database()?.clone().close().await?;
-    ctx.auth().runtime().close().await?;
+    ctx.auth().close().await?;
     ctx.db().as_ref().clone().close().await?;
   }
   Ok(())

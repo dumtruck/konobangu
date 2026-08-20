@@ -21,8 +21,11 @@ layout {
         children
     }
     tab name="WebUI" {
-        pane command="just" {
+        pane name="Vite" command="just" {
             args "dev-webui"
+        }
+        pane name="Types" command="just" {
+            args "dev-types"
         }
     }
     tab name="Proxy" {

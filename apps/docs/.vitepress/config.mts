@@ -64,6 +64,11 @@ const documents = [
     zh: "媒体与配置",
   },
   {
+    path: "005-RELEASE-ACCEPTANCE",
+    en: "Release acceptance",
+    zh: "发布交付与验收",
+  },
+  {
     path: "roadmap/001-SHORT-TERM-ROADMAP",
     en: "Short-term roadmap",
     zh: "短期路线图",

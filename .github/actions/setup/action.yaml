@@ -5,7 +5,10 @@ inputs:
     description: Space-separated mise tools to activate alongside just, Node and pnpm.
     default: rust
   browser:
-    description: Install Chromium and its host libraries.
+    description: Install modern browser engines and their host libraries.
+    default: 'false'
+  browser-runtime:
+    description: Install the LTS Node runtime for framework-owned service fixtures without browsers.
     default: 'false'
   cache-mode:
     description: >
@@ -85,15 +88,16 @@ runs:
       uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'apps/webui/package.json') }}
+        key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'apps/webui/package.json', 'justfiles/setup.just', 'justfiles/test.just') }}
         restore-keys: playwright-${{ runner.os }}-${{ runner.arch }}-
+    - name: Install the fixture Node runtime
+      if: inputs.browser == 'true' || inputs.browser-runtime == 'true'
+      shell: bash
+      run: mise install node@24.15.0
     - name: Install the browser fixture
       if: inputs.browser == 'true'
       shell: bash
-      run: |
-        mise install node@24.15.0
-        mise exec -- pnpm --filter webui exec playwright install --with-deps chromium
-        mise exec node@24.15.0 -- pnpm dlx playwright@1.51.1 install chromium --only-shell
+      run: mise exec node@24.15.0 -- just setup-browser
     - name: Save the browser fixture
       if: inputs.browser == 'true' && inputs.browser-cache-mode == 'read-write' && steps.browser-cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@caa296126883cff596d87d8935842f9db880ef25 # v5

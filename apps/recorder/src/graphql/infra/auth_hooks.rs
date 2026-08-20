@@ -102,9 +102,7 @@ impl LifecycleHooksInterface for SubscriberAuthHooks {
   /// Entity guard — checks that the caller is authenticated.
   fn entity_guard(&self, ctx: &ResolverContext, entity: &str, _action: OperationType) -> GuardAction {
     match ctx.ctx.data::<AuthUserInfo>() {
-      Ok(user) if entity == "SystemTasks" && user.auth_type != crate::models::auth::AuthType::Basic => {
-        GuardAction::Block(Some("System tasks require the explicitly configured administrator".into()))
-      }
+      Ok(user) if entity == "SystemTasks" && !user.is_admin => GuardAction::Block(Some("System tasks require the explicitly configured administrator".into())),
       Ok(_) => GuardAction::Allow,
       Err(err) => GuardAction::Block(Some(err.message)),
     }
@@ -122,7 +120,7 @@ impl LifecycleHooksInterface for SubscriberAuthHooks {
           task.set_cron_id(None);
         }
         if let sea_orm::ActiveValue::Set(Some(task)) = &mut cron.system_task_cron {
-          if user.auth_type != crate::models::auth::AuthType::Basic {
+          if !user.is_admin {
             return GuardAction::Block(Some("System schedules require the explicitly configured administrator".into()));
           }
           task.set_subscriber_id(Some(user.subscriber_auth.subscriber_id));
@@ -152,7 +150,7 @@ impl LifecycleHooksInterface for SubscriberAuthHooks {
         let subscriber_id = user_info.subscriber_auth.subscriber_id;
         let scope = filter_fn(subscriber_id, action == OperationType::Read && matches!(entity, "Feeds" | "Cron"));
         // Shared historical subscribers do not confer administrator privileges.
-        Some(if entity == "Cron" && user_info.auth_type != crate::models::auth::AuthType::Basic {
+        Some(if entity == "Cron" && !user_info.is_admin {
           Condition::all().add(scope).add(crate::models::cron::Column::SystemTaskCron.is_null())
         } else {
           scope

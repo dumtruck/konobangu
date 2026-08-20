@@ -1,0 +1,322 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Tested branch reference (refs/heads/release).
+        required: true
+        type: string
+      source_sha:
+        description: Full tested commit SHA.
+        required: true
+        type: string
+      tests_run_id:
+        description: Successful Development Verification run ID.
+        required: true
+        type: string
+      tests_run_attempt:
+        description: Exact successful attempt of that run.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  packages: read
+
+concurrency:
+  group: konobangu-release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/release'
+    runs-on: ubuntu-24.04
+    outputs:
+      has_artifacts: ${{ steps.candidate.outputs.has_artifacts }}
+      bundles: ${{ steps.candidate.outputs.bundles }}
+      runtime_image: ${{ steps.candidate.outputs.runtime_image }}
+      testing_torrents_image: ${{ steps.candidate.outputs.testing_torrents_image }}
+      prerelease: ${{ steps.candidate.outputs.prerelease }}
+      public_retry: ${{ steps.candidate.outputs.public_retry }}
+      artifact_ids: ${{ steps.candidate.outputs.artifact_ids }}
+      candidate_id: ${{ steps.candidate.outputs.candidate_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - name: Verify source before executing tested checkout
+        run: mise exec -- just release source-check --source-ref "$SOURCE_REF" --source-sha "$SOURCE_SHA" --run-id "$TESTS_RUN_ID" --attempt "$TESTS_RUN_ATTEMPT"
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TESTS_RUN_ID: ${{ inputs.tests_run_id }}
+          TESTS_RUN_ATTEMPT: ${{ inputs.tests_run_attempt }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - id: candidate
+        run: mise exec -- just release candidate --source-ref "$SOURCE_REF" --source-sha "$SOURCE_SHA" --run-id "$TESTS_RUN_ID" --attempt "$TESTS_RUN_ATTEMPT" --output temp/release/plan
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          TESTS_RUN_ID: ${{ inputs.tests_run_id }}
+          TESTS_RUN_ATTEMPT: ${{ inputs.tests_run_attempt }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: steps.candidate.outputs.has_artifacts == 'true'
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan/candidate.json
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: steps.candidate.outputs.public_retry == 'true' && steps.candidate.outputs.runtime_image != 'true' && steps.candidate.outputs.testing_torrents_image != 'true'
+        with:
+          name: publication-receipt
+          path: temp/release/plan/publication-receipt.json
+          retention-days: 30
+          overwrite: true
+          if-no-files-found: error
+
+  assemble:
+    needs: plan
+    if: needs.plan.outputs.has_artifacts == 'true' && needs.plan.outputs.public_retry != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+          browser-runtime: 'true'
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan
+      - name: Require exact immutable ZIP digests
+        run: mise exec -- just release inputs-check temp/release/plan/candidate.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        if: needs.plan.outputs.artifact_ids != ''
+        with:
+          artifact-ids: ${{ needs.plan.outputs.artifact_ids }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.tests_run_id }}
+          path: temp/release/inputs
+      - run: mise exec -- just release assemble temp/release/plan/candidate.json temp/release/inputs temp/release/prepared
+      - name: Prepare runtime image context
+        if: needs.plan.outputs.runtime_image == 'true'
+        run: mise exec -- just release image-context temp/release/plan/candidate.json temp/release/inputs temp/release/runtime-image-context
+      - name: Verify runtime container from tested inputs
+        if: needs.plan.outputs.runtime_image == 'true'
+        run: mise exec -- just test browser --project=integration tests/integration/runtime-image/runtime-image.spec.ts
+        env:
+          KONOBANGU_RUNTIME_CONTEXT: temp/release/runtime-image-context
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-prepared
+          path: temp/release/prepared
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: needs.plan.outputs.runtime_image == 'true'
+        with:
+          name: release-runtime-image-context
+          path: temp/release/runtime-image-context
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
+
+  approval:
+    name: Stable release approval
+    needs: [plan, assemble]
+    if: always() && needs.plan.result == 'success' && needs.plan.outputs.has_artifacts == 'true' && needs.plan.outputs.prerelease == 'false' && (needs.assemble.result == 'success' || needs.plan.outputs.public_retry == 'true')
+    runs-on: ubuntu-24.04
+    environment: stable-release
+    steps:
+      - run: echo "Approved immutable candidate $CANDIDATE_ID"
+        env:
+          CANDIDATE_ID: ${{ needs.plan.outputs.candidate_id }}
+
+  reserve:
+    needs: [plan, assemble, approval]
+    if: always() && needs.plan.result == 'success' && needs.plan.outputs.has_artifacts == 'true' && (needs.assemble.result == 'success' || needs.plan.outputs.public_retry == 'true') && (needs.approval.result == 'success' || needs.plan.outputs.prerelease == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan
+      - run: mise exec -- just release publish reserve temp/release/plan/candidate.json temp/release/reservation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  runtime-image:
+    needs: [plan, reserve]
+    if: needs.plan.outputs.runtime_image == 'true' && needs.plan.outputs.public_retry != 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-runtime-image-context
+          path: temp/release/runtime-image-context
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: preflight
+        run: mise exec -- just release image preflight temp/release/plan/candidate.json runtime_image temp/release/runtime-image.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build tested runtime image
+        if: steps.preflight.outputs.image_exists != 'true'
+        run: mise exec -- just release-image runtime temp/release/runtime-image-context "$IMAGE_TAGS" "$SOURCE_SHA" "$VERSION" "$CANDIDATE_ID" "$METADATA_SHA256"
+        env:
+          IMAGE_TAGS: ${{ steps.preflight.outputs.image_tags }}
+          SOURCE_SHA: ${{ steps.preflight.outputs.source_sha }}
+          VERSION: ${{ steps.preflight.outputs.version }}
+          CANDIDATE_ID: ${{ steps.preflight.outputs.candidate_id }}
+          METADATA_SHA256: ${{ steps.preflight.outputs.metadata_sha256 }}
+      - run: mise exec -- just release image receipt temp/release/plan/candidate.json runtime_image temp/release/runtime-image.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-image-receipt
+          path: temp/release/runtime-image.json
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
+
+  fixture:
+    needs: [plan, reserve]
+    if: needs.plan.outputs.testing_torrents_image == 'true' && needs.plan.outputs.public_retry != 'true'
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    uses: ./.github/workflows/testing-torrents-container.yaml
+    with:
+      source_sha: ${{ inputs.source_sha }}
+      candidate_id: ${{ needs.plan.outputs.candidate_id }}
+    secrets: inherit
+
+  finalize:
+    needs: [plan, reserve, runtime-image, fixture]
+    if: always() && needs.reserve.result == 'success' && needs.plan.outputs.public_retry != 'true' && (needs['runtime-image'].result == 'success' || needs.plan.outputs.runtime_image != 'true') && (needs.fixture.result == 'success' || needs.plan.outputs.testing_torrents_image != 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-prepared
+          path: temp/release/prepared
+      - uses: actions/download-artifact@v4
+        if: needs.plan.outputs.runtime_image == 'true'
+        with:
+          name: runtime-image-receipt
+          path: temp/release/images
+      - uses: actions/download-artifact@v4
+        if: needs.plan.outputs.testing_torrents_image == 'true'
+        with:
+          name: fixture-image-receipt
+          path: temp/release/images
+      - run: mise exec -- just release publish finalize temp/release/plan/candidate.json temp/release/prepared --images-directory temp/release/images
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        if: always() && needs.plan.outputs.runtime_image != 'true' && needs.plan.outputs.testing_torrents_image != 'true'
+        with:
+          name: publication-receipt
+          path: temp/release/prepared/publication-receipt.json
+          retention-days: 30
+          overwrite: true
+          if-no-files-found: warn
+
+  aliases:
+    needs: [plan, reserve, finalize]
+    if: always() && needs.reserve.result == 'success' && (needs.finalize.result == 'success' || needs.plan.outputs.public_retry == 'true') && (needs.plan.outputs.runtime_image == 'true' || needs.plan.outputs.testing_torrents_image == 'true')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-plan
+          path: temp/release/plan
+      - run: mise exec -- just release publish aliases temp/release/plan/candidate.json temp/release/publication
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: publication-receipt
+          path: temp/release/publication/publication-receipt.json
+          retention-days: 30
+          overwrite: true
+          if-no-files-found: warn

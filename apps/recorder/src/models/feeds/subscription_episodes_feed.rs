@@ -85,9 +85,7 @@ impl RssFeedTrait for SubscriptionEpisodesFeed {
   }
 
   fn get_link(&self, _ctx: &dyn AppContextTrait, api_base: &Url) -> Option<Cow<'_, str>> {
-    let api_base = api_base
-      .join(&format!("{}/rss/{}", controller::feeds::CONTROLLER_PREFIX, self.feed.token))
-      .ok()?;
+    let api_base = controller::feeds::rss_url(api_base, &self.feed.token).ok()?;
     Some(Cow::Owned(api_base.to_string()))
   }
 

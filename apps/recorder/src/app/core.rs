@@ -1,13 +1,12 @@
 use std::{net::SocketAddr, sync::Arc};
 
-use axum::{Router, middleware::from_fn_with_state};
+use axum::Router;
 use tokio::{net::TcpSocket, signal};
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::instrument;
 
 use super::{builder::AppBuilder, context::AppContextTrait};
 use crate::{
-  auth::webui_auth_middleware,
   errors::{RecorderError, RecorderResult},
   web::{
     controller::{self, core::ControllerTrait},
@@ -77,25 +76,22 @@ impl App {
 
           Ok::<(), RecorderError>(())
         },
-        async {
-          let cleanup = context.auth().runtime().cleanup_loop();
-          if graceful_shutdown {
-            tokio::select! { _ = cleanup => {}, _ = Self::shutdown_signal() => {} }
-          } else {
-            cleanup.await;
-          }
-          Ok::<(), RecorderError>(())
-        }
       )?;
       Ok::<_, RecorderError>(())
     }
     .await;
-    let closed = context.auth().runtime().close().await;
+    let closed = Self::close_context(context.as_ref()).await;
+    result?;
+    closed?;
+    Ok(())
+  }
+
+  pub(crate) async fn close_context(context: &dyn AppContextTrait) -> RecorderResult<()> {
+    let auth_closed = context.auth().close().await;
     let queue_closed = context.task().close().await;
     let media_closed = context.media().shutdown().await;
     let business_closed = context.db().as_ref().clone().close().await;
-    result?;
-    closed?;
+    auth_closed?;
     queue_closed?;
     media_closed?;
     business_closed?;
@@ -105,26 +101,28 @@ impl App {
   pub async fn router(context: Arc<dyn AppContextTrait>) -> RecorderResult<Router> {
     let mut router = Router::<Arc<dyn AppContextTrait>>::new();
 
-    let (graphql_c, oidc_c, metadata_c, static_c, feeds_c, credential_c) = futures::try_join!(
+    let (graphql_c, auth_c, metadata_c, static_c, feeds_c, credential_c) = futures::try_join!(
       controller::graphql::create(context.clone()),
-      controller::oidc::create(context.clone()),
+      controller::auth::create(context.clone()),
       controller::metadata::create(context.clone()),
       controller::r#static::create(context.clone()),
       controller::feeds::create(context.clone()),
       controller::credential3rd::create(context.clone())
     )?;
 
-    for c in [graphql_c, oidc_c, metadata_c, static_c, feeds_c, credential_c] {
+    for c in [graphql_c, auth_c, metadata_c, static_c, feeds_c, credential_c] {
       router = c.apply_to(router);
     }
 
+    // The WebUI bundle is public: the same prebuilt assets must
+    // load before any auth client exists, and an independent static host
+    // serves them with no credential at all.
     router = router
       .route("/api/{*path}", axum::routing::any(|| async { axum::http::StatusCode::NOT_FOUND }))
       .fallback_service(
         ServeDir::new(std::path::Path::new(context.working_dir()).join("webui"))
           .fallback(ServeFile::new(std::path::Path::new(context.working_dir()).join("webui/index.html"))),
-      )
-      .layer(from_fn_with_state(context.clone(), webui_auth_middleware));
+      );
 
     let middlewares = default_middleware_stack(context.clone());
     for mid in middlewares {
@@ -134,7 +132,14 @@ impl App {
       }
     }
 
-    Ok(router.with_state(context.clone()).layer(context.auth().runtime().layer()))
+    // Preflight runs outside authentication and every response, including a
+    // denial, carries the same configured browser boundary.
+    router = router.layer(crate::web::middleware::cors::for_auth(context.auth())?);
+    let mut router = router.with_state(context.clone());
+    if let Some(provider) = context.auth().bundled_provider() {
+      router = router.nest("/auth-provider", provider.clone().router());
+    }
+    Ok(router)
   }
 
   async fn shutdown_signal() {

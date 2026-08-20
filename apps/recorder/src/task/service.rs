@@ -2,7 +2,7 @@ use std::{future::Future, sync::Arc, time::Duration};
 
 use apalis::prelude::*;
 use chrono::Utc;
-use sea_orm::{ActiveModelTrait, ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, Statement, TransactionTrait};
+use sea_orm::{ActiveModelTrait, ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, Iden, Statement, TransactionTrait};
 use tokio::sync::watch;
 use uuid::Uuid;
 
@@ -14,6 +14,7 @@ use crate::{
   app::AppContextTrait,
   database::roles::TASK_CONTROL_ACCESS_ROLE,
   errors::{RecorderError, RecorderResult},
+  migrations::defs::{ApalisSchema, ApplicationSchema, Cron, TaskOutbox, TaskRuns},
   models::cron,
 };
 
@@ -34,26 +35,28 @@ impl TaskService {
         .await
         .map_err(|_| DbErr::Custom("Task-control database connection failed (details redacted)".into()))?;
       let validated = async {
+        crate::database::roles::validate_capability_role(&db, TASK_CONTROL_ACCESS_ROLE).await?;
         let row = db
           .query_one_raw(Statement::from_sql_and_values(
             DbBackend::Postgres,
-            "SELECT rolsuper, rolbypassrls, pg_has_role(current_user, $1::text, 'USAGE') AS task_control, EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace \
-             n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','apalis','auth_identity','auth_session') AND \
-             pg_has_role(current_user,c.relowner,'MEMBER')) AS owner, (EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE \
-             n.nspname='public' AND c.relname IN \
-             ('subscriptions','bangumi','episodes','subscription_bangumi','subscription_episode','downloaders','downloads','credential3rd','feeds') AND \
-             has_table_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,DELETE')) OR has_schema_privilege(current_user,'auth_identity','USAGE') OR \
-             has_schema_privilege(current_user,'auth_session','USAGE')) AS private_access FROM pg_roles WHERE rolname=current_user",
-            [TASK_CONTROL_ACCESS_ROLE.into()],
+            "SELECT EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ($1,$2,$3,$4) AND \
+             pg_has_role(current_user,c.relowner,'MEMBER')) AS owner,
+             (EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname=$1 AND c.relkind IN ('r','p','v','m','f') AND \
+             c.relname NOT IN ($5,$6,$7) AND has_table_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,DELETE')) OR \
+             has_schema_privilege(current_user,$3,'USAGE') OR has_schema_privilege(current_user,$4,'USAGE')) AS private_access",
+            [
+              ApplicationSchema::Public.to_string().into(),
+              ApalisSchema::Schema.to_string().into(),
+              ApplicationSchema::AuthIdentity.to_string().into(),
+              konobangu_auth_provider::provider_schema_name().into(),
+              Cron::Table.to_string().into(),
+              TaskRuns::Table.to_string().into(),
+              TaskOutbox::Table.to_string().into(),
+            ],
           ))
           .await?
           .ok_or_else(|| DbErr::Custom("Task-control database role is missing".into()))?;
-        if row.try_get::<bool>("", "rolsuper")?
-          || row.try_get::<bool>("", "rolbypassrls")?
-          || row.try_get::<bool>("", "owner")?
-          || row.try_get::<bool>("", "private_access")?
-          || !row.try_get::<bool>("", "task_control")?
-        {
+        if row.try_get::<bool>("", "owner")? || row.try_get::<bool>("", "private_access")? {
           return Err(DbErr::Custom(
             "Task-control pool requires inherited task-control access without private application access".into(),
           ));
@@ -207,10 +210,10 @@ impl TaskService {
     let claimed = db
       .query_one_raw(Statement::from_sql_and_values(
         DbBackend::Postgres,
-        "UPDATE task_runs SET status='Running', execution_token=$3, execution_lease_until=clock_timestamp()+INTERVAL '120 seconds', attempts=attempts+CASE \
-         WHEN recovering THEN 0 ELSE 1 END, recovering=false WHERE id=$1 AND generation=$2 AND archived_at IS NULL AND cancel_requested_at IS NULL AND \
-         ((status IN ('Pending','Scheduled') AND run_at <= clock_timestamp()) OR (status='Running' AND execution_lease_until <= clock_timestamp())) AND \
-         (attempts < max_attempts OR recovering) RETURNING kind,subscriber_id,payload,payload_version,attempts,max_attempts",
+        "UPDATE task_runs SET status='Running', execution_token=$3, execution_lease_until=clock_timestamp()+INTERVAL '120 seconds', attempts=attempts+1 WHERE \
+         id=$1 AND generation=$2 AND archived_at IS NULL AND cancel_requested_at IS NULL AND ((status IN ('Pending','Scheduled') AND run_at <= \
+         clock_timestamp()) OR (status='Running' AND execution_lease_until <= clock_timestamp())) AND attempts < max_attempts RETURNING \
+         kind,subscriber_id,payload,payload_version,attempts,max_attempts",
         [envelope.task_id.clone().into(), envelope.generation.into(), token.into()],
       ))
       .await?;
@@ -218,8 +221,8 @@ impl TaskService {
       db.execute_raw(Statement::from_sql_and_values(
         DbBackend::Postgres,
         "UPDATE task_runs SET status='Failed', done_at=clock_timestamp(), execution_token=NULL, execution_lease_until=NULL, last_error='Task execution budget \
-         exhausted' WHERE id=$1 AND generation=$2 AND cancel_requested_at IS NULL AND archived_at IS NULL AND attempts >= max_attempts AND NOT recovering AND \
-         (status IN ('Pending','Scheduled') OR (status='Running' AND execution_lease_until <= clock_timestamp()))",
+         exhausted' WHERE id=$1 AND generation=$2 AND cancel_requested_at IS NULL AND archived_at IS NULL AND attempts >= max_attempts AND (status IN \
+         ('Pending','Scheduled') OR (status='Running' AND execution_lease_until <= clock_timestamp()))",
         [envelope.task_id.clone().into(), envelope.generation.into()],
       ))
       .await?;

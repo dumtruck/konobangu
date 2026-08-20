@@ -1,6 +1,24 @@
-import { createBootstrap } from "./app/bootstrap";
+import {
+  BOOTSTRAP_DEADLINE_MS,
+  createBootstrap,
+  createBootstrapStages,
+} from "./app/bootstrap";
+import { createKonobanguBootstrapEnvironmentForNativeWeb } from "./app/environment/bootstrap";
+import { ensurePolyfills } from "./app/polyfills";
 
-const bootstrap = createBootstrap(() => import("./app/entry"));
+// The one place the pre-polyfill environment is resolved; every stage below
+// consumes the result instead of reaching for a global of its own.
+const environment = createKonobanguBootstrapEnvironmentForNativeWeb({
+  window,
+  ensurePolyfills: () => ensurePolyfills(),
+  deadlineMs: BOOTSTRAP_DEADLINE_MS,
+  allowInsecureLoopback: import.meta.env.DEV,
+});
+const bootstrap = createBootstrap(
+  () => import("./app/entry"),
+  environment,
+  createBootstrapStages(environment),
+);
 const container = document.getElementById("app");
 function stop() {
   window.removeEventListener("pagehide", onPageHide);

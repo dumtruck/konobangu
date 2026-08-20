@@ -1,0 +1,15 @@
+[package]
+name = "konobangu-configuration"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/apeiraco/konobangu"
+publish = false
+
+[dependencies]
+figment = { version = "0.10", features = ["toml", "json", "env", "yaml"] }
+shellexpand = { version = "=3.1.2", default-features = false, features = ["base-0"] }
+snafu = { workspace = true }
+
+[lints]
+workspace = true

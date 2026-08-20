@@ -1,0 +1,43 @@
+[package]
+name = "konobangu-auth-provider"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/apeiraco/konobangu"
+publish = false
+
+[dependencies]
+async-trait = { workspace = true }
+axum = { workspace = true }
+base64 = { workspace = true }
+chrono = { workspace = true }
+konobangu-database = { workspace = true }
+openidconnect = { version = "=4.0.1", default-features = false }
+oxide-auth = "=0.6.1"
+oxide-auth-async = "=0.2.1"
+securitydept-core = { version = "=0.3.3", default-features = false, features = ["basic-auth-context", "realip", "creds-rfc9068"] }
+jsonwebtoken = { version = "11", default-features = false, features = ["rust_crypto"] }
+rsa = { version = "0.9", features = ["pem", "sha2"] }
+sea-orm = { version = "=2.0.4", default-features = false, features = ["sqlx-postgres", "runtime-tokio", "macros", "with-json", "with-chrono"] }
+sea-query = "1"
+sea-orm-migration = { version = "=2.0.4", default-features = false, features = ["sqlx-postgres", "runtime-tokio"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = "0.10"
+snafu = { workspace = true }
+tokio = { workspace = true }
+tower-http = { version = "0.7", features = ["cors"] }
+url = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
+
+[dev-dependencies]
+testcontainers = { workspace = true }
+testcontainers-modules = { workspace = true, features = ["postgres"] }
+tower = { version = "0.5", features = ["util"] }
+
+[lints]
+workspace = true
+
+[[test]]
+name = "provider-protocol"
+path = "tests/integration/protocol.spec.rs"

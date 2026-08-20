@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { ApiTarget } from "@/app/config/context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ import {
   QueryErrorView,
   QueryPartialError,
 } from "@/components/ui/query-error-view";
+import { ResourceLink } from "@/components/ui/resource-link";
 import { Separator } from "@/components/ui/separator";
 import { UPDATE_CRONS } from "@/domains/recorder/schema/cron";
 import { DELETE_FEED, INSERT_FEED } from "@/domains/recorder/schema/feeds";
@@ -59,6 +61,7 @@ export const Route = createFileRoute("/_app/subscriptions/detail/$id")({
 function SubscriptionDetailRouteComponent() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const api = useInject(ApiTarget);
   const subscriptionService = useInject(SubscriptionService);
   const intlService = useInject(IntlService);
 
@@ -299,11 +302,15 @@ function SubscriptionDetailRouteComponent() {
                     variant="ghost"
                     size="sm"
                     className="ml-2 h-6 w-6 p-0"
-                    onClick={() =>
-                      window.open(subscription.sourceUrl, "_blank")
-                    }
+                    asChild
                   >
-                    <ExternalLink className="h-3 w-3" />
+                    <a
+                      href={subscription.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </Button>
                 )}
               </div>
@@ -381,15 +388,19 @@ function SubscriptionDetailRouteComponent() {
                   subscription.feed.nodes.map((feed) => (
                     <Card
                       key={feed.id}
-                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
-                      onClick={() => {
-                        window.open(`/api/feeds/rss/${feed.token}`, "_blank");
-                      }}
+                      className="group relative p-4 transition-colors hover:bg-accent/50"
                     >
                       <div className="flex flex-col space-y-2">
                         <div className="flex items-center justify-between">
                           <Label className="whitespace-nowrap font-medium text-sm capitalize">
-                            <span>{feed.feedType} Feed</span>
+                            <ResourceLink
+                              className="underline underline-offset-4"
+                              href={api.url(
+                                `feeds/rss/${encodeURIComponent(feed.token)}`,
+                              )}
+                            >
+                              {feed.feedType} Feed
+                            </ResourceLink>
                           </Label>
                           <Button
                             variant="ghost"
@@ -468,7 +479,7 @@ function SubscriptionDetailRouteComponent() {
                   subscription.cron.nodes.map((cron) => (
                     <Card
                       key={cron.id}
-                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
+                      className="group relative p-4 transition-colors hover:bg-accent/50"
                       onClick={() =>
                         navigate({
                           to: "/tasks/cron/detail/$id",
@@ -516,7 +527,7 @@ function SubscriptionDetailRouteComponent() {
                         </code>
 
                         <div className="text-muted-foreground text-xs">
-                          {cron.status}
+                          {cron.enabled ? "Enabled" : "Disabled"}
                         </div>
                       </div>
                     </Card>
@@ -566,7 +577,7 @@ function SubscriptionDetailRouteComponent() {
                   subscription.subscriberTask.nodes.map((task) => (
                     <Card
                       key={task.id}
-                      className="group relative cursor-pointer p-4 transition-colors hover:bg-accent/50"
+                      className="group relative p-4 transition-colors hover:bg-accent/50"
                       onClick={() =>
                         navigate({
                           to: "/tasks/detail/$id",
@@ -639,7 +650,7 @@ function SubscriptionDetailRouteComponent() {
                               <div className="flex h-full items-center justify-center overflow-hidden rounded-md bg-muted">
                                 {bangumi.posterLink && (
                                   <Img
-                                    src={`/api/static${bangumi.posterLink}`}
+                                    src={api.url(`static${bangumi.posterLink}`)}
                                     alt="Poster"
                                     className="h-full w-full object-cover"
                                     loading="lazy"

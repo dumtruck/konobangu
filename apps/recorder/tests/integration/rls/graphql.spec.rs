@@ -14,7 +14,7 @@ use super::support::{RlsFixture, SUBSCRIBER_A, SUBSCRIBER_B};
 
 fn user(subscriber_id: i32) -> AuthUserInfo {
   AuthUserInfo {
-    auth_type: AuthType::Oidc,
+    is_admin: false,
     subscriber_auth: Model {
       id: subscriber_id,
       pid: format!("fixture-{subscriber_id}"),

@@ -4,7 +4,7 @@ use snafu::prelude::*;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
   EnvFilter, Layer, Registry,
-  filter::LevelFilter,
+  filter::{LevelFilter, filter_fn},
   fmt::{self, MakeWriter},
   layer::SubscriberExt,
   util::SubscriberInitExt,
@@ -18,6 +18,10 @@ pub const MODULE_WHITELIST: &[&str] = &["sea_orm_migration", "tower_http", "sea_
 
 // Keep nonblocking file appender work guard
 static NONBLOCKING_WORK_GUARD_KEEP: OnceLock<WorkerGuard> = OnceLock::new();
+
+fn allow_log_event(metadata: &tracing::Metadata<'_>) -> bool {
+  !metadata.target().starts_with("libmacaroon") || *metadata.level() <= tracing::Level::INFO
+}
 
 pub struct LoggerService {}
 
@@ -112,7 +116,13 @@ impl LoggerService {
 
     if !layers.is_empty() {
       let env_filter = Self::init_env_filter(config.override_filter.as_ref(), &config.level);
-      let _ = tracing_subscriber::registry().with(layers).with(env_filter).try_init();
+      let _ = tracing_subscriber::registry()
+        .with(layers)
+        .with(env_filter)
+        // libmacaroon debug events contain private capability metadata; operators
+        // must not accidentally enable credential dumps with a broad filter.
+        .with(filter_fn(allow_log_event))
+        .try_init();
     }
 
     if config.pretty_backtrace {
@@ -132,6 +142,43 @@ impl LoggerService {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn broad_debug_filters_cannot_expose_macaroon_bearer_material() {
+    // Use the real log facade bridge: tracing-log checks the originating
+    // module before dispatching its generic log event metadata.
+    let _ = tracing_log::LogTracer::init();
+    let directory = tempfile::tempdir().unwrap();
+    let control = directory.path().join("control.log");
+    let service = crate::auth::native_resources::NativeResourceGrants::new(&Default::default()).unwrap();
+    let layer = LoggerService::init_layer(std::fs::File::create(&control).unwrap(), &LogFormat::Json, false);
+    let subscriber = tracing_subscriber::registry().with(layer).with(EnvFilter::new("trace,libmacaroon=trace"));
+    tracing::subscriber::with_default(subscriber, || {
+      service.issue(1001).unwrap();
+    });
+    assert!(
+      std::fs::read_to_string(control).unwrap().contains("Macaroon::create"),
+      "the control must capture actual library credential diagnostics"
+    );
+
+    let path = directory.path().join("recorder.log");
+    let layer = LoggerService::init_layer(std::fs::File::create(&path).unwrap(), &LogFormat::Json, false);
+    let subscriber = tracing_subscriber::registry()
+      .with(layer)
+      .with(EnvFilter::new("trace,libmacaroon=trace"))
+      .with(filter_fn(allow_log_event));
+    let grant = tracing::subscriber::with_default(subscriber, || {
+      let grant = service.issue(1001).unwrap();
+      tracing::error!(target: "libmacaroon", "safe verification diagnostic");
+      tracing::debug!(target: "recorder", "application diagnostic");
+      grant
+    });
+    let output = std::fs::read_to_string(path).unwrap();
+    assert!(!output.contains("Macaroon::create"));
+    assert!(!output.contains(&grant.grant));
+    assert!(output.contains("safe verification diagnostic"));
+    assert!(output.contains("application diagnostic"));
+  }
 
   #[test]
   fn file_threshold_restricts_global_filter_without_disabling_eligible_events() {

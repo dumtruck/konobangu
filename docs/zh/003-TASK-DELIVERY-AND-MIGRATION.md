@@ -6,7 +6,7 @@
 
 用户/系统任务列表和详情读取 `task_runs` 上的应用视图。创建和重试在原 GraphQL operation 事务内写 run/outbox；后续 root/batch 失败时两者共同回滚，resolver 不访问队列网络。创建返回已排队任务 ID，不代表采集完成。浏览器实体由 Apollo 管理，四张管理表采用原生 Table 9.2.4 服务端分页/排序/筛选；排序、筛选、页大小变化回到第零页，选择使用稳定业务 ID。
 
-状态保留 Pending/Scheduled/Running/Done/Failed/Killed，由任务命令与执行器改变；不暴露任意 owner/generation/次数/状态更新。任务 API 移除队列 lock/priority 实现字段，新增 `generation`、`cancelRequestedAt`。用户任务 owner 来自当前认证身份；系统任务管理始终要求 Basic，历史共享 subscriber 不赋予 OIDC 系统权限。外键引用必须属于同一 owner。
+状态保留 Pending/Scheduled/Running/Done/Failed/Killed，由任务命令与执行器改变；不暴露任意 owner/generation/次数/状态更新。任务 API 移除队列 lock/priority 实现字段，新增 `generation`、`cancelRequestedAt`。用户任务 owner 来自当前认证身份；系统任务管理要求显式应用管理员能力，与认证方式无关，历史共享 subscriber 不授予系统权限。外键引用必须属于同一 owner。
 
 删除是取消或归档：Pending/Scheduled 变 Killed，Running 写取消请求；终态归档并从普通查询隐藏。持久 tombstone 防止复活。取消的 Running 在 lease 过期或无 lease 时原子转 Killed，记录 done_at 并清空 token/lease，不增加执行次数；取消、重放和现有 dispatcher 复用同一规则，不依赖另一份 envelope。重试只接受没有有效执行者的 Failed/Killed，重新验证输入/引用，推进 generation、重置次数并写新 outbox；并发重试只允许一个成功，其余明确冲突。无权限和冲突不得显示操作成功。
 
@@ -28,51 +28,36 @@ task_control 角色通过 `FOR UPDATE SKIP LOCKED` 领取到期 outbox，提交�
 
 ## Cron
 
-Cron 由应用拥有，沿用 croner 4 + chrono-tz。一个短事务锁 due plan，写 task/outbox 并推进 `next_run`；`(cron_id,scheduled_at_utc)` 唯一。轮询是正确性来源，不依赖 NOTIFY。task_control 无私有应用或认证/session 表权限。
+Cron 由应用拥有，沿用 croner 4 + chrono-tz。一个短事务锁 due plan，写 task/outbox 并推进 `next_run`；`(cron_id,scheduled_at_utc)` 唯一。轮询是正确性来源，不依赖 NOTIFY。task_control 无私有应用或身份表权限。
 
 时间持久为 UTC，按配置 IANA timezone 计算。DST 重复本地时刻产生两个 UTC occurrence，缺失时刻跳过。停机漏触发合并为一次，并推进到当前时间之后。同一 Cron 有活动任务时跳过该 occurrence，记录原因且不积累无限 backlog。禁用/修改影响未来调度；数据库失败时 occurrence、outbox 与计划推进共同回滚。
 
-## Owner 升级与恢复
+## Owner 迁移与恢复
 
-存量安装与新数据库均使用停写流程。运行池不得使用 owner URI；运维控制升级时保持 `database.auto_migrate=false`。参见[认证与角色](002-AUTHENTICATION-DECISION.md)。
-
-1. 停 WebUI 写入、recorder 及所有旧 worker/Cron/dispatcher；保留旧版本、配置和存储。迁移前备份并在隔离库演练恢复：
+全新数据库默认由启动自动初始化。运行 SQL 的 current_user 必须受能力角色约束，不能保持 owner 权限；共用 database.url 的初始化登录可拥有迁移权限。运维单独控制迁移时设置 `database.migration.auto_run=false` 并显式执行 owner 入口。参见[认证与角色](002-AUTHENTICATION-DECISION.md)。
 
 ```sh
-pg_dump --format=custom --file=/protected/konobangu-before.dump "$MIGRATION_DATABASE_URL"
-pg_restore --exit-on-error --dbname="$ISOLATED_RESTORE_DATABASE_URL" /protected/konobangu-before.dump
+mise exec -- cargo run -p recorder --locked --bin migrate-up -- --environment production --config-file /path/to/recorder.config.toml
 ```
 
-2. 必要时配置精确已知 `database.migration.legacy_oidc_issuer`，不按名字/email 猜 owner。执行只读 owner preflight：
-
-```sh
-mise exec -- cargo run -p recorder --locked --bin migrate-up -- --environment production --config-file /path/to/recorder.config.toml --migration-preflight
-```
-
-报告列出旧任务数量及逐项问题。未知 schema/history/业务版本、混合或被改动 SQLx history、未知 kind/status/payload、无法归属的 owner/引用、重复 ID/occurrence 和近期旧 worker heartbeat 均在任务 DDL 前拒绝。应修正归属或停 worker，不改 checksum 绕过。
-
-3. 移除 `--migration-preflight` 执行 up。优先使用 `database.migration.url`，否则指定 `database.url` 必须是 owner。各阶段可重入，不是跨组件单一原子提交：
+优先使用 `database.migration.url`，否则指定 `database.url` 必须是 owner。各阶段可重入，不是跨组件单一原子提交：
 
 | 阶段 | 结果 |
 | --- | --- |
-| 必要的历史 bootstrap | 由项目 Rust migration 创建重放本项目迁移所需的空 jobs/workers 兼容表；已有旧 schema 只校验并保留 |
-| 应用事务 | 身份迁移及显式 version-0 payload 转换；导入 ID/owner/引用/时间/次数/预算/错误；创建 run/outbox、替换视图并移除旧业务队列触发器 |
-| 归档 | 保留 `apalis_legacy_v07` 和确认属于旧队列的 history，撤销普通角色访问 |
-| 新队列初始化 | 公开 PostgresStorage migrator 显式创建 `apalis`，history 写入 `apalis._sqlx_migrations` |
-| 成熟 session store | owner 通过发布 store 的 SQLx 0.8.6 临时池初始化既有 schema，随后关闭 |
+| 应用事务 | 身份迁移；创建 `task_runs`、`task_outbox`、其策略与任务视图 |
+| 队列初始化 | 公开 PostgresStorage migrator 显式创建 `apalis`，history 写入 `apalis._sqlx_migrations` |
+| 授权 | NOLOGIN 能力角色、对象授权与配置登录的成员关系 |
 
-Done/Failed/Killed 不自动投递；Pending/Scheduled 写 outbox；已停止的 Running 转 recovering Pending，保留旧执行信息与合法预算，恢复领取不重复增加已计次数。旧 payload 经注册的 typed task 定义转换。旧 schema 仅 owner 可读归档，不由新 worker 消费。
+应用不自行创建、导入或归档任何队列 schema：`apalis` 完全属于上游 migrator，任务历史只存在于 `task_runs`。仍带有 `task_runs` 之前旧队列对象的数据库不做原地升级；迁移前删除这些对象或重建数据库。已有 OIDC 身份需要归属时配置精确已知的 `database.migration.legacy_oidc_issuer`，不按名字/email 猜 owner。
 
-4. 任何阶段失败都保持停写，修复后重跑 up；不得恢复并发旧消费。owner 入口自动建立 NOLOGIN 能力角色、对象授权与配置登录的成员关系，无需额外授权命令；默认新部署在启动时执行这些阶段。app_scoped_access 有绑定 subscriber 的 task/outbox 权限；task_control_access 有跨 subscriber 的 queue、Cron、task/outbox 权限；auth_access 无私有应用、任务或队列权限。见[角色与连接池契约](002-AUTHENTICATION-DECISION.md)。
+迁移已有数据库前先停写并备份。任何阶段失败都保持停写，修复后重跑 up。app_scoped_access 有绑定 subscriber 的 task/outbox 权限；task_control_access 有跨 subscriber 的 queue、Cron、task/outbox 权限；auth_access 无私有应用、任务或队列权限；auth_provider_access 只拥有内置协议状态。见[角色与连接池契约](002-AUTHENTICATION-DECISION.md)。
 
-5. 按 status/owner/引用核对计数、计划时间、预算和抽样 payload；确认归档隔离、新 history、生产登录、任务创建/查询/执行/重试/取消及跨 owner 拒绝，再恢复写入。
-
-回退为停写，恢复迁移前备份、存储及匹配旧版本/配置。down 明确拒绝不可逆身份/任务迁移；新写入不能无损转回旧模型。不得清库，不得双版本同时消费。归档清理需后续运维显式决定。
+回退为停写后恢复备份、存储及匹配的版本/配置。down 明确拒绝不可逆的身份/任务迁移。
 
 ## 相关契约
 
-配置插值、secret 与媒体能力见[媒体与配置](004-MEDIA-AND-CONFIGURATION.md)；身份/session 连接池与角色见[认证](002-AUTHENTICATION-DECISION.md)；工具链、平台构建与验证见[开发验证](001-DEVELOPMENT-VERIFICATION.md)。
+配置插值、secret 与媒体能力见[媒体与配置](004-MEDIA-AND-CONFIGURATION.md)；身份连接池与能力角色见[认证](002-AUTHENTICATION-DECISION.md)；工具链、平台构建与验证见[开发验证](001-DEVELOPMENT-VERIFICATION.md)。
 
-任务投递迁移中的表和列名称由 migrations/defs.rs 的 Rust 标识符定义。SeaQuery 生成其可表达的结构与查询；PostgreSQL 专有策略、部分索引和切换 SQL 在 Rust 中引用这些标识符。Apalis 0.7 归档契约独立固定，不随当前应用实体调整，避免未来实体重命名改变历史源 schema。
+任务投递迁移中的表和列名称由 migrations/defs.rs 的 Rust 标识符定义。SeaQuery 生成其可表达的结构与查询；PostgreSQL 专有策略与部分索引在 Rust 中引用这些标识符。
 
 [English](../en/003-TASK-DELIVERY-AND-MIGRATION.md) | [中文](003-TASK-DELIVERY-AND-MIGRATION.md)

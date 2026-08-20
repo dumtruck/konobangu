@@ -6,7 +6,7 @@ The application owns `task_runs` and `task_outbox`. SeaORM/migration 2.0.4 and S
 
 Subscriber/system task lists and details read application views over `task_runs`. Creation and retry write the run and outbox in the original GraphQL operation transaction. A later failing root or batch rolls back both; no resolver makes queue network calls. Creation returns a queued task ID, not completion of ingestion. The browser uses Apollo for entity data and native Table 9.2.4 for server pagination, sorting and filtering. Change a sort/filter/page size to return to page zero; selection uses stable business IDs.
 
-Tasks retain Pending, Scheduled, Running, Done, Failed and Killed. Only task commands/executors change state, owner, generation or execution budget. Queue lock/priority implementation fields are removed from task API inputs and outputs. `generation` and `cancelRequestedAt` expose business lifecycle. Subscriber tasks use the authenticated owner; system task creation and management require Basic, including when Basic and OIDC historically share a subscriber. Foreign references must belong to the same owner.
+Tasks retain Pending, Scheduled, Running, Done, Failed and Killed. Only task commands/executors change state, owner, generation or execution budget. Queue lock/priority implementation fields are removed from task API inputs and outputs. `generation` and `cancelRequestedAt` expose business lifecycle. Subscriber tasks use the authenticated owner; system task creation and management require explicit application administration, regardless of authentication method or historically shared subscribers. Foreign references must belong to the same owner.
 
 Delete is cancellation or archive. Pending/Scheduled become Killed; Running receives a cancellation request. A terminal run is archived and hidden from normal lists. Tombstones remain durable. A cancelled Running run with an expired or absent execution lease atomically becomes Killed, with done_at and cleared token/lease, without another attempt. Cancellation, replay and the existing dispatcher reuse this rule; it does not depend on another envelope. Retry accepts Failed/Killed without a live executor, revalidates references/payload, increments generation, resets attempts and writes a new outbox record. Concurrent retries have one winner and return a conflict for the other caller. Cross-owner denial or conflicts must not display success.
 
@@ -28,51 +28,36 @@ External reads may repeat. Previously committed valid stages or already issued r
 
 ## Cron
 
-Cron is application-owned and uses croner 4 plus chrono-tz. One short transaction locks a due plan, creates task/outbox and advances `next_run`; `(cron_id, scheduled_at_utc)` is unique. Polling is the correctness source, with no dependence on NOTIFY delivery. Scheduler connections cannot access private business or identity/session tables.
+Cron is application-owned and uses croner 4 plus chrono-tz. One short transaction locks a due plan, creates task/outbox and advances `next_run`; `(cron_id, scheduled_at_utc)` is unique. Polling is the correctness source, with no dependence on NOTIFY delivery. Scheduler connections cannot access private business or identity tables.
 
 Times persist in UTC and are calculated in the configured IANA zone. A repeated DST wall time produces two UTC occurrences; a nonexistent wall time is skipped. Downtime coalesces missed occurrences into one run and moves the plan beyond the current time. If the same Cron still has an active run, that occurrence is skipped with a recorded reason, without an accumulating backlog. Disabling/editing a plan changes future eligibility. Database failure rolls back the occurrence, outbox and plan advance together.
 
-## Owner-only upgrade and recovery
+## Owner-only migration and recovery
 
-Use the same stopped-write procedure for existing installations and new databases. Runtime connections must never use the owner URI. Keep `database.auto_migrate=false` for operator-controlled upgrades. See [authentication and roles](002-AUTHENTICATION-DECISION.md).
-
-1. Stop WebUI writes, recorder and every old worker/Cron/dispatcher. Preserve the old release/configuration and storage. Back up and restore into an isolated database before changing production:
+A new database initializes automatically at startup by default. Runtime current_user must be restricted to capability roles rather than retain ownership privileges; the shared database.url bootstrap login may hold migration privileges. Set `database.migration.auto_run=false` for operator-controlled migration and run the owner entry explicitly. See [authentication and roles](002-AUTHENTICATION-DECISION.md).
 
 ```sh
-pg_dump --format=custom --file=/protected/konobangu-before.dump "$MIGRATION_DATABASE_URL"
-pg_restore --exit-on-error --dbname="$ISOLATED_RESTORE_DATABASE_URL" /protected/konobangu-before.dump
+mise exec -- cargo run -p recorder --locked --bin migrate-up -- --environment production --config-file /path/to/recorder.config.toml
 ```
 
-2. Set the exact known `database.migration.legacy_oidc_issuer` when needed. No owner is inferred from names/email. Run the read-only owner preflight:
-
-```sh
-mise exec -- cargo run -p recorder --locked --bin migrate-up -- --environment production --config-file /path/to/recorder.config.toml --migration-preflight
-```
-
-Preflight reports legacy task count and individual issues. Unknown schema/history/business versions, mixed or altered SQLx history, unknown kinds/statuses/payloads, unresolvable owners/references, duplicate IDs/occurrences and recent worker heartbeats reject before task DDL. Resolve attribution or stop live workers; never rewrite migration checksums to bypass rejection.
-
-3. Remove `--migration-preflight` to run up. Owner migration prefers `database.migration.url`; otherwise the supplied `database.url` must be an owner connection. Stages are resumable, not one cross-component atomic commit:
+Owner migration prefers `database.migration.url`; otherwise the supplied `database.url` must be an owner connection. Stages are resumable, not one cross-component atomic commit:
 
 | Stage | Result |
 | --- | --- |
-| Historical bootstrap, if required | Project-owned Rust compatibility migration creates only empty jobs/workers tables for replaying application migrations; existing old schemas are validated and retained |
-| Application transaction | Identity migration and explicit version-0 payload conversion; import legacy IDs/owners/references/timing/attempts/budgets/errors; create runs/outbox; replace views and remove old business queue triggers |
-| Archive | Preserve `apalis_legacy_v07` and confirmed legacy history; revoke ordinary runtime access |
-| New queue initialization | Public PostgresStorage migrator explicitly creates `apalis` and writes history to `apalis._sqlx_migrations` |
-| Mature session store | Owner initializes its existing schema through its published SQLx 0.8.6 store pool, then closes that temporary pool |
+| Application transaction | Identity migration; create `task_runs`, `task_outbox`, their policies and the task views |
+| Queue initialization | Public PostgresStorage migrator explicitly creates `apalis` and writes history to `apalis._sqlx_migrations` |
+| Access | NOLOGIN capability roles, grants and configured login memberships |
 
-Done/Failed/Killed are not automatically queued. Pending/Scheduled receive outbox records. A stopped Running task becomes a recovering Pending run, retaining previous execution information and its legitimate budget; reclaim does not add another already-counted attempt. Legacy payloads are converted through the registered typed task definitions. The old schema remains an owner-readable archive, never consumed by the new worker.
+The application never creates, imports or archives a queue schema of its own: `apalis` belongs entirely to the upstream migrator, and task history lives only in `task_runs`. A database that still carries objects from a pre-`task_runs` queue is not upgraded in place; drop those objects or recreate the database before migrating. Set the exact known `database.migration.legacy_oidc_issuer` when existing OIDC identities need attribution; no owner is inferred from names/email.
 
-4. If any stage fails, keep writes stopped, repair the reported issue and rerun up. Do not restore concurrent old consumption. The owner entry initializes NOLOGIN capability roles, grants and configured login memberships automatically; no separate provisioning command is required. Default fresh deployments run these stages at startup. app_scoped_access has subscriber-bound task/outbox access; task_control_access has cross-subscriber queue, Cron and task/outbox access; auth_access has no private application, task or queue access. See [role and pool contracts](002-AUTHENTICATION-DECISION.md).
+Stop writes before migrating an existing database and back it up first. If any stage fails, keep writes stopped, repair the reported issue and rerun up. app_scoped_access has subscriber-bound task/outbox access; task_control_access has cross-subscriber queue, Cron and task/outbox access; auth_access has no private application, task or queue access; auth_provider_access owns only bundled protocol state. See [role and pool contracts](002-AUTHENTICATION-DECISION.md).
 
-5. Reconcile imported counts by status/owner/reference, planned timestamps, attempt budgets and representative payloads. Confirm archive isolation, new queue history, production login, task create/query/execute/retry/cancel and cross-owner denial. Only then resume writes.
-
-Rollback is stopped-write restoration of the pre-upgrade backup, storage and matching old release/configuration. Down explicitly rejects this irreversible identity/task migration. New writes cannot be losslessly transferred into the old model. Never clear the database or run both worker generations together. Archive cleanup requires a later explicit operator decision.
+Rollback is stopped-write restoration of the backup, storage and matching release/configuration. Down explicitly rejects the irreversible identity/task migrations.
 
 ## Related contracts
 
-Configuration/interpolation/secrets and media capabilities: [media and configuration](004-MEDIA-AND-CONFIGURATION.md). Identity/session pools and roles: [authentication](002-AUTHENTICATION-DECISION.md). Toolchain, platform builds and checks: [development verification](001-DEVELOPMENT-VERIFICATION.md).
+Configuration/interpolation/secrets and media capabilities: [media and configuration](004-MEDIA-AND-CONFIGURATION.md). Identity pools and capability roles: [authentication](002-AUTHENTICATION-DECISION.md). Toolchain, platform builds and checks: [development verification](001-DEVELOPMENT-VERIFICATION.md).
 
-Task-delivery migration tables and columns use Rust identifiers in migrations/defs.rs. SeaQuery handles schema/query operations it can express; PostgreSQL-specific policies, partial indexes and cutover SQL interpolate those identifiers in Rust. The Apalis 0.7 archive contract remains fixed independently of current application entities, so a future entity rename cannot rewrite the historical source schema.
+Task-delivery migration tables and columns use Rust identifiers in migrations/defs.rs. SeaQuery handles schema/query operations it can express; PostgreSQL-specific policies and partial indexes interpolate those identifiers in Rust.
 
 [English](003-TASK-DELIVERY-AND-MIGRATION.md) | [中文](../zh/003-TASK-DELIVERY-AND-MIGRATION.md)

@@ -1,8 +1,9 @@
+import type { SecuritydeptDependencyToken } from "@securitydept/client";
 import { useSecuritydeptContext } from "@securitydept/client-react";
-import type { InjectionToken, Type } from "injection-js";
 import { useMemo } from "react";
 
-export function useInject<T>(token: InjectionToken<T> | Type<T>): T {
+/** The token carries the type, so no consumer casts the resolved value. */
+export function useInject<T>(token: SecuritydeptDependencyToken<T>): T {
   const injector = useSecuritydeptContext();
   return useMemo(() => injector.get(token), [injector, token]);
 }

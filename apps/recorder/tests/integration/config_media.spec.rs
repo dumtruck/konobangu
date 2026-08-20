@@ -37,6 +37,38 @@ async fn config_environment_child() {
 }
 
 #[test]
+fn shipped_dotenv_webui_origin_rules_decode_as_figment_structured_values() {
+  use figment::{Figment, providers::Serialized, value::Value};
+  use recorder::auth::{WebuiPolicy, config::WebuiAuthConfig};
+
+  let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+  for file in [".env.development", ".env.production.example"] {
+    let mut entries = dotenvy::from_path_iter(root.join(file)).expect("the shipped dotenv file must be readable");
+    let raw = entries
+      .find_map(|entry| match entry {
+        Ok((key, value)) if key == "AUTH__WEBUI__ALLOWED_ORIGINS" => Some(value),
+        Ok(_) => None,
+        Err(_) => panic!("the shipped dotenv file must parse"),
+      })
+      .expect("the shipped dotenv file must provide WebUI origin rules");
+    // Env uses Figment's value grammar after dotenv removes the outer quotes.
+    // Decode only this public field; no other example values enter Figment.
+    let value = raw.parse::<Value>().unwrap();
+    let webui: WebuiAuthConfig = Figment::from(Serialized::global("allowed_origins", value))
+      .extract()
+      .expect("the shipped origin rules must decode as a structured list");
+    assert!(
+      WebuiPolicy::new(&webui.allowed_origins).is_ok(),
+      "the shipped origin rules must form a valid policy"
+    );
+  }
+
+  // JSON dictionaries use ':'; Figment's environment grammar requires '='.
+  let json = r#"[{"type":"strict","value":"https://ui.example"}]"#.parse::<Value>().unwrap();
+  assert!(Figment::from(Serialized::global("allowed_origins", json)).extract::<WebuiAuthConfig>().is_err());
+}
+
+#[test]
 fn native_configuration_formats_types_dotenv_and_errors() {
   let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
     .join("../../temp/verification/fixtures/config")
@@ -48,7 +80,7 @@ fn native_configuration_formats_types_dotenv_and_errors() {
     "SERVER__HOST=dotenv-host\nDATABASE__URL=postgres://fixture/dotenv-database\nSERVER__PORT=6007\n",
   )
   .unwrap();
-  let native = serde_json::json!({"server":{"host":"file-host","port":5001},"database":{"url":"postgres://fixture/file-database","migration":{"auto_run":false}},"auth":{"provider":{"type":"basic","username":"fixture","password":"fixture"},"session":{"database_url":"postgres://fixture/identity","public_url":"http://127.0.0.1:5001"}},"logger":{"enable":false,"level":"off","format":"compact"},"media":{"auto_optimize_formats":["image/webp"]}});
+  let native = serde_json::json!({"server":{"host":"file-host","port":5001},"database":{"url":"postgres://fixture/file-database","migration":{"auto_run":false}},"auth":{"provider":{"type":"bundled","issuer":"https://issuer.test/auth-provider","client":{"client_id":"fixture","redirect_uris":["http://127.0.0.1:5001/auth/callback"]},"credentials":{"username":"fixture","password":"fixture"},"signing":{"private_key_pem":"fixture-key"}},"webui":{"allowed_origins":[{"type":"strict","value":"http://127.0.0.1:5001"}]},"identity":{"database_url":"postgres://fixture/identity"}},"logger":{"enable":false,"level":"off","format":"compact"},"media":{"auto_optimize_formats":["image/webp"]}});
   let base = || {
     let mut c = Command::new(std::env::current_exe().unwrap());
     c.env_clear()
@@ -66,7 +98,7 @@ fn native_configuration_formats_types_dotenv_and_errors() {
   // Native YAML/JSON/TOML all flow through the real Figment providers.
   for extension in ["json", "toml", "yaml"] {
     let path = root.join(format!("config.{extension}"));
-    let body=match extension { "json"=>serde_json::to_string(&native).unwrap(), "yaml"=>"server:\n  host: file-host\n  port: 5001\ndatabase:\n  url: postgres://fixture/file-database\n  migration:\n    auto_run: false\nauth:\n  provider:\n    type: basic\n    username: fixture\n    password: fixture\n  session:\n    database_url: postgres://fixture/identity\n    public_url: http://127.0.0.1:5001\nlogger:\n  enable: false\n  level: off\n  format: compact\nmedia:\n  auto_optimize_formats: [image/webp]\n".into(), _=>"[server]\nhost='file-host'\nport=5001\n[database]\nurl='postgres://fixture/file-database'\n[database.migration]\nauto_run=false\n[auth.provider]\ntype='basic'\nusername='fixture'\npassword='fixture'\n[auth.session]\ndatabase_url='postgres://fixture/identity'\npublic_url='http://127.0.0.1:5001'\n[logger]\nenable=false\nlevel='off'\nformat='compact'\n[media]\nauto_optimize_formats=['image/webp']\n".into() };
+    let body=match extension { "json"=>serde_json::to_string(&native).unwrap(), "yaml"=>"server:\n  host: file-host\n  port: 5001\ndatabase:\n  url: postgres://fixture/file-database\n  migration:\n    auto_run: false\nauth:\n  provider:\n    type: bundled\n    issuer: https://issuer.test/auth-provider\n    client:\n      client_id: fixture\n      redirect_uris: ['http://127.0.0.1:5001/auth/callback']\n    credentials:\n      username: fixture\n      password: fixture\n    signing:\n      private_key_pem: fixture-key\n  identity:\n    database_url: postgres://fixture/identity\n  webui:\n    allowed_origins: [{type: strict, value: 'http://127.0.0.1:5001'}]\nlogger:\n  enable: false\n  level: off\n  format: compact\nmedia:\n  auto_optimize_formats: [image/webp]\n".into(), _=>"[server]\nhost='file-host'\nport=5001\n[database]\nurl='postgres://fixture/file-database'\n[database.migration]\nauto_run=false\n[auth.provider]\ntype='bundled'\nissuer='https://issuer.test/auth-provider'\n[auth.provider.client]\nclient_id='fixture'\nredirect_uris=['http://127.0.0.1:5001/auth/callback']\n[auth.provider.credentials]\nusername='fixture'\npassword='fixture'\n[auth.provider.signing]\nprivate_key_pem='fixture-key'\n[auth.identity]\ndatabase_url='postgres://fixture/identity'\n[auth.webui]\nallowed_origins=[{type='strict',value='http://127.0.0.1:5001'}]\n[logger]\nenable=false\nlevel='off'\nformat='compact'\n[media]\nauto_optimize_formats=['image/webp']\n".into() };
     std::fs::write(&path, body).unwrap();
     let output = base().env("CONFIG_TEST_PATH", &path).output().unwrap();
     assert!(
@@ -132,11 +164,14 @@ fn native_configuration_formats_types_dotenv_and_errors() {
   // default.
   let output = base()
     .env("CONFIG_TEST_PATH", PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("recorder.config.toml"))
-    .env("AUTH__PROVIDER__TYPE", "basic")
-    .env("AUTH__PROVIDER__USERNAME", "fixture")
-    .env("AUTH__PROVIDER__PASSWORD", "fixture")
-    .env("AUTH__SESSION__DATABASE_URL", "postgres://fixture/identity")
-    .env("AUTH__SESSION__PUBLIC_URL", "http://127.0.0.1:6007")
+    .env("AUTH__PROVIDER__TYPE", "bundled")
+    .env("AUTH__PROVIDER__ISSUER", "https://issuer.test/auth-provider")
+    .env("AUTH__PROVIDER__CLIENT__REDIRECT_URIS", "[\"http://127.0.0.1:5001/auth/callback\"]")
+    .env("AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM", "fixture-key")
+    .env("AUTH__PROVIDER__CREDENTIALS__USERNAME", "fixture")
+    .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD", "fixture")
+    .env("AUTH__IDENTITY__DATABASE_URL", "postgres://fixture/identity")
+    .env("AUTH__WEBUI__ALLOWED_ORIGINS", r#"[{type="strict",value="http://127.0.0.1:6007"}]"#)
     .env("CONFIG_TEST_FORMATS", serde_json::to_string(&defaults).unwrap())
     .env("CONFIG_TEST_AUTO_MIGRATE", "true")
     .output()

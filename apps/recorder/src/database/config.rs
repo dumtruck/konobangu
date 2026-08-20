@@ -1,3 +1,4 @@
+use konobangu_database::PoolConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -40,31 +41,9 @@ impl std::fmt::Debug for DatabaseConfig {
 struct DatabaseWire {
   url: String,
   #[serde(default)]
-  pool: PoolWire,
+  pool: PoolConfig,
   #[serde(default)]
   migration: MigrationWire,
-}
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(default, deny_unknown_fields)]
-struct PoolWire {
-  log_queries: bool,
-  min_connections: u32,
-  max_connections: u32,
-  connect_timeout_ms: u64,
-  idle_timeout_ms: u64,
-  acquire_timeout_ms: Option<u64>,
-}
-impl Default for PoolWire {
-  fn default() -> Self {
-    Self {
-      log_queries: false,
-      min_connections: 1,
-      max_connections: 5,
-      connect_timeout_ms: 5000,
-      idle_timeout_ms: 60000,
-      acquire_timeout_ms: None,
-    }
-  }
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -102,7 +81,7 @@ impl From<DatabaseConfig> for DatabaseWire {
   fn from(c: DatabaseConfig) -> Self {
     Self {
       url: c.uri,
-      pool: PoolWire {
+      pool: PoolConfig {
         log_queries: c.enable_logging,
         min_connections: c.min_connections,
         max_connections: c.max_connections,

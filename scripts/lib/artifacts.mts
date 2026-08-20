@@ -1,7 +1,12 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 export function sha256(path: string) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+export async function sha256Stream(path: string) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  return hash.digest("hex");
 }
 export function assertStaticElf(data: Buffer) {
   if (

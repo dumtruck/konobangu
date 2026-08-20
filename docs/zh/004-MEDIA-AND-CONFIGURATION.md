@@ -44,13 +44,15 @@ storage:
 
 ## 文件 secret 与日志
 
-以下六个 canonical 变量接受 UTF-8 普通文件的绝对路径，也允许符号链接指向普通文件：
+以下 canonical 变量接受 UTF-8 普通文件的绝对路径，也允许符号链接指向普通文件：
 
 | 变量 | 字段 |
 | --- | --- |
-| `AUTH__PROVIDER__PASSWORD_FILE` | `auth.provider.password` |
-| `AUTH__PROVIDER__CLIENT_SECRET_FILE` | `auth.provider.client_secret` |
-| `AUTH__SESSION__DATABASE_URL_FILE` | `auth.session.database_url` |
+| `AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE` | `auth.provider.credentials.password` |
+| `AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE` | `auth.provider.signing.private_key_pem` |
+| `AUTH__PROVIDER__DATABASE__URL_FILE` | `auth.provider.database.url` |
+| `AUTH__RESOURCE_GRANTS__SIGNING_KEY_FILE` | `auth.resource_grants.signing_key` |
+| `AUTH__IDENTITY__DATABASE_URL_FILE` | `auth.identity.database_url` |
 | `DATABASE__URL_FILE` | `database.url` |
 | `DATABASE__MIGRATION__URL_FILE` | `database.migration.url` |
 | `SCHEDULER__DATABASE__URL_FILE` | `scheduler.database.url` |
@@ -70,19 +72,23 @@ services:
   recorder:
     image: your-recorder-image
     environment:
-      AUTH__PROVIDER__PASSWORD_FILE: /run/secrets/basic_password
+      AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE: /run/secrets/basic_password
+      AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE: /run/secrets/provider_key
       DATABASE__URL_FILE: /run/secrets/database_uri
     secrets:
       - basic_password
       - database_uri
+      - provider_key
 secrets:
   basic_password:
     file: ./secrets/basic-password
   database_uri:
     file: ./secrets/database-uri
+  provider_key:
+    file: ./secrets/provider-key.pem
 ```
 
-其余原生 auth/server 配置单独提供。OIDC 使用 `AUTH__PROVIDER__CLIENT_SECRET_FILE`；数据库 URL 自动初始化能力角色，可选迁移 URL 用于选择独立 owner 凭据。不承诺热加载/secret 轮换。
+其余原生 auth/server 配置单独提供。内置 OIDC 还需 `AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE`，public browser client 没有 client secret；见[Provider 配置与跨平台密钥生成](002-AUTHENTICATION-DECISION.md#配置与角色)。数据库 URL 自动初始化能力角色，可选迁移 URL 用于选择独立 owner 凭据。不承诺热加载/secret 轮换。
 
 ## 日志配置
 
@@ -124,7 +130,7 @@ max_log_files = 7
 | `execution.concurrency` / `execution.queue_capacity` | 同时执行 1 / 排队 8；concurrency 决定编码 pool 的线程数 |
 | `execution.deadline_seconds` | 等待与结果有效期 30 秒，最大 300 秒 |
 
-超时/取消丢弃迟到结果；进入同步 codec 后不能强杀线程，实际任务结束前仍占用容量与预算。已完成或跳过的任务先释放工作集预算，再通知调用方；调用方收到完成结果时，该任务已不再占用预算。解码、规范化及编码之间检查取消；排队取消项跳过。shutdown 停止 admission、取消未执行项，在 Tokio worker 之外等待真实工作完成；服务退出路径调用该 shutdown。各 join 分支内部捕获 panic，之后可继续调度。OOM、abort、native 崩溃仍影响服务进程，估算预算不能提供逐任务 OS 隔离。
+超时/取消丢弃迟到结果；进入同步 codec 后不能强杀线程，实际任务结束前仍占用容量与预算。已完成或跳过的任务先释放工作集预算，再通知调用方；调用方收到完成结果时，该任务已不再占用预算。解码、规范化及编码之间检查取消；排队取消项跳过。shutdown 停止 admission、取消未执行项，在 Tokio worker 之外等待真实工作完成；服务退出路径调用该 shutdown。各编码任务边界捕获 panic，之后可继续调度。OOM、abort、native 崩溃仍影响服务进程，估算预算不能提供逐任务 OS 隔离。
 
 仅优化静态 8-bit SDR RGB/RGBA，应用 EXIF orientation。嵌入 ICC、PNG cICP/HDR 标记、无 sRGB 声明的 gamma/chromaticities、动画或其它位深受控失败；接受隐式与显式 sRGB。任何失败保留原图。
 
@@ -145,7 +151,7 @@ mise exec -- just media-backfill --config-file /etc/konobangu/recorder.config.to
 
 ## HTTP 与页面
 
-Img 只给本 recorder 同源 `/api/static/` 加 `optimize=accept`，保留外部/签名/头像/icon/data/blob URL。格式选择先于条件和 Range。JXL 必须显式正 q 的 image/jxl，wildcard/application/jxl 不启用。最具体范围定 q，0 排除；平局 合格渐进 JXL → 已存在的合格普通 JXL → WebP → 原图，不依赖头顺序。无 Accept 发原图，畸形 400，全部排除 406。
+Img 对配置 API 边界内的静态图片 URL 添加 `optimize=accept`，外部 URL 保持原样。两种 issuer 来源的私有图片由资源服务在接近视口时本地签发，直接原生加载；见[资源凭证契约](002-AUTHENTICATION-DECISION.md#原生资源凭证)。格式选择先于条件和 Range。JXL 必须显式正 q 的 image/jxl，wildcard/application/jxl 不启用。最具体范围定 q，0 排除；平局 合格渐进 JXL → 已存在的合格普通 JXL → WebP → 原图，不依赖头顺序。无 Accept 发原图，畸形 400，全部排除 406。
 
 协商 200/206/304/406 合并 Vary: Accept。public 使用 public,no-cache，private 使用 private,no-cache，每次私有重验先授权。衍生使用内容 hash 强 ETag；无可信原图内容 hash 时使用路径/精确 metadata 弱 validator。成功 GET/HEAD 条件保留缓存头、清空 body/部分长度；拒绝/错误不转304。只有 GET 在条件请求后处理 Range。锁定 http-range 0.1.5 的 HttpRange::parse 解析并归一范围，支持前导零、OWS 和混合零后缀；单独零后缀/全不可满足的 NoOverlap 返回 416 及 bytes */length，InvalidRange 返回受控 400。应用在解析前统计列表成员，超过 16 个则完整 200，避免 parser 分配任意长列表；对库返回的 start/length 检查零长度、加法溢出及表示边界，重叠仍回完整 200。未知单位、空文件忽略 Range，重复 Range header 仍拒绝。接受该库对起点超界成员先跳过的容错（例如 bytes=99-2 对 10 bytes 返回 416），不承诺比库更严格的整数语法。multipart 长度使用 checked arithmetic，与实际 CRLF/body 一致。HEAD 忽略 Range/If-Range，直接返回完整 metadata，不打开 body 流，并保留授权后的 304。If-Range 仅当前表示合法强 ETag 匹配才返回部分传输；日期形式、弱/不匹配 tag、非法条件均返回完整 200，当前秒级日期没有强 validator 证据。现有 Tower compression predicate 排除已压缩 image，不为 validator collect body。
 
@@ -174,13 +180,18 @@ location /api/static/ {
 | 分组 | 归属 |
 | --- | --- |
 | `server`、`logger`、`storage`、`graphql`、`mikan` | HTTP、日志、文件、GraphQL 限制、源站集成 |
-| `auth.provider` | `type`；Basic 的 `username/password`；OIDC 的 `issuer/audience/client_id/client_secret/extra_scopes/extra_claims` |
-| `auth.session` | 可选 `database_url`（继承 database.url）、固定 `public_url`、`cookie_secure`；秒数形式的 idle/absolute/login timeout 与 cleanup interval |
+| `auth.provider` | 内置 `type = bundled` 的 `issuer/client/credentials/signing/database/tokens`，或外部 `type = oidc` 的 `issuer/browser.client_id/scopes`；两者共用 `resource.audience/required_scopes` |
+| `auth.administrators` | 外部 `{issuer, subject}` 精确管理员身份，默认空 |
+| `auth.webui` | `allowed_origins` 以 strict／regex 规则约束按请求选中的 WebUI 来源 |
+| `auth.identity` | 可选 `database_url`（继承 database.url） |
 | `database` | 默认 `url`；`pool.log_queries/min_connections/max_connections/connect_timeout_ms/idle_timeout_ms/acquire_timeout_ms`；可选 owner `migration.url`、默认开启的 `auto_run`、`legacy_oidc_issuer` |
 | `scheduler.database/workers/cron` | 可选 `url`（继承 database.url）；`subscriber_concurrency/system_concurrency`；`poll_interval_seconds` |
 | `media` | `auto_optimize_formats`；`encoding.webp.quality` 和显式 API 的 `encoding.avif.quality/speed/threads`；`execution.deadline_seconds/queue_capacity/concurrency/working_set_bytes`；`limits.input_bytes/output_bytes/dimension/pixels/decode_bytes` |
 
-仓库 `recorder.config.toml` 保留原有连接池行为：SQL 日志开启、连接/空闲超时均为 500 ms、连接数 1–10；这些是该文件的显式覆盖，不能与类型默认值混淆。字段重组不自动调优参数，部署可通过对应 canonical 路径覆盖。启动先迁移并配置能力授权，再打开受限运行连接池；`database.migration.auto_run` 默认 true。独立 owner URL 与外部迁移控制均为可选策略，见 [013](002-AUTHENTICATION-DECISION.md) 与 [014](003-TASK-DELIVERY-AND-MIGRATION.md)。
+`server.external_base_url` 独立描述 RSS 自链接的 API 地址：`auto` 使用 SDK 请求地址解析器，固定 HTTP(S) URL 保留反向代理路径前缀。它不决定 WebUI 来源、callback 或授权策略；RSS 链接需使用规范外部 API 地址时配置固定 URL。
+
+
+仓库 `recorder.config.toml` 保留原有连接池行为：SQL 日志开启、连接/空闲超时均为 500 ms、连接数 1–10；这些是该文件的显式覆盖，不能与类型默认值混淆。字段重组不自动调优参数，部署可通过对应 canonical 路径覆盖。启动先迁移并配置能力授权，再打开受限运行连接池；`database.migration.auto_run` 默认 true。独立 owner URL 与外部迁移控制均为可选策略，见 [认证](002-AUTHENTICATION-DECISION.md) 与 [任务与迁移](003-TASK-DELIVERY-AND-MIGRATION.md)。
 
 这是配置 breaking change：按此表重组已有文件与 dotenv，移除 HOST/DATABASE_URL 别名、平铺 auth、task.queue_database_uri 和平铺 media 参数。scheduler 负责投递、执行、重试与 Cron，公开名字不绑定队列 backend。Rust wire adapter 保留内部服务/领域类型，其历史成员名不成为公开配置字段。JPXL 业务 preset 仍固定在代码中，不虚构画质映射或新增 backend 参数。
 

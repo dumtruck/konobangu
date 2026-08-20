@@ -1,122 +1,172 @@
 # 002 — Authentication and data access
 
-## Current behavior and deployment boundary
+## Authentication contract and deployment boundary
 
-The same-origin WebUI uses backend Authorization Code with PKCE S256 and an HttpOnly session cookie. Rust uses published SecurityDept OIDC/session 0.3.0; the browser uses SessionContextClient 0.3.0. Local behavior checks cover authentication, persistence and GraphQL/task isolation. See [verification](001-DEVELOPMENT-VERIFICATION.md) and [roadmap](roadmap/001-SHORT-TERM-ROADMAP.md).
+The WebUI and API are independently deployable, including unrelated registrable domains. Both bundled and external issuers use one model: SecurityDept 0.3.3 frontend-oidc TokenSet clients run public-client Authorization Code with PKCE S256, and Recorder APIs verify JWT Bearer access tokens. Static assets are public; application APIs never authenticate session cookies or Basic credentials. Images and RSS additionally accept the bounded native resource credentials below. See the [release contract](005-RELEASE-ACCEPTANCE.md).
 
-This breaks the previous OIDC Bearer API, browser token storage, callback token JSON and Vite client-secret contract. Callback redirects only to a validated local path. RSS and subscriber static files require application authentication; possession of an RSS token alone no longer grants access. External readers must support application authentication. Machine API credentials are a future capability.
+The bundled issuer lives in the independent Rust `packages/auth-provider` crate. SecurityDept Basic authentication is confined to its dedicated `/auth-provider/login` endpoint. Browser-owned credentials authenticate the user there; the WebUI has no credential form, credential store, Basic SDK context or iframe login adapter. After login, the provider returns an authorization code to an exactly registered WebUI callback. API authentication is Bearer regardless of the issuer source. External issuers remain direct integrations, without an additional broker.
+
+The resource audience `urn:konobangu:api` and required scope `konobangu:api` are separate from the browser client ID. Resource verification checks signature, issuer, audience, expiry/not-before, required scopes and nonempty subject, and requires `typ=at+jwt` or `application/at+jwt` with an asymmetric signing algorithm. ID tokens, refresh tokens and Basic credentials cannot authorize an API call. External issuers use SecurityDept discovery/JWKS caches; the bundled runtime supplies its public key directly, avoiding HTTP self-discovery before the listener starts. No per-request IdP call or application session lookup is needed.
+
+Application identity comes only from the server-validated `GET /api/auth/user-info` projection. Browser ID claims and provider userinfo do not replace subscriber mapping. Principals have a nonempty issuer and subject with `authType: "oidc"`. Their `(issuer, subject)` identity owns private requests and caches. Restoring different SDK material cancels old confirmation; late results cannot authorize the new material. Routine renewal preserves the same identity's view, drafts and Apollo cache, while protected requests wait for the renewed material's server confirmation. Borrowed authorization is checked again immediately before use; the principal probe bypasses that gate to avoid recursion. No second token store is maintained.
+
+### Runtime deployment configuration
+
+One prebuilt bundle reads `konobangu.config.json` at its origin root, for example `{"version":1,"apiBaseUrl":"https://api.example.net/api/"}`; the default API path is `/api/`. The API may include a reverse-proxy prefix. User information, query, fragment, protocol-relative addresses and non-HTTP(S) URLs are rejected. An HTTP WebUI may explicitly select an HTTP API; HTTPS pages remain subject to mixed-content restrictions. Missing or invalid configuration fails startup rather than guessing a credential destination. The sidecar contains no token, secret or authentication mode.
+
+`GET <apiBaseUrl>auth/config` is public, `no-store`, creates no cookie/session and does not query identity storage. It always publishes `provider: "oidc"`, the resource envelope and the flattened SecurityDept `FrontendOidcModeConfigProjection`. The browser never learns the private `bundled`/`oidc` selector. SDK schemas validate the projection; the host additionally rejects client secrets, executable claims scripts, disabled PKCE, empty identifiers and a callback other than this WebUI's `/auth/callback`.
+
+`auth.webui.allowed_origins` uses strict origin roots or full-match regex rules. Empty/unrestricted policies fail startup. Public config selects the WebUI from `Origin`, or `Referer` only when Origin is absent; invalid, duplicate or `null` Origin cannot fall back. Host, Forwarded, XFF and real IP never choose the WebUI or issuer. Responses are `no-store` and vary by Origin/Referer. Register every callback separately with the issuer; a WebUI regex does not register OAuth callbacks.
+
+### Dependency and type boundaries
+
+`createKonobanguEnvironmentForNativeWeb` creates the only application environment and DI root; see [development rules](001-DEVELOPMENT-VERIFICATION.md#runtime-dependency-and-type-contracts). Before polyfills, `KonobanguBootstrapEnvironment` reads public JSON without importing the SDK. Domains receive the shared HttpClient and concrete environment traits rather than raw host inputs or SDK transport. External JSON stays unknown until schema validation. SDK protocol schemas remain SDK-owned; verified boundary adaptations do not justify double casts or partial service mocks.
+
+## Bundled provider
+
+The issuer is a stable configured HTTPS URL ending in `/auth-provider`, optionally preceded by a deployment prefix. Loopback HTTP is permitted only for development/testing. All advertised endpoints derive from that URL, never request Host/Referer/XFF. A reverse proxy must forward the corresponding path. LAN HTTP WebUI/API can use the same HTTPS issuer. The provider supports one preconfigured public client, `response_type=code`, PKCE S256, authorization-code/refresh grants and `token_endpoint_auth_method=none`.
+
+| Endpoint under the issuer | Responsibility |
+| --- | --- |
+| `/.well-known/openid-configuration` | OIDC discovery metadata |
+| `/authorize` | Validate client, exact callback, scopes, response type and PKCE before starting login |
+| `/login` | The only Basic challenge/credential endpoint; resume a short-lived validated pending request |
+| `/token` | Public-client authorization-code exchange and rotating opaque refresh tokens |
+| `/jwks` | Public RSA signing keys only |
+| `/userinfo` | Bearer-protected OIDC subject information |
+
+OAuth2 transitions use `oxide-auth` and `oxide-auth-async`; `openidconnect` constructs the typed OIDC metadata and ID token. Basic validation and real-IP handling use SecurityDept. Real-IP defaults trust the transport peer; configuring trusted proxies does not affect issuer/callback selection. The provider does not offer password grants, implicit flow, dynamic registration, generic account/consent UI, login sessions, token introspection or access-token revocation.
+
+Pending requests, authorization codes and refresh grants belong to the `auth_provider` schema under its own restricted capability. Secrets are stored as hashes. Authorization codes are time-limited and atomically consumed; grants bind client, callback, subject, scope, PKCE and OIDC nonce/authentication time. Refresh rotation consumes and replaces a token transactionally, and family reuse ends subsequent refresh eligibility. Already signed JWTs remain valid to expiry. Expired protocol records are pruned in bounded batches; no separate scheduling subsystem is required.
+
+Production requires a persistent RSA private key, at least 2048 bits, supplied through a file secret. The public JWKS contains no private material and exposes a stable key ID. Access tokens use RS256 and RFC9068 claims; ID tokens use the browser client audience and retain nonce/at_hash semantics. A missing/invalid key fails startup rather than generating an ephemeral identity.
+
+## Native resource credentials
+
+`POST /api/auth/resource-grants` requires Bearer authentication and JSON `{}`. It returns `grant` (Macaroon V2JSON), RFC3339 `issuedAt`/`expiresAt` and `childTtlSeconds: 300`. The in-memory parent binds the verified subscriber, `native-resource:read`, the recorder audience and a 3600-second lifetime. It cannot authorize APIs, renew itself or directly read resources. Before native loading, ResourceService locally attenuates it to an exact image/feed path and at most 300 seconds inside the parent window using HMAC-SHA256.
+
+Only enrolled GET/HEAD image and RSS endpoints accept the `resource_token` query parameter. The URL contains a child signature, never the parent signature or an OIDC access token. Authorization and every restriction are checked before database/storage access, validators and 304 handling. Resource IDs use decoded logical paths independent of hostnames/proxy prefixes. Bearer plus a query credential is rejected; no Basic compatibility path exists. Native images use anonymous CORS. No service worker, PWA registration or manual image/RSS fetch is involved.
+
+One owned service merges parent exchanges and renews five minutes before expiry while visible resources remain active. Hidden/inactive views stop timers. Network/timeout/5xx acquisition failures retry at most three times after 5/10/20 seconds; 401/403/schema failures do not retry on timers. Loaded image URLs survive routine token/parent renewal. Native image failures permit one renewed-grant retry, clearing the old source before remounting so an unchanged URL still creates exactly one replacement request. Identity changes cancel acquisition and clear parent material. Issued children remain valid until expiry after local logout.
+
+RSS children bind `feeds/rss/<locator>`; the locator itself grants no access. Owner RLS still rejects another subscriber's feed. Responses are XML, `no-store`, `Referrer-Policy: no-referrer`, and self-links omit query credentials. ResourceLink owns a native link through its connectable binding; visible-page renewal is local and stale URLs clear on hiding/identity changes. These short URLs are for browser opening, not permanent external-reader credentials. External readers need their own Bearer credential; machine credentials remain future work.
+
+`auth.resource_grants.signing_key` accepts 32-byte unpadded base64url, including through `AUTH__RESOURCE_GRANTS__SIGNING_KEY_FILE`. Omission generates an ephemeral resource key; replicas need the same explicit secret for continuity. This key is independent of the provider RSA key. Keys, credentials and query tokens are redacted, including sensitive macaroon TRACE metadata.
+
+### Crypto bootstrap and LAN HTTP
+
+The concurrent capability barrier preserves native Web Crypto and dynamically supplies missing SHA-256/HMAC capabilities through `@noble/hashes` before SDK construction. Native `getRandomValues` remains mandatory; PKCE is never disabled and secure-context status is not spoofed. A LAN HTTP WebUI/API still uses an HTTPS issuer and exact registered LAN callback. Computation polyfills do not provide transport confidentiality or override mixed-content, CORS or issuer policy. Avoid retaining query credentials in reverse-proxy logs.
 
 ## Credential checks and system schedules
 
-Credential checks use an independent `POST /api/credential3rd/{id}/check-available` command with JSON body `{}` and success response `{ "available": true }`. It requires current application authentication, exact Origin, `X-Konobangu-CSRF: 1` and `application/json`; responses are not cached. The previous `credential3rdCheckAvailable` GraphQL field and document are removed. Callers must migrate to the HTTP command.
+`POST /api/credential3rd/{id}/check-available` accepts JSON `{}` under Bearer authentication and returns `{ "available": true }` without caching. A short owner transaction reads the credential and PostgreSQL `xmin`, closes before remote work, then a new transaction conditionally commits encrypted cookies for the same owner/ID/version. Concurrent edits/deletion/checks yield 409 without stale writes; cross-owner access returns 403 and remote failure 502. Retrying rereads current data. Database rollback cannot undo a remote request already received.
 
-An owner-bound short transaction reads the credential and PostgreSQL row version, then closes. External checking/login holds no business connection. A new owner-bound short transaction atomically matches owner, ID and version before committing encrypted cookies. The version is `xmin` read with the row, independent of editable timestamps. An intervening edit, deletion or another check's write yields 409 without stale cookie updates. Cross-owner access returns 403; remote failure returns 502 without cookie writes. Retrying must read the current credential again. Database rollback cannot undo requests already received by the third party.
-
-All non-Basic Cron root, relation, update, delete and batch filters add `system_task_cron IS NULL`, ANDed with existing subscriber scope. Historical Basic/OIDC sharing does not confer system-schedule privileges; OIDC can still manage its own user schedules. Basic retains existing owner scope and the system-task input guard remains. Independent behavior checks confirm these production boundaries. Business records/outbox and queue recovery use the current [task contract](003-TASK-DELIVERY-AND-MIGRATION.md).
+System tasks and system Cron require an explicit application administrator capability, independent of authentication type. The bundled configured issuer and fixed subject identify its administrator; changing the username does not change subject. External administrators require explicit trusted issuer/subject configuration and default to none. Shared historical subscribers or untrusted token claims do not grant administration. Non-administrators retain subscriber scope and `system_task_cron IS NULL` on root/relation/update/delete/batch paths. See [task delivery](003-TASK-DELIVERY-AND-MIGRATION.md).
 
 ## Configuration and roles
 
-Figment parses native TOML/JSON/YAML with defaults < selected file < canonical double-underscore overrides, such as AUTH__SESSION__PUBLIC_URL. Process variables precede dotenv; unquoted legacy templates fail with redacted migration errors, while quoted template markers remain literal. Merge the following into the existing server/logger/storage configuration. All passwords and hosts below are placeholders.
+Figment loads defaults < selected TOML/JSON/YAML < canonical double-underscore overrides, with process environment ahead of dotenv. Structured values use Figment TOML-like syntax, for example in Just/dotenvy files:
+
+```dotenv
+AUTH__WEBUI__ALLOWED_ORIGINS='[{type="strict",value="https://ui.example"}]'
+AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE=/run/secrets/provider-password
+AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE=/run/secrets/provider-key
+```
+
+Outer quotes belong to the dotenv loader. Docker `--env-file` treats them literally: omit outer quotes for that loader. Larger lists belong in the configuration file. See [configuration sources and secrets](004-MEDIA-AND-CONFIGURATION.md#configuration-sources).
 
 ```toml
 [database]
 url = "postgres://konobangu:PASSWORD@localhost/konobangu"
 
-[database.migration]
-auto_run = true
-# url = "postgres://migration_owner:PASSWORD@localhost/konobangu"
-# legacy_oidc_issuer = "https://idp.example/"
+[auth]
+# External administrators only; use exact verified issuer and subject.
+# administrators = [{ issuer = "https://idp.example/", subject = "operator-id" }]
 
+[auth.webui]
+allowed_origins = [{ type = "strict", value = "https://ui.example" }]
+
+[auth.provider]
+type = "bundled"
+issuer = "https://api.example/auth-provider"
+
+[auth.provider.client]
+client_id = "konobangu-webui"
+redirect_uris = ["https://ui.example/auth/callback"]
+scopes = ["openid", "profile", "konobangu:api", "offline_access"]
+
+[auth.provider.credentials]
+username = "admin"
+# subject defaults to stable "local-admin".
+
+[auth.provider.tokens]
+authorization_code_ttl_seconds = 60
+access_token_ttl_seconds = 300
+refresh_token_ttl_seconds = 2592000
+```
+
+Generate a private key without an external OpenSSL executable, keeping it outside committed configuration:
+
+```text
+node -e "const fs=require('node:fs'); const c=require('node:crypto'); fs.mkdirSync('secrets',{recursive:true}); fs.writeFileSync('secrets/provider-key.pem',c.generateKeyPairSync('rsa',{modulusLength:2048,privateKeyEncoding:{type:'pkcs8',format:'pem'},publicKeyEncoding:{type:'spki',format:'pem'}}).privateKey,{mode:0o600,flag:'wx'})"
+```
+
+For an external issuer, replace the provider block and its nested fields:
+
+```toml
 [auth.provider]
 type = "oidc"
 issuer = "https://idp.example/"
-audience = "konobangu"
-client_id = "konobangu"
-client_secret = "SERVER_ONLY_SECRET"
-# extra_scopes = ["required-scope"]
+# trusted_ca_file = "/etc/konobangu/idp-ca.pem"
 
-[auth.session]
-public_url = "https://konobangu.example/"
-cookie_secure = true
-idle_timeout_seconds = 1800
-absolute_timeout_seconds = 43200
-login_timeout_seconds = 300
-cleanup_interval_seconds = 300
+[auth.provider.browser]
+client_id = "konobangu-webui"
+scopes = ["openid", "profile", "konobangu:api", "offline_access"]
 ```
 
-Register a confidential authorization_code client with PKCE S256 and the exact redirect `https://konobangu.example/api/auth/session/callback`. `auth.session.public_url` must be a fixed HTTP(S) origin without path/query/fragment/user information; Host/Forwarded never select callback origin. Secure defaults to true; disabling it is allowed only for HTTP loopback testing. All lifetimes must be positive.
+Register a public code client with auth method `none`, PKCE S256 and every exact callback. Configure its JWT access tokens for `urn:konobangu:api` and `konobangu:api`; SDK 0.3.3 does not send an RFC8707 resource parameter. Both sources use `auth.provider.resource.audience/required_scopes`. Private-CA issuers require valid API/browser trust; external mode supports `trusted_ca_file`. Discovery/configuration failures fail explicitly, without Basic/development fallback.
 
-`auth.provider.audience` must equal the client ID. A different audience or nonempty `auth.provider.extra_claims` fails startup: access-token claim restrictions cannot silently become ID-token principal restrictions. Move equivalent restrictions to the IdP before migration. Extra scopes are both requested and checked against granted scopes. Discovery/configuration failure never falls back to Basic or a development identity.
+Runtime privileges use fixed NOLOGIN, NOINHERIT, NOSUPERUSER, NOBYPASSRLS capabilities:
 
-Runtime privileges belong to three fixed capability roles, all NOLOGIN, NOINHERIT, NOSUPERUSER and NOBYPASSRLS:
-
-| Capability role | Responsibility |
+| Role | Responsibility |
 | --- | --- |
-| `konobangu_app_scoped_access` | Application data under subscriber-bound RLS; HTTP requests and worker business stages |
-| `konobangu_auth_access` | External identity mapping, subscriber initialization and session/pending/grant persistence |
-| `konobangu_task_control_access` | Cross-subscriber delivery, runs, outbox and Cron, including queue storage |
+| `konobangu_app_scoped_access` | Subscriber-bound application data and worker business stages |
+| `konobangu_auth_access` | Verified identity mapping and subscriber initialization |
+| `konobangu_task_control_access` | Cross-subscriber task delivery/runs/outbox/Cron and queue storage |
+| `konobangu_auth_provider_access` | Bundled provider protocol records, without application data access |
 
-Default deployment needs one existing PostgreSQL login in database.url. auth.session.database_url and scheduler.database.url inherit it when omitted. database.migration.auto_run defaults to true: startup completes owner migrations and library initialization, creates and validates capability roles, then applies grants and memberships before opening runtime pools. Membership uses INHERIT FALSE, SET TRUE; the login does not automatically combine capability permissions. PostgreSQL 16+ is required; see [membership options](https://www.postgresql.org/docs/current/sql-grant.html) and [transaction-local role switching](https://www.postgresql.org/docs/current/sql-set-role.html). The bootstrap credential needs CREATEROLE, permission to manage existing capability memberships and ownership/grant rights for application objects. Managed-provider credentials must actually supply those privileges; database ownership alone is insufficient. Startup never silently disables RLS or falls back to unrestricted runtime queries on failure.
+Default deployment uses one existing PostgreSQL login in `database.url`. Identity and scheduler URLs inherit it; bundled `auth.provider.database.url` inherits identity, then database. Startup owner migrations initialize schemas/roles/grants before restricted runtime pools open. Membership is `INHERIT FALSE, SET TRUE`; PostgreSQL 16+ and actual CREATEROLE plus ownership/grant rights are required. No manual grant SQL, generated login or replacement password is needed. Failure never disables RLS or falls back to owner queries.
 
-Each runtime pool activates its fixed capability on physical connection creation and restores it before checkout. Startup guards inspect current_user, requiring a non-owner, non-superuser role without privileges from other responsibilities. Business operations also execute SET LOCAL ROLE for app_scoped_access and bind subscriber identity inside their transaction. Commit, rollback and cancellation restore the restricted baseline and clear the local subscriber scope. Apalis and the mature session store issue queries through their own pools, so they need dedicated task-control/auth pool baselines rather than an unrelated outer transaction's SET LOCAL ROLE. Use direct PostgreSQL connections or session pooling; [transaction pooling](https://www.pgbouncer.org/features.html) cannot preserve this per-connection baseline and must not be used with the shared-login mode.
+Pools activate their fixed capability on creation and reset it on checkout. Business transactions additionally use SET LOCAL ROLE and bind subscriber identity. Commit/rollback/cancellation clear transaction scope. Apalis requires its own restricted pool because its queries do not inherit an unrelated business transaction. Use direct connections or session pooling; transaction-pooling proxies cannot preserve this baseline. The shared-login model reduces privileges per operation, not credentials against arbitrary SQL: session_user can switch granted roles. Optional separate runtime URLs and owner `database.migration.url` provide credential isolation, all targeting the same database.
 
-This is operation-level privilege reduction, not credential isolation against arbitrary SQL: session_user retains the bootstrap login's ability to RESET ROLE or switch to other granted capabilities. All URLs target the same database. Deployments requiring credential isolation can provide existing separate runtime URLs and an optional database.migration.url; startup grants each configured login only its required capability. To manage migrations externally, set auto_run=false after initializing the same role/grant contract with the existing migrate-up entry. These are optional deployment policies, not steps required for the default deployment. No runtime login or password is created or replaced by the application. --migration-preflight remains read-only.
-
-Grants live in migrations/access.rs and reference migrations/defs.rs schema/table/column identifiers. The subscriber sequence comes from PostgreSQL pg_get_serial_sequence. Library objects are granted after their dedicated schemas initialize; application objects retain explicit grants. New application tables need explicit grant definitions. Repeated startup reapplies the same grants idempotently.
-
-Identity uses two bounded pools: SeaORM/SQLx 0.9.0 max 3 and the mature store SQLx 0.8.6 max 2, both under auth_access. Both close on initialization failure and shutdown. The published store 0.15/core 0.14 adapter remains until a verified store supports SQLx 0.9.
-
-Basic is an explicit single-administrator mode: replace OIDC fields with `type = "basic"`, `username` and `password` in `auth.provider`, retaining fixed origin/session configuration; the auth database URL inherits database.url by default, and build with `AUTH__PROVIDER__TYPE=basic`. Server verification owns authentication and Basic subscriber mapping. Logout returns 409 and the UI explains that clearing cookies cannot revoke browser-cached Basic credentials; close the browser or clear its credential cache. OIDC builds use only `AUTH__PROVIDER__TYPE=oidc`, without passing server auth configuration to Vite. Development Vite proxies `/api` to loopback recorder:5001; configure the fixed login origin as the browser-facing Vite:5000 origin. Basic verification also stays on the backend.
+`konobangu-database` owns shared pool/role mechanisms and migration helpers. Recorder owns domain identifiers and explicit application grants; auth-provider owns its schema identifiers/migrations/grants. The owner entry composes migration definitions without duplicate migration histories. Runtime pools cannot perform owner DDL. AuthService and ProviderRuntime each own their respective bounded pool and close it once, including failed initialization.
 
 ## Existing database migration and recovery
 
-1. Stop recorder, workers and all writes. Back up the database with `pg_dump --format=custom` and preserve storage files; rehearse restoration in an isolated database. Protect sensitive backup data through the existing operational policy.
-2. Inspect `public.auth` OIDC attribution, duplicate `(auth_type,pid)` and shared subscriber mappings. Set `database.migration.legacy_oidc_issuer` only when the previous issuer is known exactly; do not infer ownership from email/display name.
-3. Run explicit owner migration:
+Stop writers/workers and preserve a tested database/storage backup. Unknown legacy OIDC issuer attribution and conflicting identities fail migration rather than guessing ownership from email or display name. Set `database.migration.legacy_oidc_issuer` only when known exactly. Default startup applies the same owner migration/grant path; explicit maintenance can use:
 
 ```sh
 mise exec -- cargo run -p recorder --locked --bin migrate-up -- --environment production --config-file /path/to/recorder.config.toml
 ```
 
-Development can use `mise exec -- just dev-recorder-migrate-up`. The command prefers `database.migration.url`, otherwise uses the supplied owner `database.url`; it creates no business AppContext.
+Unreleased intermediate migrations are edited directly; isolated test databases can be recreated. Existing business data is preserved. Historical Basic identity rows may remain as storage records but cannot authenticate APIs. Only the trusted bundled issuer/fixed subject may map to the historical administrator seed; new external identities get independent subscribers. Shared subscribers do not imply administrator status. Component initialization is not a single atomic DDL commit; keep writes stopped on failure, repair permissions and rerun the idempotent owner entry. Recovery uses the prior backup with matching old code/configuration; do not erase production data.
 
-4. Apply role grants, configure the ordinary runtime roles and split identity pools, build WebUI, check startup/user-info/real login/isolation, then resume writes. Never configure an owner URI for runtime pools.
+## Endpoints, CSRF and signing out
 
-Unknown issuer attribution and conflicting legacy keys fail before identity DDL. Identity becomes the exact unique `(auth_type,issuer,pid)` key: Basic has NULL issuer, OIDC has a nonempty issuer. Auth moves into `auth_identity`; session/pending/grant use `auth_session`. Existing subscriber mappings and shared relationships are retained. New OIDC identities receive independent subscribers; transactional locking and uniqueness handle concurrent first login.
+Application APIs require explicit Bearer credentials; writes also require JSON. OPTIONS precedes authentication. CORS permits configured WebUI origins without credentialed cookies and does not replace authentication. `/api/login` is absent, and API failures never emit a Basic challenge. Only the provider's login endpoint may accept Basic. Provider `/token` CORS permits origins of registered callbacks; it uses public-client form requests without cookies or client secrets.
 
-Historical owner-only 0.7 SQL bootstrap precedes the application transaction. The transaction imports business tasks and archives the old queue; public new-queue initialization and mature session store initialization follow. See [upgrade and recovery](003-TASK-DELIVERY-AND-MIGRATION.md). These component DDL steps are not one atomic commit. If store initialization fails, keep writes stopped, repair privileges, rerun idempotent up and apply grants.
+The callback uses SDK `useTokenSetFrontendCallback` and its configured router for initialization, state/PKCE exchange and CallbackCleanup+Replace parameter removal. A handled response navigates once to the SDK-stored in-app return path; missing/invalid callbacks never fabricate login. The public signed-out page starts the same SDK redirect. Its connectable domain flow owns pending/error state; unmounting does not dispose an application-owned client.
 
-Down fails explicitly because identities from different issuers cannot safely collapse. Recovery means stopping the new application, restoring the pre-migration backup with the matching old release/configuration, validating it, then reopening writes. New post-upgrade writes cannot be losslessly moved into the old identity model. Do not clear the database as a recovery mechanism.
+Logout clears local SDK material/principal, cancels private requests and ends the old Apollo identity. It does not initialize a lazy client just to clear it; ready clients clearState, unregister for registry disposal and register a fresh lazy entry. No revocation/introspection call occurs. Issued access/resource tokens remain valid to expiry. External IdP SSO and browser-cached bundled Basic credentials may persist, allowing later login without another prompt. Only short-lived redirect state uses sessionStorage; tokens and projection stay in memory.
 
-## Session, CSRF and revocation
-
-| Endpoint | Behavior |
-| --- | --- |
-| GET `/api/auth/session/login` | Creates a browser-bound one-time state and redirects to IdP |
-| GET `/api/auth/session/callback` | Verifies browser/state/code/PKCE/nonce/token/scopes, rotates session ID, redirects locally |
-| GET `/api/auth/session/user-info` | Minimal principal; unauthenticated/expired 401, no-store |
-| POST `/api/auth/session/logout` | Revokes durable application grant before clearing session; idempotent OIDC logout, Basic 409 |
-
-Cookie attributes are HttpOnly, Secure, SameSite=Lax, Path=/ and no Domain. Idle expiry defaults to 30 minutes and renews on access; grants expire absolutely after 12 hours without extension. Pending expires after five minutes and is consumed atomically by DELETE RETURNING. At most eight browser-bound states allow multiple tabs; callback checks the initiating browser before SDK consumption. Return paths reject external origins, scheme-relative targets, controls, backslashes and layered encoding before creating authenticated state. Logs omit callback query/code/state/session identifiers.
-
-PostgreSQL persistence reuses tower-sessions-sqlx-store 0.15.0 through a core 0.14→0.15 Id/Record/error adapter, writing back any regenerated create ID. Instances share PostgreSQL without sticky sessions. Authentication checks the grant on every request. Logout persists revoked_at first, preventing late saves from restoring identity even if they recreate a session row. Cleanup runs every five minutes, retains revoked grants until absolute expiry, and stops with App shutdown.
-
-Cookie writes, including GraphQL mutation, logout and credential checks, require exact Origin, `X-Konobangu-CSRF: 1`, and application/json with optional charset. Missing/wrong origin/header yields 403; wrong content type yields 415. SDK/Apollo send credentials and matching headers. CORS/SameSite do not replace these checks.
-
-User-info refresh reloads application identity; no refresh token is stored or rotated. Local logout does not guarantee IdP-wide SSO logout or immediate propagation of IdP revocation. There is no background revocation propagation: local revocation or absolute expiry ends current application authentication.
+The shared HttpClient normalizes requests, enforces destination/epoch and sends credentials omitted. Protected requests require the registry Bearer header; public config never initializes auth. One bounded replay is allowed only for explicitly safe operations; principal probes and mutation/credential commands do not recursively refresh or automatically replay. SDK discovery/token transport remains separate from application HTTP recovery. Only a provider-confirmed invalid grant clears refresh state; network/403 failures remain errors.
 
 ## GraphQL, tasks and frontend ownership
 
-Online execution uses explicit async-graphql dynamic resolvers. Seaography provides only pure schema/naming/filter helpers, without automatic database query/mutation/loaders. The HTTP operation owns an `Arc<Mutex<Option<DatabaseTransaction>>>` with trusted SET LOCAL subscriber identity. Roots, relations, request loaders, CRUD, batches and custom task mutations borrow that transaction; resolvers cannot commit. Locks release before nested resolution, and loaders never cache across requests. Mutation responds successfully only after commit; execution errors roll back and return data=null, and commit failures also reject success. Queries retain valid partial data and close their read transaction. A public extension preserves data and errors at schema-declared nullable boundaries, including alias paths; non-null failures still propagate. Nullable mutation-output errors also roll back the operation. Cancellation drops uncommitted transactions into rollback. Missing/empty GUC denies private rows.
+Online execution uses explicit async-graphql dynamic resolvers; Seaography supplies schema/naming/filter helpers. Each operation owns the subscriber transaction, shared by roots/relations/loaders/CRUD/batches/task mutations. Resolvers cannot commit, loaders never cache across requests, and mutation success follows commit. Execution errors roll back with data=null; nullable query boundaries retain valid partial data. Cancellation drops uncommitted transactions into rollback. Empty/missing subscriber scope denies private rows.
 
-Owners come from server identity mapping, never frontend subscriber_id. Creation injects the owner and updates cannot change it. Since FK checks may bypass RLS, GraphQL and task writes verify referenced-row visibility within the same owner transaction. Framework only_introspection excludes business execution even in mixed documents. System tasks/schedules require the explicit Basic administrator.
+Owners come from verified mapping, never frontend subscriber_id. Insert injects owner, updates cannot change it, and references are checked in the same owner transaction because PostgreSQL FK checks can bypass RLS. Introspection excludes business execution even in mixed documents. System operations use explicit administration, not authentication method. Tasks close short business transactions before remote/image work, then commit upserts or outbox/fenced stages under the [task contract](003-TASK-DELIVERY-AND-MIGRATION.md).
 
-User tasks read verified subscriptions in a short transaction, close it before HTTP/image work, then commit resource upserts and associations together in owner-bound database stages. Credential checks use the independent command described above; background cookie synchronization commits only explicit short business stages, never inside GraphQL operations; rollback cannot undo external requests. GraphQL enqueue/retry/delete write application runs/outbox in the original operation transaction. Cron occurrence, runs/outbox and next_run commit together. Public queue delivery and fenced business stages follow the [task contract](003-TASK-DELIVERY-AND-MIGRATION.md), without an exactly-once external-effects claim.
-
-FoundationEnvironment creates one official injection-js root shared by environment/native injector/SDK facade. Public useFactory/useValue and inject keep application code decorator-free. SessionContextClient owns its session resource; the root DestroyRef disposes SDK resources and AppRuntime owns listeners/React/Apollo. HTTP 403, network/5xx and parse errors do not loop into login; 401 enters the unauthenticated flow.
-
-Each authenticated identity owns an ApolloClient/InMemoryCache. Logout/identity changes cancel and stop the old client before switching provider; epoch/current-identity checks reject late results. Ordinary refresh preserves the client. Query currently owns no private requests, so no duplicate cache layer is added. Apollo DeclareDefaultOptions defines query/watchQuery errorPolicy=all and mutation=none. Client-preset TypedDocumentNodes preserve result types; pages display partial data with errors, and mutation failures never count as successful writes.
-
-The credential button uses the shared SDK transport, then refreshes active Apollo credential list/detail queries after success without adding an entity cache. Identity changes, root destruction and component cancellation cancel requests and reject late replies.
+The SDK registry owns clients/factories; AuthService coordinates verified application identity; ResourceService owns native grants. The environment owns their lifetime, while React borrows it. Each identity owns one ApolloClient/cache; identity/logout ends the old client and rejects late results, while ordinary refresh preserves it. Apollo query/watchQuery permits partial data plus errors; mutation errors never count as successful writes. HTTP 403/network/5xx/parser failures do not start login loops.
 
 [English](002-AUTHENTICATION-DECISION.md) | [中文](../zh/002-AUTHENTICATION-DECISION.md)

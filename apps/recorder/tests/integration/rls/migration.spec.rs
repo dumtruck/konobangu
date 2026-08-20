@@ -15,7 +15,7 @@ async fn configured_login_capabilities_enforce_current_access_boundaries() {
 
   use recorder::{
     app::AppContextTrait,
-    auth::{config::AuthSessionConfig, session::runtime::SessionRuntime},
+    auth::connect_identity_db,
     database::rls::bind_subscriber_to_transaction,
     task::{TaskConfig, TaskService},
     test_utils::app::TestingAppContext,
@@ -26,6 +26,7 @@ async fn configured_login_capabilities_enforce_current_access_boundaries() {
     app_scoped: "app scoped \"测试".into(),
     auth: "app scoped \"测试".into(),
     task_control: Some("app scoped \"测试".into()),
+    auth_provider: None,
   };
   fixture
     .bootstrap
@@ -47,7 +48,7 @@ async fn configured_login_capabilities_enforce_current_access_boundaries() {
   std::fs::write(&dotenv_path, "").unwrap();
   std::fs::write(&config_path, serde_json::to_vec(&serde_json::json!({
     "database": {"url": uri(&roles.app_scoped), "migration": {"url": fixture.bootstrap.config.uri, "auto_run": false}},
-    "auth": {"provider": {"type": "basic", "username": "fixture", "password": "fixture"}, "session": {"database_url": uri(&roles.auth), "public_url": "http://127.0.0.1:5001", "cookie_secure": false}},
+    "auth": {"provider": {"type":"bundled", "issuer":"https://issuer.test/auth-provider", "client":{"client_id":"fixture","redirect_uris":["http://127.0.0.1:5001/auth/callback"]}, "credentials":{"username":"fixture","password":"fixture"}, "signing":{"private_key_pem":"fixture-key"}}, "webui": {"allowed_origins": [{"type":"strict", "value": "http://127.0.0.1:5001"}]}, "identity": {"database_url": uri(&roles.auth)}},
     "scheduler": {"database": {"url": uri(roles.task_control.as_deref().unwrap())}},
   })).unwrap()).unwrap();
   let cli = std::process::Command::new(env!("CARGO_BIN_EXE_migrate-up"))
@@ -102,14 +103,8 @@ async fn configured_login_capabilities_enforce_current_access_boundaries() {
     1
   );
   txn.rollback().await.unwrap();
-  let auth_config: AuthSessionConfig = serde_json::from_value(serde_json::json!({
-    "identity_database_uri": uri(&roles.auth),
-    "external_base_url": "http://127.0.0.1:5001",
-    "session_cookie_secure": false,
-  }))
-  .unwrap();
-  let auth = SessionRuntime::new(auth_config).await.unwrap();
-  assert!(auth.identity_db.execute_unprepared("SELECT id FROM task_runs").await.is_err());
+  let auth_db = connect_identity_db(&uri(&roles.auth)).await.unwrap();
+  assert!(auth_db.execute_unprepared("SELECT id FROM task_runs").await.is_err());
   let config = TaskConfig {
     queue_database_uri: Some(uri(roles.task_control.as_deref().unwrap())),
     ..Default::default()
@@ -131,7 +126,7 @@ async fn configured_login_capabilities_enforce_current_access_boundaries() {
       .is_err()
   );
   task.close().await.unwrap();
-  auth.close().await.unwrap();
+  auth_db.close().await.unwrap();
   ctx.db().as_ref().clone().close().await.unwrap();
   fixture.close().await;
 }
@@ -149,7 +144,7 @@ async fn legacy_identity_migration_requires_attribution_and_preserves_shared_own
   std::fs::write(&dotenv_path, "").unwrap();
   std::fs::write(&config_path, serde_json::to_vec(&serde_json::json!({
     "database": fixture.bootstrap.config,
-    "auth": { "provider": {"type": "basic", "username": "fixture", "password": "fixture"}, "session": {"database_url": fixture.identity_uri, "public_url": "http://127.0.0.1:5001", "cookie_secure": false} },
+    "auth": { "provider": {"type":"bundled", "issuer":"https://issuer.test/auth-provider", "client":{"client_id":"fixture","redirect_uris":["http://127.0.0.1:5001/auth/callback"]}, "credentials":{"username":"fixture","password":"fixture"}, "signing":{"private_key_pem":"fixture-key"}}, "webui": {"allowed_origins": [{"type":"strict", "value": "http://127.0.0.1:5001"}]}, "identity": {"database_url": fixture.identity_uri} },
     "server": { "host": "127.0.0.1" }, "logger": { "enable": false, "level": "off", "format": "compact" }
   })).unwrap()).unwrap();
   #[cfg(unix)]
@@ -171,46 +166,6 @@ async fn legacy_identity_migration_requires_attribution_and_preserves_shared_own
   config.uri = config.uri.replace("/rls_test", "/legacy_test");
   config.auto_migrate = false;
   let legacy = DatabaseService::from_migration_config(config.clone()).await.unwrap();
-  legacy.execute_unprepared("CREATE SCHEMA apalis").await.unwrap();
-  let report = recorder::migrations::legacy::preflight(legacy.as_ref()).await.unwrap();
-  assert!(report.issues.iter().any(|issue| issue.contains("Unrecognized apalis schema")));
-  assert!(legacy.migrate_up().await.is_err(), "an unknown queue schema must reject before bootstrap DDL");
-  legacy.execute_unprepared("DROP SCHEMA apalis").await.unwrap();
-  recorder::migrations::legacy::bootstrap(legacy.as_ref()).await.unwrap();
-  legacy
-    .execute_unprepared(
-      "CREATE TABLE public._sqlx_migrations (version bigint PRIMARY KEY, description text NOT NULL, installed_on timestamptz NOT NULL DEFAULT now(), success \
-       boolean NOT NULL, checksum bytea NOT NULL, execution_time bigint NOT NULL)",
-    )
-    .await
-    .unwrap();
-
-  // Published SQLx history is accepted unchanged; corruption fails before DDL.
-  legacy
-    .execute_unprepared(
-      "INSERT INTO public._sqlx_migrations(version,description,success,checksum,execution_time) VALUES (20220530084123,'jobs \
-       workers',true,decode('0e2ae5fd117c32925d7ff4ba4f26368269fba7706bf1c3e9578a763a3e2acc5fd44c8edf2aa25e7c0ac1c6ebc8e95a9a','hex'),0)",
-    )
-    .await
-    .unwrap();
-  assert!(recorder::migrations::legacy::preflight(legacy.as_ref()).await.unwrap().issues.is_empty());
-  legacy
-    .execute_unprepared("UPDATE public._sqlx_migrations SET checksum=decode('01','hex') WHERE version=20220530084123")
-    .await
-    .unwrap();
-  assert!(legacy.migrate_up().await.is_err());
-  legacy
-    .execute_unprepared(
-      "UPDATE public._sqlx_migrations SET \
-       checksum=decode('0e2ae5fd117c32925d7ff4ba4f26368269fba7706bf1c3e9578a763a3e2acc5fd44c8edf2aa25e7c0ac1c6ebc8e95a9a','hex') WHERE version=20220530084123",
-    )
-    .await
-    .unwrap();
-  legacy.execute_unprepared("ALTER TABLE apalis.workers RENAME TO workers_hidden").await.unwrap();
-  let report = recorder::migrations::legacy::preflight(legacy.as_ref()).await.unwrap();
-  assert!(report.issues.iter().any(|issue| issue.contains("missing workers")));
-  assert!(legacy.migrate_up().await.is_err(), "unverifiable liveness must reject before application DDL");
-  legacy.execute_unprepared("ALTER TABLE apalis.workers_hidden RENAME TO workers").await.unwrap();
   Migrator::up(
     legacy.as_ref(),
     Some(
@@ -245,154 +200,12 @@ async fn legacy_identity_migration_requires_attribution_and_preserves_shared_own
     .unwrap()
     .unwrap();
   assert!(!no_schema.try_get_by_index::<bool>(0).unwrap());
-  // Populate the published 0.7 schema after real historical application DDL.
-  for (index, status) in ["Pending", "Scheduled", "Running", "Done", "Failed", "Killed"].into_iter().enumerate() {
-    legacy
-      .execute_raw(Statement::from_sql_and_values(
-        DbBackend::Postgres,
-        "INSERT INTO apalis.jobs(id,job,job_type,status,attempts,max_attempts,run_at,done_at,last_error) VALUES \
-         ($1,$2,'system_task',$3,2,7,'2030-01-01T00:00:00Z',CASE WHEN $3 IN ('Done','Failed','Killed') THEN '2029-12-31T00:00:00Z'::timestamptz ELSE NULL \
-         END,'legacy safe error')",
-        [
-          format!("legacy-{index}").into(),
-          serde_json::json!({"task_type":"test","task_id":"legacy-echo","subscriber_id":1}).into(),
-          status.into(),
-        ],
-      ))
-      .await
-      .unwrap();
-  }
-  legacy.execute_unprepared(r#"UPDATE apalis.jobs SET job_type='subscriber_task',job='{"task_type":"sync_one_subscription_sources","subscriber_id":1,"subscription_id":1}' WHERE id='legacy-3'"#).await.unwrap();
-  let report = recorder::migrations::legacy::preflight(legacy.as_ref()).await.unwrap();
-  assert_eq!(report.legacy_tasks, 6);
-  assert!(report.issues.is_empty(), "{:?}", report.issues);
-  legacy
-    .execute_unprepared("UPDATE apalis.jobs SET status='Unknown' WHERE id='legacy-0'")
-    .await
-    .unwrap();
-  assert!(legacy.migrate_up().await.is_err());
-  assert!(
-    !legacy
-      .query_one_raw(Statement::from_string(DbBackend::Postgres, "SELECT to_regclass('task_runs') IS NOT NULL"))
-      .await
-      .unwrap()
-      .unwrap()
-      .try_get_by_index::<bool>(0)
-      .unwrap()
-  );
-  legacy
-    .execute_unprepared("UPDATE apalis.jobs SET status='Pending' WHERE id='legacy-0'; UPDATE apalis.jobs SET job_type='unknown_kind' WHERE id='legacy-1'")
-    .await
-    .unwrap();
-  assert!(!recorder::migrations::legacy::preflight(legacy.as_ref()).await.unwrap().issues.is_empty());
-  legacy
-    .execute_unprepared(
-      "UPDATE apalis.jobs SET job_type='system_task' WHERE id='legacy-1'; INSERT INTO \
-       public._sqlx_migrations(version,description,installed_on,success,checksum,execution_time) \
-       VALUES(999999,'foreign-component',now(),true,decode('01','hex'),0)",
-    )
-    .await
-    .unwrap();
-  assert!(legacy.migrate_up().await.is_err());
-  legacy
-    .execute_unprepared(
-      "DELETE FROM public._sqlx_migrations WHERE version=999999; INSERT INTO apalis.workers(id,worker_type,storage_name) VALUES \
-       ('live-fixture','system_task','postgres')",
-    )
-    .await
-    .unwrap();
-  assert!(legacy.migrate_up().await.is_err());
-  legacy.execute_unprepared("DELETE FROM apalis.workers WHERE id='live-fixture'").await.unwrap();
-  // Exercise a real owner backup/restore entirely inside the disposable
-  // cluster.
-  let dump = std::process::Command::new("docker")
-    .args(["exec", fixture.container_id(), "pg_dump", "-U", "migration_owner", "-Fc", "legacy_test"])
-    .output()
-    .unwrap();
-  assert!(dump.status.success());
-  let backup_directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../temp/verification/fixtures/backups");
-  std::fs::create_dir_all(&backup_directory).unwrap();
-  std::fs::write(backup_directory.join(format!("{}.dump", uuid::Uuid::now_v7())), &dump.stdout).unwrap();
-  fixture.bootstrap.execute_unprepared("CREATE DATABASE restore_test").await.unwrap();
-  let mut restore = std::process::Command::new("docker")
-    .args([
-      "exec",
-      "-i",
-      fixture.container_id(),
-      "pg_restore",
-      "-U",
-      "migration_owner",
-      "-d",
-      "restore_test",
-    ])
-    .stdin(std::process::Stdio::piped())
-    .stdout(std::process::Stdio::null())
-    .stderr(std::process::Stdio::null())
-    .spawn()
-    .unwrap();
-  use std::io::Write;
-  restore.stdin.take().unwrap().write_all(&dump.stdout).unwrap();
-  assert!(restore.wait().unwrap().success());
-  let mut restored_config = config.clone();
-  restored_config.uri = restored_config.uri.replace("/legacy_test", "/restore_test");
-  let restored = DatabaseService::from_migration_config(restored_config).await.unwrap();
-  assert_eq!(recorder::migrations::legacy::preflight(restored.as_ref()).await.unwrap().legacy_tasks, 6);
-  restored.as_ref().clone().close().await.unwrap();
   config.legacy_oidc_issuer = Some("https://legacy-issuer.example".into());
   let attributed = DatabaseService::from_migration_config(config).await.unwrap();
   attributed.migrate_up().await.unwrap();
   attributed.migrate_up().await.unwrap();
-  let imported = attributed
-    .query_all_raw(Statement::from_string(
-      DbBackend::Postgres,
-      "SELECT id,status,subscriber_id,attempts,max_attempts,run_at,done_at,recovering,legacy_execution FROM task_runs ORDER BY id",
-    ))
-    .await
-    .unwrap();
-  assert_eq!(imported.len(), 6);
-  for (index, row) in imported.iter().enumerate() {
-    assert_eq!(row.try_get::<String>("", "id").unwrap(), format!("legacy-{index}"));
-    assert_eq!(row.try_get::<i32>("", "subscriber_id").unwrap(), 1);
-    assert_eq!(row.try_get::<i32>("", "attempts").unwrap(), 2);
-    assert_eq!(row.try_get::<i32>("", "max_attempts").unwrap(), 7);
-    assert_eq!(row.try_get::<bool>("", "recovering").unwrap(), index == 2);
-    assert_eq!(
-      row.try_get::<String>("", "status").unwrap(),
-      ["Pending", "Scheduled", "Pending", "Done", "Failed", "Killed"][index]
-    );
-  }
-  assert_eq!(
-    attributed
-      .query_one_raw(Statement::from_string(DbBackend::Postgres, "SELECT count(*) FROM task_outbox"))
-      .await
-      .unwrap()
-      .unwrap()
-      .try_get_by_index::<i64>(0)
-      .unwrap(),
-    3
-  );
-  assert_eq!(
-    attributed
-      .query_one_raw(Statement::from_string(DbBackend::Postgres, "SELECT count(*) FROM apalis_legacy_v07.jobs"))
-      .await
-      .unwrap()
-      .unwrap()
-      .try_get_by_index::<i64>(0)
-      .unwrap(),
-    6
-  );
-  assert_eq!(
-    attributed
-      .query_one_raw(Statement::from_string(DbBackend::Postgres, "SELECT count(*) FROM apalis.jobs"))
-      .await
-      .unwrap()
-      .unwrap()
-      .try_get_by_index::<i64>(0)
-      .unwrap(),
-    0
-  );
   // Fail a later queue initialization stage, retain the committed application
-  // cutover, then retry from that stopped state without reimporting data.
+  // migrations, then retry from that stopped state.
   attributed
     .execute_unprepared("DROP SCHEMA apalis CASCADE; CREATE SCHEMA apalis; CREATE TABLE apalis.jobs (bad integer)")
     .await
@@ -430,6 +243,13 @@ async fn legacy_identity_migration_requires_attribution_and_preserves_shared_own
     .unwrap()
     .unwrap();
   assert_eq!(subscription.try_get_by_index::<i32>(0).unwrap(), 1);
+  attributed
+    .execute_unprepared(
+      r#"INSERT INTO task_runs(id,kind,subscriber_id,subscription_id,payload,task_type,status) VALUES
+         ('finished-run','subscriber_task',1,1,'{"task_type":"sync_one_subscription_sources","subscriber_id":1,"subscription_id":1}','sync_one_subscription_sources','Done')"#,
+    )
+    .await
+    .unwrap();
   let transaction = attributed.begin().await.unwrap();
   recorder::database::rls::bind_subscriber_to_transaction(&transaction, 1).await.unwrap();
   let filter = sea_orm::Condition::all().add(sea_orm::ColumnTrait::eq(&recorder::models::subscriptions::Column::Id, 1));
@@ -438,7 +258,7 @@ async fn legacy_identity_migration_requires_attribution_and_preserves_shared_own
   let history = attributed
     .query_one_raw(Statement::from_string(
       DbBackend::Postgres,
-      "SELECT subscription_id IS NULL AS detached,payload->>'subscription_id' AS original FROM task_runs WHERE id='legacy-3'",
+      "SELECT subscription_id IS NULL AS detached,payload->>'subscription_id' AS original FROM task_runs WHERE id='finished-run'",
     ))
     .await
     .unwrap()
@@ -462,7 +282,7 @@ async fn single_createrole_owner_bootstraps_restricted_pools_without_manual_prov
   use figment::{Figment, providers::Serialized};
   use recorder::{
     app::AppConfig,
-    auth::session::runtime::SessionRuntime,
+    auth::connect_identity_db,
     database::roles::{APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, CAPABILITY_ROLES, TASK_CONTROL_ACCESS_ROLE, set_local_role},
     task::TaskService,
     test_utils::app::TestingAppContext,
@@ -489,14 +309,14 @@ async fn single_createrole_owner_bootstraps_restricted_pools_without_manual_prov
     .merge(AppConfig::default_provider())
     .merge(Serialized::defaults(serde_json::json!({
       "database": {"url": uri, "pool": {"min_connections": 1, "max_connections": 1}},
-      "auth": {"provider": {"type": "basic", "username": "fixture", "password": "fixture"},
-               "session": {"public_url": "http://127.0.0.1:5001", "cookie_secure": false}},
+      "auth": {"webui": {"allowed_origins": [{"type":"strict", "value": "http://127.0.0.1:5001"}]},
+               "provider": {"type":"bundled", "issuer":"https://issuer.test/auth-provider", "client":{"client_id":"fixture","redirect_uris":["http://127.0.0.1:5001/auth/callback"]}, "credentials":{"username":"fixture","password":"fixture"}, "signing":{"private_key_pem":"fixture-key"}}},
     })))
     .extract()
     .unwrap();
   config.resolve_database_urls();
   assert!(config.database.auto_migrate);
-  assert_eq!(config.auth.session().identity_database_uri, config.database.uri);
+  assert_eq!(config.auth.identity.database_url, config.database.uri);
   assert_eq!(config.task.queue_database_uri.as_deref(), Some(config.database.uri.as_str()));
   let db = DatabaseService::from_app_config(&config).await.unwrap();
   for capability in CAPABILITY_ROLES {
@@ -545,11 +365,9 @@ async fn single_createrole_owner_bootstraps_restricted_pools_without_manual_prov
   let restarted = DatabaseService::from_app_config(&config).await.unwrap();
   assert_eq!(role(&restarted).await.0, APP_SCOPED_ACCESS_ROLE);
   restarted.as_ref().clone().close().await.unwrap();
-  let auth = SessionRuntime::new(config.auth.session().clone()).await.unwrap();
-  assert_eq!(role(&auth.identity_db).await.0, AUTH_ACCESS_ROLE);
-  let stored_role: String = sqlx08::query_scalar("SELECT current_user::text").fetch_one(&auth.session_pool).await.unwrap();
-  assert_eq!(stored_role, AUTH_ACCESS_ROLE);
-  assert!(auth.identity_db.execute_unprepared("SELECT id FROM subscriptions").await.is_err());
+  let auth_db = connect_identity_db(&config.auth.identity.database_url).await.unwrap();
+  assert_eq!(role(&auth_db).await.0, AUTH_ACCESS_ROLE);
+  assert!(auth_db.execute_unprepared("SELECT id FROM subscriptions").await.is_err());
   let ctx = Arc::new(TestingAppContext::builder().db(db).build());
   let task = TaskService::from_config_and_ctx(config.task, ctx.clone()).await.unwrap();
   assert_eq!(role(task.queue_database().unwrap()).await.0, TASK_CONTROL_ACCESS_ROLE);
@@ -562,9 +380,248 @@ async fn single_createrole_owner_bootstraps_restricted_pools_without_manual_prov
       .is_err()
   );
   task.close().await.unwrap();
-  auth.close().await.unwrap();
+  auth_db.close().await.unwrap();
   use recorder::app::AppContextTrait;
   ctx.db().as_ref().clone().close().await.unwrap();
   bootstrap.close().await.unwrap();
   container.rm().await.unwrap();
+}
+
+#[tokio::test]
+async fn provider_protocol_storage_has_an_independent_capability_boundary() {
+  use konobangu_database::{
+    PoolConfig, connect,
+    roles::{APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, AUTH_PROVIDER_ACCESS_ROLE, TASK_CONTROL_ACCESS_ROLE},
+  };
+  let fixture = RlsFixture::new().await;
+  for (uri, capability) in [
+    (fixture.app_uri.as_str(), APP_SCOPED_ACCESS_ROLE),
+    (fixture.identity_uri.as_str(), AUTH_ACCESS_ROLE),
+    (fixture.queue_uri.as_str(), TASK_CONTROL_ACCESS_ROLE),
+    (fixture.provider_uri.as_str(), AUTH_PROVIDER_ACCESS_ROLE),
+  ] {
+    let db = connect(
+      uri,
+      &PoolConfig {
+        min_connections: 1,
+        max_connections: 1,
+        ..Default::default()
+      },
+      Some(capability),
+    )
+    .await
+    .unwrap();
+    let boundary = db
+      .query_one_raw(Statement::from_string(
+        DbBackend::Postgres,
+        "SELECT current_user::text AS role, has_schema_privilege(current_user,'auth_provider','USAGE') AS provider_schema, EXISTS(SELECT 1 FROM pg_class c \
+         JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='auth_provider' AND c.relkind='r') AS provider_tables, EXISTS(SELECT 1 FROM pg_class c \
+         JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='auth_provider' AND c.relkind='r' AND \
+         has_table_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,DELETE')) AS provider_access, \
+         has_schema_privilege(current_user,'auth_identity','USAGE') AS identity_schema, has_schema_privilege(current_user,'apalis','USAGE') AS task_schema",
+      ))
+      .await
+      .unwrap()
+      .unwrap();
+    assert_eq!(boundary.try_get::<String>("", "role").unwrap(), capability);
+    assert!(boundary.try_get::<bool>("", "provider_tables").unwrap());
+    assert_eq!(
+      boundary.try_get::<bool>("", "provider_schema").unwrap(),
+      capability == AUTH_PROVIDER_ACCESS_ROLE
+    );
+    assert_eq!(
+      boundary.try_get::<bool>("", "provider_access").unwrap(),
+      capability == AUTH_PROVIDER_ACCESS_ROLE
+    );
+    if capability == AUTH_PROVIDER_ACCESS_ROLE {
+      assert!(!boundary.try_get::<bool>("", "identity_schema").unwrap());
+      assert!(!boundary.try_get::<bool>("", "task_schema").unwrap());
+      for forbidden in ["SELECT id FROM public.subscriptions", "SELECT id FROM auth_identity.auth"] {
+        assert!(db.execute_unprepared(forbidden).await.is_err(), "Provider cannot acquire another capability");
+      }
+    }
+    db.close().await.unwrap();
+  }
+  // The sole role provisioning entry rejects polluted existing capabilities.
+  for flag in ["LOGIN", "INHERIT", "SUPERUSER", "BYPASSRLS", "CREATEROLE", "CREATEDB", "REPLICATION"] {
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("ALTER ROLE {AUTH_PROVIDER_ACCESS_ROLE} {flag}"))
+      .await
+      .unwrap();
+    let rejected = recorder::migrations::access::create_capability_roles(&fixture.bootstrap).await.is_err();
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("ALTER ROLE {AUTH_PROVIDER_ACCESS_ROLE} NO{flag}"))
+      .await
+      .unwrap();
+    assert!(rejected, "provisioning must reject capability {flag}");
+  }
+  fixture.close().await;
+}
+
+#[tokio::test]
+async fn runtime_startup_rejects_noninherited_capability_memberships_and_unsafe_roles_without_migrations() {
+  use std::sync::Arc;
+
+  use konobangu_database::{
+    PoolConfig, connect,
+    roles::{APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, AUTH_PROVIDER_ACCESS_ROLE, TASK_CONTROL_ACCESS_ROLE},
+  };
+  use recorder::{
+    auth::{ProviderAuthConfig, connect_identity_db},
+    task::{TaskConfig, TaskService},
+    test_utils::app::TestingAppContext,
+  };
+
+  async fn accepts(fixture: &RlsFixture, role: &'static str) -> bool {
+    match role {
+      APP_SCOPED_ACCESS_ROLE => {
+        let mut config = fixture.bootstrap.config.clone();
+        config.uri = fixture.app_uri.clone();
+        config.auto_migrate = false;
+        match DatabaseService::from_config(config).await {
+          Ok(db) => {
+            db.as_ref().clone().close().await.unwrap();
+            true
+          }
+          Err(_) => false,
+        }
+      }
+      AUTH_ACCESS_ROLE => match connect_identity_db(&fixture.identity_uri).await {
+        Ok(db) => {
+          db.close().await.unwrap();
+          true
+        }
+        Err(_) => false,
+      },
+      TASK_CONTROL_ACCESS_ROLE => {
+        let ctx = Arc::new(TestingAppContext::builder().build());
+        match TaskService::from_config_and_ctx(
+          TaskConfig {
+            queue_database_uri: Some(fixture.queue_uri.clone()),
+            ..Default::default()
+          },
+          ctx,
+        )
+        .await
+        {
+          Ok(task) => {
+            task.close().await.unwrap();
+            true
+          }
+          Err(_) => false,
+        }
+      }
+      AUTH_PROVIDER_ACCESS_ROLE => {
+        let ProviderAuthConfig::Bundled(provider) = fixture.bundled_auth("http://127.0.0.1:5001").provider else {
+          unreachable!()
+        };
+        match konobangu_auth_provider::ProviderRuntime::new(*provider, PoolConfig::default()).await {
+          Ok(provider) => {
+            provider.close().await.unwrap();
+            true
+          }
+          Err(_) => false,
+        }
+      }
+      _ => unreachable!(),
+    }
+  }
+
+  let fixture = RlsFixture::new().await;
+  for role in [APP_SCOPED_ACCESS_ROLE, AUTH_ACCESS_ROLE, TASK_CONTROL_ACCESS_ROLE, AUTH_PROVIDER_ACCESS_ROLE] {
+    assert!(accepts(&fixture, role).await, "valid restricted runtime starts");
+  }
+  for (source, target, uri) in [
+    (APP_SCOPED_ACCESS_ROLE, AUTH_PROVIDER_ACCESS_ROLE, fixture.app_uri.as_str()),
+    (AUTH_ACCESS_ROLE, TASK_CONTROL_ACCESS_ROLE, fixture.identity_uri.as_str()),
+    (TASK_CONTROL_ACCESS_ROLE, APP_SCOPED_ACCESS_ROLE, fixture.queue_uri.as_str()),
+    (AUTH_PROVIDER_ACCESS_ROLE, AUTH_ACCESS_ROLE, fixture.provider_uri.as_str()),
+  ] {
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("GRANT {target} TO {source} WITH INHERIT FALSE, SET TRUE"))
+      .await
+      .unwrap();
+    let probe = connect(uri, &PoolConfig::default(), Some(source)).await.unwrap();
+    let membership = probe
+      .query_one_raw(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        "SELECT pg_has_role(current_user,$1::text,'USAGE') AS inherited, pg_has_role(current_user,$1::text,'MEMBER') AS member",
+        [target.into()],
+      ))
+      .await
+      .unwrap()
+      .unwrap();
+    assert!(!membership.try_get::<bool>("", "inherited").unwrap());
+    assert!(membership.try_get::<bool>("", "member").unwrap());
+    probe.close().await.unwrap();
+    let rejected = !accepts(&fixture, source).await;
+    fixture.bootstrap.execute_unprepared(&format!("REVOKE {target} FROM {source}")).await.unwrap();
+    assert!(rejected, "SET-capable membership must not escape the {source} boundary");
+  }
+  for flag in ["LOGIN", "INHERIT", "SUPERUSER", "BYPASSRLS", "CREATEROLE", "CREATEDB", "REPLICATION"] {
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("ALTER ROLE {APP_SCOPED_ACCESS_ROLE} {flag}"))
+      .await
+      .unwrap();
+    let rejected = !accepts(&fixture, APP_SCOPED_ACCESS_ROLE).await;
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("ALTER ROLE {APP_SCOPED_ACCESS_ROLE} NO{flag}"))
+      .await
+      .unwrap();
+    assert!(rejected, "auto_migrate=false must still reject {flag}");
+  }
+  // Database ownership is forbidden even when it owns no application table.
+  async fn database_owner(db: &impl ConnectionTrait, owner: &str) {
+    let ddl: String = db
+      .query_one_raw(Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        "SELECT format('ALTER DATABASE %I OWNER TO %I',current_database(),$1::text) AS ddl",
+        [owner.into()],
+      ))
+      .await
+      .unwrap()
+      .unwrap()
+      .try_get("", "ddl")
+      .unwrap();
+    db.execute_unprepared(&ddl).await.unwrap();
+  }
+  let original_owner: String = fixture
+    .bootstrap
+    .query_one_raw(Statement::from_string(DbBackend::Postgres, "SELECT current_user::text AS owner"))
+    .await
+    .unwrap()
+    .unwrap()
+    .try_get("", "owner")
+    .unwrap();
+  database_owner(&fixture.bootstrap, APP_SCOPED_ACCESS_ROLE).await;
+  let owner_rejected = !accepts(&fixture, APP_SCOPED_ACCESS_ROLE).await;
+  database_owner(&fixture.bootstrap, &original_owner).await;
+  assert!(owner_rejected, "a capability cannot own the application database");
+
+  // Future public tables are covered without extending a table-name checklist.
+  fixture
+    .bootstrap
+    .execute_unprepared("CREATE TABLE capability_guard_fixture (id integer)")
+    .await
+    .unwrap();
+  for role in [AUTH_ACCESS_ROLE, TASK_CONTROL_ACCESS_ROLE] {
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("GRANT SELECT ON capability_guard_fixture TO {role}"))
+      .await
+      .unwrap();
+    let rejected = !accepts(&fixture, role).await;
+    fixture
+      .bootstrap
+      .execute_unprepared(&format!("REVOKE SELECT ON capability_guard_fixture FROM {role}"))
+      .await
+      .unwrap();
+    assert!(rejected, "new application tables cannot become visible to {role}");
+  }
+  fixture.close().await;
 }

@@ -6,7 +6,7 @@ Self-hosted bangumi (anime) subscription and recording service: it watches confi
 
 ## Install and run
 
-The application bundle pairs one `recorder-cli` executable with a `webui/` directory. Image codecs and TLS are compiled into the executable; the WebUI is served from disk. It needs PostgreSQL 16+ and an OIDC provider (or a single-administrator Basic mode) for authentication. No public release has been tagged yet — see the [roadmap](docs/en/roadmap/001-SHORT-TERM-ROADMAP.md) for release status. Until then, prepare a verified bundle from source:
+The application bundle pairs one `recorder-cli` executable with a `webui/` directory. Image codecs and TLS are compiled into the executable; the WebUI is served from disk. It needs PostgreSQL 16+ and either the bundled OIDC provider or an external issuer. The bundled provider uses a browser-native Basic login; application APIs always use Bearer tokens. No public release has been tagged yet — see [release acceptance](docs/en/005-RELEASE-ACCEPTANCE.md) for open delivery requirements. Until then, prepare a verified bundle from source:
 
 ```sh
 mise install                                   # Node, pnpm, Rust, just and other pinned tools
@@ -14,22 +14,24 @@ just setup                                      # frozen installs, workspace che
 just release prepare --target native            # verifies and builds the complete application bundle
 ```
 
-Work from the prepared platform directory under `temp/release/0.1.0/`. Provide a `recorder.config.toml` next to the executable (or pass `--config-file`) with at least a database owner URL and one authentication provider; see [configuration](docs/en/004-MEDIA-AND-CONFIGURATION.md#configuration-sources) and [authentication](docs/en/002-AUTHENTICATION-DECISION.md#configuration-and-roles) for every field, including file-backed secrets for passwords and connection strings:
+Work from the platform directory printed by prepare. Provide a `recorder.config.toml` next to the executable (or pass `--config-file`) with at least a database owner URL and one authentication provider; see [configuration](docs/en/004-MEDIA-AND-CONFIGURATION.md#configuration-sources) and [authentication](docs/en/002-AUTHENTICATION-DECISION.md#configuration-and-roles) for every field, including file-backed secrets for passwords and connection strings:
 
 ```toml
 [database]
 url = "postgres://konobangu:PASSWORD@localhost/konobangu"
 
 [auth.provider]
-type = "oidc" # or "basic" for a single administrator
+type = "oidc" # External issuer; bundled setup is documented below.
 issuer = "https://idp.example/"
-audience = "konobangu"
-client_id = "konobangu"
-client_secret = "SERVER_ONLY_SECRET"
 
-[auth.session]
-public_url = "https://konobangu.example/"
+[auth.provider.browser]
+client_id = "konobangu-webui"
+
+[auth.webui]
+allowed_origins = [{ type = "strict", value = "https://ui.konobangu.example" }]
 ```
+
+For the bundled single-administrator provider, use `type = "bundled"` with its registered callbacks, credentials and persistent RSA signing key; see [bundled configuration and key generation](docs/en/002-AUTHENTICATION-DECISION.md#configuration-and-roles). No separate authentication executable or service is required.
 
 Then run the executable; startup creates the restricted capability roles, applies migrations and opens its connection pools automatically:
 
@@ -47,10 +49,11 @@ Then run the executable; startup creates the restricted capability roles, applie
 | Authentication and data access | [Contract](docs/en/002-AUTHENTICATION-DECISION.md) |
 | Task delivery and database upgrades | [Operations](docs/en/003-TASK-DELIVERY-AND-MIGRATION.md) |
 | Media and configuration | [Reference](docs/en/004-MEDIA-AND-CONFIGURATION.md) |
+| Release delivery and open acceptance | [Status and contract](docs/en/005-RELEASE-ACCEPTANCE.md) |
 | Roadmap and remaining work | [Roadmap](docs/en/roadmap/001-SHORT-TERM-ROADMAP.md) |
 | Animeta model proposal | [Proposal](docs/en/roadmap/002-ANIMETA-MODEL.md) |
 
-The four guides above describe the current, running contract; `docs/{en,zh}/roadmap/` holds future decisions and proposals, not yet implemented. Release history: [CHANGELOG](CHANGELOG.md). Agent and contributor rules: [AGENTS.md](AGENTS.md). Historical iteration material under `temp/` is working residue, not a deployment manual.
+The runtime guides describe the current behavior; release acceptance records outstanding delivery; `docs/{en,zh}/roadmap/` holds future decisions and proposals, not yet implemented. Release history: [CHANGELOG](CHANGELOG.md). Agent and contributor rules: [AGENTS.md](AGENTS.md).
 
 ### Contributing and sharing
 
@@ -62,7 +65,7 @@ Issues and pull requests are welcome on [GitHub](https://github.com/apeiraco/kon
 - `apps/webui`: React UI, SecurityDept authentication/RxSignal, injection-js DI and Apollo GraphQL data.
 - `apps/docs`: VitePress documentation, projected from canonical repository documents through relative symlinks.
 - `apps/proxy`, `apps/email-playground`: development tools.
-- `packages/`: downloader, metadata, email and test helpers.
+- `packages/`: independent auth-provider, shared database/configuration crates, downloader, metadata, email and test helpers.
 - `scripts/dev-cli.mts`: typed cross-platform development CLI, exposed through `just`.
 - `justfiles/`: setup, development, build, quality, test, release and tool recipes; root justfile only configures/imports them.
 - `build/`, `deploy/`: Docker build inputs and license notices.

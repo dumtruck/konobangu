@@ -1,3 +1,4 @@
+import { ensureCrypto } from "./environment/crypto";
 export async function ensureTemporal(
   capabilities: { Temporal?: unknown } = globalThis,
   load: () => Promise<unknown> = () => import("temporal-polyfill/global"),
@@ -28,6 +29,7 @@ export async function ensurePolyfills(
   loaders: readonly (() => Promise<unknown>)[] = [
     ensureTemporal,
     ensureResourceManagement,
+    ensureCrypto,
   ],
 ) {
   await Promise.all(loaders.map((load) => load()));

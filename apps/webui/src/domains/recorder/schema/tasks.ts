@@ -31,14 +31,9 @@ export const GET_TASKS = gql(`
             nextRun
             lastRun
             lastError
-            status
-            lockedAt
-            lockedBy
+            enabled
             createdAt
             updatedAt
-            timeoutMs
-            maxAttempts
-                attempts
         }
       }
       paginationInfo {

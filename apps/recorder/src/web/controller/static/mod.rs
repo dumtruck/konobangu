@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
-  Extension, Router,
+  Router,
   body::Body,
   extract::{Path, Query, State},
   middleware::from_fn_with_state,
@@ -15,9 +15,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
   app::AppContextTrait,
-  auth::{AuthError, AuthUserInfo, auth_middleware},
+  auth::AuthError,
   errors::RecorderResult,
-  web::controller::Controller,
+  web::{
+    controller::Controller,
+    middleware::native_resources::{NativeResourceOwner, NativeResourceRoute, native_resource_auth},
+  },
 };
 
 pub const CONTROLLER_PREFIX: &str = "/api/static";
@@ -36,12 +39,12 @@ pub struct StaticQuery {
 async fn serve_subscriber_static(
   State(ctx): State<Arc<dyn AppContextTrait>>,
   Path((subscriber_id, path)): Path<(i32, String)>,
-  Extension(auth_user_info): Extension<AuthUserInfo>,
+  owner: NativeResourceOwner,
   Query(query): Query<StaticQuery>,
   method: Method,
   headers: HeaderMap,
 ) -> RecorderResult<Response> {
-  if subscriber_id != auth_user_info.subscriber_auth.subscriber_id {
+  if owner.0 != subscriber_id {
     Err(AuthError::PermissionError)?;
   }
   if std::path::Path::new(&path)
@@ -54,7 +57,16 @@ async fn serve_subscriber_static(
 
   let storage_path = storage.build_subscriber_path(subscriber_id, &path);
 
-  deliver(ctx.as_ref(), &method, storage_path.as_str(), &headers, &query, true).await
+  let mut response = deliver(ctx.as_ref(), &method, storage_path.as_str(), &headers, &query, true).await?;
+  // Prevent transport transformations from changing the private
+  // representation described by range and length headers.
+  response
+    .headers_mut()
+    .insert(http::header::CACHE_CONTROL, http::HeaderValue::from_static("private, no-cache, no-transform"));
+  response
+    .headers_mut()
+    .insert("cross-origin-resource-policy", http::HeaderValue::from_static("cross-origin"));
+  Ok(response)
 }
 
 async fn serve_public_static(
@@ -110,7 +122,7 @@ pub async fn create(ctx: Arc<dyn AppContextTrait>) -> RecorderResult<Controller>
   let router = Router::<Arc<dyn AppContextTrait>>::new()
     .route(
       "/subscribers/{subscriber_id}/{*path}",
-      get(serve_subscriber_static).layer(from_fn_with_state(ctx, auth_middleware)),
+      get(serve_subscriber_static).layer(from_fn_with_state((ctx, NativeResourceRoute::Image), native_resource_auth)),
     )
     .route("/public/{*path}", get(serve_public_static));
 

@@ -31,8 +31,11 @@ export function apolloErrorToMessage(error: ErrorLike | unknown): string {
     return "Unknown error";
   }
 
+  // A `message` field on an unknown value is not necessarily a string; an
+  // ErrorLike whose message really is one still takes this path.
   if (typeof error === "object" && error !== null && "message" in error) {
-    return (error as ErrorLike).message;
+    const { message } = error as { message: unknown };
+    if (typeof message === "string") return message;
   }
 
   if (typeof error === "string") {

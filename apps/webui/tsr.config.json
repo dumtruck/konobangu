@@ -1,4 +1,5 @@
 {
   "routesDirectory": "./src/presentation/routes",
-  "generatedRouteTree": "./src/presentation/routeTree.gen.ts"
+  "generatedRouteTree": "./src/presentation/routeTree.gen.ts",
+  "routeFileIgnorePattern": "(^|/)__test__(/|$)"
 }

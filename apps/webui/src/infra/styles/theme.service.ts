@@ -1,121 +1,75 @@
 import {
   createComputed,
   createSignal,
+  inject,
   readonlySignal,
 } from "@securitydept/client";
-import { inject } from "injection-js";
-import { fromEvent, Subscription } from "rxjs";
-import { DOCUMENT } from "@/infra/platform/injection";
-import { LocalStorageService } from "@/infra/storage/web-storage.service";
+import {
+  DOCUMENT,
+  MOBILE_VIEWPORT,
+  SYSTEM_DARK_THEME,
+  UI_PREFERENCE_STORAGE,
+} from "@/app/environment/traits";
+import type { AppLifetime } from "@/app/lifetime/scope";
 
 export type PreferColorSchemaType = "dark" | "light" | "system";
 export type PreferColorSchemaClass = "dark" | "light";
-
-const STORAGE_KEY = "prefers-color-scheme";
-const MOBILE_QUERY = "(max-width: 767px)";
-const SYSTEM_THEME_QUERY = "(prefers-color-scheme: dark)";
-
-export class ThemeService implements Disposable {
+export const THEME_STORAGE_KEY = "prefers-color-scheme";
+export class ThemeService {
   private readonly document = inject(DOCUMENT);
-  private readonly localStorage = inject(LocalStorageService);
-  private readonly systemQuery =
-    this.document.defaultView?.matchMedia?.(SYSTEM_THEME_QUERY);
-  private readonly mobileQuery =
-    this.document.defaultView?.matchMedia?.(MOBILE_QUERY);
-  private readonly preferenceState = createSignal<PreferColorSchemaType>(
-    this.readPreference(),
+  private readonly storage = inject(UI_PREFERENCE_STORAGE);
+  private readonly dark = inject(SYSTEM_DARK_THEME);
+  private readonly mobile = inject(MOBILE_VIEWPORT);
+  private readonly preferenceState = createSignal(
+    this.parse(this.storage.get(THEME_STORAGE_KEY)),
   );
   private readonly systemState = createSignal<PreferColorSchemaClass>(
-    this.systemQuery?.matches ? "dark" : "light",
+    this.dark.matches ? "dark" : "light",
   );
-  private readonly mobileState = createSignal(
-    this.mobileQuery?.matches ??
-      (this.document.defaultView?.innerWidth ?? 768) < 768,
-  );
-  private readonly subscriptions = new Subscription();
-  private started = false;
-  private disposed = false;
-
+  private readonly mobileState = createSignal(this.mobile.matches);
   readonly preference = readonlySignal(this.preferenceState);
   readonly systemTheme = readonlySignal(this.systemState);
   readonly isMobile = readonlySignal(this.mobileState);
-  readonly colorTheme = createComputed(() => {
-    const preference = this.preferenceState.get();
-    return preference === "system" ? this.systemState.get() : preference;
-  });
+  readonly colorTheme = createComputed(() =>
+    this.preferenceState.get() === "system"
+      ? this.systemState.get()
+      : this.preferenceState.get(),
+  );
 
-  setup(): void {
-    if (this.started || this.disposed) return;
-    this.started = true;
-    this.applyTheme();
-    if (this.systemQuery) {
-      this.subscriptions.add(
-        fromEvent(this.systemQuery, "change").subscribe(() => {
-          this.systemState.set(this.systemQuery?.matches ? "dark" : "light");
-          this.applyTheme();
-        }),
-      );
-    }
-    if (this.mobileQuery) {
-      this.subscriptions.add(
-        fromEvent(this.mobileQuery, "change").subscribe(() => {
-          this.mobileState.set(this.mobileQuery?.matches ?? false);
-        }),
-      );
-    }
-    const window = this.document.defaultView;
-    if (window) {
-      this.subscriptions.add(
-        fromEvent<StorageEvent>(window, "storage").subscribe((event) => {
-          // A null key represents localStorage.clear(), which resets the preference.
-          if (event.key !== STORAGE_KEY && event.key !== null) return;
-          try {
-            if (event.storageArea && event.storageArea !== window.localStorage)
-              return;
-          } catch {
-            return;
-          }
-          this.preferenceState.set(this.parsePreference(event.newValue));
-          this.applyTheme();
-        }),
-      );
-    }
+  static createOwned(lifetime: AppLifetime): ThemeService {
+    using rollback = new DisposableStack();
+    lifetime.signal.throwIfAborted();
+    const service = new ThemeService();
+    service.apply();
+    rollback.defer(
+      service.dark.changes((matches) => {
+        service.systemState.set(matches ? "dark" : "light");
+        service.apply();
+      }),
+    );
+    rollback.defer(
+      service.mobile.changes((matches) => service.mobileState.set(matches)),
+    );
+    const subscription = service.storage.storageEvent.subscribe({
+      next: (event) => {
+        if (event.key !== null && event.key !== THEME_STORAGE_KEY) return;
+        service.preferenceState.set(service.parse(event.newValue));
+        service.apply();
+      },
+    });
+    rollback.defer(() => subscription.unsubscribe());
+    const owner = rollback.move();
+    return lifetime.own(service, () => owner.dispose());
   }
-
   setPreference(preference: PreferColorSchemaType): void {
-    if (this.disposed) return;
     this.preferenceState.set(preference);
-    this.applyTheme();
-    try {
-      this.localStorage.setItem(STORAGE_KEY, preference);
-    } catch {
-      // Browser privacy settings can deny persistence; the in-memory preference still works.
-    }
+    this.apply();
+    this.storage.set(THEME_STORAGE_KEY, preference);
   }
-
-  [Symbol.dispose](): void {
-    this.dispose();
-  }
-
-  dispose(): void {
-    if (this.disposed) return;
-    this.disposed = true;
-    this.subscriptions.unsubscribe();
-  }
-
-  private readPreference(): PreferColorSchemaType {
-    try {
-      return this.parsePreference(this.localStorage.getItem(STORAGE_KEY));
-    } catch {
-      return "system";
-    }
-  }
-
-  private parsePreference(value: string | null): PreferColorSchemaType {
+  private parse(value: string | null): PreferColorSchemaType {
     return value === "dark" || value === "light" ? value : "system";
   }
-
-  private applyTheme(): void {
+  private apply(): void {
     this.document.documentElement.classList.remove("dark", "light");
     this.document.documentElement.classList.add(this.colorTheme.get());
   }

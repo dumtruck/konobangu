@@ -28,6 +28,11 @@ jobs:
     name: Static contracts and tooling
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    outputs:
+      platform_matrix: ${{ steps.plan.outputs.platform_matrix }}
+      needs_webui: ${{ steps.plan.outputs.needs_webui }}
+      bundles: ${{ steps.plan.outputs.bundles }}
+      runtime_image: ${{ steps.plan.outputs.runtime_image }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
@@ -35,20 +40,31 @@ jobs:
           # The Linux owner installs mise.ci.toml's union for downstream consumers.
           cache-mode: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'read-write' || 'read-only' }}
       - run: mise exec -- just verify static
+      - id: plan
+        run: mise exec -- just release plan --format github-output
 
   ts:
     name: TypeScript and WebUI
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: static
-    env:
-      AUTH__PROVIDER__TYPE: oidc
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         with:
           extra-tools: ''
       - run: mise exec -- just verify ts
+      - name: Stage verified WebUI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release' && needs.static.outputs.needs_webui == 'true'
+        run: mise exec -- just release stage webui temp/release-inputs/webui-release-input
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release' && needs.static.outputs.needs_webui == 'true'
+        with:
+          name: webui-release-input
+          path: temp/release-inputs/webui-release-input
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
 
   rust:
     name: Rust workspace and browser integration
@@ -80,20 +96,7 @@ jobs:
     needs: static
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-            cache_mode: read-only
-          - os: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
-            cache_mode: read-only
-          - os: macos-15
-            target: aarch64-apple-darwin
-            cache_mode: read-write
-          - os: windows-2025
-            target: x86_64-pc-windows-msvc
-            cache_mode: read-write
+      matrix: ${{ fromJSON(needs.static.outputs.platform_matrix) }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     env:
@@ -115,6 +118,17 @@ jobs:
         run: mise exec -- just test tooling
       - id: platform-check
         run: mise exec -- just platform-check --target ${{ matrix.target }}
+      - name: Stage verified executable
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release' && (needs.static.outputs.bundles == 'true' || (needs.static.outputs.runtime_image == 'true' && matrix.target == 'x86_64-unknown-linux-musl'))
+        run: mise exec -- just release stage recorder temp/release-inputs/recorder-release-input-${{ matrix.target }} --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/release' && (needs.static.outputs.bundles == 'true' || (needs.static.outputs.runtime_image == 'true' && matrix.target == 'x86_64-unknown-linux-musl'))
+        with:
+          name: recorder-release-input-${{ matrix.target }}
+          path: temp/release-inputs/recorder-release-input-${{ matrix.target }}
+          retention-days: 7
+          overwrite: true
+          if-no-files-found: error
       - name: Retain artifact receipts
         if: always() && steps.platform-check.outcome != 'skipped'
         uses: actions/upload-artifact@v4
@@ -141,3 +155,21 @@ jobs:
           test "$TS_RESULT" = success
           test "$RUST_RESULT" = success
           test "$PLATFORMS_RESULT" = success
+
+  dispatch-release:
+    name: Dispatch verified release candidate
+    needs: verification-report
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          extra-tools: ''
+      - run: mise exec -- just release dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

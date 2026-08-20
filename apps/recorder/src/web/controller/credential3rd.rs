@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{
   Extension, Json, Router,
   extract::{Path, State},
-  http::{HeaderMap, StatusCode},
+  http::StatusCode,
   middleware::from_fn_with_state,
   response::{IntoResponse, Response},
   routing::post,
@@ -17,7 +17,7 @@ use serde::Serialize;
 
 use crate::{
   app::AppContextTrait,
-  auth::{AuthError, AuthUserInfo, auth_middleware, session::csrf::validate_cookie_write},
+  auth::{AuthError, AuthUserInfo, auth_middleware},
   database::operation::begin_task_transaction,
   errors::{RecorderError, RecorderResult},
   models::credential_3rd::{self, Column, Entity, Model},
@@ -72,12 +72,8 @@ async fn check_available(
   State(ctx): State<Arc<dyn AppContextTrait>>,
   Path(id): Path<i32>,
   Extension(user): Extension<AuthUserInfo>,
-  headers: HeaderMap,
   Json(_body): Json<serde_json::Map<String, serde_json::Value>>,
 ) -> Response {
-  if let Err(status) = validate_cookie_write(&headers, &ctx.auth().runtime().config.external_base_url) {
-    return status.into_response();
-  }
   let response = match check(ctx.as_ref(), id, user.subscriber_auth.subscriber_id).await {
     Ok(result) => Json(result).into_response(),
     Err(error) => error.into_response(),

@@ -12,7 +12,7 @@ use std::{
 use axum::{
   Router,
   body::Body,
-  http::{HeaderName, HeaderValue, Request},
+  http::{HeaderMap, HeaderName, HeaderValue, Request},
   response::Response,
 };
 use futures::future::BoxFuture;
@@ -30,52 +30,20 @@ fn get_presets() -> &'static HashMap<String, BTreeMap<String, String>> {
     serde_json::from_str(json_data).unwrap()
   })
 }
-/// Sets a predefined or custom set of secure headers.
+/// Response defaults from a preset and optional configured overrides.
 ///
-/// We recommend our `github` preset. Presets values are derived
-/// from the [secure_headers](https://github.com/github/secure_headers) Ruby
-/// library which Github (and originally Twitter) use.
+/// Overrides replace preset values. Explicit endpoint headers take precedence
+/// over both, so scoped CSP and cache policies survive generic hardening.
+/// `empty` starts without preset defaults. Imperative `Clear-Site-Data` belongs
+/// to a deliberate operation or override, not every response.
 ///
-/// To use a preset, in your `config/development.yaml`:
-///
-/// ```yaml
-/// middlewares:
-///   secure_headers:
-///     preset: github
+/// ```toml
+/// [server.middlewares.secure_headers]
+/// enable = true
+/// preset = "github"
+/// [server.middlewares.secure_headers.overrides]
+/// "Referrer-Policy" = "same-origin"
 /// ```
-///
-/// You can also override individual headers on a given preset:
-///
-/// ```yaml
-/// middlewares:
-///   secure_headers:
-///     preset: github
-///     overrides:
-///       foo: bar
-/// ```
-///
-/// Or start from scratch:
-///
-///```yaml
-/// middlewares:
-///   secure_headers:
-///     preset: empty
-///     overrides:
-///       one: two
-/// ```
-///
-/// To support `htmx`, You can add the following override, to allow some inline
-/// running of scripts:
-///
-/// ```yaml
-/// secure_headers:
-///     preset: github
-///     overrides:
-///         # this allows you to use HTMX, and has unsafe-inline. Remove or consider in production
-///         "Content-Security-Policy": "default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src 'unsafe-inline' 'self' https:; style-src 'self' https: 'unsafe-inline'"
-/// ```
-///
-/// For the list of presets and their content look at [secure_headers.json](https://github.com/loco-rs/loco/blob/master/src/controller/middleware/secure_headers.rs)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SecureHeader {
   #[serde(default)]
@@ -118,17 +86,17 @@ impl MiddlewareLayer for SecureHeader {
 }
 
 impl SecureHeader {
-  /// Converts the configuration into a list of headers.
+  /// Converts the configuration into a single map of response defaults.
   ///
   /// Applies the preset headers and any custom overrides.
-  fn as_headers(&self) -> RecorderResult<Vec<(HeaderName, HeaderValue)>> {
-    let mut headers = vec![];
+  fn as_headers(&self) -> RecorderResult<HeaderMap> {
+    let mut headers = HeaderMap::new();
 
     let preset = &self.preset;
     if let Some(p) = get_presets().get(preset) {
-      Self::push_headers(&mut headers, p)?;
+      Self::merge_headers(&mut headers, p)?;
       if let Some(overrides) = &self.overrides {
-        Self::push_headers(&mut headers, overrides)?;
+        Self::merge_headers(&mut headers, overrides)?;
       }
       Ok(headers)
     } else {
@@ -136,14 +104,11 @@ impl SecureHeader {
     }
   }
 
-  /// Helper function to push headers into a mutable vector.
-  ///
-  /// This function takes a map of header names and values, converting them
-  /// into valid HTTP headers and adding them to the provided `headers`
-  /// vector.
-  fn push_headers(headers: &mut Vec<(HeaderName, HeaderValue)>, hm: &BTreeMap<String, String>) -> RecorderResult<()> {
+  /// Normalizing names before merging lets configured overrides win regardless
+  /// of casing, without retaining two defaults for the same response header.
+  fn merge_headers(headers: &mut HeaderMap, hm: &BTreeMap<String, String>) -> RecorderResult<()> {
     for (k, v) in hm {
-      headers.push((HeaderName::from_bytes(k.clone().as_bytes())?, HeaderValue::from_str(v.clone().as_str())?));
+      headers.insert(HeaderName::from_bytes(k.as_bytes())?, HeaderValue::from_str(v)?);
     }
     Ok(())
   }
@@ -153,7 +118,7 @@ impl SecureHeader {
 /// security headers
 #[derive(Clone, Debug)]
 pub struct SecureHeaders {
-  headers: Vec<(HeaderName, HeaderValue)>,
+  headers: HeaderMap,
 }
 
 impl SecureHeaders {
@@ -204,7 +169,10 @@ where
       let mut response: Response = future.await?;
       let headers = response.headers_mut();
       for (k, v) in &layer.headers {
-        headers.insert(k, v.clone());
+        // Endpoints own scoped CSP, cache and referrer policies. This layer
+        // supplies response defaults, just like
+        // SetResponseHeaderLayer::if_not_present.
+        headers.entry(k.clone()).or_insert(v.clone());
       }
       Ok(response)
     })
@@ -273,5 +241,57 @@ mod tests {
     let req = Request::builder().uri("/").method(Method::GET).body(Body::empty()).unwrap();
     let response = app.oneshot(req).await.unwrap();
     assert_debug_snapshot!(normalize_headers(response.headers()));
+  }
+
+  #[tokio::test]
+  async fn both_presets_preserve_endpoint_policies_and_keep_configured_defaults() {
+    for preset in ["github", "owasp"] {
+      let config = SecureHeader {
+        enable: true,
+        preset: preset.to_owned(),
+        overrides: Some(BTreeMap::from([
+          ("x-content-type-options".to_owned(), "configured-default".to_owned()),
+          ("Content-Security-Policy".to_owned(), "default-src 'none'; frame-ancestors 'none'".to_owned()),
+          ("Cache-Control".to_owned(), "public, max-age=100".to_owned()),
+        ])),
+      };
+      let app = Router::new()
+        .route(
+          "/",
+          get(|| async {
+            (
+              [
+                ("content-security-policy", "default-src 'none'; frame-ancestors https://ui.example"),
+                ("cache-control", "no-store"),
+                ("referrer-policy", "no-referrer"),
+              ],
+              "Endpoint-owned document",
+            )
+          }),
+        )
+        .layer(SecureHeaders::new(&config).unwrap());
+      let response = app.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
+      assert_eq!(
+        response.headers()["content-security-policy"],
+        "default-src 'none'; frame-ancestors https://ui.example"
+      );
+      assert_eq!(response.headers()["cache-control"], "no-store");
+      assert_eq!(response.headers()["referrer-policy"], "no-referrer");
+      assert_eq!(response.headers()["x-content-type-options"], "configured-default");
+      assert!(response.headers().contains_key("strict-transport-security"));
+      assert!(!response.headers().contains_key("clear-site-data"));
+    }
+  }
+
+  #[tokio::test]
+  async fn explicitly_configured_state_clearing_remains_available() {
+    let config = SecureHeader {
+      enable: true,
+      preset: "owasp".to_owned(),
+      overrides: Some(BTreeMap::from([("Clear-Site-Data".to_owned(), "\"cookies\"".to_owned())])),
+    };
+    let app = Router::new().route("/", get(|| async {})).layer(SecureHeaders::new(&config).unwrap());
+    let response = app.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
+    assert_eq!(response.headers()["clear-site-data"], "\"cookies\"");
   }
 }

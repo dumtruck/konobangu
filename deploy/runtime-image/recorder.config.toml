@@ -1,0 +1,32 @@
+# Supply DATABASE__URL and authentication through environment or *_FILE secrets.
+[server]
+binding = "0.0.0.0"
+port = 5001
+host = "localhost"
+[server.middlewares.logger]
+enable = true
+[server.middlewares.catch_panic]
+enable = true
+[server.middlewares.request_id]
+enable = true
+[server.middlewares.etag]
+enable = true
+[server.middlewares.compression]
+enable = true
+[logger]
+enable = true
+level = "info"
+format = "json"
+[database.migration]
+auto_run = true
+[storage]
+data_dir = "./data"
+[media.encoding.webp]
+quality = 80
+[media.execution]
+deadline_seconds = 30
+queue_capacity = 8
+working_set_bytes = 536870912
+concurrency = 1
+[mikan]
+base_url = "https://mikanani.me/"

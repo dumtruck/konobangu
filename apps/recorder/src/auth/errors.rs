@@ -7,26 +7,29 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use snafu::prelude::*;
 
-use crate::models::auth::AuthType;
-
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub(crate)))]
 pub enum AuthError {
   #[snafu(display("Authentication configuration is invalid: {message}"))]
-  SessionConfiguration { message: String },
-  #[snafu(display("Authentication storage is unavailable"))]
-  SessionStorage,
+  Configuration { message: String },
+  #[snafu(display("Identity storage is unavailable"))]
+  IdentityStorage,
   #[snafu(display("Authentication is required"))]
-  SessionUnauthorized,
+  Unauthorized,
+  #[snafu(display("A bearer access token is required"))]
+  ResourceTokenMissing,
+  #[snafu(display("The access token is not valid for this API"))]
+  ResourceTokenInvalid,
+  #[snafu(display("The native resource token is invalid or expired"))]
+  NativeResourceTokenInvalid,
+  /// The signature verified but the credential is not an API access token.
+  #[snafu(display("The presented token is not an access token for this API"))]
+  ResourceTokenUse,
 
   #[snafu(display("Permission denied"))]
   PermissionError,
-  #[snafu(display("Not support auth method"))]
-  NotSupportAuthMethod { supported: Vec<AuthType>, current: AuthType },
   #[snafu(display("Failed to find auth record"))]
   FindAuthRecordError,
-  #[snafu(display("Invalid credentials"))]
-  BasicInvalidCredentials,
   #[snafu(display(
         "GraphQL permission denied since {context_path}{}{field}{}{column}: {}",
         (if field.is_empty() { "" } else { "." }),
@@ -72,7 +75,7 @@ impl IntoResponse for AuthError {
   fn into_response(self) -> Response {
     (
       match &self {
-        Self::SessionConfiguration { .. } | Self::SessionStorage => StatusCode::INTERNAL_SERVER_ERROR,
+        Self::Configuration { .. } | Self::IdentityStorage => StatusCode::INTERNAL_SERVER_ERROR,
         Self::PermissionError | Self::GraphqlDynamicPermissionError { .. } => StatusCode::FORBIDDEN,
         _ => StatusCode::UNAUTHORIZED,
       },

@@ -1,5 +1,5 @@
-FROM node:24-slim AS nodebt
-RUN npm install -g pnpm
+FROM node:24.15.0-bookworm-slim@sha256:4e6b70dd6cbfc88c8157ba19aa3d9f9cce6ba4703576d55459e45efcbc9c5f5d AS nodebt
+RUN npm install -g pnpm@12.4.1
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN mkdir -p /app/workspace
 WORKDIR /app
-COPY package.json /app/
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --no-frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --store-dir /pnpm/store
 
 FROM deps AS app
 

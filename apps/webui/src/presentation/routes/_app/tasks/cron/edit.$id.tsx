@@ -4,6 +4,7 @@ import { type } from "arktype";
 import { Save } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,13 +33,8 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from "@/infra/errors/apollo";
-import { compatFormDefaultValues, type NonNull } from "@/infra/forms/compat";
-import type {
-  CronUpdateInput,
-  GetCronsQuery,
-} from "@/infra/graphql/gql/graphql";
+import type { GetCronsQuery } from "@/infra/graphql/gql/graphql";
 import type { RouteStateDataOption } from "@/infra/routes/traits";
-import { getStatusBadge } from "./-status-badge";
 
 export const Route = createFileRoute("/_app/tasks/cron/edit/$id")({
   component: CronEditRouteComponent,
@@ -51,25 +47,16 @@ type CronDetailDto = NonNullable<GetCronsQuery["cron"]["nodes"][0]> & {
   cronTimezone: string;
 };
 
-type CronUpdateForm = Pick<
-  CronUpdateInput,
-  | "cronExpr"
-  | "cronTimezone"
-  | "enabled"
-  | "maxAttempts"
-  | "priority"
-  | "timeoutMs"
->;
-
-// Form validation schema
+// The plan owns its schedule and whether it is active; execution parameters
+// belong to the task runs it creates. The schema is the form's contract, and
+// the nullable GraphQL input type only applies at the mutation boundary.
 const CronUpdateFormSchema = type({
   cronExpr: "string>0",
   cronTimezone: "string>0",
   enabled: "boolean",
-  maxAttempts: "number>=1",
-  priority: "number>=0",
-  timeoutMs: "number|null",
 });
+
+type CronUpdateForm = typeof CronUpdateFormSchema.infer;
 
 function FormView({
   cron,
@@ -89,39 +76,23 @@ function FormView({
 
   // Initialize form data
   const defaultValues = useMemo(
-    () => ({
+    (): CronUpdateForm => ({
       cronExpr: cron.cronExpr,
       cronTimezone: cron.cronTimezone,
       enabled: cron.enabled,
-      maxAttempts: cron.maxAttempts,
-      priority: cron.priority,
-      timeoutMs: cron.timeoutMs ?? null,
     }),
     [cron],
   );
 
   const form = useAppForm({
-    defaultValues:
-      compatFormDefaultValues<
-        NonNull<
-          CronUpdateForm,
-          "cronExpr" | "cronTimezone" | "enabled" | "maxAttempts" | "priority"
-        >
-      >(defaultValues),
+    defaultValues,
     validators: {
       onChangeAsync: CronUpdateFormSchema,
       onChangeAsyncDebounceMs: 300,
       onSubmit: CronUpdateFormSchema,
     },
     onSubmit: async (submittedForm) => {
-      const {
-        cronExpr,
-        cronTimezone,
-        enabled,
-        maxAttempts,
-        priority,
-        timeoutMs,
-      } = submittedForm.value;
+      const { cronExpr, cronTimezone, enabled } = submittedForm.value;
 
       await updateCron({
         variables: {
@@ -129,9 +100,6 @@ function FormView({
             cronExpr,
             cronTimezone,
             enabled,
-            maxAttempts,
-            priority,
-            timeoutMs,
           },
           filter: {
             id: {
@@ -166,7 +134,9 @@ function FormView({
                 Edit cron task configuration
               </CardDescription>
             </div>
-            {getStatusBadge(cron.status)}
+            <Badge variant={cron.enabled ? "default" : "secondary"}>
+              {cron.enabled ? "Enabled" : "Disabled"}
+            </Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -248,115 +218,6 @@ function FormView({
                 </div>
               )}
             </form.Field>
-
-            <Separator />
-
-            {/* Advanced */}
-            <div className="space-y-4">
-              <Label className="font-medium text-base">Advanced</Label>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* Max attempts */}
-                <form.Field name="maxAttempts">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor={field.name}>Max attempts</Label>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        type="number"
-                        min={1}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) =>
-                          field.handleChange(
-                            Number.parseInt(e.target.value, 10),
-                          )
-                        }
-                        placeholder="1"
-                        autoComplete="off"
-                      />
-                      {field.state.meta.errors && (
-                        <FormFieldErrors
-                          errors={field.state.meta.errors}
-                          isDirty={field.state.meta.isDirty}
-                          submissionAttempts={form.state.submissionAttempts}
-                        />
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-
-                {/* Priority */}
-                <form.Field name="priority">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor={field.name}>Priority</Label>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        type="number"
-                        min={0}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) =>
-                          field.handleChange(
-                            Number.parseInt(e.target.value, 10),
-                          )
-                        }
-                        placeholder="0"
-                        autoComplete="off"
-                      />
-                      <div className="text-muted-foreground text-sm">
-                        The smaller the value, the higher the priority
-                      </div>
-                      {field.state.meta.errors && (
-                        <FormFieldErrors
-                          errors={field.state.meta.errors}
-                          isDirty={field.state.meta.isDirty}
-                          submissionAttempts={form.state.submissionAttempts}
-                        />
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-
-                {/* Timeout */}
-                <form.Field name="timeoutMs">
-                  {(field) => (
-                    <div className="space-y-2">
-                      <Label htmlFor={field.name}>Timeout (ms)</Label>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        type="number"
-                        min={0}
-                        value={field.state.value || ""}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          field.handleChange(
-                            value ? Number.parseInt(value, 10) : null,
-                          );
-                        }}
-                        placeholder="5000"
-                        autoComplete="off"
-                      />
-                      <div className="text-muted-foreground text-sm">
-                        Leave empty to disable timeout
-                      </div>
-                      {field.state.meta.errors && (
-                        <FormFieldErrors
-                          errors={field.state.meta.errors}
-                          isDirty={field.state.meta.isDirty}
-                          submissionAttempts={form.state.submissionAttempts}
-                        />
-                      )}
-                    </div>
-                  )}
-                </form.Field>
-              </div>
-            </div>
 
             {/* Task detail */}
             {cron.subscriberTaskCron && (

@@ -17,7 +17,7 @@ async fn run_main() -> RecorderResult<()> {
 
   let db = app_ctx.db();
 
-  recorder::migrations::legacy::initialize_queue(db.as_ref()).await?;
+  recorder::migrations::queue::initialize_queue(db.as_ref()).await?;
 
   println!("Owner queue migration completed");
 

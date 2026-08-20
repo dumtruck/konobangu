@@ -14,14 +14,14 @@ use serde_json::Value;
 
 use super::support::{RlsFixture, SUBSCRIBER_A, SUBSCRIBER_B};
 
-fn user(owner: i32, basic: bool) -> AuthUserInfo {
-  let auth_type = if basic { AuthType::Basic } else { AuthType::Oidc };
+fn user(owner: i32, administrator: bool) -> AuthUserInfo {
+  let auth_type = AuthType::Oidc;
   AuthUserInfo {
-    auth_type: auth_type.clone(),
+    is_admin: administrator,
     subscriber_auth: Model {
       id: owner,
       pid: "shared-owner-fixture".into(),
-      issuer: (!basic).then(|| "https://fixture.example".into()),
+      issuer: Some("https://fixture.example".into()),
       subscriber_id: owner,
       auth_type,
       created_at: chrono::Utc::now(),
@@ -29,10 +29,15 @@ fn user(owner: i32, basic: bool) -> AuthUserInfo {
     },
   }
 }
-async fn gql(schema: &Schema, ctx: &dyn AppContextTrait, basic: bool, document: impl Into<String>) -> Value {
-  let response = execute_operation(schema, ctx.db(), user(SUBSCRIBER_A, basic), Request::new(document)).await;
+async fn gql(schema: &Schema, ctx: &dyn AppContextTrait, administrator: bool, document: impl Into<String>) -> Value {
+  let response = execute_operation(schema, ctx.db(), user(SUBSCRIBER_A, administrator), Request::new(document)).await;
   assert!(response.errors.is_empty(), "{:?}", response.errors);
   response.data.into_json().unwrap()
+}
+async fn gql_rejects(schema: &Schema, ctx: &dyn AppContextTrait, document: impl Into<String>) -> String {
+  let response = execute_operation(schema, ctx.db(), user(SUBSCRIBER_A, false), Request::new(document)).await;
+  assert!(!response.errors.is_empty(), "expected the schema to reject this document");
+  response.errors.iter().map(|error| error.message.clone()).collect::<Vec<_>>().join("; ")
 }
 
 #[tokio::test]
@@ -72,7 +77,7 @@ async fn shared_subscriber_oidc_cannot_access_existing_system_crons() {
   let admin = gql(&schema, ctx.as_ref(), true, query).await;
   assert_eq!(admin["cron"]["nodes"].as_array().unwrap().len(), 2);
   assert_eq!(admin["subscriptions"]["nodes"][0]["cron"]["nodes"].as_array().unwrap().len(), 2);
-  for data in ["enabled: true", "cronExpr: \"0 0 1 * * *\", cronTimezone: \"UTC\"", "priority: 123"] {
+  for data in ["enabled: true", "cronExpr: \"0 0 1 * * *\", cronTimezone: \"UTC\""] {
     let response = gql(
       &schema,
       ctx.as_ref(),
@@ -86,20 +91,42 @@ async fn shared_subscriber_oidc_cannot_access_existing_system_crons() {
     &schema,
     ctx.as_ref(),
     false,
-    format!("mutation {{ cronUpdate(data: {{ priority: 17 }}, filter: {{ id: {{ is_in: [{system}, {own}] }} }}) {{ id priority }} }}",),
+    format!("mutation {{ cronUpdate(data: {{ enabled: false }}, filter: {{ id: {{ is_in: [{system}, {own}] }} }}) {{ id enabled }} }}",),
   )
   .await;
-  assert_eq!(mixed["cronUpdate"], serde_json::json!([{"id": own, "priority": 17}]));
+  assert_eq!(mixed["cronUpdate"], serde_json::json!([{"id": own, "enabled": false}]));
+  // A plan carries no execution parameters, so the retired inputs and outputs
+  // cannot be saved or read back as if they still took effect.
+  for data in [
+    "priority: 17",
+    "timeoutMs: 5000",
+    "maxAttempts: 3",
+    "attempts: 0",
+    "lockedBy: \"worker\"",
+    "status: pending",
+  ] {
+    let message = gql_rejects(
+      &schema,
+      ctx.as_ref(),
+      format!("mutation {{ cronUpdate(data: {{ {data} }}, filter: {{ id: {{ eq: {own} }} }}) {{ id }} }}"),
+    )
+    .await;
+    assert!(message.contains("CronUpdateInput") || message.contains("Unknown"), "{data}: {message}");
+  }
+  for field in ["priority", "timeoutMs", "maxAttempts", "attempts", "lockedBy", "lockedAt", "status"] {
+    let message = gql_rejects(&schema, ctx.as_ref(), format!("{{ cron {{ nodes {{ id {field} }} }} }}")).await;
+    assert!(message.contains(field) || message.contains("Unknown"), "{field}: {message}");
+  }
   let system_row = gql(
     &schema,
     ctx.as_ref(),
     true,
-    format!("{{ cron(filter: {{ id: {{ eq: {system} }} }}) {{ nodes {{ id enabled priority cronExpr }} }} }}",),
+    format!("{{ cron(filter: {{ id: {{ eq: {system} }} }}) {{ nodes {{ id enabled cronExpr }} }} }}",),
   )
   .await;
   assert_eq!(
     system_row["cron"]["nodes"],
-    serde_json::json!([{"id": system, "enabled": false, "priority": 0, "cronExpr": "0 0 0 * * *"}])
+    serde_json::json!([{"id": system, "enabled": false, "cronExpr": "0 0 0 * * *"}])
   );
   let denied = gql(
     &schema,

@@ -12,12 +12,20 @@ import { checkDocs } from "./commands/docs.mts";
 import { checkTypesLayout } from "./commands/layout.mts";
 import { platformCheck } from "./commands/platform.mts";
 import {
+  assembleRelease,
+  checkPublisher,
   checkReleaseVersion,
+  createImageContext,
+  dispatchRelease,
   prepareRelease,
   publishRelease,
+  releaseImage,
   releasePlan,
   setReleaseVersion,
-  tagRelease,
+  stageReleaseInput,
+  validateReleaseCandidate,
+  validateReleaseSource,
+  verifyReleaseInputs,
 } from "./commands/release.mts";
 import { mediaSmoke } from "./commands/rust.mts";
 import { testSuite } from "./commands/test.mts";
@@ -120,18 +128,71 @@ export function createCli() {
     .addOption(targetOption())
     .action((options) => prepareRelease(buildTarget(options.target)));
   release
-    .command("publish <directory>")
-    .option(
-      "--execute",
-      "Publish an already verified bundle to an existing remote tag",
-    )
-    .action((directory: string, options: { execute: boolean }) =>
-      publishRelease(directory, options.execute),
+    .command("stage <kind> <output>")
+    .option("--target <target>")
+    .action((kind: string, output: string, options) =>
+      stageReleaseInput(kind, output, options.target),
     );
   release
-    .command("tag")
-    .option("--execute", "Create the local annotated tag")
-    .action((options: { execute: boolean }) => tagRelease(options.execute));
+    .command("source-check")
+    .requiredOption("--source-ref <ref>")
+    .requiredOption("--source-sha <sha>")
+    .requiredOption("--run-id <id>")
+    .requiredOption("--attempt <number>")
+    .action(validateReleaseSource);
+  release
+    .command("candidate")
+    .requiredOption("--source-ref <ref>")
+    .requiredOption("--source-sha <sha>")
+    .requiredOption("--run-id <id>")
+    .requiredOption("--attempt <number>")
+    .requiredOption("--output <directory>")
+    .action(validateReleaseCandidate);
+  release.command("inputs-check <candidate>").action(verifyReleaseInputs);
+  release
+    .command("assemble <candidate> <inputs> <output>")
+    .action(assembleRelease);
+  release
+    .command("image-context <candidate> <inputs> <output>")
+    .action(createImageContext);
+  release
+    .command("publisher-check <candidate>")
+    .option("--candidate-id <id>")
+    .action(async (candidate: string, options) => {
+      await checkPublisher(candidate, options.candidateId);
+    });
+  release
+    .command("image <mode> <candidate> <kind> <output>")
+    .option("--digest <digest>")
+    .action(
+      (
+        mode: string,
+        candidate: string,
+        kind: string,
+        output: string,
+        options,
+      ) => releaseImage(mode, candidate, kind, output, options.digest),
+    );
+  release
+    .command("publish <phase> <candidate> <directory> [images...]")
+    .option("--images-directory <path>")
+    .action(
+      (
+        phase: string,
+        candidate: string,
+        directory: string,
+        images: string[],
+        options,
+      ) =>
+        publishRelease(
+          phase,
+          candidate,
+          directory,
+          images,
+          options.imagesDirectory,
+        ),
+    );
+  release.command("dispatch").action(dispatchRelease);
 
   return cli;
 }

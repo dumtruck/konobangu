@@ -9,7 +9,10 @@ use std::sync::Arc;
 
 use axum::Router;
 use serde::{Deserialize, Serialize};
-use tower_http::compression::CompressionLayer;
+use tower_http::compression::{
+  CompressionLayer,
+  predicate::{DefaultPredicate, Predicate},
+};
 
 use crate::{app::AppContextTrait, errors::RecorderResult, web::middleware::MiddlewareLayer};
 
@@ -36,7 +39,13 @@ impl MiddlewareLayer for Compression {
 
   /// Applies the Compression middleware layer to the Axum router.
   fn apply(&self, app: Router<Arc<dyn AppContextTrait>>) -> RecorderResult<Router<Arc<dyn AppContextTrait>>> {
-    Ok(app.layer(CompressionLayer::new()))
+    let mutable_representation = |_: http::StatusCode, _: http::Version, headers: &http::HeaderMap, _: &http::Extensions| {
+      !headers
+        .get(http::header::CACHE_CONTROL)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.split(',').any(|part| part.trim() == "no-transform"))
+    };
+    Ok(app.layer(CompressionLayer::new().compress_when(DefaultPredicate::new().and(mutable_representation))))
   }
 }
 

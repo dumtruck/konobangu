@@ -44,13 +44,15 @@ storage:
 
 ## File secrets and logging
 
-These six canonical variables accept an absolute path to a regular UTF-8 file (including symlinks to a regular file):
+These canonical variables accept an absolute path to a regular UTF-8 file (including symlinks to a regular file):
 
 | Variable | Field |
 | --- | --- |
-| `AUTH__PROVIDER__PASSWORD_FILE` | `auth.provider.password` |
-| `AUTH__PROVIDER__CLIENT_SECRET_FILE` | `auth.provider.client_secret` |
-| `AUTH__SESSION__DATABASE_URL_FILE` | `auth.session.database_url` |
+| `AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE` | `auth.provider.credentials.password` |
+| `AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE` | `auth.provider.signing.private_key_pem` |
+| `AUTH__PROVIDER__DATABASE__URL_FILE` | `auth.provider.database.url` |
+| `AUTH__RESOURCE_GRANTS__SIGNING_KEY_FILE` | `auth.resource_grants.signing_key` |
+| `AUTH__IDENTITY__DATABASE_URL_FILE` | `auth.identity.database_url` |
 | `DATABASE__URL_FILE` | `database.url` |
 | `DATABASE__MIGRATION__URL_FILE` | `database.migration.url` |
 | `SCHEDULER__DATABASE__URL_FILE` | `scheduler.database.url` |
@@ -70,19 +72,23 @@ services:
   recorder:
     image: your-recorder-image
     environment:
-      AUTH__PROVIDER__PASSWORD_FILE: /run/secrets/basic_password
+      AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE: /run/secrets/basic_password
+      AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE: /run/secrets/provider_key
       DATABASE__URL_FILE: /run/secrets/database_uri
     secrets:
       - basic_password
       - database_uri
+      - provider_key
 secrets:
   basic_password:
     file: ./secrets/basic-password
   database_uri:
     file: ./secrets/database-uri
+  provider_key:
+    file: ./secrets/provider-key.pem
 ```
 
-Provide the remaining native auth/server configuration separately. For OIDC use `AUTH__PROVIDER__CLIENT_SECRET_FILE`; the database URL initializes capabilities automatically; an optional migration URL can select a separate owner credential. No hot reload or secret rotation is implied.
+Provide the remaining native auth/server configuration separately. Bundled OIDC also requires `AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM_FILE`; the public browser client has no client secret. See [provider configuration and cross-platform key generation](002-AUTHENTICATION-DECISION.md#configuration-and-roles). The database URL initializes capabilities automatically; an optional migration URL can select a separate owner credential. No hot reload or secret rotation is implied.
 
 ## Logging configuration
 
@@ -124,7 +130,7 @@ Relative `dir` resolves against the process working directory. Rotation supports
 | `execution.concurrency` / `execution.queue_capacity` | One running / eight queued; concurrency sizes the encoder pool |
 | `execution.deadline_seconds` | 30-second wait/result validity deadline, at most 300 seconds |
 
-Timeout/cancellation rejects late results. A synchronous codec cannot be killed; the real task retains capacity and its budget until completion. Completed or skipped jobs release their working-set reservations before notifying callers; an observed completion means that job no longer consumes admission budget. Cancellation is checked between decode, normalization and encode; cancelled queued items are skipped. Shutdown stops admission, cancels queued work and waits for actual workers outside Tokio workers; the service exit path calls shutdown. Panics are caught inside each join branch so subsequent jobs can run. OOM, abort and native crashes still affect the service process; admission estimates do not provide per-job OS isolation.
+Timeout/cancellation rejects late results. A synchronous codec cannot be killed; the real task retains capacity and its budget until completion. Completed or skipped jobs release their working-set reservations before notifying callers; an observed completion means that job no longer consumes admission budget. Cancellation is checked between decode, normalization and encode; cancelled queued items are skipped. Shutdown stops admission, cancels queued work and waits for actual workers outside Tokio workers; the service exit path calls shutdown. Panics are caught at each encoding job boundary so subsequent jobs can run. OOM, abort and native crashes still affect the service process; admission estimates do not provide per-job OS isolation.
 
 Only static 8-bit SDR RGB/RGBA is optimized, after EXIF orientation. Embedded ICC, PNG cICP/HDR, gamma/chromaticities without an sRGB declaration, animation and other depths fail under the controlled fallback contract. Implicit and explicit sRGB are accepted. Failures preserve originals.
 
@@ -145,7 +151,7 @@ Write mode requires the normal application/identity/scheduler configuration. Rep
 
 ## HTTP and pages
 
-Recorder same-origin `/api/static/` image URLs use `optimize=accept`; external/signed/avatar/icon/data/blob URLs are preserved. Selection happens before conditions and Range. JXL requires explicit positive `image/jxl`; wildcards and `application/jxl` do not enable it. The most specific range determines q, zero excludes, and equal quality uses eligible progressive JXL → eligible existing ordinary JXL → WebP → original, independent of request order. Missing Accept selects original; malformed Accept returns a redacted 400, and exclusion of all available variants returns 406.
+Static image URLs inside the configured API boundary use `optimize=accept`; external URLs are preserved. Private images with either issuer source receive local resource credentials near the viewport and load natively; see the [resource credential contract](002-AUTHENTICATION-DECISION.md#native-resource-credentials). Selection happens before conditions and Range. JXL requires explicit positive `image/jxl`; wildcards and `application/jxl` do not enable it. The most specific range determines q, zero excludes, and equal quality uses eligible progressive JXL → eligible existing ordinary JXL → WebP → original, independent of request order. Missing Accept selects original; malformed Accept returns a redacted 400, and exclusion of all available variants returns 406.
 
 Negotiated 200/206/304/406 merge `Vary: Accept` with other Vary values. Public responses use `public, no-cache`, private use `private, no-cache`, and every private revalidation authorizes first. Derivatives have strong content-hash ETags. Originals without trusted content hashes use precise-path/metadata weak validators. Successful GET/HEAD conditions preserve cache headers and remove body/partial length; denials/errors never become 304. Only GET processes Range after conditions. The locked http-range 0.1.5 HttpRange::parse handles parsing and normalization, including leading zeros, OWS and mixed zero suffixes. A lone zero suffix or all-unsatisfiable NoOverlap maps to 416 with bytes */length; InvalidRange maps to a controlled 400. The application counts list members before parsing and returns full 200 above 16 to bound parser allocation. Returned start/length values are checked for zero length, overflow and representation bounds; overlaps also return full 200. Unknown units and zero-length files ignore Range, while duplicate Range headers remain rejected. The application accepts the library’s tolerance of skipping out-of-bounds starts first (for example bytes=99-2 on 10 bytes returns 416), without claiming stricter integer syntax. Multipart lengths use checked arithmetic and match streamed CRLF/body bytes. HEAD ignores Range/If-Range, returns complete metadata without opening a body stream, and still handles authorized 304. If-Range allows partial transfer only for a valid matching strong ETag of the selected representation; all date forms, weak/mismatched tags and malformed conditions return full 200 because current dates lack strong-validator evidence. Compressed image formats are excluded by the existing Tower compression predicate; bodies are not collected to compute validators.
 
@@ -174,13 +180,18 @@ Files use snake_case; environment variables are the exact uppercase path with `_
 | Group | Ownership |
 | --- | --- |
 | `server`, `logger`, `storage`, `graphql`, `mikan` | HTTP, logging, files, GraphQL limits, source integration |
-| `auth.provider` | `type`, Basic `username/password`, or OIDC `issuer/audience/client_id/client_secret/extra_scopes/extra_claims` |
-| `auth.session` | optional `database_url` (inherits database.url), fixed `public_url`, `cookie_secure`, idle/absolute/login timeouts and cleanup interval in seconds |
+| `auth.provider` | `type = bundled` with `issuer`, `client`, `credentials`, `signing`, `database`, `tokens`; or external `type = oidc` with `issuer`, `browser.client_id/scopes`; both own `resource.audience/required_scopes` |
+| `auth.administrators` | Exact external `{issuer, subject}` application administrator identities; empty by default |
+| `auth.webui` | `allowed_origins` with strict/regex rules for request-selected WebUI origins |
+| `auth.identity` | optional `database_url` (inherits database.url) |
 | `database` | Default `url`; `pool.log_queries/min_connections/max_connections/connect_timeout_ms/idle_timeout_ms/acquire_timeout_ms`; optional owner `migration.url`, default-enabled `auto_run`, `legacy_oidc_issuer` |
 | `scheduler.database/workers/cron` | Optional `url` (inherits database.url); `subscriber_concurrency/system_concurrency`; `poll_interval_seconds` |
 | `media` | `auto_optimize_formats`; `encoding.webp.quality`, explicit `encoding.avif.quality/speed/threads`; `execution.deadline_seconds/queue_capacity/concurrency/working_set_bytes`; `limits.input_bytes/output_bytes/dimension/pixels/decode_bytes` |
 
-The repository `recorder.config.toml` retains its existing pool policy: SQL logging enabled, both connection/idle timeouts at 500 ms and 1–10 connections. These explicit file overrides are distinct from typed defaults. Schema regrouping does not tune parameters; deployments can override their canonical paths. Startup runs migrations and capability grants before opening restricted runtime pools; `database.migration.auto_run` defaults to true. A separate owner URL and external migration control remain optional; see [013](002-AUTHENTICATION-DECISION.md) and [014](003-TASK-DELIVERY-AND-MIGRATION.md).
+`server.external_base_url` is independent API addressing for RSS self-links: `auto` uses the SDK's request-address resolver; a fixed HTTP(S) URL preserves a reverse-proxy path prefix. It never selects a WebUI origin, callback or authorization policy. Set a fixed URL when RSS links must use a canonical external API address.
+
+
+The repository `recorder.config.toml` retains its existing pool policy: SQL logging enabled, both connection/idle timeouts at 500 ms and 1–10 connections. These explicit file overrides are distinct from typed defaults. Schema regrouping does not tune parameters; deployments can override their canonical paths. Startup runs migrations and capability grants before opening restricted runtime pools; `database.migration.auto_run` defaults to true. A separate owner URL and external migration control remain optional; see [authentication](002-AUTHENTICATION-DECISION.md) and [tasks and migrations](003-TASK-DELIVERY-AND-MIGRATION.md).
 
 This is a breaking configuration change. Reorganize existing files and dotenv using this schema; remove HOST/DATABASE_URL aliases, flat auth fields, task.queue_database_uri and flat media knobs. A scheduler owns dispatch, execution, retries and cron; its public name is not a backend queue. Rust wire adapters preserve internal service/domain types without exposing their historical member names as configuration keys. The JPXL business preset remains compiled, with no invented quality mapping or backend knob.
 

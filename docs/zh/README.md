@@ -6,7 +6,7 @@
 
 ## 安装与运行
 
-应用 bundle 包含一个 `recorder-cli` 可执行文件和 `webui/` 目录。图片编码器与 TLS 编译进可执行文件，WebUI 从磁盘托管。运行需要 PostgreSQL 16+，以及用于认证的 OIDC provider，或面向单管理员的 Basic 模式。尚未发布带 tag 的公开版本，发布状态见[路线图](roadmap/001-SHORT-TERM-ROADMAP.md)。目前从源码生成已验收 bundle：
+应用 bundle 包含一个 `recorder-cli` 可执行文件和 `webui/` 目录。图片编码器与 TLS 编译进可执行文件，WebUI 从磁盘托管。运行需要 PostgreSQL 16+，认证可使用内置 OIDC provider 或外部 issuer。内置 Provider 使用浏览器原生 Basic 登录，业务 API 始终使用 Bearer。尚未发布带 tag 的公开版本，未关闭的交付要求见[发布验收](005-RELEASE-ACCEPTANCE.md)。目前从源码准备并验收 bundle：
 
 ```sh
 mise install                       # Node, pnpm, Rust, just and other pinned tools
@@ -14,22 +14,24 @@ just setup                         # frozen installs, workspace checks and git h
 just release prepare --target native # verifies and builds the complete application bundle
 ```
 
-在 `temp/release/0.1.0/` 下生成的平台目录中操作。将 `recorder.config.toml` 放在可执行文件旁，或通过 `--config-file` 指定，至少提供数据库 owner URL 和一个认证 provider。全部字段见[配置](004-MEDIA-AND-CONFIGURATION.md#配置来源)与[认证](002-AUTHENTICATION-DECISION.md#配置与数据库角色)，包括通过文件提供密码和连接串等秘密配置的方式：
+在 prepare 输出的平台目录中操作。将 `recorder.config.toml` 放在可执行文件旁，或通过 `--config-file` 指定，至少提供数据库 owner URL 和一个认证 provider。全部字段见[配置](004-MEDIA-AND-CONFIGURATION.md#配置来源)与[认证](002-AUTHENTICATION-DECISION.md#配置与角色)，包括通过文件提供密码和连接串等秘密配置的方式：
 
 ```toml
 [database]
 url = "postgres://konobangu:PASSWORD@localhost/konobangu"
 
 [auth.provider]
-type = "oidc" # or "basic" for a single administrator
+type = "oidc" # External issuer; bundled setup is documented below.
 issuer = "https://idp.example/"
-audience = "konobangu"
-client_id = "konobangu"
-client_secret = "SERVER_ONLY_SECRET"
 
-[auth.session]
-public_url = "https://konobangu.example/"
+[auth.provider.browser]
+client_id = "konobangu-webui"
+
+[auth.webui]
+allowed_origins = [{ type = "strict", value = "https://ui.konobangu.example" }]
 ```
+
+内置单管理员 Provider 使用 `type = "bundled"`，配置登记回调、凭据及持久 RSA 私钥，见[配置与密钥生成](002-AUTHENTICATION-DECISION.md#配置与角色)。不需要单独认证进程或服务。
 
 运行可执行文件；启动时自动建立受限能力角色、执行迁移并打开连接池：
 
@@ -47,10 +49,11 @@ public_url = "https://konobangu.example/"
 | 认证与数据访问 | [契约](002-AUTHENTICATION-DECISION.md) |
 | 任务投递与数据库升级 | [运维](003-TASK-DELIVERY-AND-MIGRATION.md) |
 | 媒体与配置 | [参考](004-MEDIA-AND-CONFIGURATION.md) |
+| 发布交付与未关闭验收 | [状态与契约](005-RELEASE-ACCEPTANCE.md) |
 | 路线图与后续工作 | [路线图](roadmap/001-SHORT-TERM-ROADMAP.md) |
 | Animeta 模型提案 | [提案](roadmap/002-ANIMETA-MODEL.md) |
 
-四份主题指南描述当前运行契约；`docs/{en,zh}/roadmap/` 维护未来决策与提案。发布历史见 [CHANGELOG](CHANGELOG.md)，Agent 与贡献规则见 [AGENTS.md](../../AGENTS.md)。`temp/` 中的轮次材料是工作证据，不是部署手册。
+运行主题指南描述当前行为，发布验收单列未关闭交付；`docs/{en,zh}/roadmap/` 维护未来决策与提案。发布历史见 [CHANGELOG](CHANGELOG.md)，Agent 与贡献规则见 [AGENTS.md](../../AGENTS.md)。
 
 ### 贡献与分享
 
@@ -62,7 +65,7 @@ public_url = "https://konobangu.example/"
 - `apps/webui`：React UI、SecurityDept 认证与 RxSignal、injection-js DI 和 Apollo GraphQL 数据。
 - `apps/docs`：VitePress 文档站点，通过相对符号链接投影仓库文档真源。
 - `apps/proxy`、`apps/email-playground`：开发工具。
-- `packages/`：下载器、元数据、邮件和测试辅助库。
+- `packages/`：独立 auth-provider、共享数据库／配置 crates、下载器、元数据、邮件和测试辅助库。
 - `scripts/dev-cli.mts`：跨平台 TypeScript 开发工具，由 `just` 调度。
 - `justfiles/`：安装、开发、构建、质量、测试、发布和工具 recipes。
 - `build/`、`deploy/`：Docker 构建输入和许可证通知。

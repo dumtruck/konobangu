@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 use clap::Parser;
 
-use super::{AppContext, core::App, env::Environment};
+use super::{AppContext, AppContextTrait, core::App, env::Environment};
 use crate::{app::config::AppConfig, errors::RecorderResult};
 
 #[derive(Parser, Debug)]
@@ -25,9 +27,9 @@ pub struct MainCliArgs {
   #[arg(long)]
   graceful_shutdown: Option<bool>,
 
-  /// Report upgrade blockers without schema or data changes (migration CLI).
+  /// Atomically export the application GraphQL SDL before serving requests.
   #[arg(long)]
-  migration_preflight: bool,
+  graphql_schema_output: Option<PathBuf>,
 }
 
 pub struct AppBuilder {
@@ -36,7 +38,7 @@ pub struct AppBuilder {
   working_dir: String,
   environment: Environment,
   pub graceful_shutdown: bool,
-  pub migration_preflight: bool,
+  graphql_schema_output: Option<PathBuf>,
 }
 
 impl AppBuilder {
@@ -67,9 +69,9 @@ impl AppBuilder {
       .config_file(args.config_file)
       .dotenv_file(args.dotenv_file)
       .environment(environment)
+      .graphql_schema_output(args.graphql_schema_output)
       .graceful_shutdown(args.graceful_shutdown.unwrap_or(true));
 
-    builder.migration_preflight = args.migration_preflight;
     Ok(builder)
   }
 
@@ -84,6 +86,13 @@ impl AppBuilder {
     let config = self.load_config().await?;
 
     let app_context = AppContext::new(self.environment.clone(), config, self.working_dir.clone()).await?;
+
+    if let Some(path) = self.graphql_schema_output_path()
+      && let Err(error) = app_context.graphql().export_schema(&path)
+    {
+      let _ = App::close_context(app_context.as_ref()).await;
+      return Err(error);
+    }
 
     Ok(App {
       context: app_context,
@@ -119,6 +128,18 @@ impl AppBuilder {
     ret
   }
 
+  pub fn graphql_schema_output(mut self, path: Option<PathBuf>) -> Self {
+    self.graphql_schema_output = path;
+    self
+  }
+
+  fn graphql_schema_output_path(&self) -> Option<PathBuf> {
+    self
+      .graphql_schema_output
+      .clone()
+      .or_else(|| matches!(self.environment, Environment::Development).then(|| PathBuf::from(".cache/graphql/schema.graphql")))
+  }
+
   pub fn graceful_shutdown(self, graceful_shutdown: bool) -> Self {
     let mut ret = self;
     ret.graceful_shutdown = graceful_shutdown;
@@ -150,7 +171,28 @@ impl Default for AppBuilder {
       config_file: None,
       working_dir: String::from("."),
       graceful_shutdown: true,
-      migration_preflight: false,
+      graphql_schema_output: None,
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn graphql_schema_export_defaults_to_development_only_and_accepts_an_explicit_path() {
+    assert_eq!(AppBuilder::default().graphql_schema_output_path(), None);
+    assert_eq!(AppBuilder::default().environment(Environment::Testing).graphql_schema_output_path(), None);
+    assert_eq!(
+      AppBuilder::default().environment(Environment::Development).graphql_schema_output_path(),
+      Some(PathBuf::from(".cache/graphql/schema.graphql"))
+    );
+    assert_eq!(
+      AppBuilder::default()
+        .graphql_schema_output(Some(PathBuf::from("schema.graphql")))
+        .graphql_schema_output_path(),
+      Some(PathBuf::from("schema.graphql"))
+    );
   }
 }

@@ -13,7 +13,7 @@
     "erasableSyntaxOnly": true
   },
   "include": [
-    "scripts/**/*.ts",
+    "tooling/**/*.ts",
     "graphql-codegen.ts",
     "vite.config.ts",
     "vitest.config.ts",

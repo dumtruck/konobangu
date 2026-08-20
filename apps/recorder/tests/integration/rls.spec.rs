@@ -157,9 +157,6 @@ async fn ordinary_role_subscription_policies_and_transaction_identity() {
 #[path = "rls/graphql.spec.rs"]
 mod graphql;
 
-#[path = "rls/session.spec.rs"]
-mod session;
-
 #[path = "rls/protocol.spec.rs"]
 mod protocol;
 
@@ -183,3 +180,6 @@ mod task_delivery_lifecycle;
 
 #[path = "rls/media_delivery.spec.rs"]
 mod media_delivery;
+
+#[path = "rls/bundled_provider.spec.rs"]
+mod bundled_provider;

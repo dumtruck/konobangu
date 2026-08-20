@@ -45,17 +45,38 @@ pub struct AppContext {
 impl AppContext {
   pub async fn new(environment: Environment, mut config: AppConfig, working_dir: impl ToString) -> RecorderResult<Arc<Self>> {
     config.resolve_database_urls();
+    config.validate(&environment)?;
     let config_cloned = config.clone();
 
     let logger = LoggerService::from_config(config.logger).await?;
     let cache = CacheService::from_config(config.cache).await?;
     let db = DatabaseService::from_app_config(&config_cloned).await?;
-    let storage = StorageService::from_config(config.storage).await?;
-    let message = MessageService::from_config(config.message).await?;
-    let mikan = MikanClient::from_config(config.mikan).await?;
-    let crypto = CryptoService::from_config(config.crypto).await?;
-    let media = MediaService::from_config(config.media).await?;
-    let auth = AuthService::from_conf(config.auth).await?;
+    let auth = match AuthService::from_conf(config.auth).await {
+      Ok(auth) => auth,
+      Err(error) => {
+        let _ = db.as_ref().clone().close().await;
+        return Err(error.into());
+      }
+    };
+    let resources = async {
+      let storage = StorageService::from_config(config.storage).await?;
+      let message = MessageService::from_config(config.message).await?;
+      let mikan = MikanClient::from_config(config.mikan).await?;
+      let crypto = CryptoService::from_config(config.crypto).await?;
+      // Acquire the background executor last so no later fallible setup can
+      // abandon it without an owned shutdown path.
+      let media = MediaService::from_config(config.media).await?;
+      Ok::<_, crate::errors::RecorderError>((storage, message, mikan, crypto, media))
+    }
+    .await;
+    let (storage, message, mikan, crypto, media) = match resources {
+      Ok(resources) => resources,
+      Err(error) => {
+        let _ = auth.close().await;
+        let _ = db.as_ref().clone().close().await;
+        return Err(error);
+      }
+    };
 
     let ctx = Arc::new(AppContext {
       config: config_cloned,
@@ -89,12 +110,13 @@ impl AppContext {
     }
     .await;
     if let Err(error) = initialized {
-      ctx.auth.runtime().close().await?;
+      // Preserve the initialization error after attempting every owned cleanup.
+      let _ = ctx.auth.close().await;
       if let Some(task) = ctx.task.get() {
-        task.close().await?;
+        let _ = task.close().await;
       }
-      ctx.media.shutdown().await?;
-      ctx.db.as_ref().clone().close().await?;
+      let _ = ctx.media.shutdown().await;
+      let _ = ctx.db.as_ref().clone().close().await;
       return Err(error);
     }
 

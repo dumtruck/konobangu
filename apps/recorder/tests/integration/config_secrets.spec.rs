@@ -11,10 +11,15 @@ async fn config_secrets_child() {
   if std::env::var("CONFIG_SECRETS_CHILD").is_err() {
     return;
   }
-  AppConfig::load_dotenv(&Environment::Testing, Some(&std::env::var("CONFIG_SECRETS_DOTENV").unwrap()))
+  let environment = if std::env::var("CONFIG_SECRETS_PRODUCTION").is_ok() {
+    Environment::Production
+  } else {
+    Environment::Testing
+  };
+  AppConfig::load_dotenv(&environment, Some(&std::env::var("CONFIG_SECRETS_DOTENV").unwrap()))
     .await
     .unwrap();
-  let config = AppConfig::load_config(&Environment::Testing, Some(&std::env::var("CONFIG_SECRETS_PATH").unwrap())).await;
+  let config = AppConfig::load_config(&environment, Some(&std::env::var("CONFIG_SECRETS_PATH").unwrap())).await;
   if let Ok(category) = std::env::var("CONFIG_SECRETS_ERROR") {
     let error = config.unwrap_err();
     let text = format!("{error:?} {error}");
@@ -53,7 +58,7 @@ impl Fixture {
     Self { root, path, dotenv }
   }
   fn config(&self, extra: &str) {
-    std::fs::write(&self.path,format!("[server]\nport=5001\n[auth.provider]\ntype='basic'\nusername='fixture'\npassword='fixture'\n[auth.session]\ndatabase_url='postgres://fixture/identity'\npublic_url='http://127.0.0.1:5001'\n[database]\nurl='postgres://fixture/business'\n{extra}")).unwrap();
+    std::fs::write(&self.path,format!("[server]\nport=5001\n[auth.provider]\ntype='bundled'\nissuer='https://issuer.test/auth-provider'\n[auth.provider.client]\nclient_id='fixture'\nredirect_uris=['http://127.0.0.1:5001/auth/callback']\n[auth.provider.credentials]\nusername='fixture'\npassword='fixture'\n[auth.provider.signing]\nprivate_key_pem='fixture-key'\n[auth.identity]\ndatabase_url='postgres://fixture/identity'\n[auth.webui]\nallowed_origins=[{{type='strict',value='http://127.0.0.1:5001'}}]\n[database]\nurl='postgres://fixture/business'\n{extra}")).unwrap();
   }
   fn command(&self) -> Command {
     let mut c = Command::new(std::env::current_exe().unwrap());
@@ -126,7 +131,7 @@ fn config_secrets_interpolation_provenance_and_native_structure() {
   for extra in [
     "[scheduler.worker]\nconcurrency=2",
     "[database.pool]\nconnect_timeout=500",
-    "[auth.session]\npublic_urll='http://fixture'",
+    "[auth.webui]\nallowed_originss='http://fixture'",
     "[media.execution]\nconcurency=2",
   ] {
     f.config(extra);
@@ -141,7 +146,7 @@ fn config_secrets_interpolation_provenance_and_native_structure() {
   f.config("[storage]\ndata_dir='${EMPTY:-}'");
   f.check(f.command().env("EMPTY", "").env("CONFIG_SECRETS_EXPECTED", r#"{"/storage/data_dir":""}"#));
   let yaml = f.root.join("config.yaml");
-  std::fs::write(&yaml,"server:\n  <<: &BASE\n    host: '${HOSTNAME:-fixture}'\n    port: 5001\n  port: 6008\nauth:\n  provider:\n    type: basic\n    username: fixture\n    password: fixture\n  session:\n    database_url: postgres://fixture/identity\n    public_url: http://127.0.0.1:5001\ndatabase:\n  url: postgres://fixture/business\nmedia:\n  auto_optimize_formats: [image/webp]\n").unwrap();
+  std::fs::write(&yaml,"server:\n  <<: &BASE\n    host: '${HOSTNAME:-fixture}'\n    port: 5001\n  port: 6008\nauth:\n  provider:\n    type: bundled\n    issuer: https://issuer.test/auth-provider\n    client:\n      client_id: fixture\n      redirect_uris: ['http://127.0.0.1:5001/auth/callback']\n    credentials:\n      username: fixture\n      password: fixture\n    signing:\n      private_key_pem: fixture-key\n  identity:\n    database_url: postgres://fixture/identity\n  webui:\n    allowed_origins: [{type: strict, value: 'http://127.0.0.1:5001'}]\ndatabase:\n  url: postgres://fixture/business\nmedia:\n  auto_optimize_formats: [image/webp]\n").unwrap();
   f.check(
     f.command()
       .env("CONFIG_SECRETS_PATH", yaml)
@@ -149,14 +154,44 @@ fn config_secrets_interpolation_provenance_and_native_structure() {
   );
 }
 #[test]
-fn config_secrets_six_maps_conflicts_and_literal_content() {
+fn bundled_http_issuer_is_a_development_exception_and_production_requires_https() {
+  let fixture = Fixture::new();
+  fixture.config("");
+  fixture.check(fixture.command().env("AUTH__PROVIDER__ISSUER", "http://127.0.0.1:5001/auth-provider"));
+  fixture.check(fixture.command().env("CONFIG_SECRETS_PRODUCTION", "1"));
+  fixture.check(
+    fixture
+      .command()
+      .env("CONFIG_SECRETS_PRODUCTION", "1")
+      .env("AUTH__PROVIDER__ISSUER", "http://127.0.0.1:5001/auth-provider")
+      .env("CONFIG_SECRETS_ERROR", "production requires an HTTPS issuer"),
+  );
+}
+
+#[test]
+fn config_secrets_maps_conflicts_and_literal_content() {
   let f = Fixture::new();
   f.config("");
   for (name, path, value) in [
-    ("AUTH__PROVIDER__PASSWORD", "/auth/provider/password", "true"),
+    ("AUTH__PROVIDER__CREDENTIALS__PASSWORD", "/auth/provider/credentials/password", "true"),
     (
-      "AUTH__SESSION__DATABASE_URL",
-      "/auth/session/database_url",
+      "AUTH__PROVIDER__SIGNING__PRIVATE_KEY_PEM",
+      "/auth/provider/signing/private_key_pem",
+      "SENTINEL-private-key\n${FINAL}",
+    ),
+    (
+      "AUTH__PROVIDER__DATABASE__URL",
+      "/auth/provider/database/url",
+      "postgres://SENTINEL-provider@fixture/provider",
+    ),
+    (
+      "AUTH__RESOURCE_GRANTS__SIGNING_KEY",
+      "/auth/resource_grants/signing_key",
+      "SENTINEL-native-resource-root-key",
+    ),
+    (
+      "AUTH__IDENTITY__DATABASE_URL",
+      "/auth/identity/database_url",
       "postgres://SENTINEL-id@fixture/identity",
     ),
     ("DATABASE__URL", "/database/url", "postgres://SENTINEL-db@fixture/business"),
@@ -183,25 +218,31 @@ fn config_secrets_six_maps_conflicts_and_literal_content() {
         .env("CONFIG_SECRETS_ERROR", "duplicate"),
     );
   }
+  // The browser client is public, so no provider client secret exists.
   let oidc = f.root.join("oidc.toml");
-  std::fs::write(&oidc,"[server]\nport=5001\n[auth.provider]\ntype='oidc'\nissuer='http://127.0.0.1:5002/'\nclient_id='fixture'\naudience='fixture'\nclient_secret='fixture'\n[auth.session]\ndatabase_url='postgres://fixture/identity'\npublic_url='http://127.0.0.1:5001'\n[database]\nurl='postgres://fixture/business'").unwrap();
+  std::fs::write(&oidc,"[server]\nport=5001\n[auth.provider]\ntype='oidc'\nissuer='http://127.0.0.1:5002/'\n[auth.provider.browser]\nclient_id='fixture'\n[auth.webui]\nallowed_origins=[{type='strict',value='http://127.0.0.1:5001'}]\n[database]\nurl='postgres://fixture/business'").unwrap();
   let secret = "SENTINEL-'\"\n${FINAL}";
-  let file = f.secret("oidc", secret);
+  let file = f.secret("oidc", "postgres://SENTINEL-identity@fixture/id");
+  f.check(
+    f.command()
+      .env("CONFIG_SECRETS_PATH", &oidc)
+      .env("AUTH__IDENTITY__DATABASE_URL_FILE", file)
+      .env(
+        "CONFIG_SECRETS_EXPECTED",
+        serde_json::json!({"/auth/identity/database_url":"postgres://SENTINEL-identity@fixture/id"}).to_string(),
+      ),
+  );
   f.check(
     f.command()
       .env("CONFIG_SECRETS_PATH", oidc)
-      .env("AUTH__PROVIDER__CLIENT_SECRET_FILE", file)
-      .env(
-        "CONFIG_SECRETS_EXPECTED",
-        serde_json::json!({"/auth/provider/client_secret":secret}).to_string(),
-      ),
+      .env("AUTH__PROVIDER__CLIENT_SECRET_FILE", "/missing")
+      .env("CONFIG_SECRETS_ERROR", "unsupported"),
   );
   let file = f.secret("password", secret);
-  f.check(
-    f.command()
-      .env("AUTH__PROVIDER__PASSWORD_FILE", file)
-      .env("CONFIG_SECRETS_EXPECTED", serde_json::json!({"/auth/provider/password":secret}).to_string()),
-  );
+  f.check(f.command().env("AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE", file).env(
+    "CONFIG_SECRETS_EXPECTED",
+    serde_json::json!({"/auth/provider/credentials/password":secret}).to_string(),
+  ));
   f.check(
     f.command()
       .env("DATABASE__PASSWORD_FILE", "/missing")
@@ -223,12 +264,16 @@ fn config_secrets_bounded_file_validation_and_symlink() {
   for file in files {
     f.check(
       f.command()
-        .env("AUTH__PROVIDER__PASSWORD_FILE", file)
+        .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE", file)
         .env("CONFIG_SECRETS_ERROR", "file secret"),
     );
   }
   for value in ["", "relative"] {
-    f.check(f.command().env("AUTH__PROVIDER__PASSWORD_FILE", value).env("CONFIG_SECRETS_ERROR", "absolute"));
+    f.check(
+      f.command()
+        .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE", value)
+        .env("CONFIG_SECRETS_ERROR", "absolute"),
+    );
   }
   let file = f.secret("readonly", b"123");
   let mut permissions = std::fs::metadata(&file).unwrap().permissions();
@@ -240,12 +285,16 @@ fn config_secrets_bounded_file_validation_and_symlink() {
     std::os::unix::fs::symlink(&file, &link).unwrap();
     f.check(
       f.command()
-        .env("AUTH__PROVIDER__PASSWORD_FILE", link)
-        .env("CONFIG_SECRETS_EXPECTED", r#"{"/auth/provider/password":"123"}"#),
+        .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE", link)
+        .env("CONFIG_SECRETS_EXPECTED", r#"{"/auth/provider/credentials/password":"123"}"#),
     );
     let fifo = f.root.join("fifo");
     assert!(Command::new("mkfifo").arg(&fifo).status().unwrap().success());
-    f.check(f.command().env("AUTH__PROVIDER__PASSWORD_FILE", fifo).env("CONFIG_SECRETS_ERROR", "regular"));
+    f.check(
+      f.command()
+        .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD_FILE", fifo)
+        .env("CONFIG_SECRETS_ERROR", "regular"),
+    );
   }
   let newline = f.secret("uri", "postgres://SENTINEL@fixture/business\n");
   f.check(f.command().env("DATABASE__URL_FILE", newline).env("CONFIG_SECRETS_ERROR", "database.url"));
@@ -264,8 +313,8 @@ fn config_secrets_actual_startup_errors_redact_all_sensitive_inputs() {
       "--dotenv-file",
       f.dotenv.to_str().unwrap(),
     ])
-    .env("AUTH__PROVIDER__PASSWORD", "SENTINEL-password-\"\n${FINAL}")
-    .env("AUTH__SESSION__DATABASE_URL", "postgres://SENTINEL-identity@127.0.0.1:1/id")
+    .env("AUTH__PROVIDER__CREDENTIALS__PASSWORD", "SENTINEL-password-\"\n${FINAL}")
+    .env("AUTH__IDENTITY__DATABASE_URL", "postgres://SENTINEL-identity@127.0.0.1:1/id")
     .env("DATABASE__URL", "postgres://SENTINEL-business@127.0.0.1:1/db")
     .env("DATABASE__MIGRATION__URL", "postgres://SENTINEL-migration@127.0.0.1:1/db")
     .env("SCHEDULER__DATABASE__URL", "postgres://SENTINEL-queue@127.0.0.1:1/db")

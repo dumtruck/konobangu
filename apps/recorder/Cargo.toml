@@ -74,13 +74,15 @@ path = "examples/media_bench.rs"
 required-features = ["jxl"]
 
 [dependencies]
-sqlx08 = { package = "sqlx", version = "=0.8.6", default-features = false, features = ["postgres", "runtime-tokio"] }
-tower-sessions-core-014 = { package = "tower-sessions-core", version = "=0.14.0" }
+libmacaroon = { version = "0.3", default-features = false, features = ["v2json"] }
 sqlx = { version = "=0.9.0", default-features = false, features = ["postgres", "runtime-tokio", "chrono", "uuid", "json"] }
 downloader = { workspace = true }
 util = { workspace = true }
 fetch = { workspace = true }
 animeta = { workspace = true }
+konobangu-configuration = { workspace = true }
+konobangu-database = { workspace = true }
+konobangu-auth-provider = { workspace = true }
 
 serde = { workspace = true }
 tokio = { workspace = true }
@@ -169,7 +171,6 @@ tower-http = { version = "0.7", features = [
   "compression-full",
 ] }
 dotenvy = "0.15.7"
-shellexpand = { version = "=3.1.2", default-features = false, features = ["base-0"] }
 sha2 = "0.10.9"
 mediatype = "=0.21.0"
 http-range = "=0.1.5"
@@ -194,12 +195,13 @@ croner = "4"
 ts-rs = "12"
 paste = "1.0.15"
 chrono-tz = "0.10.4"
-securitydept-oidc-client = { version = "=0.3.0", default-features = false }
-securitydept-session-context = { version = "=0.3.0", default-features = false }
-tower-sessions = { version = "=0.15.0", default-features = false, features = ["axum-core"] }
-tower-sessions-sqlx-store = { version = "=0.15.0", default-features = false, features = ["postgres"] }
+securitydept-oauth-resource-server = { version = "=0.3.3", default-features = false }
+securitydept-token-set-context = { version = "=0.3.3", default-features = false }
+securitydept-creds = { version = "=0.3.3", default-features = false, features = ["rfc9068"] }
+securitydept-utils = { version = "=0.3.3", default-features = false }
 
 [dev-dependencies]
+tracing-log = "0.2"
 sysinfo = { version = "0.39.6", features = ["system"] }
 mockito = { workspace = true }
 tracing-tree = "0.4.1"

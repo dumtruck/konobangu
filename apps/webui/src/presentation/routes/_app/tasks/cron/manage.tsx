@@ -16,7 +16,6 @@ import {
   useServerTableState,
 } from "@/components/ui/data-table-state";
 import { DetailEmptyView } from "@/components/ui/detail-empty-view";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { DropdownMenuActions } from "@/components/ui/dropdown-menu-actions";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,11 +33,9 @@ import {
   apolloErrorToMessage,
   getApolloQueryError,
 } from "@/infra/errors/apollo";
-import { CronStatusEnum } from "@/infra/graphql/gql/graphql";
 import { IntlService } from "@/infra/intl";
 import type { RouteStateDataOption } from "@/infra/routes/traits";
 import { useDebouncedSkeleton } from "@/presentation/hooks/use-debounded-skeleton";
-import { getStatusBadge } from "./-status-badge";
 
 export const Route = createFileRoute("/_app/tasks/cron/manage")({
   component: TaskCronManageRouteComponent,
@@ -190,8 +187,9 @@ export function TaskCronManageRouteComponent() {
                   </div>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
-                  {getStatusBadge(cron.status)}
-                  <Badge variant="outline">Priority: {cron.priority}</Badge>
+                  <Badge variant={cron.enabled ? "default" : "secondary"}>
+                    {cron.enabled ? "Enabled" : "Disabled"}
+                  </Badge>
                   <div className="mr-0 ml-auto">
                     <DropdownMenuActions
                       id={cron.id}
@@ -216,17 +214,7 @@ export function TaskCronManageRouteComponent() {
                           },
                         })
                       }
-                    >
-                      {cron.status === CronStatusEnum.Failed && (
-                        <DropdownMenuItem
-                          onSelect={() => {
-                            // TODO: Retry cron
-                          }}
-                        >
-                          Retry
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuActions>
+                    />
                   </div>
                 </div>
 
@@ -249,24 +237,6 @@ export function TaskCronManageRouteComponent() {
                         : "-"}
                     </span>
                   </div>
-
-                  {/* Attempts */}
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Attempts: </span>
-                    <span>
-                      {cron.attempts} / {cron.maxAttempts}
-                    </span>
-                  </div>
-
-                  {/* Lock at */}
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Lock at: </span>
-                    <span>
-                      {cron.lockedAt
-                        ? intlService.formatDatetimeWithTz(cron.lockedAt)
-                        : "-"}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Subscriber task cron */}
@@ -280,8 +250,8 @@ export function TaskCronManageRouteComponent() {
                   </div>
                 )}
 
-                {/* Error if exists */}
-                {cron.status === CronStatusEnum.Failed && cron.lastError && (
+                {/* Scheduling diagnostics, not an execution result */}
+                {cron.lastError && (
                   <div className="rounded bg-destructive/10 p-2 text-destructive text-sm">
                     {cron.lastError}
                   </div>

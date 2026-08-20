@@ -2,6 +2,10 @@
 dev-webui:
     pnpm --filter webui exec vite
 
+# Watch the TypeScript reference graph independently of the bundler.
+dev-types:
+    pnpm exec tsc -b --watch
+
 prod-webui: build-webui
     node scripts/dev-cli.mts copy-webui
 

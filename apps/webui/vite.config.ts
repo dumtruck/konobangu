@@ -1,53 +1,63 @@
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
-import type { Plugin } from "vite";
-import { defaultClientConditions, defineConfig, loadEnv } from "vite";
-import checker from "vite-plugin-checker";
-import monacoEditorPluginModule, {
-  type IMonacoEditorOpts,
-} from "vite-plugin-monaco-editor";
+import { defaultClientConditions, defineConfig } from "vite";
+import { createBundledNotices } from "./tooling/vite-bundled-notices.ts";
 
-// vite-plugin-monaco-editor uses CJS-style export with nested default
-const monacoEditorPlugin = (
-  monacoEditorPluginModule as unknown as {
-    default: (options: IMonacoEditorOpts) => Plugin;
-  }
-).default;
-
-export default defineConfig(({ mode }) => {
-  // Load only the public provider selector; backend credentials are never defined.
-  const provider = loadEnv(
-    mode,
-    process.cwd(),
-    "AUTH__PROVIDER__TYPE",
-  ).AUTH__PROVIDER__TYPE;
-  if (provider !== "basic" && provider !== "oidc")
-    throw new Error("AUTH__PROVIDER__TYPE must be explicitly basic or oidc.");
+// The login mode is published at runtime through konobangu.config.json and
+// GET auth/config, so one build serves every deployment and no auth setting is
+// compiled in.
+export default defineConfig(() => {
+  const notices = createBundledNotices();
   return {
     resolve: {
       tsconfigPaths: true,
       conditions: ["monorepo-tsc", ...defaultClientConditions],
+      // Schema objects cross Apollo, GraphiQL and the Monaco language service.
+      dedupe: ["graphql", "react", "react-dom"],
       // GraphiQL only imports c; React 19 provides the official compiler runtime.
       alias: { "react-compiler-runtime": "react/compiler-runtime" },
     },
+    worker: { plugins: () => [notices.collector()] },
     plugins: [
+      notices.collector(),
       tanstackRouter({ target: "react", autoCodeSplitting: true }),
       react(),
-      checker({
-        // Fresh bindings require building references before checking the app.
-        typescript: { buildMode: true },
-      }),
-      monacoEditorPlugin({
-        languageWorkers: ["editorWorkerService", "json"],
-      }),
+      notices.finalize(),
     ],
+    optimizeDeps: {
+      // Bootstrap and router imports are deferred. Scan their source entries
+      // before serving so a cold dev page cannot outlive its dependency hashes.
+      entries: [
+        "index.html",
+        "src/app/entry.tsx",
+        "src/presentation/routes/**/*.tsx",
+      ],
+      // Official worker imports need their ESM source graph. Prebundle its
+      // CJS-only leaves as recommended for excluded ESM dependencies by Vite.
+      include: [
+        "graphql",
+        "react-compiler-runtime",
+        "graphiql > @graphiql/react > get-value",
+        "graphiql > @graphiql/react > set-value",
+        "graphiql > @graphiql/react > graphql-language-service > nullthrows",
+        "graphiql > @graphiql/react > monaco-graphql > picomatch-browser",
+        "graphiql > @graphiql/react > prettier/parser-graphql",
+        "graphiql > @graphiql/react > prettier/parser-babel",
+        "graphiql > @graphiql/plugin-doc-explorer > @headlessui/react > use-sync-external-store/with-selector",
+        "graphiql > @graphiql/react > monaco-graphql/esm/monaco-editor.js",
+        "graphiql > @graphiql/react > monaco-graphql/esm/lite.js",
+      ],
+      // The official worker setup imports `?worker` modules. That suffix is a
+      // source-graph feature, so the dependency optimizer cannot resolve it from
+      // inside a prebundled dependency; keep these in the source graph instead.
+      exclude: ["graphiql", "@graphiql/react"],
+    },
     build: {
+      target: ["chrome140", "firefox140", "safari18.6"],
+      cssTarget: ["chrome140", "firefox140", "safari18.6"],
       // Monaco is a deferred 2.8 MB editor chunk; keep a finite 3 MB raw budget.
       // Cold-start tests separately reject eager Temporal polyfill loading.
       chunkSizeWarningLimit: 3000,
-    },
-    define: {
-      "process.env.AUTH__PROVIDER__TYPE": JSON.stringify(provider),
     },
     server: {
       host: "0.0.0.0",

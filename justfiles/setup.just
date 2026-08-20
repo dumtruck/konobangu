@@ -6,6 +6,11 @@ setup:
     uv sync
     pnpm exec prek install
 
+# Install current browser engines and the minimum supported Chromium fixture.
+setup-browser:
+    pnpm --filter webui exec playwright install --with-deps chromium firefox webkit
+    pnpm dlx playwright@{{browser_baseline_playwright_version}} install chromium --only-shell
+
 prepare-dev:
     cargo install cargo-binstall
     cargo binstall sea-orm-cli cargo-llvm-cov cargo-nextest
